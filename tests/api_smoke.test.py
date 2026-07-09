@@ -100,6 +100,13 @@ def main():
         assert bootstrap["student_graph"]["graph_type"] == "student_ability"
         assert bootstrap["tool_suggestions"]
 
+        dashboard = request_json("/api/student/dashboard?session_id=api-smoke-test")
+        assert dashboard["session_id"] == "api-smoke-test"
+        assert dashboard["dashboard_title"] == "学生学习驾驶舱"
+        assert dashboard["readiness_score"] >= 0
+        assert dashboard["today_actions"]
+        assert dashboard["tool_suggestions"]
+
         chat_reply = request_json(
             "/api/chat/message",
             {
@@ -133,6 +140,12 @@ def main():
 
         bootstrap_after_chat = request_json("/api/student/bootstrap?session_id=api-smoke-test")
         assert bootstrap_after_chat["learner_context"]["next_best_actions"]
+
+        dashboard_after_chat = request_json("/api/student/dashboard?session_id=api-smoke-test")
+        assert dashboard_after_chat["event_count"] >= 1
+        assert dashboard_after_chat["immediate_focus"]
+        assert dashboard_after_chat["evidence_summary"]["recent_events"]
+        assert dashboard_after_chat["self_critique"]
 
         personalized_quiz = request_json(
             "/api/quiz/personalized",

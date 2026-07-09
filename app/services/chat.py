@@ -11,6 +11,7 @@ from .safety import safety_notice
 
 
 TOOLS = [
+    {"id": "dashboard", "label": "学习驾驶舱"},
     {"id": "job_graph", "label": "岗位能力图谱"},
     {"id": "student_graph", "label": "个人能力图谱"},
     {"id": "graph", "label": "当前问题图谱"},
@@ -124,6 +125,7 @@ def suggested_questions_from_assist(assist_result):
 
 def tool_suggestions_from_assist(assist_result):
     suggestions = [
+        {"id": "dashboard", "label": "查看学习驾驶舱"},
         {"id": "graph", "label": "查看当前问题图谱"},
         {"id": "student_graph", "label": "更新个人能力图谱"},
     ]

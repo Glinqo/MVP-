@@ -30,6 +30,7 @@ from app.services.recommendation import diagnose  # noqa: E402
 from app.services.retrieval import search_knowledge  # noqa: E402
 from app.services.scenario import list_scenarios, start_scenario, step_scenario  # noqa: E402
 from app.services.scoring import score_answers  # noqa: E402
+from app.services.student_dashboard import build_student_dashboard  # noqa: E402
 
 
 WEB_DIR = ROOT / "web"
@@ -95,6 +96,10 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/student/bootstrap":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(student_bootstrap(session_id))
+
+        if path == "/api/student/dashboard":
+            session_id = parse_qs(parsed.query).get("session_id", [None])[0]
+            return self.send_json(build_student_dashboard(session_id))
 
         if path == "/api/graph/updates":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]

@@ -184,6 +184,37 @@
       ]
     },
     {
+      "id": "student_learning_dashboard",
+      "name": "Student learning dashboard that turns personal graph evidence into immediate next actions",
+      "borrowed_from": [
+        "Inno Agent",
+        "DeepTutor",
+        "EduAdapt AI",
+        "PersonalizedAdaptiveLearning"
+      ],
+      "source_refs": [
+        "Inno Agent/apps/inno-agent/src/memory/learner/context-pack.ts:118 formatContextPackForPrompt",
+        "Inno Agent/apps/inno-agent/src/memory/learner/auto-profile.ts:403 applyLearningEventToProfile",
+        "DeepTutor/deeptutor/api/routers/mastery_path.py",
+        "EduAdapt AI/assessment/progress_tracker.py:80 get_student_insights",
+        "EduAdapt AI/assessment/progress_tracker.py:127 identify_knowledge_gaps",
+        "PersonalizedAdaptiveLearning/learning_paths/ml/adaptive_path_lstm.py:497 weak_topics and recommended_path"
+      ],
+      "local_implementation": [
+        "app/services/student_dashboard.py",
+        "app/server.py:/api/student/dashboard",
+        "web/index.html",
+        "web/app.js",
+        "web/styles.css",
+        "docs/student_side_enhancement_strategy.md"
+      ],
+      "mvp_adaptation": "The dashboard avoids a new database or model. It summarizes the session personal graph into readiness, risks, focus abilities, today's actions, tool suggestions, and recent evidence.",
+      "verification": [
+        "tests/api_smoke.test.py checks /api/student/dashboard before and after chat events",
+        "web/app.js syntax check"
+      ]
+    },
+    {
       "id": "personalized_training_plan",
       "name": "Personalized learning path with stages, today sheet, seven-day plan, resources, and checkpoints",
       "borrowed_from": [

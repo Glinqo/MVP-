@@ -14,6 +14,7 @@
 如果只是想快速看清楚这个产品做什么、亮点在哪里、如何演示，先读：
 
 - [产品功能与亮点说明](docs/product_overview.md)
+- [学生端增强路线与借鉴方案](docs/student_side_enhancement_strategy.md)
 - [产品范围](docs/product_scope.md)
 - [演示脚本](docs/demo_script.md)
 

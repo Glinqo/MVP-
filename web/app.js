@@ -6,6 +6,7 @@ const state = {
   lastDiagnosis: null,
   personalizedQuestions: [],
   personalizedPlan: null,
+  studentDashboard: null,
   learnerContext: null,
   lastExplanation: null,
   explainPrompt: "",
@@ -17,7 +18,7 @@ const state = {
     student: null,
     current: null
   },
-  activeWorkspace: "graph",
+  activeWorkspace: "dashboard",
   activeGraphView: "job",
   sessionId: `demo-${Date.now()}`
 };
@@ -71,6 +72,148 @@ function renderLearnerContext(context) {
       ` : '<p class="muted">完成一次问答、自测或讲题后，这里会出现下一步动作。</p>'}
     </div>
   `;
+}
+
+function renderCountChips(counts = {}) {
+  const labels = {
+    weak: "薄弱",
+    improving: "提升中",
+    recommended_next: "建议下一步",
+    touched: "问答命中",
+    mastered: "已掌握",
+    unknown: "待确认"
+  };
+  return Object.entries(labels).map(([key, label]) => `
+    <span class="dashboard-chip">${escapeHtml(label)} ${escapeHtml(counts[key] || 0)}</span>
+  `).join("");
+}
+
+function dashboardToolButton(toolId, label, graphView = "") {
+  return `<button type="button" data-dashboard-tool="${escapeHtml(toolId)}" ${graphView ? `data-dashboard-graph="${escapeHtml(graphView)}"` : ""}>${escapeHtml(label)}</button>`;
+}
+
+function attachDashboardActions(root) {
+  root.querySelectorAll("[data-dashboard-tool]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const tool = button.dataset.dashboardTool;
+      if (tool === "chat") {
+        closeWorkspace();
+        $("chatInput").focus();
+        return;
+      }
+      if (tool === "student_graph") {
+        openWorkspace("graph", "student");
+        return;
+      }
+      openWorkspace(tool, button.dataset.dashboardGraph);
+    });
+  });
+  root.querySelectorAll("[data-dashboard-ask]").forEach((button) => {
+    button.addEventListener("click", () => askFromTool(button.dataset.dashboardAsk));
+  });
+}
+
+function renderStudentDashboard(data) {
+  state.studentDashboard = data;
+  const focus = data?.immediate_focus || [];
+  const actions = data?.today_actions || [];
+  const risks = data?.risk_flags || [];
+  const recent = data?.evidence_summary?.recent_events || [];
+  $("studentDashboard").classList.remove("muted");
+  $("studentDashboard").innerHTML = data ? `
+    <section class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Readiness</p>
+        <h3>${escapeHtml(data.readiness_level || "")}</h3>
+        <p>${escapeHtml(data.headline || "")}</p>
+        <div class="dashboard-chips">${renderCountChips(data.status_counts)}</div>
+      </div>
+      <div class="readiness-meter">
+        <strong>${escapeHtml(data.readiness_score ?? 0)}</strong>
+        <span>岗位准备度</span>
+      </div>
+    </section>
+
+    <div class="dashboard-grid">
+      <section class="dashboard-card">
+        <h3>马上处理</h3>
+        ${focus.length ? focus.map((item) => `
+          <article class="focus-item">
+            <div class="node-head">
+              <strong>${escapeHtml(item.ability_name)}</strong>
+              <span class="node-badge">${escapeHtml(item.status_label || statusLabel(item.status))}</span>
+            </div>
+            <p>${escapeHtml(item.reason || "")}</p>
+            <p class="muted">掌握度 ${escapeHtml(item.mastery_score ?? "-")} · 置信度 ${escapeHtml(item.confidence ?? "-")}</p>
+            <div class="question-actions">
+              ${dashboardToolButton("student_graph", "看证据")}
+              ${dashboardToolButton("plan", "生成训练单")}
+              <button type="button" data-dashboard-ask="${escapeHtml(`请用现场排故方式讲解：${item.ability_name}`)}">问 AI 讲解</button>
+            </div>
+          </article>
+        `).join("") : '<p class="muted">暂无能力证据，先问一个真实问题或做一次自测。</p>'}
+      </section>
+
+      <section class="dashboard-card">
+        <h3>今日动作</h3>
+        ${actions.length ? `
+          <ol class="compact-list">
+            ${actions.map((item) => `
+              <li>
+                <strong>${escapeHtml(item.title)}</strong>
+                <div>${escapeHtml(item.action)}</div>
+                <div class="question-actions">${dashboardToolButton(item.tool_id || "plan", item.tool_id === "chat" ? "回到对话" : "打开工具")}</div>
+              </li>
+            `).join("")}
+          </ol>
+        ` : '<p class="muted">暂无今日动作。</p>'}
+      </section>
+
+      <section class="dashboard-card">
+        <h3>风险提醒</h3>
+        ${risks.length ? risks.map((item) => `
+          <div class="dashboard-risk ${escapeHtml(item.level || "")}">
+            <strong>${escapeHtml(item.title)}</strong>
+            <p>${escapeHtml(item.detail)}</p>
+          </div>
+        `).join("") : '<p class="muted">暂无高风险提醒。</p>'}
+      </section>
+
+      <section class="dashboard-card">
+        <h3>推荐工具</h3>
+        <div class="dashboard-tool-grid">
+          ${(data.tool_suggestions || []).map((item) => `
+            <button type="button" data-dashboard-tool="${escapeHtml(item.id === "student_graph" ? "student_graph" : item.id)}">
+              <strong>${escapeHtml(item.label)}</strong>
+              <span>${escapeHtml(item.reason || "")}</span>
+            </button>
+          `).join("")}
+        </div>
+      </section>
+    </div>
+
+    <section class="dashboard-card">
+      <h3>最近证据</h3>
+      ${recent.length ? `
+        <ul class="item-list">
+          ${recent.map((item) => `
+            <li>
+              <strong>${escapeHtml(item.event_type)} · ${(item.ability_names || []).map(escapeHtml).join("、")}</strong>
+              <div>${escapeHtml(item.note || "")}</div>
+              <div class="muted">${escapeHtml(item.created_at || "")} · source: ${escapeHtml(item.source || "")}</div>
+            </li>
+          `).join("")}
+        </ul>
+      ` : '<p class="muted">暂无学习证据。</p>'}
+    </section>
+
+    <section class="dashboard-card">
+      <h3>自我批判与借鉴来源</h3>
+      ${renderCompactItems(data.self_critique || [])}
+      <p class="muted">借鉴：${(data.borrowed_from || []).map(escapeHtml).join("；")}</p>
+    </section>
+  ` : '<p class="muted">驾驶舱暂不可用。</p>';
+  attachDashboardActions($("studentDashboard"));
 }
 
 function renderMessageExtras(meta = {}) {
@@ -253,6 +396,7 @@ async function openExplainDrawer(payload) {
     renderExplanation(data);
     await refreshStudentGraph();
     await loadGraphUpdates();
+    await loadStudentDashboard();
   } catch (error) {
     $("explainTitle").textContent = "讲解失败";
     $("explainContent").innerHTML = `<p class="muted">${escapeHtml(error.message)}</p>`;
@@ -265,6 +409,7 @@ function renderToolSuggestions(items) {
   });
   for (const item of items || []) {
     const selector = {
+      dashboard: '[data-open-tool="dashboard"]',
       job_graph: '[data-open-tool="graph"][data-graph-view="job"]',
       student_graph: '[data-open-tool="graph"][data-graph-view="student"]',
       graph: '[data-open-tool="graph"][data-graph-view="current"]',
@@ -662,6 +807,7 @@ async function startScenario() {
   });
   renderScenarioStage(data);
   if (data.student_graph) renderGraph(data.student_graph, "student");
+  await loadStudentDashboard();
 }
 
 async function submitScenarioStep(choiceId) {
@@ -680,10 +826,12 @@ async function submitScenarioStep(choiceId) {
   renderScenarioStage(data);
   if (data.student_graph) renderGraph(data.student_graph, "student");
   await loadGraphUpdates();
+  await loadStudentDashboard();
 }
 
 function workspaceTitle(panel) {
   return {
+    dashboard: "学习驾驶舱",
     graph: "能力图谱",
     knowledge: "知识缺口",
     tasks: "实训任务",
@@ -704,6 +852,7 @@ function setWorkspacePanel(panel) {
     section.classList.toggle("active", section.id === `workspace${panel.charAt(0).toUpperCase()}${panel.slice(1)}`);
   });
   if (panel === "teacher") loadTeacherSummary();
+  if (panel === "dashboard") loadStudentDashboard();
   if (panel === "plan") loadPersonalizedPlan();
   if (panel === "scenario") loadScenarios();
 }
@@ -730,10 +879,21 @@ async function loadGraphUpdates() {
   renderGraphUpdateLog(data.updates || []);
 }
 
+async function loadStudentDashboard() {
+  try {
+    const data = await api(`/api/student/dashboard?session_id=${encodeURIComponent(state.sessionId)}`);
+    renderStudentDashboard(data);
+    return data;
+  } catch (error) {
+    $("studentDashboard").innerHTML = `<p class="muted">驾驶舱加载失败：${escapeHtml(error.message)}</p>`;
+    return null;
+  }
+}
+
 async function openWorkspace(panel, graphView) {
   $("workspaceOverlay").classList.add("open");
   $("workspaceOverlay").setAttribute("aria-hidden", "false");
-  setWorkspacePanel(panel || "graph");
+  setWorkspacePanel(panel || "dashboard");
   if (panel === "graph" || graphView) {
     setGraphView(graphView || state.activeGraphView || "job");
     if ((graphView || state.activeGraphView) === "student") {
@@ -1123,6 +1283,7 @@ function applyChatResult(data) {
   renderGraph(data.ability_knowledge_view?.graph || {}, "current");
   if (data.student_graph) renderGraph(data.student_graph, "student");
   loadGraphUpdates();
+  loadStudentDashboard();
   renderKnowledge(data.knowledge_gaps || []);
   renderTasks(data.remediation_cards || []);
 }
@@ -1176,6 +1337,7 @@ async function submitDiagnosis() {
     renderGraph(data.ability_graph, "current");
     if (data.student_graph) renderGraph(data.student_graph, "student");
     await loadGraphUpdates();
+    await loadStudentDashboard();
     renderKnowledge(data.knowledge_refs || []);
     renderTasks(data.task_recommendations || []);
   } catch (error) {
@@ -1206,6 +1368,7 @@ async function submitFeedback(feedback) {
   });
   $("feedbackStatus").textContent = `反馈已保存：${result.feedback}`;
   await refreshStudentGraph();
+  await loadStudentDashboard();
 }
 
 async function loadTeacherSummary() {
@@ -1223,12 +1386,13 @@ async function boot() {
     const health = await api("/api/health");
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
     $("healthStatus").classList.add("ok");
-    const [start, quiz, currentGraph, jobGraph, studentBootstrap] = await Promise.all([
+    const [start, quiz, currentGraph, jobGraph, studentBootstrap, studentDashboard] = await Promise.all([
       api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId }) }),
       api("/api/quiz"),
       api("/api/graph"),
       api("/api/graph/job"),
-      api(`/api/student/bootstrap?session_id=${encodeURIComponent(state.sessionId)}`)
+      api(`/api/student/bootstrap?session_id=${encodeURIComponent(state.sessionId)}`),
+      api(`/api/student/dashboard?session_id=${encodeURIComponent(state.sessionId)}`)
     ]);
     state.learnerContext = studentBootstrap.learner_context || start.learner_context || null;
     renderJobProfile(start.job_profile || {});
@@ -1242,6 +1406,7 @@ async function boot() {
     renderJobProposals(jobGraph.pending_proposals || []);
     renderGraph(studentBootstrap.student_graph, "student");
     renderGraphUpdateLog(studentBootstrap.student_graph?.update_log || []);
+    renderStudentDashboard(studentDashboard);
   } catch (error) {
     $("healthStatus").textContent = "未连接";
     $("healthStatus").classList.remove("ok");
@@ -1259,6 +1424,7 @@ $("loadPersonalizedQuiz").addEventListener("click", loadPersonalizedQuiz);
 $("loadPersonalizedPlan").addEventListener("click", () => loadPersonalizedPlan("staged"));
 $("loadTodayPlan").addEventListener("click", () => loadPersonalizedPlan("today"));
 $("loadSevenDayPlan").addEventListener("click", () => loadPersonalizedPlan("7_day"));
+$("refreshDashboard").addEventListener("click", loadStudentDashboard);
 $("startScenario").addEventListener("click", startScenario);
 $("generateJobProposals").addEventListener("click", generateJobProposals);
 $("confirmJobProposals").addEventListener("click", confirmJobProposals);

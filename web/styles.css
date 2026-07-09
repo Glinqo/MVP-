@@ -672,6 +672,127 @@ button:hover {
   margin: 4px 0;
 }
 
+.dashboard-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.dashboard-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 16px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 16px;
+}
+
+.dashboard-hero h3 {
+  margin: 2px 0 8px;
+  font-size: 22px;
+}
+
+.dashboard-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.dashboard-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 5px 9px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.readiness-meter {
+  display: grid;
+  place-items: center;
+  min-height: 132px;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  background: #f0fdf4;
+  color: #14532d;
+}
+
+.readiness-meter strong {
+  font-size: 42px;
+  line-height: 1;
+}
+
+.readiness-meter span {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.dashboard-card,
+.focus-item {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.dashboard-card h3,
+.focus-item h3 {
+  margin-top: 0;
+}
+
+.focus-item + .focus-item {
+  margin-top: 10px;
+}
+
+.dashboard-risk {
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #7c2d12;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.dashboard-risk.safety {
+  border-color: #fecdd3;
+  background: #fff1f2;
+  color: #881337;
+}
+
+.dashboard-risk.evidence {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.dashboard-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.dashboard-tool-grid button {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  min-height: 78px;
+  text-align: left;
+}
+
+.dashboard-tool-grid span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .mermaid-box {
   min-height: 160px;
   overflow: auto;
@@ -920,6 +1041,10 @@ button:hover {
   }
 
   .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-hero {
     grid-template-columns: 1fr;
   }
 
