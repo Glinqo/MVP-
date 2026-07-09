@@ -1,0 +1,267 @@
+{
+  "version": "0.1.0",
+  "source": "project_runtime",
+  "events": [
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC 输入信号监控"
+        }
+      ],
+      "question_id": "Q008",
+      "knowledge_id": "",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生请求讲题或联系个人问题",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-08T17:14:20.452726+00:00",
+      "session_id": "demo-1783530821826",
+      "event_id": "20260708T171420452726+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_io_address_mapping"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_io_address_mapping",
+          "name": "PLC I/O 地址映射"
+        }
+      ],
+      "question_id": "P01",
+      "knowledge_id": "K021",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生请求讲题或联系个人问题",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-08T17:14:34.010866+00:00",
+      "session_id": "demo-1783530821826",
+      "event_id": "20260708T171434010866+0000"
+    },
+    {
+      "event_type": "scenario_started",
+      "ability_ids": [
+        "electrical_safety_check",
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal",
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全检查"
+        },
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线判断"
+        },
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC 输入公共端判断"
+        },
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC 输入信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": null,
+      "note": "传感器灯亮但 PLC 输入灯不亮",
+      "source": "project_curated",
+      "created_at": "2026-07-08T17:54:15.810262+00:00",
+      "session_id": "demo-1783533238079",
+      "event_id": "20260708T175415810262+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全检查"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "correct",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S1 / 选择 A",
+      "source": "project_curated",
+      "created_at": "2026-07-08T17:54:17.994323+00:00",
+      "session_id": "demo-1783533238079",
+      "event_id": "20260708T175417994323+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线判断"
+        },
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC 输入公共端判断"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "correct",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S2 / 选择 A",
+      "source": "project_curated",
+      "created_at": "2026-07-08T17:54:22.413509+00:00",
+      "session_id": "demo-1783533238079",
+      "event_id": "20260708T175422413509+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC 输入信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "incorrect",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S3 / 选择 B",
+      "source": "project_curated",
+      "created_at": "2026-07-08T17:54:23.762457+00:00",
+      "session_id": "demo-1783533238079",
+      "event_id": "20260708T175423762457+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC 输入信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "incorrect",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S3 / 选择 B",
+      "source": "project_curated",
+      "created_at": "2026-07-08T17:54:25.467631+00:00",
+      "session_id": "demo-1783533238079",
+      "event_id": "20260708T175425467631+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC 输入信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "incorrect",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S3 / 选择 B",
+      "source": "project_curated",
+      "created_at": "2026-07-08T17:54:26.618467+00:00",
+      "session_id": "demo-1783533238079",
+      "event_id": "20260708T175426618467+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC 输入信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "correct",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S3 / 选择 A",
+      "source": "project_curated",
+      "created_at": "2026-07-08T17:54:27.250595+00:00",
+      "session_id": "demo-1783533238079",
+      "event_id": "20260708T175427250595+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal",
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线判断"
+        },
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC 输入公共端判断"
+        },
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC 输入信号监控"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看传感器灯亮但 PLC 输入灯不亮讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-08T17:54:28.563183+00:00",
+      "session_id": "demo-1783533238079",
+      "event_id": "20260708T175428563183+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "sensor_type_identification"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "sensor_type_identification",
+          "name": "NPN/PNP 传感器类型识别"
+        }
+      ],
+      "question_id": "Q001",
+      "knowledge_id": "",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看Q001 题目讲解讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-08T17:55:00.179000+00:00",
+      "session_id": "demo-1783533238079",
+      "event_id": "20260708T175500179000+0000"
+    }
+  ]
+}

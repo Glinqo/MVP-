@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+.DS_Store
+node_modules/
+data/sessions/*.json
+!data/sessions/.gitkeep

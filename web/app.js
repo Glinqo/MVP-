@@ -1,0 +1,1298 @@
+const state = {
+  questions: [],
+  jobProfile: null,
+  messages: [],
+  lastChat: null,
+  lastDiagnosis: null,
+  personalizedQuestions: [],
+  personalizedPlan: null,
+  learnerContext: null,
+  lastExplanation: null,
+  explainPrompt: "",
+  scenarios: [],
+  activeScenario: null,
+  graphUpdates: [],
+  graphs: {
+    job: null,
+    student: null,
+    current: null
+  },
+  activeWorkspace: "graph",
+  activeGraphView: "job",
+  sessionId: `demo-${Date.now()}`
+};
+
+const $ = (id) => document.getElementById(id);
+
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...options
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+  return data;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function renderCompactItems(items, emptyText = "暂无") {
+  if (!items || !items.length) return `<p class="muted">${escapeHtml(emptyText)}</p>`;
+  return `
+    <ul class="compact-list">
+      ${items.map((item) => {
+        if (typeof item === "string") return `<li>${escapeHtml(item)}</li>`;
+        const label = item.label || item.title || item.topic || item.name || item.id || "证据";
+        const value = item.value || item.content || item.reason || item.deliverable || item.source || "";
+        const source = item.source ? `<div class="muted">source: ${escapeHtml(item.source)}</div>` : "";
+        return `<li><strong>${escapeHtml(label)}</strong>${value ? `<div>${escapeHtml(value)}</div>` : ""}${source}</li>`;
+      }).join("")}
+    </ul>
+  `;
+}
+
+function renderLearnerContext(context) {
+  if (!context) return "";
+  const actions = context.next_best_actions || [];
+  return `
+    <div class="section-block">
+      <h3>个人图谱摘要</h3>
+      <p>${escapeHtml(context.summary || "暂无个人图谱证据。")}</p>
+      ${actions.length ? `
+        <ul class="compact-list">
+          ${actions.slice(0, 4).map((item) => `<li><strong>${escapeHtml(item.ability_name)}</strong>：${escapeHtml(item.action || "")}</li>`).join("")}
+        </ul>
+      ` : '<p class="muted">完成一次问答、自测或讲题后，这里会出现下一步动作。</p>'}
+    </div>
+  `;
+}
+
+function renderMessageExtras(meta = {}) {
+  const evidence = meta.evidence_used || [];
+  const steps = meta.reasoning_steps || [];
+  const refs = meta.knowledge_refs || [];
+  if (!evidence.length && !steps.length && !refs.length) return "";
+  return `
+    <details class="message-evidence">
+      <summary>判断依据与知识引用</summary>
+      ${steps.length ? `<h4>判断步骤</h4>${renderCompactItems(steps)}` : ""}
+      ${evidence.length ? `<h4>证据</h4>${renderCompactItems(evidence)}` : ""}
+      ${refs.length ? `<h4>知识引用</h4>${renderCompactItems(refs.map((item) => ({
+        label: `${item.id || ""} ${item.topic || ""}`.trim(),
+        value: item.content,
+        source: item.source
+      })))}` : ""}
+    </details>
+  `;
+}
+
+function collectContext() {
+  return {
+    sensor_led: $("sensorLed").value,
+    plc_input_led: $("plcInputLed").value,
+    online_monitor: $("onlineMonitor").value,
+    sensor_type: $("sensorType").value,
+    common_terminal: $("commonTerminal").value
+  };
+}
+
+function addMessage(role, content, meta = {}) {
+  state.messages.push({ role, content, meta });
+  renderMessages();
+}
+
+function renderMessages() {
+  $("chatMessages").innerHTML = state.messages.map((message) => {
+    const roleLabel = message.role === "user" ? "我" : "AI";
+    const safety = message.meta?.safety_notice
+      ? `<div class="notice compact">${escapeHtml(message.meta.safety_notice)}</div>`
+      : "";
+    const fallback = message.meta?.fallback_used
+      ? `<div class="message-meta">规则兜底回答</div>`
+      : "";
+    const extras = message.role === "assistant" ? renderMessageExtras(message.meta) : "";
+    return `
+      <article class="message ${message.role}">
+        <div class="message-role">${roleLabel}</div>
+        <div class="message-body">
+          ${safety}
+          <div>${escapeHtml(message.content).replaceAll("\n", "<br />")}</div>
+          ${extras}
+          ${fallback}
+        </div>
+      </article>
+    `;
+  }).join("");
+  $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
+}
+
+function renderJobProfile(profile) {
+  state.jobProfile = profile;
+  const tasks = (profile.core_job_tasks || []).slice(0, 4);
+  $("jobStrip").innerHTML = `
+    <span>${escapeHtml(profile.role_name || "自动化生产线装调与运维技术员")}</span>
+    <strong>${escapeHtml(profile.learner_stage || "职业新人")}</strong>
+  `;
+  $("jobProfile").innerHTML = `
+    <div class="job-card-head">
+      <div>
+        <div class="muted">培训岗位</div>
+        <strong>${escapeHtml(profile.role_name || "自动化生产线装调与运维技术员")}</strong>
+      </div>
+      <span>${escapeHtml(profile.learner_stage || "职业新人")}</span>
+    </div>
+    <p>${escapeHtml(profile.job_context || "")}</p>
+    <div class="muted">本次任务：${escapeHtml(profile.mvp_focus_task || "传感器 NPN/PNP 接线与 PLC 输入信号排查")}</div>
+    ${tasks.length ? `<ul class="compact-list">${tasks.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}
+  `;
+}
+
+function renderSuggestedQuestions(items) {
+  $("suggestedQuestions").innerHTML = (items || []).map((item) => `
+    <button type="button" data-question="${escapeHtml(item)}">${escapeHtml(item)}</button>
+  `).join("");
+  document.querySelectorAll("[data-question]").forEach((button) => {
+    button.addEventListener("click", () => {
+      $("chatInput").value = button.dataset.question;
+      $("chatInput").focus();
+    });
+  });
+}
+
+function askFromTool(prompt) {
+  const text = String(prompt || "").trim();
+  if (!text) return;
+  closeWorkspace();
+  $("chatInput").value = text;
+  sendChat(text);
+}
+
+function selectedAnswerForQuestion(questionId) {
+  const fieldset = document.querySelector(`[data-question-id="${CSS.escape(questionId)}"]`);
+  if (!fieldset) return "";
+  const checked = Array.from(fieldset.querySelectorAll("input[type='checkbox']:checked, input[type='radio']:checked"))
+    .map((item) => item.value);
+  if (checked.length) return checked;
+  const textInput = fieldset.querySelector("input[type='text']");
+  return textInput ? textInput.value : "";
+}
+
+function closeExplainDrawer() {
+  $("explainDrawer").classList.remove("open");
+  $("explainDrawer").setAttribute("aria-hidden", "true");
+}
+
+function renderExplanation(data) {
+  state.lastExplanation = data;
+  $("explainTitle").textContent = data.title || "即时讲解";
+  const safety = data.safety_notice ? `<div class="notice compact">${escapeHtml(data.safety_notice)}</div>` : "";
+  $("explainContent").classList.remove("muted");
+  $("explainContent").innerHTML = `
+    ${safety}
+    <div class="section-block">
+      <p>${escapeHtml(data.explanation || "").replaceAll("\n", "<br />")}</p>
+      ${data.answer_state ? `<p class="muted">状态：${escapeHtml(data.answer_state)}</p>` : ""}
+      <h3>判断步骤</h3>
+      ${renderCompactItems(data.reasoning_steps || [])}
+      <h3>依据</h3>
+      ${renderCompactItems(data.evidence_used || [])}
+      <h3>相关能力</h3>
+      ${renderCompactItems((data.ability_hits || []).map((item) => ({
+        label: item.name || item.id,
+        value: item.reason || item.description,
+        source: item.source
+      })))}
+      <h3>知识引用</h3>
+      ${renderCompactItems((data.knowledge_refs || []).map((item) => ({
+        label: `${item.id || ""} ${item.topic || ""}`.trim(),
+        value: item.content,
+        source: item.source
+      })))}
+      <h3>建议任务/资源</h3>
+      ${renderCompactItems([...(data.task_refs || []), ...(data.resource_refs || [])].map((item) => ({
+        label: item.title || item.id,
+        value: item.deliverable || item.use_when || item.url,
+        source: item.source
+      })))}
+    </div>
+  `;
+  $("explainFollowups").innerHTML = (data.suggested_questions || []).map((item) => `
+    <button type="button" data-explain-followup="${escapeHtml(item)}">${escapeHtml(item)}</button>
+  `).join("");
+  document.querySelectorAll("[data-explain-followup]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.explainPrompt = button.dataset.explainFollowup;
+      $("continueExplainInChat").click();
+    });
+  });
+}
+
+async function openExplainDrawer(payload) {
+  state.explainPrompt = payload.prompt || payload.message || "";
+  $("explainDrawer").classList.add("open");
+  $("explainDrawer").setAttribute("aria-hidden", "false");
+  $("explainTitle").textContent = "讲解生成中";
+  $("explainContent").classList.add("muted");
+  $("explainContent").innerHTML = "正在根据题目、知识库和个人图谱生成讲解...";
+  $("explainFollowups").innerHTML = "";
+  try {
+    const data = await api("/api/explain", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        context: collectContext(),
+        ...payload
+      })
+    });
+    renderExplanation(data);
+    await refreshStudentGraph();
+    await loadGraphUpdates();
+  } catch (error) {
+    $("explainTitle").textContent = "讲解失败";
+    $("explainContent").innerHTML = `<p class="muted">${escapeHtml(error.message)}</p>`;
+  }
+}
+
+function renderToolSuggestions(items) {
+  document.querySelectorAll("[data-open-tool]").forEach((button) => {
+    button.classList.remove("suggested");
+  });
+  for (const item of items || []) {
+    const selector = {
+      job_graph: '[data-open-tool="graph"][data-graph-view="job"]',
+      student_graph: '[data-open-tool="graph"][data-graph-view="student"]',
+      graph: '[data-open-tool="graph"][data-graph-view="current"]',
+      knowledge: '[data-open-tool="knowledge"]',
+      tasks: '[data-open-tool="tasks"]',
+      quiz: '[data-open-tool="quiz"]',
+      scenario: '[data-open-tool="scenario"]',
+      plan: '[data-open-tool="plan"]',
+      teacher: '[data-open-tool="teacher"]'
+    }[item.id];
+    if (selector) document.querySelector(selector)?.classList.add("suggested");
+  }
+}
+
+function statusLabel(status) {
+  return {
+    normal: "常规",
+    core: "岗位核心",
+    industry_hot: "行业高频",
+    industry: "行业补充",
+    weak: "薄弱",
+    touched: "问答命中",
+    improving: "正在提升",
+    mastered: "已掌握",
+    recommended_next: "建议下一步",
+    unknown: "待确认"
+  }[status] || status || "常规";
+}
+
+function renderGraphNodes(graph, targetId) {
+  $(targetId).innerHTML = (graph?.nodes || []).map((node) => {
+    const evidence = node.evidence?.length
+      ? `<ul class="node-evidence">${node.evidence.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+      : "";
+    const weight = node.demand_weight
+      ? `<span class="node-badge weight">权重 ${escapeHtml(node.demand_weight)}</span>`
+      : "";
+    const score = node.mastery_score !== undefined
+      ? `<div class="node-score"><span>掌握度 ${escapeHtml(node.mastery_score)}</span><span>置信度 ${escapeHtml(node.confidence)}</span></div>`
+      : "";
+    return `
+      <div class="graph-node status-${escapeHtml(node.status || "normal")}">
+        <div class="node-head">
+          <strong>${escapeHtml(node.label)}</strong>
+          <span class="node-badge">${escapeHtml(node.status_label || statusLabel(node.status))}</span>
+        </div>
+        <div class="muted">${escapeHtml(node.id)}</div>
+        ${weight}
+        ${score}
+        ${evidence}
+        <div class="muted">source: ${escapeHtml(node.source || "")}</div>
+      </div>
+    `;
+  }).join("") || '<p class="muted">暂无图谱节点</p>';
+  $(targetId).querySelectorAll(".graph-node").forEach((card, index) => {
+    const node = graph?.nodes?.[index];
+    if (!node) return;
+    card.addEventListener("click", () => {
+      showGraphNodeDetail(node, graph);
+    });
+  });
+}
+
+function graphColor(status) {
+  return {
+    weak: { fill: "#fff1f2", stroke: "#e11d48", text: "#881337" },
+    industry_hot: { fill: "#fffbeb", stroke: "#d97706", text: "#78350f" },
+    industry: { fill: "#eff6ff", stroke: "#2563eb", text: "#1e3a8a" },
+    core: { fill: "#ecfdf5", stroke: "#059669", text: "#064e3b" },
+    touched: { fill: "#eef2ff", stroke: "#4f46e5", text: "#312e81" },
+    improving: { fill: "#ecfeff", stroke: "#0891b2", text: "#164e63" },
+    mastered: { fill: "#f0fdf4", stroke: "#16a34a", text: "#14532d" },
+    recommended_next: { fill: "#fff7ed", stroke: "#ea580c", text: "#7c2d12" },
+    unknown: { fill: "#f8fafc", stroke: "#94a3b8", text: "#475569" }
+  }[status] || { fill: "#ffffff", stroke: "#cbd5e1", text: "#172033" };
+}
+
+function splitLabel(label, maxLength = 12) {
+  const text = String(label || "");
+  if (text.length <= maxLength) return [text];
+  const lines = [];
+  for (let index = 0; index < text.length; index += maxLength) {
+    lines.push(text.slice(index, index + maxLength));
+  }
+  return lines.slice(0, 3);
+}
+
+function renderGraphDiagram(graph, targetId) {
+  const target = $(targetId);
+  const nodes = graph?.nodes || [];
+  if (!nodes.length) {
+    target.innerHTML = '<p class="muted">暂无图谱数据</p>';
+    return;
+  }
+
+  const maxPerRow = 7;
+  const rowCount = Math.max(1, Math.ceil(nodes.length / maxPerRow));
+  const perRow = Math.min(maxPerRow, Math.ceil(nodes.length / rowCount));
+  const width = Math.max(980, perRow * 156 + 80);
+  const height = Math.max(360, rowCount * 132 + 150);
+  const nodeWidth = 138;
+  const nodeHeight = 82;
+  const top = 70;
+  const rowGap = 132;
+  const colGap = 156;
+  const positions = new Map();
+
+  nodes.forEach((node, index) => {
+    const row = Math.floor(index / perRow);
+    const col = index % perRow;
+    const x = 34 + col * colGap;
+    const y = top + row * rowGap;
+    positions.set(node.id, { x, y, cx: x + nodeWidth / 2, cy: y + nodeHeight / 2 });
+  });
+
+  const edgeSvg = (graph?.edges || []).map((edge) => {
+    const from = positions.get(edge.from);
+    const to = positions.get(edge.to);
+    if (!from || !to) return "";
+    const startX = from.x + nodeWidth;
+    const startY = from.y + nodeHeight / 2;
+    const endX = to.x;
+    const endY = to.y + nodeHeight / 2;
+    const midX = (startX + endX) / 2;
+    return `<path d="M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}" class="svg-edge" marker-end="url(#arrow)" />`;
+  }).join("");
+
+  const nodeSvg = nodes.map((node) => {
+    const position = positions.get(node.id);
+    const color = graphColor(node.status);
+    const lines = splitLabel(node.label);
+    const textLines = lines.map((line, index) => `
+      <tspan x="${position.x + nodeWidth / 2}" y="${position.y + 30 + index * 17}">${escapeHtml(line)}</tspan>
+    `).join("");
+    return `
+      <g class="svg-node" data-node-id="${escapeHtml(node.id)}" data-node-label="${escapeHtml(node.label)}">
+        <rect x="${position.x}" y="${position.y}" width="${nodeWidth}" height="${nodeHeight}" rx="8" fill="${color.fill}" stroke="${color.stroke}" stroke-width="2"></rect>
+        <text text-anchor="middle" fill="${color.text}" font-size="13" font-weight="700">${textLines}</text>
+        <text x="${position.x + nodeWidth / 2}" y="${position.y + 70}" text-anchor="middle" fill="#667085" font-size="11">${escapeHtml(node.status_label || statusLabel(node.status))}</text>
+      </g>
+    `;
+  }).join("");
+
+  target.innerHTML = `
+    <svg class="ability-svg" viewBox="0 0 ${width} ${height}" role="img">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#64748b"></path>
+        </marker>
+      </defs>
+      ${edgeSvg}
+      ${nodeSvg}
+    </svg>
+  `;
+  target.querySelectorAll(".svg-node").forEach((node) => {
+    node.addEventListener("click", () => {
+      const graphNode = nodes.find((item) => item.id === node.dataset.nodeId);
+      if (graphNode) showGraphNodeDetail(graphNode, graph);
+    });
+  });
+}
+
+function renderDemandSources(graph) {
+  const sources = graph?.demand_sources || [];
+  $("jobDemandSources").innerHTML = sources.length ? `
+    <ul class="item-list">
+      ${sources.map((item) => `
+        <li>
+          <strong>${escapeHtml(item.snapshot_id)} · ${escapeHtml(item.source_type)}</strong>
+          <div>${escapeHtml(item.evidence)}</div>
+          <div class="muted">${escapeHtml(item.collected_at)} · weight ${escapeHtml(item.weight)} · source: ${escapeHtml(item.source)}</div>
+        </li>
+      `).join("")}
+    </ul>
+  ` : '<p class="muted">暂无行业需求来源</p>';
+}
+
+function renderStudentEvidence(graph) {
+  const weak = (graph?.nodes || []).filter((node) => node.status === "weak").length;
+  const touched = (graph?.nodes || []).filter((node) => node.status === "touched").length;
+  const next = (graph?.nodes || []).filter((node) => node.status === "recommended_next").length;
+  const improving = (graph?.nodes || []).filter((node) => node.status === "improving").length;
+  $("studentGraphEvidence").innerHTML = `
+    <p>会话：${escapeHtml(graph?.session_id || state.sessionId)}</p>
+    <p>已记录事件：${escapeHtml(graph?.event_count || 0)}</p>
+    <p>薄弱节点：${weak}；正在提升：${improving}；问答命中：${touched}；建议下一步：${next}</p>
+    <p class="muted">依据来自本地问答命中、确定性自测评分和学生反馈，不使用 LLM 自由评分。</p>
+  `;
+}
+
+function renderGraphUpdateLog(updates) {
+  state.graphUpdates = updates || [];
+  $("graphUpdateLog").innerHTML = state.graphUpdates.length ? `
+    <ul class="item-list">
+      ${state.graphUpdates.slice(-8).reverse().map((item) => `
+        <li>
+          <strong>${escapeHtml(item.ability_name || item.ability_id)}</strong>
+          <div>${escapeHtml(item.reason || "图谱证据更新")}</div>
+          <div class="muted">${escapeHtml(item.event_type)} · ${escapeHtml(item.created_at || "")} · source: ${escapeHtml(item.source || "")}</div>
+        </li>
+      `).join("")}
+    </ul>
+  ` : '<p class="muted">暂无更新日志</p>';
+}
+
+function showGraphNodeDetail(node, graph) {
+  const events = node.evidence_events || [];
+  $("graphEvidencePanel").innerHTML = `
+    <strong>${escapeHtml(node.label)}</strong>
+    <p>状态：${escapeHtml(node.status_label || statusLabel(node.status))}；掌握度：${escapeHtml(node.mastery_score ?? "-")}；置信度：${escapeHtml(node.confidence ?? "-")}</p>
+    <p>${(node.update_reasons || node.evidence || []).map(escapeHtml).join("；") || "暂无明确证据"}</p>
+  `;
+  $("nodeDetailContent").innerHTML = `
+    <h3>${escapeHtml(node.label)}</h3>
+    <p>状态：${escapeHtml(node.status_label || statusLabel(node.status))}</p>
+    <div class="score-grid">
+      <div class="metric"><strong>${escapeHtml(node.mastery_score ?? "-")}</strong><span>掌握度</span></div>
+      <div class="metric"><strong>${escapeHtml(node.confidence ?? "-")}</strong><span>置信度</span></div>
+      <div class="metric"><strong>${escapeHtml(node.evidence_count ?? 0)}</strong><span>证据数</span></div>
+    </div>
+    <h3>为什么更新</h3>
+    ${(node.update_reasons || node.evidence || []).length ? `
+      <ul class="compact-list">${(node.update_reasons || node.evidence || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    ` : '<p class="muted">暂无明确证据</p>'}
+    <h3>下一步</h3>
+    <p>${escapeHtml(node.next_best_action || "先查看讲解，再完成一个关联训练任务。")}</p>
+    <h3>相关事件</h3>
+    ${events.length ? `
+      <ul class="item-list">
+        ${events.map((event) => `
+          <li>
+            <strong>${escapeHtml(event.event_type || "event")}</strong>
+            <div>${escapeHtml(event.reason || event.note || "")}</div>
+            <div class="muted">${escapeHtml(event.created_at || "")} · source: ${escapeHtml(event.source || "")}</div>
+          </li>
+        `).join("")}
+      </ul>
+    ` : '<p class="muted">暂无事件记录</p>'}
+    <div class="question-actions">
+      <button type="button" data-ask="${escapeHtml(`请讲解“${node.label}”这个能力，结合我的问题说明怎么练。`)}" data-explain-type="ability" data-ability-id="${escapeHtml(node.id)}" data-event-type="ability_explained">问 AI 讲解</button>
+      <button type="button" data-plan-node="${escapeHtml(node.id)}">生成培养方案</button>
+    </div>
+  `;
+  attachAskButtons($("nodeDetailContent"));
+  $("nodeDetailContent").querySelectorAll("[data-plan-node]").forEach((button) => {
+    button.addEventListener("click", () => {
+      openWorkspace("plan");
+      loadPersonalizedPlan("today", button.dataset.planNode);
+    });
+  });
+  $("nodeDetailDrawer").classList.add("open");
+  $("nodeDetailDrawer").setAttribute("aria-hidden", "false");
+}
+
+function closeNodeDetail() {
+  $("nodeDetailDrawer").classList.remove("open");
+  $("nodeDetailDrawer").setAttribute("aria-hidden", "true");
+}
+
+function renderGraph(graph, type = "current") {
+  state.graphs[type] = graph || null;
+  if (type === "job") {
+    $("jobMermaidOutput").textContent = graph?.mermaid || "";
+    renderGraphDiagram(graph, "jobGraphDiagram");
+    renderGraphNodes(graph, "jobGraphList");
+    renderDemandSources(graph);
+    return;
+  }
+  if (type === "student") {
+    $("studentMermaidOutput").textContent = graph?.mermaid || "";
+    renderGraphDiagram(graph, "studentGraphDiagram");
+    renderGraphNodes(graph, "studentGraphList");
+    renderStudentEvidence(graph);
+    renderGraphUpdateLog(graph?.update_log || []);
+    return;
+  }
+  $("mermaidOutput").textContent = graph?.mermaid || "";
+  renderGraphDiagram(graph, "currentGraphDiagram");
+  renderGraphNodes(graph, "graphList");
+  $("currentGraphMeta").textContent = graph?.nodes?.some((node) => node.status === "weak")
+    ? "本次问题命中的能力节点已高亮为薄弱，请结合右侧知识缺口和实训任务补救。"
+    : "提交问题后会显示本次暴露的能力缺口。";
+}
+
+function renderKnowledge(items) {
+  $("knowledgeRefs").innerHTML = items?.length ? `
+    <ul class="item-list">
+      ${items.map((item) => `
+        <li>
+          <strong>${escapeHtml(item.id)} ${escapeHtml(item.topic)}</strong>
+          <div>${escapeHtml(item.content)}</div>
+          <div class="muted">source: ${escapeHtml(item.source)}</div>
+        </li>
+      `).join("")}
+    </ul>
+  ` : '<p class="muted">暂无</p>';
+}
+
+function renderTasks(items) {
+  $("taskRefs").innerHTML = items?.length ? `
+    <ul class="item-list">
+      ${items.map((item) => `
+        <li>
+          <strong>${escapeHtml(item.title)}</strong>
+          <div>${escapeHtml(item.action || item.deliverable)}</div>
+          <div class="muted">${escapeHtml(item.type || item.difficulty || "")}${item.estimated_minutes ? ` · ${item.estimated_minutes} 分钟` : ""} · source: ${escapeHtml(item.source)}</div>
+        </li>
+      `).join("")}
+    </ul>
+  ` : '<p class="muted">暂无</p>';
+}
+
+function renderScenarioList() {
+  $("scenarioList").innerHTML = state.scenarios.length ? `
+    <div class="scenario-list">
+      ${state.scenarios.map((scenario, index) => `
+        <label class="scenario-option">
+          <input type="radio" name="scenarioChoice" value="${escapeHtml(scenario.id)}" ${index === 0 ? "checked" : ""} />
+          <span>
+            <strong>${escapeHtml(scenario.title)}</strong>
+            <small>${escapeHtml(scenario.initial_symptom || "")}</small>
+          </span>
+        </label>
+      `).join("")}
+    </div>
+  ` : '<p class="muted">暂无排故角色扮演场景</p>';
+}
+
+function renderScenarioStage(data) {
+  state.activeScenario = data;
+  const scenario = data.scenario || {};
+  const step = data.current_step;
+  const feedback = data.feedback ? `
+    <div class="${data.is_correct ? "notice compact" : "notice compact weak"}">
+      <strong>${data.is_correct ? "判断正确" : "需要调整"}</strong>
+      <div>${escapeHtml(data.feedback)}</div>
+      <div>${escapeHtml(data.observation || "")}</div>
+    </div>
+  ` : "";
+  if (!step) {
+    $("scenarioStage").innerHTML = `
+      ${feedback}
+      <h3>${escapeHtml(scenario.title || "场景完成")}</h3>
+      <p>${escapeHtml(data.status === "completed" ? "本轮排故角色扮演已完成，可以查看个人图谱或继续追问。" : "暂无下一步。")}</p>
+      <div class="question-actions">
+        <button type="button" data-ask="${escapeHtml(`复盘这个排故角色扮演：${scenario.title || ""}`)}">问 AI 复盘</button>
+      </div>
+    `;
+    attachAskButtons($("scenarioStage"));
+    return;
+  }
+  $("scenarioStage").innerHTML = `
+    ${feedback}
+    <h3>${escapeHtml(scenario.title || "")}</h3>
+    <p>${escapeHtml(scenario.roleplay_frame || "")}</p>
+    <div class="notice compact">${escapeHtml(scenario.safety_notice || "")}</div>
+    <p><strong>${escapeHtml(step.prompt)}</strong></p>
+    <div class="scenario-options">
+      ${(step.options || []).map((option) => `
+        <button type="button" data-scenario-choice="${escapeHtml(option.id)}">${escapeHtml(option.id)}. ${escapeHtml(option.text)}</button>
+      `).join("")}
+    </div>
+    <div class="muted">命中能力：${(step.ability_hits || []).map((item) => escapeHtml(item.name || item.id)).join("、")}</div>
+  `;
+  $("scenarioStage").querySelectorAll("[data-scenario-choice]").forEach((button) => {
+    button.addEventListener("click", () => submitScenarioStep(button.dataset.scenarioChoice));
+  });
+}
+
+async function loadScenarios() {
+  if (state.scenarios.length) {
+    renderScenarioList();
+    return;
+  }
+  try {
+    const data = await api("/api/scenarios");
+    state.scenarios = data.scenarios || [];
+    renderScenarioList();
+  } catch (error) {
+    $("scenarioList").innerHTML = `<p class="muted">场景加载失败：${escapeHtml(error.message)}</p>`;
+  }
+}
+
+async function startScenario() {
+  await loadScenarios();
+  const selected = document.querySelector("input[name='scenarioChoice']:checked")?.value || state.scenarios[0]?.id;
+  if (!selected) return;
+  $("scenarioStage").innerHTML = '<p class="muted">场景启动中...</p>';
+  const data = await api("/api/scenario/start", {
+    method: "POST",
+    body: JSON.stringify({
+      session_id: state.sessionId,
+      scenario_id: selected
+    })
+  });
+  renderScenarioStage(data);
+  if (data.student_graph) renderGraph(data.student_graph, "student");
+}
+
+async function submitScenarioStep(choiceId) {
+  const scenarioId = state.activeScenario?.scenario?.id;
+  const stepId = state.activeScenario?.current_step?.id;
+  if (!scenarioId || !stepId || !choiceId) return;
+  const data = await api("/api/scenario/step", {
+    method: "POST",
+    body: JSON.stringify({
+      session_id: state.sessionId,
+      scenario_id: scenarioId,
+      step_id: stepId,
+      choice_id: choiceId
+    })
+  });
+  renderScenarioStage(data);
+  if (data.student_graph) renderGraph(data.student_graph, "student");
+  await loadGraphUpdates();
+}
+
+function workspaceTitle(panel) {
+  return {
+    graph: "能力图谱",
+    knowledge: "知识缺口",
+    tasks: "实训任务",
+    scenario: "排故角色扮演",
+    quiz: "自测验证",
+    plan: "个人培养方案",
+    teacher: "教师/师傅摘要"
+  }[panel] || "功能工作台";
+}
+
+function setWorkspacePanel(panel) {
+  state.activeWorkspace = panel;
+  $("workspaceTitle").textContent = workspaceTitle(panel);
+  document.querySelectorAll("[data-workspace-panel]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.workspacePanel === panel);
+  });
+  document.querySelectorAll(".workspace-panel").forEach((section) => {
+    section.classList.toggle("active", section.id === `workspace${panel.charAt(0).toUpperCase()}${panel.slice(1)}`);
+  });
+  if (panel === "teacher") loadTeacherSummary();
+  if (panel === "plan") loadPersonalizedPlan();
+  if (panel === "scenario") loadScenarios();
+}
+
+function setGraphView(view) {
+  state.activeGraphView = view;
+  document.querySelectorAll("[data-graph-view]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.graphView === view);
+  });
+  document.querySelectorAll(".graph-view").forEach((section) => {
+    section.classList.toggle("active", section.id === `graphView${view.charAt(0).toUpperCase()}${view.slice(1)}`);
+  });
+}
+
+async function refreshStudentGraph() {
+  const graph = await api(`/api/graph/student?session_id=${encodeURIComponent(state.sessionId)}`);
+  renderGraph(graph, "student");
+  await loadGraphUpdates();
+  return graph;
+}
+
+async function loadGraphUpdates() {
+  const data = await api(`/api/graph/updates?session_id=${encodeURIComponent(state.sessionId)}`);
+  renderGraphUpdateLog(data.updates || []);
+}
+
+async function openWorkspace(panel, graphView) {
+  $("workspaceOverlay").classList.add("open");
+  $("workspaceOverlay").setAttribute("aria-hidden", "false");
+  setWorkspacePanel(panel || "graph");
+  if (panel === "graph" || graphView) {
+    setGraphView(graphView || state.activeGraphView || "job");
+    if ((graphView || state.activeGraphView) === "student") {
+      await refreshStudentGraph();
+    }
+  }
+}
+
+function closeWorkspace() {
+  $("workspaceOverlay").classList.remove("open");
+  $("workspaceOverlay").setAttribute("aria-hidden", "true");
+  closeNodeDetail();
+}
+
+function renderQuiz(questions) {
+  state.questions = questions;
+  $("quizCount").textContent = `${questions.length} 题`;
+  $("quizForm").innerHTML = questions.map(renderQuestion).join("");
+  attachAskButtons($("quizForm"));
+}
+
+function renderQuestion(question) {
+  const options = question.options || [];
+  const title = `<div class="question-title">${question.id}. ${escapeHtml(question.question)}</div>`;
+  if (question.type === "multiple_choice") {
+    return `
+      <fieldset class="question" data-question-id="${question.id}" data-question-type="${question.type}">
+        ${title}
+        ${options.map((option) => `
+          <label class="option"><input type="checkbox" name="${question.id}" value="${option.id}" /> ${option.id}. ${escapeHtml(option.text)}</label>
+        `).join("")}
+        ${questionAskActions(question)}
+      </fieldset>
+    `;
+  }
+  if (question.type === "ordering") {
+    return `
+      <fieldset class="question" data-question-id="${question.id}" data-question-type="${question.type}">
+        ${title}
+        ${options.map((option) => `<div class="option">${option.id}. ${escapeHtml(option.text)}</div>`).join("")}
+        <input type="text" name="${question.id}" placeholder="例如：A,B,C,D,E,F" />
+        ${questionAskActions(question)}
+      </fieldset>
+    `;
+  }
+  return `
+    <fieldset class="question" data-question-id="${question.id}" data-question-type="${question.type}">
+      ${title}
+      ${options.map((option) => `
+        <label class="option"><input type="radio" name="${question.id}" value="${option.id}" /> ${option.id}. ${escapeHtml(option.text)}</label>
+      `).join("")}
+      ${questionAskActions(question)}
+    </fieldset>
+  `;
+}
+
+function questionAskActions(question) {
+  const prompt = question.ask_prompts?.[0] || `请讲解这道题：${question.question}`;
+  return `
+    <div class="question-actions">
+      <button type="button" data-ask="${escapeHtml(prompt)}" data-event-type="question_explained" data-ability-id="${escapeHtml(question.ability_id || "")}" data-question-id="${escapeHtml(question.id || "")}" data-knowledge-id="${escapeHtml(question.knowledge_id || "")}">问 AI 讲解</button>
+      <button type="button" data-ask="${escapeHtml(`这道题和我的传感器/PLC 排故问题有什么关系？题目是：${question.question}`)}" data-event-type="question_explained" data-ability-id="${escapeHtml(question.ability_id || "")}" data-question-id="${escapeHtml(question.id || "")}" data-knowledge-id="${escapeHtml(question.knowledge_id || "")}">联系我的问题</button>
+    </div>
+  `;
+}
+
+function attachAskButtons(root = document) {
+  root.querySelectorAll("[data-ask]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const questionId = button.dataset.questionId || "";
+      const explainType = button.dataset.explainType || (questionId ? "question" : button.dataset.abilityId ? "ability" : "message");
+      await openExplainDrawer({
+        type: explainType,
+        prompt: button.dataset.ask,
+        message: button.dataset.ask,
+        question_id: questionId,
+        ability_id: button.dataset.abilityId,
+        knowledge_id: button.dataset.knowledgeId,
+        selected_answer: questionId ? selectedAnswerForQuestion(questionId) : "",
+        event_type: button.dataset.eventType || "question_explained",
+        source: "quiz_explain_button"
+      });
+    });
+  });
+}
+
+async function recordStudentEvent(event) {
+  try {
+    const data = await api("/api/graph/student/event", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        ...event
+      })
+    });
+    if (data.student_graph) renderGraph(data.student_graph, "student");
+    await loadGraphUpdates();
+    return data;
+  } catch (error) {
+    console.warn("recordStudentEvent failed", error);
+    return null;
+  }
+}
+
+function renderPersonalizedQuiz(questions) {
+  state.personalizedQuestions = questions || [];
+  $("personalizedQuiz").innerHTML = state.personalizedQuestions.length ? `
+    <div class="personalized-head">
+      <strong>已根据当前问答/薄弱点生成 ${state.personalizedQuestions.length} 道练习题</strong>
+      <span class="muted">点击“问 AI 讲解”可以回到对话继续追问。</span>
+    </div>
+    <div class="quiz-list">
+      ${state.personalizedQuestions.map((question) => `
+        <article class="question personalized-card">
+          <div class="question-title">${question.id}. ${escapeHtml(question.question)}</div>
+          ${(question.options || []).map((option) => `
+            <div class="option">${option.id}. ${escapeHtml(option.text)}</div>
+          `).join("")}
+          <details>
+            <summary>查看答案与解析</summary>
+            <p>答案：${escapeHtml(question.correct_answer)}</p>
+            <p>${escapeHtml(question.explanation)}</p>
+            <p class="muted">知识点：${escapeHtml(question.knowledge_id)} ${escapeHtml(question.knowledge_topic)} · source: ${escapeHtml(question.source)}</p>
+          </details>
+          ${questionAskActions(question)}
+        </article>
+      `).join("")}
+    </div>
+  ` : '<p class="muted">暂时没有可生成的个性化练习题。</p>';
+  attachAskButtons($("personalizedQuiz"));
+}
+
+async function loadPersonalizedQuiz() {
+  $("loadPersonalizedQuiz").disabled = true;
+  $("loadPersonalizedQuiz").textContent = "生成中";
+  try {
+    const data = await api("/api/quiz/personalized", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        user_input: state.messages.filter((item) => item.role === "user").slice(-1)[0]?.content || "",
+        weak_abilities: state.lastDiagnosis?.weak_abilities || [],
+        highlighted_abilities: state.lastChat?.highlighted_abilities || [],
+        limit: 4
+      })
+    });
+    renderPersonalizedQuiz(data.questions || []);
+  } catch (error) {
+    $("personalizedQuiz").innerHTML = `<p class="muted">生成失败：${escapeHtml(error.message)}</p>`;
+  } finally {
+    $("loadPersonalizedQuiz").disabled = false;
+    $("loadPersonalizedQuiz").textContent = "根据我的情况生成练习题";
+  }
+}
+
+function renderJobProposals(proposals) {
+  $("jobProposalList").innerHTML = proposals?.length ? `
+    <ul class="item-list">
+      ${proposals.map((proposal) => `
+        <li>
+          <strong>${escapeHtml(proposal.ability_name)} · ${escapeHtml(proposal.action)}</strong>
+          <div>${escapeHtml(proposal.evidence)}</div>
+          <div class="muted">${escapeHtml(proposal.proposal_id)} · delta ${escapeHtml(proposal.suggested_weight_delta)} · source: ${escapeHtml(proposal.source)}</div>
+        </li>
+      `).join("")}
+    </ul>
+  ` : '<p class="muted">暂无待确认建议</p>';
+}
+
+async function generateJobProposals() {
+  const material = $("jobMaterialInput").value.trim();
+  if (!material) {
+    $("jobProposalList").innerHTML = '<p class="muted">请先粘贴岗位材料。</p>';
+    return;
+  }
+  $("generateJobProposals").disabled = true;
+  $("generateJobProposals").textContent = "生成中";
+  try {
+    const data = await api("/api/graph/job/proposals", {
+      method: "POST",
+      body: JSON.stringify({
+        material,
+        source_type: "teacher_curated",
+        source: "web_workspace_input"
+      })
+    });
+    renderJobProposals(data.proposals || []);
+    const jobGraph = await api("/api/graph/job");
+    renderGraph(jobGraph, "job");
+  } catch (error) {
+    $("jobProposalList").innerHTML = `<p class="muted">生成失败：${escapeHtml(error.message)}</p>`;
+  } finally {
+    $("generateJobProposals").disabled = false;
+    $("generateJobProposals").textContent = "生成更新建议";
+  }
+}
+
+async function confirmJobProposals() {
+  $("confirmJobProposals").disabled = true;
+  $("confirmJobProposals").textContent = "确认中";
+  try {
+    const data = await api("/api/graph/job/proposals/confirm", {
+      method: "POST",
+      body: JSON.stringify({
+        confirm_all: true,
+        confirmed_by: "demo_teacher"
+      })
+    });
+    renderGraph(data.job_graph, "job");
+    renderJobProposals(data.job_graph?.pending_proposals || []);
+  } catch (error) {
+    $("jobProposalList").innerHTML = `<p class="muted">确认失败：${escapeHtml(error.message)}</p>`;
+  } finally {
+    $("confirmJobProposals").disabled = false;
+    $("confirmJobProposals").textContent = "确认全部待处理建议";
+  }
+}
+
+function renderPersonalizedPlan(plan) {
+  state.personalizedPlan = plan;
+  state.learnerContext = plan?.learner_context || state.learnerContext;
+  const today = plan?.today_training_sheet || null;
+  const sevenDay = plan?.seven_day_plan || [];
+  $("personalizedPlan").innerHTML = plan ? `
+    <div class="notice compact">${escapeHtml(plan.safety_notice || "")}</div>
+    <p><strong>${escapeHtml(plan.student_summary || "")}</strong></p>
+    <p class="muted">模式：${escapeHtml(plan.plan_mode || "staged")} · 依据：${escapeHtml(plan.source || "")}</p>
+    ${renderLearnerContext(plan.learner_context)}
+    ${today ? `
+      <article class="plan-card feature-plan">
+        <div class="node-head">
+          <h3>${escapeHtml(today.title || "今日训练单")}</h3>
+          <span class="node-badge">${escapeHtml(today.estimated_minutes || "-")} 分钟</span>
+        </div>
+        <p><strong>${escapeHtml(today.objective || "")}</strong></p>
+        <p class="muted">${escapeHtml(today.learner_snapshot || "")}</p>
+        <h3>今日步骤</h3>
+        <ol class="compact-list">
+          ${(today.steps || []).map((step) => `
+            <li>
+              <strong>${escapeHtml(step.title)} · ${escapeHtml(step.minutes)} 分钟</strong>
+              <div>${escapeHtml(step.action || "")}</div>
+              <div class="muted">交付物：${escapeHtml(step.deliverable || "")}</div>
+            </li>
+          `).join("")}
+        </ol>
+        <h3>检查点</h3>
+        <ul class="compact-list">
+          ${(today.checkpoint_questions || []).map((question) => `<li>${escapeHtml(question.id || "")} ${escapeHtml(question.question || "")}</li>`).join("") || "<li>完成后记录已掌握/仍不会/需要更基础讲解。</li>"}
+        </ul>
+      </article>
+    ` : ""}
+    ${sevenDay.length ? `
+      <article class="plan-card feature-plan">
+        <h3>7 天补强计划</h3>
+        <div class="timeline-list">
+          ${sevenDay.map((day) => `
+            <div class="timeline-item">
+              <strong>Day ${escapeHtml(day.day)} · ${escapeHtml(day.title)}</strong>
+              <p>${escapeHtml(day.focus)}：${escapeHtml(day.ability_name || "")}</p>
+              <div class="muted">任务：${escapeHtml(day.task?.title || "")}；图谱目标：${escapeHtml(day.graph_update_goal || "")}</div>
+            </div>
+          `).join("")}
+        </div>
+      </article>
+    ` : ""}
+    <div class="plan-grid">
+      ${(plan.learning_plan || []).map((stage) => `
+        <article class="plan-card">
+          <div class="node-head">
+            <h3>${escapeHtml(stage.stage_title)}</h3>
+            <span class="node-badge">${escapeHtml(statusLabel(stage.status))}</span>
+          </div>
+          <p>${escapeHtml(stage.text_explanation)}</p>
+          <div class="node-score"><span>掌握度 ${escapeHtml(stage.mastery_score ?? "-")}</span><span>置信度 ${escapeHtml(stage.confidence ?? "-")}</span></div>
+          <h3>知识点</h3>
+          <ul class="compact-list">
+            ${(stage.knowledge_cards || []).map((item) => `<li>${escapeHtml(item.id)} ${escapeHtml(item.topic)}</li>`).join("") || "<li>暂无知识点</li>"}
+          </ul>
+          <h3>视频讲解</h3>
+          ${(stage.video_resources || []).length ? `
+            <ul class="compact-list">
+              ${stage.video_resources.map((item) => `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.title)}</a></li>`).join("")}
+            </ul>
+          ` : `<p class="muted">${escapeHtml(stage.video_note || "暂无视频资源")}</p>`}
+          <h3>实训任务</h3>
+          <ul class="compact-list">
+            ${(stage.practice_tasks || []).map((task) => `<li>${escapeHtml(task.title)}：${escapeHtml(task.deliverable || "")}</li>`).join("") || "<li>暂无匹配实训任务</li>"}
+          </ul>
+          <h3>检查点</h3>
+          <ul class="compact-list">
+            ${(stage.checkpoint_questions || []).map((question) => `<li>${escapeHtml(question.id)} ${escapeHtml(question.question)}</li>`).join("") || "<li>完成任务后重新做相关自测题</li>"}
+          </ul>
+        </article>
+      `).join("")}
+    </div>
+    <p class="muted">${escapeHtml(plan.next_review || "")}</p>
+  ` : '<p class="muted">尚未生成培养方案。</p>';
+}
+
+function planButtonByMode(planMode) {
+  if (planMode === "today") return $("loadTodayPlan");
+  if (planMode === "7_day") return $("loadSevenDayPlan");
+  return $("loadPersonalizedPlan");
+}
+
+function planButtonText(planMode) {
+  if (planMode === "today") return "今日训练单";
+  if (planMode === "7_day") return "7 天补强计划";
+  return "阶段方案";
+}
+
+async function loadPersonalizedPlan(planMode = "staged", abilityId = "") {
+  const button = planButtonByMode(planMode);
+  button.disabled = true;
+  button.textContent = "生成中";
+  try {
+    const plan = await api("/api/plan/personalized", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        plan_mode: planMode,
+        ability_id: abilityId
+      })
+    });
+    renderPersonalizedPlan(plan);
+  } catch (error) {
+    $("personalizedPlan").innerHTML = `<p class="muted">生成失败：${escapeHtml(error.message)}</p>`;
+  } finally {
+    button.disabled = false;
+    button.textContent = planButtonText(planMode);
+  }
+}
+
+function collectAnswers() {
+  const answers = {};
+  document.querySelectorAll(".question").forEach((fieldset) => {
+    const id = fieldset.dataset.questionId;
+    const type = fieldset.dataset.questionType;
+    if (type === "multiple_choice") {
+      const selected = [...fieldset.querySelectorAll("input:checked")].map((item) => item.value);
+      if (selected.length) answers[id] = selected;
+      return;
+    }
+    if (type === "ordering") {
+      const value = fieldset.querySelector("input")?.value.trim();
+      if (value) answers[id] = value.split(/[,，\s>]+/).filter(Boolean);
+      return;
+    }
+    const selected = fieldset.querySelector("input:checked");
+    if (selected) answers[id] = selected.value;
+  });
+  return answers;
+}
+
+function renderScore(data) {
+  const result = data.score_result || {};
+  $("scoreResult").innerHTML = `
+    <div class="metric"><strong>${result.score ?? "-"}</strong><span>总分</span></div>
+    <div class="metric"><strong>${result.correct_count ?? "-"}/${result.total_count ?? "-"}</strong><span>答对题数</span></div>
+    <div class="metric"><strong>${escapeHtml(result.feedback_level || "-")}</strong><span>反馈等级</span></div>
+  `;
+  $("weakAbilities").innerHTML = `
+    <h3>薄弱能力</h3>
+    ${(data.weak_abilities || []).length ? `
+      <ul class="item-list">
+        ${data.weak_abilities.map((item) => `
+          <li class="weak"><strong>${escapeHtml(item.ability_name)}</strong><div>${escapeHtml(item.reason)}</div></li>
+        `).join("")}
+      </ul>
+    ` : '<p class="muted">暂无薄弱能力。</p>'}
+  `;
+}
+
+function applyChatResult(data) {
+  state.lastChat = data;
+  state.learnerContext = data.learner_context || state.learnerContext;
+  addMessage("assistant", data.answer || "", {
+    safety_notice: data.safety_notice,
+    fallback_used: data.fallback_used,
+    evidence_used: data.evidence_used || [],
+    reasoning_steps: data.reasoning_steps || [],
+    knowledge_refs: data.knowledge_refs || []
+  });
+  renderSuggestedQuestions(data.suggested_questions || []);
+  renderToolSuggestions(data.tool_suggestions || []);
+  renderGraph(data.ability_knowledge_view?.graph || {}, "current");
+  if (data.student_graph) renderGraph(data.student_graph, "student");
+  loadGraphUpdates();
+  renderKnowledge(data.knowledge_gaps || []);
+  renderTasks(data.remediation_cards || []);
+}
+
+async function sendChat(message) {
+  const text = (message || $("chatInput").value).trim();
+  if (!text) return;
+  $("chatInput").value = "";
+  addMessage("user", text);
+  $("sendChat").disabled = true;
+  $("sendChat").textContent = "发送中";
+  try {
+    const history = state.messages
+      .filter((item) => item.role === "user" || item.role === "assistant")
+      .slice(-8)
+      .map((item) => ({ role: item.role, content: item.content }));
+    const data = await api("/api/chat/message", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        message: text,
+        learner_role: "职业新人",
+        target_job_profile_id: state.jobProfile?.id,
+        history,
+        context: collectContext()
+      })
+    });
+    applyChatResult(data);
+  } catch (error) {
+    addMessage("assistant", `请求失败：${error.message}`);
+  } finally {
+    $("sendChat").disabled = false;
+    $("sendChat").textContent = "发送";
+  }
+}
+
+async function submitDiagnosis() {
+  $("submitDiagnosis").disabled = true;
+  $("submitDiagnosis").textContent = "评分中";
+  try {
+    const data = await api("/api/diagnose", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        user_input: state.messages.filter((item) => item.role === "user").slice(-1)[0]?.content || "",
+        answers: collectAnswers()
+      })
+    });
+    state.lastDiagnosis = data;
+    renderScore(data);
+    renderGraph(data.ability_graph, "current");
+    if (data.student_graph) renderGraph(data.student_graph, "student");
+    await loadGraphUpdates();
+    renderKnowledge(data.knowledge_refs || []);
+    renderTasks(data.task_recommendations || []);
+  } catch (error) {
+    alert(error.message);
+  } finally {
+    $("submitDiagnosis").disabled = false;
+    $("submitDiagnosis").textContent = "提交自测评分";
+  }
+}
+
+async function submitFeedback(feedback) {
+  if (!state.lastChat && !state.lastDiagnosis) {
+    $("feedbackStatus").textContent = "请先完成一次对话或自测。";
+    return;
+  }
+  const source = state.lastDiagnosis || state.lastChat;
+  const result = await api("/api/feedback", {
+    method: "POST",
+    body: JSON.stringify({
+      session_id: state.sessionId,
+      feedback,
+      user_input: state.messages.filter((item) => item.role === "user").slice(-1)[0]?.content || "",
+      score_result: source.score_result || {},
+      weak_abilities: source.weak_abilities || source.highlighted_abilities || [],
+      highlighted_abilities: source.highlighted_abilities || [],
+      recommended_path: source.recommended_path || (source.remediation_cards || []).map((item) => item.title)
+    })
+  });
+  $("feedbackStatus").textContent = `反馈已保存：${result.feedback}`;
+  await refreshStudentGraph();
+}
+
+async function loadTeacherSummary() {
+  const data = await api("/api/teacher/summary");
+  $("teacherSummary").innerHTML = `
+    <p>会话数：${data.session_count}</p>
+    <p>反馈统计：${escapeHtml(JSON.stringify(data.feedback_counts))}</p>
+    <p>Top 薄弱点：${(data.top_weak_abilities || []).map((item) => `${escapeHtml(item.ability_name)}(${item.count})`).join("，") || "暂无"}</p>
+    <p>${escapeHtml(data.teaching_suggestion)}</p>
+  `;
+}
+
+async function boot() {
+  try {
+    const health = await api("/api/health");
+    $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
+    $("healthStatus").classList.add("ok");
+    const [start, quiz, currentGraph, jobGraph, studentBootstrap] = await Promise.all([
+      api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId }) }),
+      api("/api/quiz"),
+      api("/api/graph"),
+      api("/api/graph/job"),
+      api(`/api/student/bootstrap?session_id=${encodeURIComponent(state.sessionId)}`)
+    ]);
+    state.learnerContext = studentBootstrap.learner_context || start.learner_context || null;
+    renderJobProfile(start.job_profile || {});
+    $("llmStatus").textContent = start.llm_configured ? "模型已配置" : "规则兜底";
+    $("llmStatus").classList.toggle("ok", Boolean(start.llm_configured));
+    addMessage("assistant", start.welcome || "");
+    renderSuggestedQuestions(start.suggested_questions || []);
+    renderQuiz(quiz.questions);
+    renderGraph(currentGraph, "current");
+    renderGraph(jobGraph, "job");
+    renderJobProposals(jobGraph.pending_proposals || []);
+    renderGraph(studentBootstrap.student_graph, "student");
+    renderGraphUpdateLog(studentBootstrap.student_graph?.update_log || []);
+  } catch (error) {
+    $("healthStatus").textContent = "未连接";
+    $("healthStatus").classList.remove("ok");
+    $("quizCount").textContent = "加载失败";
+    addMessage("assistant", `服务连接失败：${error.message}`);
+  }
+}
+
+$("chatForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  sendChat();
+});
+$("submitDiagnosis").addEventListener("click", submitDiagnosis);
+$("loadPersonalizedQuiz").addEventListener("click", loadPersonalizedQuiz);
+$("loadPersonalizedPlan").addEventListener("click", () => loadPersonalizedPlan("staged"));
+$("loadTodayPlan").addEventListener("click", () => loadPersonalizedPlan("today"));
+$("loadSevenDayPlan").addEventListener("click", () => loadPersonalizedPlan("7_day"));
+$("startScenario").addEventListener("click", startScenario);
+$("generateJobProposals").addEventListener("click", generateJobProposals);
+$("confirmJobProposals").addEventListener("click", confirmJobProposals);
+$("loadTeacherSummary").addEventListener("click", loadTeacherSummary);
+document.querySelectorAll("[data-feedback]").forEach((button) => {
+  button.addEventListener("click", () => submitFeedback(button.dataset.feedback));
+});
+document.querySelectorAll("[data-open-tool]").forEach((button) => {
+  button.addEventListener("click", () => openWorkspace(button.dataset.openTool, button.dataset.graphView));
+});
+document.querySelectorAll("[data-workspace-panel]").forEach((button) => {
+  button.addEventListener("click", () => setWorkspacePanel(button.dataset.workspacePanel));
+});
+document.querySelectorAll(".graph-tabs [data-graph-view]").forEach((button) => {
+  button.addEventListener("click", () => setGraphView(button.dataset.graphView));
+});
+$("closeWorkspace").addEventListener("click", closeWorkspace);
+$("closeNodeDetail").addEventListener("click", closeNodeDetail);
+$("closeExplainDrawer").addEventListener("click", closeExplainDrawer);
+$("continueExplainInChat").addEventListener("click", () => {
+  const prompt = state.explainPrompt
+    || state.lastExplanation?.suggested_questions?.[0]
+    || state.lastExplanation?.title
+    || "";
+  closeExplainDrawer();
+  askFromTool(prompt);
+});
+$("workspaceOverlay").addEventListener("click", (event) => {
+  if (event.target === $("workspaceOverlay")) closeWorkspace();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && $("workspaceOverlay").classList.contains("open")) closeWorkspace();
+  if (event.key === "Escape" && $("nodeDetailDrawer").classList.contains("open")) closeNodeDetail();
+  if (event.key === "Escape" && $("explainDrawer").classList.contains("open")) closeExplainDrawer();
+});
+
+boot();

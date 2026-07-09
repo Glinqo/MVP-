@@ -1,0 +1,36 @@
+{
+  "version": "0.1.0",
+  "errors": [
+    {
+      "code": "E_SENSOR_NPN_PNP",
+      "node_id": "sensor_wiring",
+      "label": "NPN/PNP 与公共端混淆",
+      "hint": "先确认传感器输出类型，再匹配 PLC 输入公共端。"
+    },
+    {
+      "code": "E_IO_MAPPING",
+      "node_id": "plc_io_mapping",
+      "label": "现场元件与 PLC 地址不对应",
+      "hint": "建立元件、地址、变量三列表。"
+    },
+    {
+      "code": "E_COUNTER_EDGE",
+      "node_id": "plc_edge_counter",
+      "label": "计数未使用沿触发",
+      "hint": "对到位信号使用上升沿，避免一个工件被多次计数。"
+    },
+    {
+      "code": "E_PNEUMATIC_ONLY_PROGRAM",
+      "node_id": "pneumatic_speed",
+      "label": "只改程序不查气路",
+      "hint": "气缸速度问题需要同时检查气压、节流阀、负载和机械阻力。"
+    },
+    {
+      "code": "E_NO_DIAG_ORDER",
+      "node_id": "fault_diagnosis",
+      "label": "排故顺序混乱",
+      "hint": "按电源、输入、程序、输出、执行机构顺序排查。"
+    }
+  ]
+}
+

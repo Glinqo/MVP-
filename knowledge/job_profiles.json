@@ -1,0 +1,93 @@
+{
+  "version": "0.1.0",
+  "source": "project_curated",
+  "profiles": [
+    {
+      "id": "automation_line_commissioning_maintenance_newcomer",
+      "role_name": "自动化生产线装调与运维技术员",
+      "learner_stage": "职业新人",
+      "target_learners": ["高职机电一体化实训学生", "入职 0-6 个月自动化设备调试新人", "转岗到产线运维岗位的新员工"],
+      "job_context": "在自动化产线或机电设备工作站中，完成传感器、PLC 输入、气动执行机构和基础电气控制链路的装调、监控和故障排查。",
+      "core_job_tasks": [
+        "接线和调试前完成电气安全检查",
+        "识别三线制传感器 NPN/PNP 输出类型",
+        "判断传感器输出与 PLC 输入公共端是否匹配",
+        "建立现场元件、端子、PLC 输入地址和程序变量的 I/O 映射",
+        "通过传感器动作灯、PLC 输入灯和在线监控状态进行三联对照",
+        "按电源、传感器、接线、公共端、输入模块、地址映射和程序变量顺序定位输入点无响应故障",
+        "把故障现象、检查证据、定位结论和下一步训练记录成实训反馈"
+      ],
+      "ability_chain": [
+        "electrical_safety_check",
+        "sensor_type_identification",
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal",
+        "plc_io_address_mapping",
+        "plc_input_monitoring",
+        "input_no_response_fault_scope",
+        "personalized_training_task_recommendation"
+      ],
+      "course_mapping": [
+        {
+          "course": "电工电子技术",
+          "training_value": "支撑安全用电、DC24V 供电和万用表测量基础"
+        },
+        {
+          "course": "传感器与检测技术",
+          "training_value": "支撑 NPN/PNP、三线制传感器、动作灯和输出信号判断"
+        },
+        {
+          "course": "PLC 技术与应用",
+          "training_value": "支撑输入公共端、I/O 地址、在线监控和程序变量查找"
+        },
+        {
+          "course": "电机与电气控制技术",
+          "training_value": "支撑低压电器、输入输出条件和控制回路理解"
+        },
+        {
+          "course": "液压与气动技术",
+          "training_value": "支撑气缸不动作时电气、程序、气路分层排查"
+        },
+        {
+          "course": "自动化生产线运行与维护",
+          "training_value": "支撑典型输入点无响应故障定位和实训记录闭环"
+        }
+      ],
+      "training_stages": [
+        {
+          "stage": "入门安全与元件识别",
+          "goal": "先能安全进入实训，再识别传感器类型和线色。",
+          "ability_ids": ["electrical_safety_check", "power_isolation_confirmation", "sensor_type_identification", "sensor_wiring_color_code"],
+          "evidence": ["安全检查清单", "传感器型号与线色记录"]
+        },
+        {
+          "stage": "接线与公共端判断",
+          "goal": "能判断 NPN/PNP 输出类型与 PLC 输入公共端是否匹配。",
+          "ability_ids": ["sensor_output_logic", "sensor_wiring_judgement", "plc_input_common_terminal", "plc_input_grouping"],
+          "evidence": ["接线判断表", "公共端组别记录"]
+        },
+        {
+          "stage": "I/O 映射与监控",
+          "goal": "能把现场元件和 PLC 地址、程序变量对应起来，并通过输入灯和在线监控验证。",
+          "ability_ids": ["plc_io_address_mapping", "io_mapping_table_build", "plc_input_monitoring", "input_led_compare"],
+          "evidence": ["I/O 映射表", "三联状态对照记录"]
+        },
+        {
+          "stage": "输入无响应综合排故",
+          "goal": "能按顺序定位传感器有动作但 PLC 输入无响应的原因。",
+          "ability_ids": ["input_no_response_fault_scope", "no_response_power_path_check", "no_response_sensor_side_check", "no_response_common_terminal_check", "no_response_address_mapping_check"],
+          "evidence": ["排故顺序记录", "故障定位结论", "下一步训练建议"]
+        }
+      ],
+      "assessment_policy": {
+        "diagnosis_method": "诊断题和排故状态表",
+        "scoring_method": "确定性规则评分",
+        "llm_role": "解释错因、组织反馈和生成学习建议，不自由改分",
+        "teacher_review": "涉及真实设备操作、接线调整和安全判断时，由教师或实训指导人员复核"
+      },
+      "mvp_focus_task": "传感器 NPN/PNP 接线与 PLC 输入信号排查",
+      "safety_notice": "接线和拆线前先断电；调试前确认急停、气源、电源和设备状态；不确定设备状态时请教师或实训指导人员确认。",
+      "sources": ["project_curated", "MVP 场景: 自动化生产线装调与运维职业新人培训"]
+    }
+  ]
+}

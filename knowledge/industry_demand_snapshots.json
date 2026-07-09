@@ -1,0 +1,269 @@
+{
+  "version": "0.1.0",
+  "job_role": "自动化生产线装调与运维技术员",
+  "scenario": "传感器 NPN/PNP 接线与 PLC 输入信号排查",
+  "update_policy": {
+    "cycle": "每月或每学期人工更新一次",
+    "owner": "项目团队/专业教师",
+    "method": "收集企业岗位任务、招聘 JD、行业标准、课程标准和教师整理材料后写入本文件",
+    "source": "project_curated"
+  },
+  "snapshots": [
+    {
+      "snapshot_id": "IDS20260709-001",
+      "collected_at": "2026-07-09",
+      "source_type": "enterprise_task_curated",
+      "source": "project_curated_demo_enterprise_requirement",
+      "job_role": "自动化生产线装调与运维技术员",
+      "evidence": "企业装调与运维岗位通常要求新人能在安全条件下完成传感器接线核对、PLC 输入监控和基础故障排查；本条为 MVP 演示样例，后续需替换为真实企业材料。",
+      "weight": 1.0,
+      "required_abilities": [
+        {
+          "ability_id": "electrical_safety_check",
+          "demand_label": "安全底线",
+          "evidence": "接线、拆线和通电监控前必须完成安全确认。",
+          "weight": 1.0,
+          "source": "project_curated"
+        },
+        {
+          "ability_id": "sensor_wiring_judgement",
+          "demand_label": "高频岗位任务",
+          "evidence": "新人常被要求按图核对三线制传感器供电线、输出线和输入端子。",
+          "weight": 0.9,
+          "source": "project_curated"
+        },
+        {
+          "ability_id": "plc_input_monitoring",
+          "demand_label": "现场验证能力",
+          "evidence": "需要通过 PLC 输入灯和在线监控验证现场信号是否进入控制系统。",
+          "weight": 0.8,
+          "source": "project_curated"
+        }
+      ]
+    },
+    {
+      "snapshot_id": "IDS20260709-002",
+      "collected_at": "2026-07-09",
+      "source_type": "job_posting_curated",
+      "source": "project_curated_demo_job_posting_summary",
+      "job_role": "自动化生产线装调与运维技术员",
+      "evidence": "自动化设备调试类岗位描述常出现 PLC I/O、传感器、气动执行机构、现场排故等关键词；本条为 MVP 结构样例。",
+      "weight": 0.8,
+      "required_abilities": [
+        {
+          "ability_id": "sensor_type_identification",
+          "demand_label": "基础识别",
+          "evidence": "需要读懂传感器型号、线色和 NPN/PNP 输出类型。",
+          "weight": 0.9,
+          "source": "project_curated"
+        },
+        {
+          "ability_id": "plc_io_address_mapping",
+          "demand_label": "调试记录能力",
+          "evidence": "需要把现场元件、端子、PLC 地址和程序变量对应起来。",
+          "weight": 0.8,
+          "source": "project_curated"
+        },
+        {
+          "ability_id": "program_variable_lookup",
+          "demand_label": "程序侧定位",
+          "evidence": "输入灯正常但程序不动作时，需要继续检查地址和变量引用。",
+          "weight": 0.6,
+          "source": "project_curated"
+        }
+      ]
+    },
+    {
+      "snapshot_id": "IDS20260709-003",
+      "collected_at": "2026-07-09",
+      "source_type": "course_standard_curated",
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充",
+      "job_role": "自动化生产线装调与运维技术员",
+      "evidence": "课程与实训标准通常要求学生完成安全用电、传感器检测、PLC 输入输出和故障诊断训练；具体标准条目待教师补充。",
+      "weight": 0.7,
+      "required_abilities": [
+        {
+          "ability_id": "plc_input_common_terminal",
+          "demand_label": "关键概念",
+          "evidence": "NPN/PNP 与 PLC 输入公共端匹配是接线排故的核心判断点。",
+          "weight": 1.0,
+          "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+        },
+        {
+          "ability_id": "input_no_response_fault_scope",
+          "demand_label": "综合排故",
+          "evidence": "输入点无响应需要按电源、传感器、接线、公共端、输入模块和程序映射分层定位。",
+          "weight": 1.0,
+          "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+        },
+        {
+          "ability_id": "diagnosis_record_feedback",
+          "demand_label": "可复盘交付",
+          "evidence": "实训结果需要形成现象、证据、结论和下一步训练建议。",
+          "weight": 0.5,
+          "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+        }
+      ]
+    },
+    {
+      "snapshot_id": "IDS20260709-004",
+      "collected_at": "2026-07-09",
+      "source_type": "teacher_curated",
+      "source": "project_curated_teacher_demo",
+      "job_role": "自动化生产线装调与运维技术员",
+      "evidence": "教师整理的课堂观察表明，学生容易在传感器灯、PLC 输入灯和在线监控三者关系上跳步判断；本条为 MVP 演示样例。",
+      "weight": 0.6,
+      "required_abilities": [
+        {
+          "ability_id": "input_led_compare",
+          "demand_label": "证据对照",
+          "evidence": "需要同时记录传感器灯、PLC 输入灯和在线监控状态。",
+          "weight": 0.9,
+          "source": "project_curated"
+        },
+        {
+          "ability_id": "no_response_common_terminal_check",
+          "demand_label": "高频错因",
+          "evidence": "公共端接反或跨组接线会导致传感器动作但输入无效。",
+          "weight": 0.8,
+          "source": "project_curated"
+        },
+        {
+          "ability_id": "personalized_training_task_recommendation",
+          "demand_label": "训练闭环",
+          "evidence": "需要把薄弱点落到一节课内可完成的补救实训任务。",
+          "weight": 0.6,
+          "source": "project_curated"
+        }
+      ]
+    },
+    {
+      "snapshot_id": "IDS20260709-005",
+      "collected_at": "2026-07-09",
+      "source_type": "national_teaching_standard",
+      "source": "教育部《机电一体化技术专业教学标准（高等职业教育专科）》https://www.moe.gov.cn/s78/A07/zcs_ztzl/2017_zt06/17zt06_bznr/bznr_zyjyzyjxbz/gdzyjy_zk/zk_zbzzdl/zbzzdl_zdhl/202502/P020250207525314104497.pdf",
+      "job_role": "自动化生产线装调与运维技术员",
+      "evidence": "专业面向机电设备、自动化生产线的安装调试、运行维修、改造升级等岗位能力，支持把本 MVP 聚焦到自动化产线输入信号排查。",
+      "weight": 1.1,
+      "required_abilities": [
+        {
+          "ability_id": "role_task_understanding",
+          "demand_label": "岗位边界",
+          "evidence": "自动化生产线装调与运维是机电一体化技术职业面向的重要岗位任务。",
+          "weight": 0.8,
+          "source": "教育部专业教学标准"
+        },
+        {
+          "ability_id": "plc_input_monitoring",
+          "demand_label": "运行维护能力",
+          "evidence": "运行维护场景要求能观察控制系统状态并定位一般故障。",
+          "weight": 0.9,
+          "source": "教育部专业教学标准"
+        },
+        {
+          "ability_id": "diagnosis_record_feedback",
+          "demand_label": "维修诊断交付",
+          "evidence": "安装调试和维修岗位需要形成故障诊断、处理和复盘记录。",
+          "weight": 0.7,
+          "source": "教育部专业教学标准"
+        }
+      ]
+    },
+    {
+      "snapshot_id": "IDS20260709-006",
+      "collected_at": "2026-07-09",
+      "source_type": "college_training_plan",
+      "source": "江海职业技术学院《2025级机电一体化技术专业人才培养方案》https://www.jhu.cn/A01JDQCXY/uploadfile/2026011416530663784.pdf",
+      "job_role": "自动化生产线装调与运维技术员",
+      "evidence": "人才培养方案中 PLC 技术、自动化生产线、机电设备故障诊断等课程与本 MVP 的 I/O 映射、输入监控和排故任务直接相关。",
+      "weight": 0.9,
+      "required_abilities": [
+        {
+          "ability_id": "plc_io_address_mapping",
+          "demand_label": "PLC 应用基础",
+          "evidence": "PLC 技术与应用要求学生能把现场信号与程序地址对应。",
+          "weight": 0.9,
+          "source": "江海职业技术学院人才培养方案"
+        },
+        {
+          "ability_id": "program_variable_lookup",
+          "demand_label": "程序侧排查",
+          "evidence": "机电设备故障诊断与维修需要查找程序条件和输入输出联动。",
+          "weight": 0.8,
+          "source": "江海职业技术学院人才培养方案"
+        },
+        {
+          "ability_id": "input_no_response_fault_scope",
+          "demand_label": "综合排故",
+          "evidence": "自动化生产线运行维护要求按层级定位故障原因。",
+          "weight": 1.0,
+          "source": "江海职业技术学院人才培养方案"
+        }
+      ]
+    },
+    {
+      "snapshot_id": "IDS20260709-007",
+      "collected_at": "2026-07-09",
+      "source_type": "equipment_vendor_reference",
+      "source": "AutomationDirect Sinking and Sourcing Sensor Wiring Basics https://www.automationdirect.com/videos/video?videoToPlay=GnJ9LXUbpwU",
+      "job_role": "自动化生产线装调与运维技术员",
+      "evidence": "传感器 sinking/sourcing 与 PLC 输入接线是自动化设备输入信号排查的关键工程知识。",
+      "weight": 0.8,
+      "required_abilities": [
+        {
+          "ability_id": "sensor_type_identification",
+          "demand_label": "NPN/PNP 识别",
+          "evidence": "岗位新人需要能区分 NPN/PNP 输出方向。",
+          "weight": 0.9,
+          "source": "AutomationDirect"
+        },
+        {
+          "ability_id": "plc_input_common_terminal",
+          "demand_label": "公共端匹配",
+          "evidence": "sinking/sourcing 输入接线需要匹配公共端电位和电流路径。",
+          "weight": 1.0,
+          "source": "AutomationDirect"
+        },
+        {
+          "ability_id": "sensor_wiring_judgement",
+          "demand_label": "接线判断",
+          "evidence": "输入无响应排故要能判断输出线、输入点和公共端连接。",
+          "weight": 0.9,
+          "source": "AutomationDirect"
+        }
+      ]
+    },
+    {
+      "snapshot_id": "IDS20260709-008",
+      "collected_at": "2026-07-09",
+      "source_type": "safety_standard",
+      "source": "全国标准信息公共服务平台 GB/T 5226.1-2019 https://std.samr.gov.cn/gb/search/gbDetailed?id=8AA1F5D36E55A8DBE05397BE0A0AB19B",
+      "job_role": "自动化生产线装调与运维技术员",
+      "evidence": "机械电气安全标准支撑接线、通电监控、设备动作调试前必须进行安全确认。",
+      "weight": 1.0,
+      "required_abilities": [
+        {
+          "ability_id": "electrical_safety_check",
+          "demand_label": "安全底线",
+          "evidence": "接线、通电、监控、设备动作前必须完成电气和机械安全确认。",
+          "weight": 1.0,
+          "source": "GB/T 5226.1-2019"
+        },
+        {
+          "ability_id": "power_isolation_confirmation",
+          "demand_label": "断电隔离",
+          "evidence": "拆接线前应确认电源隔离和设备状态。",
+          "weight": 0.8,
+          "source": "GB/T 5226.1-2019"
+        },
+        {
+          "ability_id": "plc_input_monitoring",
+          "demand_label": "安全监控",
+          "evidence": "在线监控时需确认人员站位、运动区域和设备可动作风险。",
+          "weight": 0.7,
+          "source": "GB/T 5226.1-2019 + project safety rules"
+        }
+      ]
+    }
+  ]
+}

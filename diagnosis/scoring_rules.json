@@ -1,0 +1,211 @@
+{
+  "version": "0.3.0",
+  "scoring_mode": "deterministic_rule",
+  "scenario": "传感器 NPN/PNP 接线与 PLC 输入信号排查",
+  "source": "PLC 实训指导书/教师确认资料/课程标准待补充",
+  "critical_abilities": ["A01", "A02", "A03", "A07"],
+  "feedback_levels": [
+    {"min_score": 100, "label": "掌握较好"},
+    {"min_score": 75, "label": "需要专项训练"},
+    {"min_score": 0, "label": "需要补基础"}
+  ],
+  "ability_catalog": {
+    "electrical_safety_check": {
+      "ability_id": "A01",
+      "ability_name": "电气安全检查",
+      "default_reason": "接线或调试前未完成断电、急停、气源和设备状态确认"
+    },
+    "sensor_type_identification": {
+      "ability_id": "A02",
+      "ability_name": "NPN/PNP 传感器类型识别",
+      "default_reason": "NPN/PNP 输出类型与公共端关系判断错误"
+    },
+    "plc_input_common_terminal": {
+      "ability_id": "A03",
+      "ability_name": "PLC 输入公共端判断",
+      "default_reason": "PLC 输入公共端与传感器输出类型匹配判断错误"
+    },
+    "plc_io_address_mapping": {
+      "ability_id": "A04",
+      "ability_name": "PLC I/O 地址映射",
+      "default_reason": "现场元件、端子、PLC 地址和程序变量对应关系不清"
+    },
+    "program_variable_lookup": {
+      "ability_id": "A05",
+      "ability_name": "常开/常闭触点判断",
+      "default_reason": "PLC 程序触点符号与变量状态理解错误"
+    },
+    "plc_input_monitoring": {
+      "ability_id": "A06",
+      "ability_name": "PLC 输入监控状态判断",
+      "default_reason": "传感器动作灯、PLC 输入灯和在线监控状态未正确对比"
+    },
+    "input_no_response_fault_scope": {
+      "ability_id": "A07",
+      "ability_name": "输入点无响应故障定位",
+      "default_reason": "输入无响应排查顺序不完整或跳步"
+    },
+    "sensor_wiring_judgement": {
+      "ability_id": "A08",
+      "ability_name": "接线图判断训练",
+      "default_reason": "传感器输出线、端子和输入点接线关系判断错误"
+    },
+    "sensor_led_observation": {
+      "ability_id": "A09",
+      "ability_name": "传感器指示灯状态观察",
+      "default_reason": "未能根据传感器动作灯和现场条件判断传感器侧状态"
+    },
+    "plc_input_grouping": {
+      "ability_id": "A10",
+      "ability_name": "PLC 输入公共端分组识别",
+      "default_reason": "未能识别输入公共端分组和跨组接线风险"
+    },
+    "input_led_compare": {
+      "ability_id": "A11",
+      "ability_name": "传感器灯与 PLC 输入灯对比",
+      "default_reason": "未能用传感器灯、PLC 输入灯和在线监控三联状态定位故障层级"
+    },
+    "no_response_sensor_side_check": {
+      "ability_id": "A12",
+      "ability_name": "传感器侧检查",
+      "default_reason": "传感器供电、检测距离、安装状态或输出端证据检查不完整"
+    },
+    "diagnosis_record_feedback": {
+      "ability_id": "A13",
+      "ability_name": "诊断记录与反馈闭环",
+      "default_reason": "未能把问答、自测、讲题、任务和反馈转成可审计图谱证据"
+    },
+    "personalized_training_task_recommendation": {
+      "ability_id": "A14",
+      "ability_name": "个性化实训任务推荐",
+      "default_reason": "未能基于岗位图谱、个人图谱和知识资源生成可执行训练路径"
+    },
+    "no_response_address_mapping_check": {
+      "ability_id": "A15",
+      "ability_name": "无响应故障的地址映射检查",
+      "default_reason": "输入灯正常后未能继续核对地址、变量、模式、互锁和输出链路"
+    }
+  },
+  "questions": {
+    "Q001": {
+      "weak_abilities": ["sensor_type_identification"],
+      "reason": "NPN/PNP 输出类型与公共端关系判断错误",
+      "recommended_path": ["电气安全检查", "NPN/PNP 传感器类型识别", "接线图判断训练", "PLC 输入监控训练"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q002": {
+      "weak_abilities": ["plc_io_address_mapping"],
+      "reason": "现场元件、端子、PLC 地址和程序变量对应关系不完整",
+      "recommended_path": ["PLC I/O 地址映射", "I/O 映射表填写训练", "PLC 输入监控训练"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q003": {
+      "weak_abilities": ["plc_input_common_terminal"],
+      "reason": "PLC 输入公共端与 PNP/NPN 输出类型匹配判断错误",
+      "recommended_path": ["PLC 输入公共端判断", "NPN/PNP 传感器类型识别", "接线图判断训练"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q004": {
+      "weak_abilities": ["input_no_response_fault_scope"],
+      "reason": "气缸不动作时未按电气、程序、气路进行分层排查",
+      "recommended_path": ["输入点无响应故障定位", "气缸不动作分层排查", "PLC 输出与气路联动检查"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q005": {
+      "weak_abilities": ["input_no_response_fault_scope"],
+      "reason": "输入点无响应排故顺序错误，可能跳过安全、电源或公共端检查",
+      "recommended_path": ["电气安全检查", "输入点无响应故障定位", "PLC 输入监控训练", "故障记录复盘"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q006": {
+      "weak_abilities": ["electrical_safety_check"],
+      "reason": "调整接线前未优先执行断电和设备安全确认",
+      "recommended_path": ["电气安全检查", "断电与隔离确认", "PLC 输入监控训练"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q007": {
+      "weak_abilities": ["program_variable_lookup"],
+      "reason": "常开/常闭触点与 PLC 程序变量状态的关系理解错误",
+      "recommended_path": ["常开/常闭触点判断", "程序变量与输入地址查找", "PLC 输入监控训练"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q008": {
+      "weak_abilities": ["plc_input_monitoring", "sensor_wiring_judgement"],
+      "reason": "传感器动作灯、PLC 输入灯和在线监控状态未正确对比",
+      "recommended_path": ["PLC 输入监控训练", "接线图判断训练", "PLC 输入公共端判断"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q009": {
+      "weak_abilities": ["electrical_safety_check"],
+      "reason": "在线监控或设备调试前未确认急停、气源、电源、运动区域和人员站位",
+      "recommended_path": ["电气安全检查", "断电与隔离确认", "PLC 输入监控训练"],
+      "source": "GB/T 5226.1-2019 + 项目安全规则"
+    },
+    "Q010": {
+      "weak_abilities": ["plc_input_common_terminal", "sensor_type_identification"],
+      "reason": "NPN 输出方向与 PLC 输入公共端电位关系判断错误",
+      "recommended_path": ["NPN/PNP 传感器类型识别", "PLC 输入公共端判断", "接线图判断训练"],
+      "source": "AutomationDirect + Balluff"
+    },
+    "Q011": {
+      "weak_abilities": ["sensor_wiring_judgement", "plc_input_common_terminal"],
+      "reason": "PNP 输出方向与 PLC 输入公共端接法判断错误",
+      "recommended_path": ["NPN/PNP 传感器类型识别", "接线图判断训练", "PLC 输入公共端判断"],
+      "source": "AutomationDirect + Balluff"
+    },
+    "Q012": {
+      "weak_abilities": ["plc_io_address_mapping", "program_variable_lookup"],
+      "reason": "输入 LED 已亮后，未能转向地址、工程连接和变量映射检查",
+      "recommended_path": ["PLC I/O 地址映射", "程序变量与输入地址查找", "PLC 输入监控训练"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q013": {
+      "weak_abilities": ["sensor_led_observation", "no_response_sensor_side_check"],
+      "reason": "传感器动作灯不亮或不稳定时，传感器侧证据检查不完整",
+      "recommended_path": ["传感器指示灯状态观察", "传感器侧检查", "DC24V 电源检查"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q014": {
+      "weak_abilities": ["plc_input_grouping", "plc_input_common_terminal"],
+      "reason": "PLC 输入公共端分组和跨组接线风险判断错误",
+      "recommended_path": ["PLC 输入公共端判断", "公共端分组识别", "接线图判断训练"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q015": {
+      "weak_abilities": ["program_variable_lookup", "no_response_address_mapping_check"],
+      "reason": "输入 LED 已亮但程序不动作时，程序变量、互锁和输出链路排查顺序错误",
+      "recommended_path": ["程序变量与输入地址查找", "无响应故障的地址映射检查", "气缸不动作分层排查"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q016": {
+      "weak_abilities": ["plc_io_address_mapping"],
+      "reason": "端子号、PLC 地址和程序变量概念混淆",
+      "recommended_path": ["PLC I/O 地址映射", "I/O 映射表填写训练", "程序变量与输入地址查找"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q017": {
+      "weak_abilities": ["sensor_wiring_judgement"],
+      "reason": "三线制传感器线色、输出线和说明书核对关系判断错误",
+      "recommended_path": ["三线制传感器输入验证", "接线图判断训练", "NPN/PNP 传感器类型识别"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q018": {
+      "weak_abilities": ["input_no_response_fault_scope"],
+      "reason": "气缸不动作的电气、程序、电磁阀和气路机械分层证据不完整",
+      "recommended_path": ["输入点无响应故障定位", "气缸不动作分层排查", "故障记录复盘"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    "Q019": {
+      "weak_abilities": ["diagnosis_record_feedback"],
+      "reason": "个人能力图谱更新证据来源和确定性评分边界理解错误",
+      "recommended_path": ["诊断记录与反馈闭环", "个性化实训任务推荐", "故障记录复盘"],
+      "source": "项目图谱更新机制"
+    },
+    "Q020": {
+      "weak_abilities": ["personalized_training_task_recommendation"],
+      "reason": "岗位能力图谱更新缺少企业/行业/课程材料来源、采集时间或教师确认机制",
+      "recommended_path": ["岗位能力图谱更新", "个性化实训任务推荐", "教师确认反馈闭环"],
+      "source": "项目图谱更新机制 + 教育部专业教学标准"
+    }
+  }
+}

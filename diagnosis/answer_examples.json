@@ -1,0 +1,21 @@
+{
+  "version": "0.1.0",
+  "examples": [
+    {
+      "question_id": "Q002",
+      "good_answer": "建立 I/O 映射表可以把现场元件、PLC 地址和程序变量一一对应，方便调试和排故。",
+      "weak_answer": "方便看。"
+    },
+    {
+      "question_id": "Q004",
+      "good_answer": "应检查气压是否足够、节流阀开度、负载变化，以及气缸或导轨是否卡滞。",
+      "weak_answer": "只改程序看看。"
+    },
+    {
+      "question_id": "Q005",
+      "good_answer": "先查电源和急停，再看输入信号，然后在线监控程序，接着看输出点，最后检查执行机构。",
+      "weak_answer": "随便测一下。"
+    }
+  ]
+}
+

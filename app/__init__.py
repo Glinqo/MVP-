@@ -1,0 +1,1 @@
+"""Local MVP application package."""

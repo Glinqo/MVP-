@@ -1,0 +1,215 @@
+{
+  "version": "0.1.0",
+  "source": "project_curated",
+  "scenarios": [
+    {
+      "id": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
+      "title": "传感器灯亮但 PLC 输入灯不亮",
+      "roleplay_frame": "你是自动化生产线装调与运维技术员新人，师傅让你判断为什么传感器有动作但 PLC 没有收到输入。",
+      "initial_symptom": "传感器动作灯亮，PLC 输入模块指示灯不亮，在线监控也不变化。",
+      "safety_notice": "安全提醒：接线、拆线和端子检查前先断电；通电监控前确认急停、气源、电源和设备状态，不确定时请教师或实训指导人员确认。",
+      "ability_ids": [
+        "electrical_safety_check",
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal",
+        "plc_input_monitoring"
+      ],
+      "steps": [
+        {
+          "id": "S1",
+          "prompt": "现在你第一步最应该做什么？",
+          "ability_ids": ["electrical_safety_check"],
+          "options": [
+            {
+              "id": "A",
+              "text": "先断电并确认急停、气源、电源状态，再进行端子和接线检查",
+              "is_correct": true,
+              "feedback": "正确。设备排故先确认安全边界，不能带电冒险改线。",
+              "observation": "现场断电后，允许你检查传感器棕/蓝/黑三线和 PLC 输入端子。"
+            },
+            {
+              "id": "B",
+              "text": "直接把黑色输出线换到另一个输入点试试",
+              "is_correct": false,
+              "feedback": "不合适。没有断电和教师确认时不能直接改线，也容易把问题扩大。",
+              "observation": "师傅要求你先回到安全检查和接线图核对。"
+            },
+            {
+              "id": "C",
+              "text": "先修改 PLC 程序，把输入地址换一个",
+              "is_correct": false,
+              "feedback": "顺序不对。PLC 输入灯都不亮时，优先排查接线和公共端，不应先改程序。",
+              "observation": "当前还没有证据说明是程序地址问题。"
+            }
+          ],
+          "next_step_id": "S2"
+        },
+        {
+          "id": "S2",
+          "prompt": "安全确认后，你观察到黑色输出线接到 I0.2，但 PLC 这一组公共端未接。下一步判断是什么？",
+          "ability_ids": ["sensor_wiring_judgement", "plc_input_common_terminal"],
+          "options": [
+            {
+              "id": "A",
+              "text": "公共端未接会导致输入回路不成立，应先按模块要求核对公共端接法",
+              "is_correct": true,
+              "feedback": "正确。传感器灯亮不等于 PLC 输入回路成立，公共端是关键证据。",
+              "observation": "接好对应公共端并通电监控后，PLC 输入灯开始随传感器动作变化。"
+            },
+            {
+              "id": "B",
+              "text": "传感器灯亮说明接线一定正确，应该直接更换 PLC 模块",
+              "is_correct": false,
+              "feedback": "不合适。还没有排除公共端和端子问题，不应直接更换模块。",
+              "observation": "继续检查发现公共端悬空，这是更优先的故障点。"
+            },
+            {
+              "id": "C",
+              "text": "在线监控没变，所以一定是电脑监控软件问题",
+              "is_correct": false,
+              "feedback": "证据不足。输入灯不亮时，信号还没进入 PLC 输入侧，不能先归因于监控软件。",
+              "observation": "师傅提醒你要先让输入灯变化，再看在线监控。"
+            }
+          ],
+          "next_step_id": "S3"
+        },
+        {
+          "id": "S3",
+          "prompt": "接好公共端后，PLC 输入灯亮了。你最后需要怎样验证？",
+          "ability_ids": ["plc_input_monitoring"],
+          "options": [
+            {
+              "id": "A",
+              "text": "同时记录传感器灯、PLC 输入灯、在线监控三联状态是否同步",
+              "is_correct": true,
+              "feedback": "正确。三联状态同步，才能证明信号已经进入 PLC 并被监控到。",
+              "observation": "你完成了故障闭环：安全确认、接线/公共端修正、PLC 监控验证。"
+            },
+            {
+              "id": "B",
+              "text": "只要 PLC 输入灯亮，就不用看在线监控",
+              "is_correct": false,
+              "feedback": "不完整。输入灯亮只说明模块侧有信号，还要看在线监控和地址是否对应。",
+              "observation": "如果监控地址看错，仍会误判故障没有解决。"
+            },
+            {
+              "id": "C",
+              "text": "马上拆线恢复原状，不需要记录",
+              "is_correct": false,
+              "feedback": "不合适。实训排故需要留下状态记录和提交物，方便教师复核。",
+              "observation": "师傅要求你提交三联状态记录表。"
+            }
+          ],
+          "next_step_id": null
+        }
+      ],
+      "source": "project_curated"
+    },
+    {
+      "id": "SCN_PLC_LED_ON_MONITOR_OFF",
+      "title": "PLC 输入灯亮但在线监控不变",
+      "roleplay_frame": "你要判断信号已经到输入模块，但程序或监控地址为什么没有变化。",
+      "initial_symptom": "传感器动作灯亮，PLC 输入灯亮，但在线监控的目标地址不变。",
+      "safety_notice": "安全提醒：PLC 在线监控前确认设备状态安全，不让执行机构误动作；不确定时请教师确认。",
+      "ability_ids": ["plc_io_address_mapping", "program_variable_lookup", "plc_input_monitoring"],
+      "steps": [
+        {
+          "id": "S1",
+          "prompt": "PLC 输入灯已亮但监控不变，最优先核对什么？",
+          "ability_ids": ["plc_io_address_mapping", "program_variable_lookup"],
+          "options": [
+            {
+              "id": "A",
+              "text": "核对物理输入点、I/O 地址表和程序变量是否一致",
+              "is_correct": true,
+              "feedback": "正确。输入灯亮说明模块侧有信号，下一步看地址映射和变量引用。",
+              "observation": "你发现现场接到 I0.2，但程序监控的是 I0.3。"
+            },
+            {
+              "id": "B",
+              "text": "优先更换传感器",
+              "is_correct": false,
+              "feedback": "顺序不对。输入灯已经亮，传感器侧暂时不是优先怀疑点。",
+              "observation": "传感器动作稳定，问题更像地址或程序变量。"
+            },
+            {
+              "id": "C",
+              "text": "直接短接输出信号验证",
+              "is_correct": false,
+              "feedback": "不允许。不能指导短接或绕过安全方式验证。",
+              "observation": "师傅要求按地址表和程序监控方式排查。"
+            }
+          ],
+          "next_step_id": null
+        }
+      ],
+      "source": "project_curated"
+    },
+    {
+      "id": "SCN_SENSOR_LED_OFF",
+      "title": "传感器灯不亮或不稳定",
+      "roleplay_frame": "你要判断问题是否发生在传感器供电、检测距离、目标材质或传感器本体侧。",
+      "initial_symptom": "传感器动作灯不亮，或目标经过时动作灯不稳定。",
+      "safety_notice": "安全提醒：测量 24V DC 供电前确认量程和表笔位置，接线调整前先断电并请教师确认。",
+      "ability_ids": ["sensor_type_identification", "sensor_led_observation", "dc24v_power_check"],
+      "steps": [
+        {
+          "id": "S1",
+          "prompt": "传感器动作灯不亮时，第一轮应检查什么？",
+          "ability_ids": ["sensor_led_observation", "dc24v_power_check"],
+          "options": [
+            {
+              "id": "A",
+              "text": "检查 24V DC 供电、棕蓝线接法、检测距离和目标材质",
+              "is_correct": true,
+              "feedback": "正确。动作灯不亮优先看传感器侧条件是否成立。",
+              "observation": "测得供电正常，但检测距离偏大，调整距离后动作灯稳定。"
+            },
+            {
+              "id": "B",
+              "text": "直接修改 PLC 程序",
+              "is_correct": false,
+              "feedback": "顺序不对。传感器动作灯都不亮时，程序还不是优先排查对象。",
+              "observation": "师傅让你先把传感器侧动作条件排除。"
+            }
+          ],
+          "next_step_id": null
+        }
+      ],
+      "source": "project_curated"
+    },
+    {
+      "id": "SCN_CYLINDER_NO_ACTION",
+      "title": "气缸不动作的分层排查",
+      "roleplay_frame": "你要把气缸不动作分成电气、程序和气路三层排查。",
+      "initial_symptom": "按钮或传感器条件满足后，气缸没有动作。",
+      "safety_notice": "安全提醒：气缸动作前确认人员远离运动部件，调试前确认急停、气源、电源和初始位。",
+      "ability_ids": ["input_no_response_fault_scope", "plc_input_monitoring", "no_response_power_path_check"],
+      "steps": [
+        {
+          "id": "S1",
+          "prompt": "气缸不动作时，应该如何分层？",
+          "ability_ids": ["input_no_response_fault_scope"],
+          "options": [
+            {
+              "id": "A",
+              "text": "先分电气输入/输出、程序条件、气源与气路，再逐层验证",
+              "is_correct": true,
+              "feedback": "正确。气缸不动作不能只盯一个点，要分层定位。",
+              "observation": "检查发现 PLC 输出灯未亮，先回到程序输出条件。"
+            },
+            {
+              "id": "B",
+              "text": "直接手动拨动电磁阀，不用确认安全",
+              "is_correct": false,
+              "feedback": "不允许。执行机构调试必须先确认安全，不能直接让气缸动作。",
+              "observation": "师傅要求你先确认急停、气源、电源和人员安全。"
+            }
+          ],
+          "next_step_id": null
+        }
+      ],
+      "source": "project_curated"
+    }
+  ]
+}

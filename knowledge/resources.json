@@ -1,0 +1,120 @@
+{
+  "version": "0.2.0",
+  "source": "机电一体化智能体_知识库导入版_V1/知识库2.md 来源依据待核验",
+  "resources": [
+    {
+      "id": "R001",
+      "title": "电气安全检查清单",
+      "type": "checklist",
+      "node_ids": ["electrical_safety_check", "power_isolation_confirmation"],
+      "use_when": "学生准备接线、拆线、通电监控或设备调试前",
+      "source": "机电一体化智能体_知识库导入版_V1"
+    },
+    {
+      "id": "R002",
+      "title": "NPN/PNP 输出类型速查卡",
+      "type": "handout",
+      "node_ids": ["sensor_type_identification", "sensor_output_logic"],
+      "use_when": "学生混淆 NPN 输出低电平和 PNP 输出高电平",
+      "source": "知识库2.md 来源依据待核验"
+    },
+    {
+      "id": "R003",
+      "title": "三线制传感器接线图判断模板",
+      "type": "worksheet",
+      "node_ids": ["sensor_wiring_color_code", "sensor_wiring_judgement"],
+      "use_when": "学生只看线色，不会结合端子、输出线和公共端判断接线",
+      "source": "机电一体化智能体_知识库导入版_V1"
+    },
+    {
+      "id": "R004",
+      "title": "PLC 输入公共端匹配示意表",
+      "type": "handout",
+      "node_ids": ["plc_input_common_terminal", "no_response_common_terminal_check"],
+      "use_when": "传感器动作灯亮但 PLC 输入点无响应",
+      "source": "知识库2.md 来源依据待核验"
+    },
+    {
+      "id": "R005",
+      "title": "PLC I/O 映射表模板",
+      "type": "worksheet",
+      "node_ids": ["plc_io_address_mapping", "io_mapping_table_build"],
+      "use_when": "学生无法把现场元件、端子、PLC 地址和程序变量对应起来",
+      "source": "机电一体化智能体_知识库导入版_V1"
+    },
+    {
+      "id": "R006",
+      "title": "PLC 输入监控三状态对比卡",
+      "type": "handout",
+      "node_ids": ["plc_input_monitoring", "input_led_compare"],
+      "use_when": "需要对比传感器动作灯、PLC 输入灯和在线监控状态",
+      "source": "机电一体化智能体_知识库导入版_V1"
+    },
+    {
+      "id": "R007",
+      "title": "输入点无响应排查顺序卡",
+      "type": "checklist",
+      "node_ids": ["input_no_response_fault_scope", "diagnosis_record_feedback"],
+      "use_when": "学生排故顺序混乱，跳过安全、电源或公共端检查",
+      "source": "机电一体化智能体_知识库导入版_V1"
+    },
+    {
+      "id": "R008",
+      "title": "气缸不动作分层排查表",
+      "type": "checklist",
+      "node_ids": ["input_no_response_fault_scope", "no_response_address_mapping_check"],
+      "use_when": "需要区分气缸不动作来自电气输入、程序输出、电磁阀或气路机械问题",
+      "source": "机电一体化智能体_知识库导入版_V1"
+    },
+    {
+      "id": "R_VIDEO_001",
+      "title": "三线制传感器 NPN/PNP 输出类型讲解",
+      "type": "video",
+      "url": "https://www.automationdirect.com/videos/video?videoToPlay=GnJ9LXUbpwU",
+      "ability_ids": ["sensor_type_identification", "sensor_output_logic"],
+      "knowledge_ids": ["K009", "K011", "K012", "K013", "K053", "K054", "K055"],
+      "use_when": "学生混淆 NPN 下拉输出、PNP 上拉输出和 PLC 输入有效电平",
+      "source": "AutomationDirect video: Sinking and Sourcing Sensor Wiring Basics"
+    },
+    {
+      "id": "R_VIDEO_002",
+      "title": "PLC 输入公共端与传感器匹配演示",
+      "type": "video",
+      "url": "https://www.realpars.com/blog/sinking-and-sourcing-plc-inputs",
+      "ability_ids": ["plc_input_common_terminal", "no_response_common_terminal_check"],
+      "knowledge_ids": ["K016", "K018", "K019", "K020", "K053"],
+      "use_when": "学生不理解公共端接法为什么影响 PLC 输入信号",
+      "source": "RealPars: Sinking and sourcing PLC inputs"
+    },
+    {
+      "id": "R_VIDEO_003",
+      "title": "传感器灯、PLC 输入灯、在线监控三联排查",
+      "type": "video",
+      "url": "https://www.youtube.com/@RealPars",
+      "ability_ids": ["plc_input_monitoring", "input_led_compare", "input_no_response_fault_scope"],
+      "knowledge_ids": ["K029", "K030", "K031", "K032", "K034", "K056", "K061"],
+      "use_when": "学生只看单一指示灯，不能定位故障在接线、输入模块还是程序映射",
+      "source": "RealPars public PLC troubleshooting video channel; exact lesson待教师筛选"
+    },
+    {
+      "id": "R_DOC_001",
+      "title": "机电一体化技术专业教学标准",
+      "type": "document",
+      "url": "https://www.moe.gov.cn/s78/A07/zcs_ztzl/2017_zt06/17zt06_bznr/bznr_zyjyzyjxbz/gdzyjy_zk/zk_zbzzdl/zbzzdl_zdhl/202502/P020250207525314104497.pdf",
+      "ability_ids": ["role_task_understanding", "plc_input_monitoring", "personalized_training_task_recommendation"],
+      "knowledge_ids": ["K051", "K058", "K064"],
+      "use_when": "教师或评审需要查看岗位能力图谱与专业教学标准的对应依据",
+      "source": "教育部专业教学标准"
+    },
+    {
+      "id": "R_DOC_002",
+      "title": "GB/T 5226.1-2019 机械电气安全信息页",
+      "type": "document",
+      "url": "https://std.samr.gov.cn/gb/search/gbDetailed?id=8AA1F5D36E55A8DBE05397BE0A0AB19B",
+      "ability_ids": ["electrical_safety_check", "power_isolation_confirmation", "plc_input_monitoring"],
+      "knowledge_ids": ["K059", "K060"],
+      "use_when": "说明为什么接线、通电监控、设备动作前必须进行安全确认",
+      "source": "全国标准信息公共服务平台"
+    }
+  ]
+}
