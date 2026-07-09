@@ -1,0 +1,386 @@
+{
+  "version": "2026-07-09",
+  "scope": "Student-side mechatronics troubleshooting training MVP",
+  "policy": {
+    "code_copying": "No third-party source files were copied into this repository. The inventory records product and architecture patterns only.",
+    "license_handling": "MIT and Apache-2.0 projects may inform implementation patterns. Projects without a license or with restrictive terms are used only for behavioral analysis and source-location citation.",
+    "mvp_boundary": "Borrowed ideas must support the sensor NPN/PNP wiring, PLC input troubleshooting, personal graph, learning path, quiz, and feedback loop."
+  },
+  "scanned_projects": [
+    {
+      "name": "KnowBook AI",
+      "repo": "https://github.com/starsstreaming/KnowBook",
+      "commit": "95d0d2b4221eebc92cf5ec58f961b3c34c54b99b",
+      "license_status": "All Rights Reserved; no code copy",
+      "primary_value": "Evidence-grounded QA with citations, graph-path context, node explanation, and exercises."
+    },
+    {
+      "name": "Educational_RAG_System",
+      "repo": "https://github.com/Happy-Chen-CH/Educational_RAG_System",
+      "commit": "07b1a42a7c032a338f7630fded10a214f682615a",
+      "license_status": "No LICENSE found; no code copy",
+      "primary_value": "Parent-child chunking, hybrid retrieval, BM25/vector reranking patterns."
+    },
+    {
+      "name": "Inno Agent",
+      "repo": "https://github.com/hhyqhh/inno-agent",
+      "commit": "9ef4d65d10f470cd62d94ce245ff1ac9a0e08bfc",
+      "license_status": "MIT",
+      "primary_value": "Learner context pack, profile event updates, and learner tools injected into the chat loop."
+    },
+    {
+      "name": "DeepTutor",
+      "repo": "https://github.com/HKUDS/DeepTutor",
+      "commit": "df6922bb1bc186c938f5c9fb8e7762abe16ea16e",
+      "license_status": "Apache-2.0",
+      "primary_value": "Single tutor loop with capabilities, quiz explanation, question notebook, and mastery path."
+    },
+    {
+      "name": "PersonalizedAdaptiveLearning",
+      "repo": "https://github.com/bkshgtm/PersonalizedAdaptiveLearning",
+      "commit": "aa309a6846414d1d9a3b6ccf0a3a2b7c2eeaf737",
+      "license_status": "No LICENSE found; no code copy",
+      "primary_value": "Learning path data model, weak-topic ordering, mastery prediction concepts, and progress views."
+    },
+    {
+      "name": "EduAdapt AI",
+      "repo": "https://github.com/mwasifanwar/eduadapt-ai",
+      "commit": "9341e3fb242b82d2053af5c024a8cfeadecc21e5",
+      "license_status": "No LICENSE found; no code copy",
+      "primary_value": "Adaptive content recommendation, progress tracking, quiz generation, and knowledge-gap tracking."
+    },
+    {
+      "name": "OATutor LLM Learner",
+      "repo": "https://github.com/CAHLR/OATutor-LLM-Learner",
+      "commit": "0d376e23302485bebef6e1cad04da3816a164cd6",
+      "license_status": "MIT",
+      "primary_value": "Inspectable learner model and mastery-state concepts."
+    },
+    {
+      "name": "Multi-Agent Study Assistant",
+      "repo": "https://github.com/A-R007/Multi-Agent-Study-Assistant",
+      "commit": "3c1c88b95a9d13408bd62b6b686737eb6a135983",
+      "license_status": "No LICENSE found; no code copy",
+      "primary_value": "Specialized study roles: analyzer, roadmap creator, quiz generator, tutor, resource finder, and RAG tutor."
+    },
+    {
+      "name": "Asset Intelligence Graph-RAG",
+      "repo": "https://github.com/Prajwalkadam29/asset-intelligence-graph-rag",
+      "commit": "a94fe9bb03ff98e010250f06b783981b267467d2",
+      "license_status": "MIT",
+      "primary_value": "Manufacturing-oriented graph RAG, structured entity ingestion, relationship scoring, and graph-aware synthesis."
+    }
+  ],
+  "implemented_features": [
+    {
+      "id": "structured_evidence_chat",
+      "name": "Structured answer with evidence, reasoning, knowledge refs, and follow-up prompts",
+      "borrowed_from": [
+        "KnowBook AI",
+        "DeepTutor"
+      ],
+      "source_refs": [
+        "KnowBook/backend/knowbook_api/views.py:122 _attach_answer_metadata",
+        "KnowBook/backend/knowbook_api/views.py:246 ask",
+        "KnowBook/backend/chunking.py:361 retrieve_chunks",
+        "DeepTutor/deeptutor/agents/chat/agent_loop.py:142 AgentLoop",
+        "DeepTutor/deeptutor/agents/chat/agentic_pipeline.py:181 AgenticChatPipeline"
+      ],
+      "local_implementation": [
+        "app/services/chat.py",
+        "app/services/assist.py",
+        "app/services/safety.py",
+        "app/server.py:/api/chat/message",
+        "web/app.js"
+      ],
+      "mvp_adaptation": "The MVP returns deterministic troubleshooting guidance first, then exposes evidence_used, reasoning_steps, knowledge_refs, ability_hits, next_questions, and suggested tools.",
+      "verification": [
+        "tests/api_smoke.test.py checks /api/chat/message",
+        "Manual browser smoke test shows chat cards and tool suggestions"
+      ]
+    },
+    {
+      "id": "graph_node_explain_drawer",
+      "name": "Half-screen explanation for ability, knowledge, task, question, and message",
+      "borrowed_from": [
+        "KnowBook AI",
+        "DeepTutor"
+      ],
+      "source_refs": [
+        "KnowBook/backend/knowbook_api/views.py:381 graph_explain",
+        "KnowBook/backend/knowbook_api/services.py:344 chunks_for_node",
+        "KnowBook/backend/knowbook_api/services.py:353 graph_path_context",
+        "KnowBook/backend/knowbook_api/services.py:365 fallback_node_explanation",
+        "DeepTutor/deeptutor/api/routers/quiz_judge.py:53 _build_judge_user_prompt",
+        "DeepTutor/deeptutor/api/routers/quiz_judge.py:196 websocket_quiz_judge"
+      ],
+      "local_implementation": [
+        "app/services/explanation.py",
+        "app/server.py:/api/explain",
+        "web/app.js",
+        "web/index.html",
+        "web/styles.css"
+      ],
+      "mvp_adaptation": "A lightweight drawer explains the selected object without leaving the chat or full-screen tool workspace. Explanations record learning events but never override deterministic scores.",
+      "verification": [
+        "tests/api_smoke.test.py checks /api/explain",
+        "web/app.js syntax check"
+      ]
+    },
+    {
+      "id": "lightweight_hybrid_retrieval",
+      "name": "Rules-first hybrid retrieval over local knowledge and ability links",
+      "borrowed_from": [
+        "Educational_RAG_System",
+        "KnowBook AI",
+        "Asset Intelligence Graph-RAG"
+      ],
+      "source_refs": [
+        "Educational_RAG_System/rag_qa/core/document_processor.py:169 process_documents",
+        "Educational_RAG_System/rag_qa/core/rag_system.py:236 retrieve_and_merge",
+        "Educational_RAG_System/rag_qa/core/vector_store.py:314 hybrid_search_with_rerank",
+        "Educational_RAG_System/mysql_qa/retrieval/bm25_search.py:38 BM25Search",
+        "Asset Intelligence Graph-RAG/backend/rag/retrieval.py:175 retrieve_context"
+      ],
+      "local_implementation": [
+        "app/services/retrieval.py",
+        "app/services/data_loader.py",
+        "app/server.py:/api/knowledge/search",
+        "knowledge/knowledge_50.json",
+        "knowledge/ability_nodes.json"
+      ],
+      "mvp_adaptation": "The MVP avoids Milvus, Neo4j, MySQL, and BM25 dependencies. It uses cached JSON, keyword matching, ability weighting, pattern signals, and source-preserving results.",
+      "verification": [
+        "tests/api_smoke.test.py checks knowledge search",
+        "JSON parse check covers knowledge and ability files"
+      ]
+    },
+    {
+      "id": "learner_context_pack",
+      "name": "Session-level learner context pack injected into chat and plan generation",
+      "borrowed_from": [
+        "Inno Agent",
+        "OATutor LLM Learner",
+        "DeepTutor"
+      ],
+      "source_refs": [
+        "Inno Agent/apps/inno-agent/src/memory/learner/context-pack.ts:118 formatContextPackForPrompt",
+        "Inno Agent/apps/inno-agent/src/agent/inno-extension.ts:272 formatContextPackForPrompt injection",
+        "Inno Agent/apps/inno-agent/src/memory/learner/profile-store.ts:38 recordEventAndUpdateProfile",
+        "Inno Agent/apps/inno-agent/src/memory/learner/auto-profile.ts:403 applyLearningEventToProfile"
+      ],
+      "local_implementation": [
+        "app/services/learner_context.py",
+        "app/services/graph_update_engine.py",
+        "app/services/chat.py",
+        "app/services/personalized_plan.py",
+        "app/server.py:/api/student/bootstrap",
+        "data/graph_update_events.json"
+      ],
+      "mvp_adaptation": "The MVP keeps the profile local to a session and summarizes weak abilities, recent events, confidence, and next best action for prompt injection.",
+      "verification": [
+        "tests/api_smoke.test.py checks /api/student/bootstrap",
+        "tests/api_smoke.test.py checks /api/graph/student after chat events"
+      ]
+    },
+    {
+      "id": "personalized_training_plan",
+      "name": "Personalized learning path with stages, today sheet, seven-day plan, resources, and checkpoints",
+      "borrowed_from": [
+        "DeepTutor",
+        "PersonalizedAdaptiveLearning",
+        "EduAdapt AI"
+      ],
+      "source_refs": [
+        "DeepTutor/deeptutor/api/routers/mastery_path.py",
+        "PersonalizedAdaptiveLearning/learning_paths/models.py:7 LearningPath",
+        "PersonalizedAdaptiveLearning/learning_paths/views.py:218 generate_learning_path",
+        "PersonalizedAdaptiveLearning/learning_paths/ml/adaptive_path_lstm.py:497 weak_topics and recommended_path",
+        "EduAdapt AI/core/content_recommender.py:48 recommend_content",
+        "EduAdapt AI/core/content_recommender.py:131 get_prerequisite_path"
+      ],
+      "local_implementation": [
+        "app/services/personalized_plan.py",
+        "app/server.py:/api/plan/personalized",
+        "knowledge/resources.json",
+        "knowledge/training_tasks.json",
+        "web/app.js"
+      ],
+      "mvp_adaptation": "The plan is generated from the personal graph, job graph, local resources, and training tasks. Video URLs are read only from resources.json; missing resources are reported honestly.",
+      "verification": [
+        "tests/api_smoke.test.py checks /api/plan/personalized",
+        "JSON parse check covers resources and tasks"
+      ]
+    },
+    {
+      "id": "deterministic_mastery_graph",
+      "name": "Evidence-driven personal ability graph with status, score, confidence, and update reasons",
+      "borrowed_from": [
+        "Inno Agent",
+        "EduAdapt AI",
+        "PersonalizedAdaptiveLearning"
+      ],
+      "source_refs": [
+        "Inno Agent/apps/inno-agent/src/memory/learner/auto-profile.ts:186 updateKnowledgeFromEvent",
+        "EduAdapt AI/assessment/progress_tracker.py:43 record_assessment_result",
+        "EduAdapt AI/assessment/progress_tracker.py:127 identify_knowledge_gaps",
+        "EduAdapt AI/core/student_model.py:48 update_student_profile",
+        "PersonalizedAdaptiveLearning/learning_paths/ml/adaptive_path_lstm.py:301 _get_weak_topics"
+      ],
+      "local_implementation": [
+        "app/services/graph_update_engine.py",
+        "app/services/graph.py",
+        "app/services/scoring.py",
+        "app/server.py:/api/graph/student",
+        "app/server.py:/api/graph/student/event"
+      ],
+      "mvp_adaptation": "The graph is recalculated from auditable JSON events and deterministic quiz scoring. Safety abilities keep caution prompts and are not treated as permanently complete.",
+      "verification": [
+        "tests/api_smoke.test.py checks graph updates",
+        "tests/scoring.test.js covers deterministic score cases"
+      ]
+    },
+    {
+      "id": "troubleshooting_roleplay",
+      "name": "Scenario-based troubleshooting practice that updates the personal graph",
+      "borrowed_from": [
+        "Duolingo Max product pattern",
+        "DeepTutor",
+        "Multi-Agent Study Assistant"
+      ],
+      "source_refs": [
+        "DeepTutor/deeptutor/agents/chat/agent_loop.py:219 _run_loop",
+        "Multi-Agent Study Assistant/agent_handler.py:192 get_tutoring",
+        "Multi-Agent Study Assistant/study_agents.py:152 tutor_agent",
+        "Multi-Agent Study Assistant/ARCHITECTURE.md:111 Tutor Agent"
+      ],
+      "local_implementation": [
+        "knowledge/troubleshooting_scenarios.json",
+        "app/services/scenario.py",
+        "app/server.py:/api/scenarios",
+        "app/server.py:/api/scenario/start",
+        "app/server.py:/api/scenario/step",
+        "web/app.js"
+      ],
+      "mvp_adaptation": "The MVP uses fixed industrial scenarios and deterministic expected evidence checks instead of open-ended roleplay scoring.",
+      "verification": [
+        "tests/api_smoke.test.py checks scenario start and step",
+        "JSON parse check covers troubleshooting_scenarios.json"
+      ]
+    },
+    {
+      "id": "job_graph_update_proposals",
+      "name": "Job ability graph proposal and confirmation workflow",
+      "borrowed_from": [
+        "Asset Intelligence Graph-RAG",
+        "KnowBook AI"
+      ],
+      "source_refs": [
+        "Asset Intelligence Graph-RAG/backend/ingestion/yaml_ingestor.py:155 ingest_yaml_file",
+        "Asset Intelligence Graph-RAG/backend/compatibility/scoring.py:309 compute_compatibility_for_product",
+        "KnowBook/backend/graph.py:317 extract_graph"
+      ],
+      "local_implementation": [
+        "app/services/graph_update_engine.py",
+        "app/services/graph.py",
+        "app/server.py:/api/graph/job/proposals",
+        "app/server.py:/api/graph/job/proposals/confirm",
+        "knowledge/industry_demand_snapshots.json",
+        "data/job_graph_update_proposals.json",
+        "data/job_graph_confirmed_snapshots.json"
+      ],
+      "mvp_adaptation": "The MVP does not crawl or auto-write the formal job graph. It generates proposals from imported materials and requires teacher confirmation before snapshot updates.",
+      "verification": [
+        "tests/api_smoke.test.py checks job graph proposal and confirm endpoints",
+        "JSON parse check covers graph proposal data"
+      ]
+    },
+    {
+      "id": "service_level_multi_agent_modules",
+      "name": "Multi-agent role separation implemented as lightweight services",
+      "borrowed_from": [
+        "Multi-Agent Study Assistant",
+        "DeepTutor"
+      ],
+      "source_refs": [
+        "Multi-Agent Study Assistant/study_agents.py:8 StudyAgents",
+        "Multi-Agent Study Assistant/study_agents.py:128 quiz_generator_agent",
+        "Multi-Agent Study Assistant/study_agents.py:152 tutor_agent",
+        "Multi-Agent Study Assistant/study_agents.py:207 rag_tutor_agent",
+        "Multi-Agent Study Assistant/agent_handler.py:157 generate_quiz",
+        "DeepTutor/deeptutor/agents/chat/agentic_pipeline.py:556 _active_loop_capabilities"
+      ],
+      "local_implementation": [
+        "app/services/chat.py",
+        "app/services/explanation.py",
+        "app/services/retrieval.py",
+        "app/services/graph.py",
+        "app/services/personalized_plan.py",
+        "app/services/quiz.py",
+        "app/services/scenario.py"
+      ],
+      "mvp_adaptation": "The MVP avoids an expensive multi-agent runtime. Each role is a small deterministic service with shared local JSON and a single HTTP API.",
+      "verification": [
+        "python -m compileall app tests",
+        "tests/api_smoke.test.py exercises the service endpoints"
+      ]
+    },
+    {
+      "id": "graph_visualization_workspace",
+      "name": "Full-screen graph workbench with job, personal, and current-problem graph views",
+      "borrowed_from": [
+        "KnowBook AI",
+        "Asset Intelligence Graph-RAG"
+      ],
+      "source_refs": [
+        "KnowBook/backend/graph.py:317 extract_graph",
+        "KnowBook/backend/knowbook_api/views.py:381 graph_explain",
+        "Asset Intelligence Graph-RAG/frontend/package.json:16 react-force-graph",
+        "Asset Intelligence Graph-RAG/frontend/src/App.tsx:377 Compatibility among retrieved parts"
+      ],
+      "local_implementation": [
+        "app/services/graph.py",
+        "app/server.py:/api/graph/job",
+        "app/server.py:/api/graph/student",
+        "app/server.py:/api/graph",
+        "web/app.js",
+        "web/styles.css",
+        "tests/mermaid_samples.md"
+      ],
+      "mvp_adaptation": "The first version keeps visualization dependency-free: SVG cards, node evidence detail, Mermaid text, and workspace tabs instead of a heavy graph rendering stack.",
+      "verification": [
+        "web/app.js syntax check",
+        "tests/api_smoke.test.py checks graph endpoints",
+        "Mermaid samples use flowchart TD/LR syntax"
+      ]
+    }
+  ],
+  "deferred_features": [
+    {
+      "id": "auto_document_to_graph",
+      "reason": "Useful but beyond the student-side MVP. Keep as a later import workflow after the manual knowledge source map is stable."
+    },
+    {
+      "id": "neo4j_or_vector_database",
+      "reason": "The current corpus is small. Local JSON and cached retrieval are faster to demo and easier to review."
+    },
+    {
+      "id": "long_term_account_profile",
+      "reason": "The MVP explicitly avoids accounts and databases. Personal graphs stay session-level."
+    },
+    {
+      "id": "deep_knowledge_tracing_model",
+      "reason": "DKT/SAKT need real longitudinal data. Deterministic mastery scoring is more auditable for the competition MVP."
+    },
+    {
+      "id": "autonomous_multi_agent_loop",
+      "reason": "Adds latency and unpredictability. The MVP uses modular services and optional LLM explanations instead."
+    }
+  ],
+  "local_validation_commands": [
+    "python -m compileall -q app tests",
+    "node --check web/app.js",
+    "node tests/scoring.test.js",
+    "python tests/api_smoke.test.py"
+  ]
+}
