@@ -1,5 +1,23 @@
 # Mechatronics Agent MVP
 
+## Job Intelligence Updater
+
+The repo includes a lightweight job intelligence updater for the job ability graph. See [docs/job_intelligence_update.md](docs/job_intelligence_update.md).
+
+Dry run:
+
+```powershell
+python .\mechatronics-agent-mvp\scripts\job_intelligence_update.py --dry-run
+```
+
+Install a daily Windows scheduled task:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\mechatronics-agent-mvp\scripts\install_daily_job_intelligence_update.ps1 -Time "07:30"
+```
+
+The updater only reads explicitly configured public/local sources, generates pending graph proposals, and requires teacher confirmation before formal job graph changes.
+
 面向职业教育机电一体化职业新人培训的轻量智能体 MVP 仓库。
 
 这个仓库不做大系统，当前以自研轻量 Web/API Demo 为主，同时保留星辰 Agent 的可选导出材料。核心沉淀四类内容：

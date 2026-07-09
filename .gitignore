@@ -5,3 +5,5 @@ __pycache__/
 node_modules/
 data/sessions/*.json
 !data/sessions/.gitkeep
+data/job_intelligence_runs.json
+data/job_intelligence_raw/

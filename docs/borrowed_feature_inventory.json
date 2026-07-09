@@ -384,6 +384,34 @@
         "tests/api_smoke.test.py checks graph endpoints",
         "Mermaid samples use flowchart TD/LR syntax"
       ]
+    },
+    {
+      "id": "job_intelligence_updater_skill",
+      "name": "Compliant job intelligence updater that generates teacher-reviewable job graph proposals",
+      "borrowed_from": [
+        "MediaCrawler",
+        "CrawlerTutorial"
+      ],
+      "source_refs": [
+        "MediaCrawler/main.py:CrawlerFactory and config-driven crawl entry",
+        "MediaCrawler/config/base_config.py:source/count/save policy separation",
+        "CrawlerTutorial/docs/爬虫进价/01_工程化爬虫开发规范.md:config, logging, retry, data cleaning guidance"
+      ],
+      "local_implementation": [
+        ".agents/skills/job-intelligence-updater/SKILL.md",
+        ".agents/skills/job-intelligence-updater/references/crawler_source_map.md",
+        "knowledge/job_intelligence_sources.json",
+        "scripts/job_intelligence_update.py",
+        "scripts/install_daily_job_intelligence_update.ps1",
+        "docs/job_intelligence_update.md",
+        "tests/job_intelligence_update.test.py"
+      ],
+      "mvp_adaptation": "The MVP does not implement social platform crawling, login, cookies, proxies, CAPTCHA handling, anti-detection, or large-scale crawling. It reads explicitly approved local/public sources, extracts deterministic ability evidence, and writes pending proposals for teacher confirmation.",
+      "verification": [
+        "python tests/job_intelligence_update.test.py",
+        "python scripts/job_intelligence_update.py --dry-run",
+        "skill quick validation for .agents/skills/job-intelligence-updater"
+      ]
     }
   ],
   "deferred_features": [

@@ -1,0 +1,64 @@
+{
+  "version": "0.1.0",
+  "description": "岗位情报更新来源配置。默认只启用本地演示材料；真实联网来源必须由教师或项目负责人确认公开可访问、允许低频采集。",
+  "policy": {
+    "enabled": true,
+    "respect_robots_txt": true,
+    "max_sources_per_run": 3,
+    "request_interval_seconds": 2,
+    "timeout_seconds": 10,
+    "max_bytes_per_source": 500000,
+    "user_agent": "mechatronics-agent-mvp-job-intelligence/0.1; low-volume educational demo",
+    "source": "project_curated"
+  },
+  "target_job_role": "自动化生产线装调与运维技术员",
+  "global_keywords": [
+    "自动化生产线",
+    "机电一体化",
+    "PLC",
+    "传感器",
+    "NPN",
+    "PNP",
+    "24V",
+    "I/O",
+    "设备调试",
+    "运行维护",
+    "故障排查",
+    "气动"
+  ],
+  "sources": [
+    {
+      "id": "demo_local_automation_job_seed",
+      "enabled": true,
+      "type": "local_file",
+      "path": "docs/references/job_intelligence_seed.md",
+      "source_type": "project_curated",
+      "source": "docs/references/job_intelligence_seed.md",
+      "job_role": "自动化生产线装调与运维技术员",
+      "keywords": [
+        "传感器接线",
+        "PLC 输入",
+        "公共端",
+        "I/O 地址",
+        "在线监控",
+        "气缸不动作"
+      ],
+      "notes": "安全默认样例，用于演示从岗位材料生成待确认图谱建议。"
+    },
+    {
+      "id": "example_public_job_page_disabled",
+      "enabled": false,
+      "type": "url",
+      "url": "https://example.com/public-job-description",
+      "source_type": "public_job_page",
+      "source": "example_disabled_placeholder",
+      "job_role": "自动化生产线装调与运维技术员",
+      "keywords": [
+        "PLC",
+        "传感器",
+        "自动化设备调试"
+      ],
+      "notes": "占位示例。把 url 替换为已确认允许采集的公开岗位页面后再启用。"
+    }
+  ]
+}
