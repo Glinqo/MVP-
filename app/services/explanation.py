@@ -1,6 +1,10 @@
+import json
+
 from .assist import assist
 from .data_loader import load_data
 from .graph_update_engine import record_student_graph_event
+from .learner_context import format_context_for_prompt, learner_context_pack
+from .llm_client import LLMError, chat_completion, is_configured
 from .retrieval import refs_for_ability_ids, search_knowledge
 from .safety import safety_notice
 
@@ -81,6 +85,29 @@ def related_resources_for_abilities(ability_ids):
             seen.add(resource.get("id"))
             resources.append(compact_resource(resource))
     return resources
+
+
+def _llm_explain(system_context, user_prompt, static_fallback, temperature=0.4):
+    """Generate contextual explanation via LLM. Returns (text, fallback_used)."""
+    if not is_configured():
+        return static_fallback, True
+    try:
+        msgs = [
+            {"role": "system", "content": system_context},
+            {"role": "user", "content": user_prompt},
+        ]
+        answer = chat_completion(msgs, temperature=temperature)
+        return answer, False
+    except LLMError:
+        return static_fallback, True
+
+
+def _build_learner_snapshot(session_id):
+    """Build a concise learner state summary for the LLM prompt."""
+    if not session_id:
+        return "暂无学习记录。"
+    ctx = learner_context_pack(session_id)
+    return format_context_for_prompt(ctx) if ctx else "暂无学习记录。"
 
 
 def question_explanation(payload):
@@ -172,33 +199,63 @@ def ability_explanation(payload):
     resource_refs = [compact_resource(item) for item in refs.get("resource_refs", [])[:4]]
     prerequisites = [compact_ability(item, "前置能力") for item in ability.get("prerequisites", [])]
 
+    # ── LLM-powered explanation ──────────────────────────────
+    student_prompt = payload.get("prompt") or payload.get("message") or ""
+    learner_snapshot = _build_learner_snapshot(payload.get("session_id"))
+    ability_name = ability.get("name", ability_id)
+    common_errors = "；".join(ability.get("common_errors", [])[:3])
+    prereq_names = "、".join(
+        p.get("name", "") for p in prerequisites if p.get("name")
+    ) or "无"
+
+    static_explanation = (
+        f"{ability_name} 是岗位排故链路中的能力点。"
+        f"{ability.get('description', '')} "
+        "学生如果在这里卡住，通常需要同时补知识、看现场证据并完成一个实训任务。"
+    )
+    system = (
+        "你是机电一体化岗位培训 AI。你的任务是向一名高职机电专业学生讲解一项岗位能力。"
+        "讲解要口语化，像一个实训师傅在带教。"
+        "解释这项能力在自动化产线现场的作用、前置依赖什么、学生常见卡在哪里、具体怎么练。"
+        "涉及接线或设备操作时先提醒安全。控制在 3-5 句话内。"
+    )
+    user = (
+        f"学生提问：{student_prompt or f'请讲解{ability_name}这项能力'}\n\n"
+        f"能力名称：{ability_name}\n"
+        f"能力描述：{ability.get('description', '')}\n"
+        f"常见错误：{common_errors}\n"
+        f"前置能力：{prereq_names}\n"
+        f"来源：{ability.get('source', '')}\n\n"
+        f"学生学习状态：\n{learner_snapshot}\n\n"
+        "请生成一个个性化讲解，帮学生理解这项能力在现场排故链路中的位置和具体怎么练。"
+    )
+    explanation_text, fallback_used = _llm_explain(system, user, static_explanation)
+
     return {
         "explain_type": "ability",
         "target_id": ability_id,
-        "title": ability.get("name", ability_id),
-        "explanation": (
-            f"{ability.get('name', ability_id)} 是当前岗位排故链路中的能力点。"
-            f"{ability.get('description', '')} 学生如果在这里卡住，通常需要同时补知识、看现场证据并完成一个实训任务。"
-        ),
+        "title": ability_name,
+        "explanation": explanation_text,
         "safety_notice": safety_notice(ability.get("description", "")),
         "evidence_used": [
             {"label": "能力描述", "value": ability.get("description"), "source": ability.get("source")},
-            {"label": "常见错误", "value": "；".join(ability.get("common_errors", [])[:3]), "source": ability.get("source")},
+            {"label": "常见错误", "value": common_errors, "source": ability.get("source")},
         ],
         "reasoning_steps": [
-            "先确认这个能力在岗位链路中的前置关系。",
-            "再查看关联知识点，明确学生缺的是概念、接线判断还是监控验证。",
-            "最后安排一个可提交成果的实训任务，用结果更新个人能力图谱。",
+            f"先确认你是否已经掌握了前置能力：{prereq_names}，如果没掌握要先补上。",
+            f"对照你当前的实训操作，学生容易在这里卡住的地方是：{common_errors or '暂无记录'}。",
+            "按这个顺序练：补相关知识 → 到设备前核对现场证据 → 完成训练任务 → 用自测题复测。",
         ],
         "ability_hits": [compact_ability(ability_id, "当前讲解对象")] + [item for item in prerequisites if item],
         "knowledge_refs": knowledge_refs,
         "task_refs": task_refs,
         "resource_refs": resource_refs,
         "suggested_questions": [
-            f"我怎么判断自己是否掌握了{ability.get('name', ability_id)}？",
-            "这个能力对应哪一道自测题？",
-            "给我一个一节课内能完成的训练任务。",
+            f"我怎么判断自己是否掌握了「{ability_name}」？",
+            f"「{ability_name}」对应哪几道自测题？",
+            f"给我一个一节课内能完成的「{ability_name}」训练任务。",
         ],
+        "fallback_used": fallback_used,
         "source": ability.get("source") or ", ".join(ability.get("sources", [])[:2]),
     }
 
@@ -214,30 +271,54 @@ def knowledge_explanation(payload):
         for task_id in item.get("related_tasks", [])
         if load_data()["task_by_id"].get(task_id)
     ]
+
+    # ── LLM-powered explanation ──────────────────────────────
+    student_prompt = payload.get("prompt") or payload.get("message") or ""
+    learner_snapshot = _build_learner_snapshot(payload.get("session_id"))
+    common_errors = "；".join(item.get("common_errors", [])[:3])
+
+    static_explanation = item.get("content", "")
+    system = (
+        "你是机电一体化岗位培训 AI。你的任务是向一名高职机电专业学生讲解一个知识点。"
+        "讲解要口语化、具体、结合现场排故场景。不要照搬教材定义，而要解释这个概念在传感器→PLC→程序这条信号链路中起什么作用。"
+        "涉及接线或设备操作时先提醒安全。控制在 3-5 句话内。"
+    )
+    user = (
+        f"学生提问：{student_prompt or '请讲解' + item.get('topic', '')}\n\n"
+        f"知识点：{item.get('topic', '')}\n"
+        f"内容：{static_explanation}\n"
+        f"常见错误：{common_errors}\n"
+        f"来源：{item.get('source', '')}\n\n"
+        f"学生学习状态：\n{learner_snapshot}\n\n"
+        "请生成一个个性化的讲解，结合学生的薄弱能力和这个知识点在现场的作用。"
+    )
+    explanation_text, fallback_used = _llm_explain(system, user, static_explanation)
+
     return {
         "explain_type": "knowledge",
         "target_id": knowledge_id,
         "title": item.get("topic", knowledge_id),
-        "explanation": item.get("content", ""),
+        "explanation": explanation_text,
         "safety_notice": safety_notice(item.get("content", "")),
         "evidence_used": [
-            {"label": "知识内容", "value": item.get("content"), "source": item.get("source")},
-            {"label": "常见错误", "value": "；".join(item.get("common_errors", [])[:3]), "source": item.get("source")},
+            {"label": "知识内容", "value": static_explanation, "source": item.get("source")},
+            {"label": "常见错误", "value": common_errors, "source": item.get("source")},
         ],
         "reasoning_steps": [
-            "先把知识点放回传感器到 PLC 输入的信号链路中理解。",
-            "再对照常见错误，判断学生当前问题是否命中这些错误。",
-            "最后用关联任务验证能不能在现场正确应用。",
+            f"先理解「{item.get('topic', '')}」在整个信号链路中的作用——它前面是什么、后面是什么。",
+            f"对照你刚才遇到的问题，检查是否犯了常见错误：{common_errors or '暂无记录'}。",
+            "完成一个关联的实训任务，用动手操作来验证自己是不是真的理解了。",
         ],
         "ability_hits": [compact_ability(ability_id, "知识点所属能力")],
         "knowledge_refs": [compact_knowledge(item)],
         "task_refs": task_refs,
         "resource_refs": related_resources_for_abilities([ability_id]),
         "suggested_questions": [
-            "这个知识点在现场排故中怎么用？",
-            "我容易把它和哪个概念混淆？",
-            "有没有对应的实训任务可以马上练？",
+            f"「{item.get('topic', '')}」在现场排故时具体怎么用？",
+            f"学「{item.get('topic', '')}」容易和哪个概念搞混？",
+            f"给我一个关于「{item.get('topic', '')}」的实训任务。",
         ],
+        "fallback_used": fallback_used,
         "source": item.get("source"),
     }
 
@@ -284,20 +365,41 @@ def message_explanation(payload):
     message = payload.get("message") or payload.get("prompt") or payload.get("user_input") or ""
     analysis = assist({"user_input": message, "context": payload.get("context", {}) or {}})
     ability_ids = [item.get("id") for item in analysis.get("highlighted_abilities", []) if item.get("id")]
+
+    # ── LLM-powered explanation ──────────────────────────────
+    learner_snapshot = _build_learner_snapshot(payload.get("session_id"))
+    pattern = analysis.get("matched_pattern") or {}
+    static_explanation = analysis.get("direct_answer") or "当前信息还不完整，可以先补充关键现场证据，再判断故障落点。"
+
+    system = (
+        "你是机电一体化岗位培训 AI。学生发来一段实训现场描述，你要用师傅带教的口吻讲解问题所在和排查思路。"
+        "结合学生的薄弱能力和现场现象做个性化讲解。涉及接线或设备操作先提醒安全。控制在 4-6 句话内。"
+    )
+    user = (
+        f"学生描述：{message}\n\n"
+        f"匹配的典型现象：{pattern.get('title', '')} — {pattern.get('typical_symptom', '')}\n"
+        f"规则排查步骤：{'；'.join(analysis.get('first_checks', [])[:3])}\n"
+        f"候选故障原因：{'；'.join(analysis.get('fault_candidates', [])[:3])}\n"
+        f"命中能力：{json.dumps([a.get('name','') for a in analysis.get('highlighted_abilities',[])][:4], ensure_ascii=False)}\n\n"
+        f"学生学习状态：\n{learner_snapshot}\n\n"
+        "请生成一个贴近学生当前水平的讲解，帮学生理解现场发生了什么和下一步怎么排查。"
+    )
+    explanation_text, fallback_used = _llm_explain(system, user, static_explanation)
+
     return {
         "explain_type": "message",
-        "target_id": analysis.get("matched_pattern", {}).get("id"),
-        "title": analysis.get("matched_pattern", {}).get("title") or "问题讲解",
-        "explanation": analysis.get("direct_answer") or "当前信息还不完整，可以先补充关键现场证据，再判断故障落点。",
+        "target_id": pattern.get("id"),
+        "title": pattern.get("title") or "问题讲解",
+        "explanation": explanation_text,
         "safety_notice": analysis.get("safety_notice"),
         "evidence_used": [
-            {"label": "典型现象", "value": analysis.get("matched_pattern", {}).get("typical_symptom"), "source": analysis.get("matched_pattern", {}).get("source")},
-            {"label": "追问问题", "value": "；".join(item.get("question", "") for item in analysis.get("clarifying_questions", [])), "source": analysis.get("matched_pattern", {}).get("source")},
+            {"label": "典型现象", "value": pattern.get("typical_symptom"), "source": pattern.get("source")},
+            {"label": "追问问题", "value": "；".join(item.get("question", "") for item in analysis.get("clarifying_questions", [])), "source": pattern.get("source")},
         ],
         "reasoning_steps": [
-            "先判断输入属于哪个典型排故现象。",
-            "再检查三联状态：传感器动作灯、PLC 输入灯、在线监控。",
-            "最后把问题落到接线、公共端、地址映射或程序/气路层面。",
+            f"你描述的现象属于典型的「{pattern.get('title', '输入信号排查')}」问题。",
+            "别急着改程序，按这个顺序排查：断电检查 → 接线确认 → 传感器类型匹配 → PLC 在线监控 → 程序地址核对。",
+            "每做完一步就把观察到的结果记录下来，方便后续精准定位。",
         ],
         "ability_hits": analysis.get("highlighted_abilities", []),
         "knowledge_refs": analysis.get("knowledge_gaps", []),
@@ -307,8 +409,13 @@ def message_explanation(payload):
             item.get("question")
             for item in analysis.get("clarifying_questions", [])
             if item.get("question")
-        ][:3],
-        "source": analysis.get("matched_pattern", {}).get("source"),
+        ][:3] or [
+            "能更详细地讲讲排查步骤吗？",
+            "这个问题的根因最可能是什么？",
+            "下一步应该先查哪里？",
+        ],
+        "fallback_used": fallback_used,
+        "source": pattern.get("source"),
     }
 
 
@@ -364,6 +471,8 @@ def explain(payload):
             }
         )
 
-    result.setdefault("fallback_used", True)
+    # Only set fallback_used to True if the handler didn't set it (old handlers without LLM)
+    if "fallback_used" not in result:
+        result["fallback_used"] = True
     result.setdefault("suggested_questions", [])
     return result

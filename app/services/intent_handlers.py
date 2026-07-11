@@ -119,7 +119,7 @@ def _known_slots_from_context(context, assist_result):
     return slots, list(missing_fields)
 
 
-def generate_clarify_questions(message, assist_result, context, clarify_round=1):
+def generate_clarify_questions(message, assist_result, context, clarify_round=1, history=None):
     """
     Generate natural follow-up questions via LLM.
     Returns (questions_list, safety_notice, fallback_used).
@@ -152,9 +152,19 @@ def generate_clarify_questions(message, assist_result, context, clarify_round=1)
         "重要：你只输出 JSON，不要输出任何解释、markdown 或额外文字。"
         f"这是第 {clarify_round} 轮追问" + ("（最多 3 轮）。" if clarify_round >= 2 else "。")
     )
+    # Build conversation history summary
+    history_text = ""
+    if history:
+        recent = history[-4:]
+        history_text = "\n".join(
+            f"{item.get('role', 'user')}: {item.get('content', '')[:150]}"
+            for item in recent
+        )
+
     user = json.dumps(
         {
             "user_input": message,
+            "recent_conversation": history_text or "（无历史对话）",
             "matched_pattern": {
                 "title": pattern.get("title", ""),
                 "typical_symptom": pattern.get("typical_symptom", ""),
@@ -165,9 +175,11 @@ def generate_clarify_questions(message, assist_result, context, clarify_round=1)
             "clarify_round": clarify_round,
             "instruction": (
                 "请基于以上信息生成 1-3 个追问。"
+                "注意：recent_conversation 包含了前几轮问答，学生可能已经回答了部分问题。"
+                "只追问仍然未知的信息，不要重复问已经回答过的。"
                 "追问要口语化、具体、像实训师傅在带教。"
                 "每个追问说明为什么需要这些信息（对应什么能力点）。"
-                f"{'如果学生已经回答了部分信息但仍然不够，请针对仍然缺失的信息追问。' if clarify_round > 1 else ''}"
+                f"{'如果学生已经回答了部分信息但仍然不够，请针对仍然缺失的信息追问，不要重复前几轮的问题。' if clarify_round > 1 else ''}"
                 f"{'这是最后一轮追问，之后将给出诊断。问最关键的那个问题。' if clarify_round >= 2 else ''}"
             ),
         },
@@ -297,7 +309,10 @@ def handle_clarify(payload, intent_result):
         return _best_effort_from_clarify(message, assist_result, context, payload, intent_result)
 
     # Generate questions (LLM or static fallback)
-    questions, safety, fallback = generate_clarify_questions(message, assist_result, context, clarify_round)
+    questions, safety, fallback = generate_clarify_questions(
+        message, assist_result, context, clarify_round,
+        history=payload.get("history", [])[-4:]
+    )
 
     # Build natural response
     pattern = assist_result.get("matched_pattern") or {}
@@ -321,9 +336,8 @@ def handle_clarify(payload, intent_result):
     result["safety_notice"] = safety or assist_result.get("safety_notice", "")
     result["fallback_used"] = fallback
     result["reasoning_steps"] = [
-        f"第 {clarify_round}/{MAX_CLARIFY_ROUNDS} 轮澄清",
         f"匹配现象：{pattern_title}",
-        f"追问生成方式：{'LLM' if not fallback else '规则'}",
+        f"追问生成：{'LLM 动态生成' if not fallback else '规则模板'}",
     ]
     result["evidence_used"] = [
         {"label": "匹配现象", "value": pattern.get("typical_symptom", ""), "source": pattern.get("source", "")}

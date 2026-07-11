@@ -20,8 +20,29 @@ const state = {
   },
   activeWorkspace: "dashboard",
   activeGraphView: "job",
-  sessionId: `demo-${Date.now()}`
+  sessionId: localStorage.getItem("mcp_session_id") || `demo-${Date.now()}`
 };
+
+// ── Persistence helpers ──────────────────────────────────────────
+function persistSession() {
+  localStorage.setItem("mcp_session_id", state.sessionId);
+  try {
+    localStorage.setItem("mcp_messages", JSON.stringify(state.messages.slice(-40)));
+  } catch (e) { /* quota exceeded, ignore */ }
+}
+
+function restoreMessages() {
+  try {
+    const raw = localStorage.getItem("mcp_messages");
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+
+function newSession() {
+  localStorage.removeItem("mcp_session_id");
+  localStorage.removeItem("mcp_messages");
+  location.reload();
+}
 
 const $ = (id) => document.getElementById(id);
 
@@ -335,6 +356,7 @@ function collectContext() {
 function addMessage(role, content, meta = {}) {
   state.messages.push({ role, content, meta });
   renderMessages();
+  persistSession();
 }
 
 function renderMessages() {
@@ -1052,7 +1074,7 @@ function attachAskButtons(root = document) {
   root.querySelectorAll("[data-ask]").forEach((button) => {
     button.addEventListener("click", async () => {
       const questionId = button.dataset.questionId || "";
-      const explainType = button.dataset.explainType || (questionId ? "question" : button.dataset.abilityId ? "ability" : "message");
+      const explainType = button.dataset.explainType || (questionId ? "question" : button.dataset.abilityId ? "ability" : button.dataset.knowledgeId ? "knowledge" : "message");
       await openExplainDrawer({
         type: explainType,
         prompt: button.dataset.ask,
@@ -1486,7 +1508,15 @@ async function boot() {
     renderJobProfile(start.job_profile || {});
     $("llmStatus").textContent = start.llm_configured ? "模型已配置" : "规则兜底";
     $("llmStatus").classList.toggle("ok", Boolean(start.llm_configured));
-    addMessage("assistant", start.welcome || "");
+
+    // Restore previous messages if available, otherwise show welcome
+    const saved = restoreMessages();
+    if (saved.length > 0) {
+      state.messages = saved;
+      renderMessages();
+    } else {
+      addMessage("assistant", start.welcome || "");
+    }
     renderSuggestedQuestions(start.suggested_questions || []);
     renderQuiz(quiz.questions);
     renderGraph(currentGraph, "current");

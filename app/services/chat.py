@@ -269,7 +269,8 @@ def chat_message(payload):
     if assist_result.get("status") == "need_clarification" and is_configured():
         try:
             clarify_qs, clarify_safety, _ = generate_clarify_questions(
-                message, assist_result, context
+                message, assist_result, context,
+                history=payload.get("history", [])[-4:]
             )
             if clarify_qs:
                 pattern_title = (assist_result.get("matched_pattern") or {}).get(
