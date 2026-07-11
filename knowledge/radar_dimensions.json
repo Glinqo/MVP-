@@ -1,0 +1,118 @@
+{
+  "version": "0.1.0",
+  "source": "机电一体化岗位能力雷达图维度建议",
+  "dimensions": [
+    {
+      "id": "mechanical_structure",
+      "order": 1,
+      "name": "机械结构与装配识图",
+      "short_name": "机械装配",
+      "description": "机械制图、装配图识读、机械传动、部件拆装与调整",
+      "scoring_rubric": [
+        {"score": 1, "label": "了解", "description": "能说出常见机械传动类型和装配图基本符号"},
+        {"score": 2, "label": "理解", "description": "能识读简单装配图，说明零部件装配关系和传动路径"},
+        {"score": 3, "label": "应用", "description": "能在指导下完成机械部件拆装与调整"},
+        {"score": 4, "label": "熟练", "description": "能独立完成机械部件拆装、调整和常见机械故障判断"},
+        {"score": 5, "label": "精通", "description": "能优化装配流程，指导他人处理机械装配和传动异常"}
+      ]
+    },
+    {
+      "id": "electrical_safety_diagram",
+      "order": 2,
+      "name": "电气安全与电气识图",
+      "short_name": "电气安全",
+      "description": "安全用电、断电检查、万用表使用、低压电器、电气图识读",
+      "scoring_rubric": [
+        {"score": 1, "label": "了解", "description": "知道安全用电基本原则和常见电气符号"},
+        {"score": 2, "label": "理解", "description": "能说明断电检查流程，会识读基本电气原理图"},
+        {"score": 3, "label": "应用", "description": "能在指导下完成断电确认、万用表测量和接线检查"},
+        {"score": 4, "label": "熟练", "description": "能独立完成电气安全检查、识读中等复杂电气图并判断异常"},
+        {"score": 5, "label": "精通", "description": "能制定安全规范，排查复杂电气回路故障并指导他人操作"}
+      ]
+    },
+    {
+      "id": "sensor_signal_acquisition",
+      "order": 3,
+      "name": "传感器检测与信号采集",
+      "short_name": "传感器",
+      "description": "NPN/PNP 判断、传感器接线、信号检测、输入异常排查",
+      "scoring_rubric": [
+        {"score": 1, "label": "了解", "description": "知道常见传感器类型和基本工作原理"},
+        {"score": 2, "label": "理解", "description": "能区分 NPN/PNP 输出类型，说明传感器接线基本要求"},
+        {"score": 3, "label": "应用", "description": "能在指导下完成传感器类型识别、接线和信号测试"},
+        {"score": 4, "label": "熟练", "description": "能独立判断 NPN/PNP 类型、接线正确性并排查输入信号异常"},
+        {"score": 5, "label": "精通", "description": "能快速诊断复杂传感器信号链路故障，指导他人完成传感器调试"}
+      ]
+    },
+    {
+      "id": "plc_control_debug",
+      "order": 4,
+      "name": "PLC 控制与程序调试",
+      "short_name": "PLC",
+      "description": "I/O 映射、程序监控、启停控制、互锁逻辑、PLC 调试",
+      "scoring_rubric": [
+        {"score": 1, "label": "了解", "description": "知道 PLC 基本组成和 I/O 地址概念"},
+        {"score": 2, "label": "理解", "description": "能说明 I/O 映射关系和公共端作用，能识读简单梯形图"},
+        {"score": 3, "label": "应用", "description": "能在指导下完成 I/O 映射表填写和在线监控操作"},
+        {"score": 4, "label": "熟练", "description": "能独立完成 I/O 映射、程序监控、启停控制逻辑调试和互锁检查"},
+        {"score": 5, "label": "精通", "description": "能独立调试复杂 PLC 程序，快速定位程序逻辑和地址映射问题"}
+      ]
+    },
+    {
+      "id": "pneumatic_actuator",
+      "order": 5,
+      "name": "气动与执行机构控制",
+      "short_name": "气动",
+      "description": "气缸、电磁阀、气动回路、动作顺序、气动故障排查",
+      "scoring_rubric": [
+        {"score": 1, "label": "了解", "description": "知道气缸、电磁阀等基本气动元件功能"},
+        {"score": 2, "label": "理解", "description": "能识读基本气动回路图，说明气缸动作顺序控制方式"},
+        {"score": 3, "label": "应用", "description": "能在指导下完成气动回路接线、调试和常见故障排查"},
+        {"score": 4, "label": "熟练", "description": "能独立完成气动系统调试、动作顺序控制和故障定位"},
+        {"score": 5, "label": "精通", "description": "能优化气动回路设计，快速诊断复杂气动系统故障"}
+      ]
+    },
+    {
+      "id": "servo_step_motion",
+      "order": 6,
+      "name": "伺服/步进与运动控制",
+      "short_name": "运动控制",
+      "description": "驱动器参数、脉冲控制、限位保护、回零、定位异常排查",
+      "scoring_rubric": [
+        {"score": 1, "label": "了解", "description": "知道伺服和步进电机基本工作原理和用途"},
+        {"score": 2, "label": "理解", "description": "能说明驱动器参数、脉冲控制和限位保护基本概念"},
+        {"score": 3, "label": "应用", "description": "能在指导下完成驱动参数设置、回零操作和简单定位调试"},
+        {"score": 4, "label": "熟练", "description": "能独立完成伺服/步进系统调试、定位参数优化和异常排查"},
+        {"score": 5, "label": "精通", "description": "能解决复杂运动控制问题，优化定位精度和运动性能"}
+      ]
+    },
+    {
+      "id": "industrial_robot_network",
+      "order": 7,
+      "name": "工业机器人与工业网络",
+      "short_name": "机器人",
+      "description": "机器人 I/O、示教操作、PLC 联动、HMI、工业通信与数据采集",
+      "scoring_rubric": [
+        {"score": 1, "label": "了解", "description": "知道工业机器人基本构成和工业网络通信方式"},
+        {"score": 2, "label": "理解", "description": "能说明机器人 I/O 通信和示教器基本操作方法"},
+        {"score": 3, "label": "应用", "description": "能在指导下完成机器人基本操作、I/O 检查和 PLC 联动"},
+        {"score": 4, "label": "熟练", "description": "能独立完成机器人示教编程、HMI 操作和工业网络数据采集"},
+        {"score": 5, "label": "精通", "description": "能集成机器人、PLC 和 HMI 系统，处理复杂工业通信问题"}
+      ]
+    },
+    {
+      "id": "equipment_inspection_troubleshooting",
+      "order": 8,
+      "name": "设备点检与综合排故",
+      "short_name": "综合排故",
+      "description": "点检流程、故障分类、排查顺序、维修记录、系统级故障诊断",
+      "scoring_rubric": [
+        {"score": 1, "label": "了解", "description": "知道设备点检基本流程和常见故障分类方法"},
+        {"score": 2, "label": "理解", "description": "能说明故障排查顺序原则和维修记录基本要求"},
+        {"score": 3, "label": "应用", "description": "能在指导下按流程完成设备点检和简单故障诊断"},
+        {"score": 4, "label": "熟练", "description": "能独立按排故顺序定位系统级故障，完成维修记录和反馈闭环"},
+        {"score": 5, "label": "精通", "description": "能建立系统级故障诊断体系，指导复杂产线综合排故"}
+      ]
+    }
+  ]
+}

@@ -11,12 +11,37 @@
       "parent_id": null,
       "description": "能说明自动化产线装调与运维技术员在传感器到 PLC 输入链路中的任务边界：确认安全、识别传感器、判断接线、查看 PLC 输入、定位无响应原因并形成反馈。",
       "prerequisites": [],
-      "related_knowledge": ["K034", "K048", "K049", "K050", "K051", "K066"],
-      "related_questions": ["Q020"],
-      "related_tasks": ["T001", "T005"],
-      "common_errors": ["只描述现象，不说明信号链路", "把传感器问题直接归因于 PLC 程序"],
+      "related_knowledge": [
+        "K034",
+        "K048",
+        "K049",
+        "K050",
+        "K051",
+        "K066"
+      ],
+      "related_questions": [
+        "Q020"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "只描述现象，不说明信号链路",
+        "把传感器问题直接归因于 PLC 程序"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "教育部《机电一体化技术专业教学标准（高等职业教育专科）》", "MVP 场景: 传感器 NPN/PNP 接线与 PLC 输入信号排查"]
+      "sources": [
+        "project_curated",
+        "教育部《机电一体化技术专业教学标准（高等职业教育专科）》",
+        "MVP 场景: 传感器 NPN/PNP 接线与 PLC 输入信号排查"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram",
+        "sensor_signal_acquisition",
+        "plc_control_debug",
+        "equipment_inspection_troubleshooting"
+      ]
     },
     {
       "id": "electrical_safety_check",
@@ -25,12 +50,35 @@
       "parent_id": "role_task_understanding",
       "description": "能在接线、拆线和通电调试前完成断电、急停、DC24V 电源、气源和现场状态检查；不确定设备状态时请教师或实训指导人员确认。",
       "prerequisites": [],
-      "related_knowledge": ["K001", "K002", "K003", "K059", "K060"],
-      "related_questions": ["Q005", "Q006", "Q009"],
-      "related_tasks": ["T001"],
-      "common_errors": ["未断电就接线", "忽略急停和气源状态", "未确认设备是否处于安全初始位"],
+      "related_knowledge": [
+        "K001",
+        "K002",
+        "K003",
+        "K059",
+        "K060"
+      ],
+      "related_questions": [
+        "Q005",
+        "Q006",
+        "Q009"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "未断电就接线",
+        "忽略急停和气源状态",
+        "未确认设备是否处于安全初始位"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "全国标准信息公共服务平台 GB/T 5226.1-2019", "安全要求: 接线和设备调试必须先断电并确认状态"]
+      "sources": [
+        "project_curated",
+        "全国标准信息公共服务平台 GB/T 5226.1-2019",
+        "安全要求: 接线和设备调试必须先断电并确认状态"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
     },
     {
       "id": "power_isolation_confirmation",
@@ -38,13 +86,33 @@
       "level": "basic",
       "parent_id": "electrical_safety_check",
       "description": "能在拆接传感器线缆前确认电源已断开，必要时用万用表复核 DC24V 输出端状态，并保留教师确认步骤。",
-      "prerequisites": ["electrical_safety_check"],
-      "related_knowledge": ["K001", "K003", "K004"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "common_errors": ["只关控制按钮未切断电源", "带电拔插传感器", "未复核 DC24V 是否仍有电压"],
+      "prerequisites": [
+        "electrical_safety_check"
+      ],
+      "related_knowledge": [
+        "K001",
+        "K003",
+        "K004"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "只关控制按钮未切断电源",
+        "带电拔插传感器",
+        "未复核 DC24V 是否仍有电压"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "安全要求: 接线和拆线前先断电"]
+      "sources": [
+        "project_curated",
+        "安全要求: 接线和拆线前先断电"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
     },
     {
       "id": "dc24v_power_check",
@@ -52,13 +120,33 @@
       "level": "basic",
       "parent_id": "electrical_safety_check",
       "description": "能在安全条件下检查 PLC 输入模块和传感器供电所需的 DC24V 电源正负极、端子标识和电压范围。",
-      "prerequisites": ["power_isolation_confirmation"],
-      "related_knowledge": ["K004", "K005", "K006"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "common_errors": ["正负极接反", "把交流端子当作 DC24V 端子", "只看电源灯不测量关键端子"],
+      "prerequisites": [
+        "power_isolation_confirmation"
+      ],
+      "related_knowledge": [
+        "K004",
+        "K005",
+        "K006"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "正负极接反",
+        "把交流端子当作 DC24V 端子",
+        "只看电源灯不测量关键端子"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: PLC 输入信号排查"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: PLC 输入信号排查"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
     },
     {
       "id": "multimeter_voltage_measurement",
@@ -66,13 +154,33 @@
       "level": "basic",
       "parent_id": "electrical_safety_check",
       "description": "能选择直流电压档位，按安全规范测量 DC24V、0V 和传感器输出端，避免表笔短接端子。",
-      "prerequisites": ["electrical_safety_check", "dc24v_power_check"],
-      "related_knowledge": ["K003", "K036"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "common_errors": ["档位选择错误", "表笔造成短接", "只测电源不测传感器输出"],
+      "prerequisites": [
+        "electrical_safety_check",
+        "dc24v_power_check"
+      ],
+      "related_knowledge": [
+        "K003",
+        "K036"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "档位选择错误",
+        "表笔造成短接",
+        "只测电源不测传感器输出"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "安全要求: 通电测量需教师确认和规范操作"]
+      "sources": [
+        "project_curated",
+        "安全要求: 通电测量需教师确认和规范操作"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
     },
     {
       "id": "sensor_type_identification",
@@ -80,13 +188,41 @@
       "level": "basic",
       "parent_id": "role_task_understanding",
       "description": "能通过铭牌、型号、接线图和输出说明区分 NPN 与 PNP 传感器，知道两者输出方向不同，必须匹配 PLC 输入公共端。",
-      "prerequisites": ["electrical_safety_check"],
-      "related_knowledge": ["K009", "K011", "K012", "K013", "K015", "K053", "K054", "K055"],
-      "related_questions": ["Q001", "Q010"],
-      "related_tasks": ["T001"],
-      "common_errors": ["E_SENSOR_NPN_PNP", "只看线色不看输出类型", "把二线制和三线制传感器混为一谈"],
+      "prerequisites": [
+        "electrical_safety_check"
+      ],
+      "related_knowledge": [
+        "K009",
+        "K011",
+        "K012",
+        "K013",
+        "K015",
+        "K053",
+        "K054",
+        "K055"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q010"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "E_SENSOR_NPN_PNP",
+        "只看线色不看输出类型",
+        "把二线制和三线制传感器混为一谈"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "AutomationDirect Sinking and Sourcing Sensor Wiring Basics", "Balluff PNP/NPN sensor wiring", "MVP 场景: NPN/PNP 传感器类型识别"]
+      "sources": [
+        "project_curated",
+        "AutomationDirect Sinking and Sourcing Sensor Wiring Basics",
+        "Balluff PNP/NPN sensor wiring",
+        "MVP 场景: NPN/PNP 传感器类型识别"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
     },
     {
       "id": "sensor_nameplate_reading",
@@ -94,13 +230,33 @@
       "level": "basic",
       "parent_id": "sensor_type_identification",
       "description": "能从传感器本体、说明书或型号后缀中提取供电电压、输出类型、线缆颜色和检测方式。",
-      "prerequisites": ["sensor_type_identification"],
-      "related_knowledge": ["K009", "K013", "K015"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "common_errors": ["忽略型号后缀", "把检测类型当作输出类型", "未记录传感器型号"],
+      "prerequisites": [
+        "sensor_type_identification"
+      ],
+      "related_knowledge": [
+        "K009",
+        "K013",
+        "K015"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "忽略型号后缀",
+        "把检测类型当作输出类型",
+        "未记录传感器型号"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: 传感器型号与输出类型确认"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: 传感器型号与输出类型确认"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
     },
     {
       "id": "sensor_output_logic",
@@ -108,13 +264,38 @@
       "level": "basic",
       "parent_id": "sensor_type_identification",
       "description": "能解释 NPN 常见为下拉输出、PNP 常见为上拉输出，并能判断有效信号出现时 PLC 输入端应接近 0V 还是 DC24V。",
-      "prerequisites": ["dc24v_power_check", "sensor_type_identification"],
-      "related_knowledge": ["K011", "K012", "K014", "K054", "K055"],
-      "related_questions": ["Q001", "Q010", "Q011"],
-      "related_tasks": ["T001"],
-      "common_errors": ["E_SENSOR_NPN_PNP", "把传感器指示灯亮等同于 PLC 输入有效", "不理解上拉和下拉输出"],
+      "prerequisites": [
+        "dc24v_power_check",
+        "sensor_type_identification"
+      ],
+      "related_knowledge": [
+        "K011",
+        "K012",
+        "K014",
+        "K054",
+        "K055"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q010",
+        "Q011"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "E_SENSOR_NPN_PNP",
+        "把传感器指示灯亮等同于 PLC 输入有效",
+        "不理解上拉和下拉输出"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: PLC 输入信号有效性判断"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: PLC 输入信号有效性判断"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
     },
     {
       "id": "sensor_led_observation",
@@ -122,13 +303,35 @@
       "level": "basic",
       "parent_id": "sensor_type_identification",
       "description": "能观察传感器电源灯和动作灯，结合工件位置判断检测条件是否满足，并知道指示灯亮不代表 PLC 已收到输入。",
-      "prerequisites": ["sensor_type_identification"],
-      "related_knowledge": ["K010", "K031", "K037", "K056"],
-      "related_questions": ["Q005", "Q013"],
-      "related_tasks": ["T001"],
-      "common_errors": ["只看传感器灯不看 PLC 输入灯", "检测距离或角度未调整", "忽略目标材质影响"],
+      "prerequisites": [
+        "sensor_type_identification"
+      ],
+      "related_knowledge": [
+        "K010",
+        "K031",
+        "K037",
+        "K056"
+      ],
+      "related_questions": [
+        "Q005",
+        "Q013"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "只看传感器灯不看 PLC 输入灯",
+        "检测距离或角度未调整",
+        "忽略目标材质影响"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: 传感器信号观察"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: 传感器信号观察"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
     },
     {
       "id": "sensor_wiring_color_code",
@@ -136,13 +339,34 @@
       "level": "basic",
       "parent_id": "sensor_type_identification",
       "description": "能识别常见三线传感器棕、蓝、黑线功能，并在断电状态下核对 DC24V、0V 和输出线接入位置。",
-      "prerequisites": ["power_isolation_confirmation", "sensor_nameplate_reading"],
-      "related_knowledge": ["K005", "K007", "K008"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "common_errors": ["棕蓝线接反", "黑线接错输入点", "未在断电状态下核对端子"],
+      "prerequisites": [
+        "power_isolation_confirmation",
+        "sensor_nameplate_reading"
+      ],
+      "related_knowledge": [
+        "K005",
+        "K007",
+        "K008"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "棕蓝线接反",
+        "黑线接错输入点",
+        "未在断电状态下核对端子"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "安全要求: 接线前断电并核对端子"]
+      "sources": [
+        "project_curated",
+        "安全要求: 接线前断电并核对端子"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
     },
     {
       "id": "sensor_wiring_judgement",
@@ -150,13 +374,41 @@
       "level": "medium",
       "parent_id": "sensor_type_identification",
       "description": "能根据 NPN/PNP 类型、PLC 输入公共端和现场端子图，判断传感器供电线、输出线和公共端连接是否正确；接线调整必须先断电。",
-      "prerequisites": ["sensor_output_logic", "sensor_wiring_color_code", "plc_input_common_terminal"],
-      "related_knowledge": ["K006", "K014", "K016", "K035", "K062"],
-      "related_questions": ["Q001", "Q002", "Q011", "Q017"],
-      "related_tasks": ["T001"],
-      "common_errors": ["E_SENSOR_NPN_PNP", "E_IO_MAPPING", "按颜色机械接线不核对公共端", "带电改线"],
+      "prerequisites": [
+        "sensor_output_logic",
+        "sensor_wiring_color_code",
+        "plc_input_common_terminal"
+      ],
+      "related_knowledge": [
+        "K006",
+        "K014",
+        "K016",
+        "K035",
+        "K062"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q002",
+        "Q011",
+        "Q017"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "E_SENSOR_NPN_PNP",
+        "E_IO_MAPPING",
+        "按颜色机械接线不核对公共端",
+        "带电改线"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: 传感器接线判断"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: 传感器接线判断"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
     },
     {
       "id": "plc_input_common_terminal",
@@ -164,13 +416,40 @@
       "level": "medium",
       "parent_id": "role_task_understanding",
       "description": "能识别 PLC 输入模块公共端 COM/S/S 或公共端组别，判断该组输入适合接收 NPN 还是 PNP 传感器信号。",
-      "prerequisites": ["dc24v_power_check", "sensor_output_logic"],
-      "related_knowledge": ["K006", "K011", "K012", "K016", "K018", "K053"],
-      "related_questions": ["Q001", "Q003", "Q010", "Q014"],
-      "related_tasks": ["T001"],
-      "common_errors": ["E_SENSOR_NPN_PNP", "只看输入点编号不看公共端", "跨公共端组接错线"],
+      "prerequisites": [
+        "dc24v_power_check",
+        "sensor_output_logic"
+      ],
+      "related_knowledge": [
+        "K006",
+        "K011",
+        "K012",
+        "K016",
+        "K018",
+        "K053"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q003",
+        "Q010",
+        "Q014"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "E_SENSOR_NPN_PNP",
+        "只看输入点编号不看公共端",
+        "跨公共端组接错线"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: PLC 输入公共端判断"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: PLC 输入公共端判断"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
     },
     {
       "id": "plc_input_grouping",
@@ -178,13 +457,34 @@
       "level": "medium",
       "parent_id": "plc_input_common_terminal",
       "description": "能确认多个输入点是否共用同一公共端组，避免把传感器输出接入不同公共端组导致信号异常。",
-      "prerequisites": ["plc_input_common_terminal"],
-      "related_knowledge": ["K016", "K017", "K053"],
-      "related_questions": ["Q002", "Q014"],
-      "related_tasks": ["T001"],
-      "common_errors": ["跨组接线", "公共端接线只检查一个输入点", "未记录公共端组别"],
+      "prerequisites": [
+        "plc_input_common_terminal"
+      ],
+      "related_knowledge": [
+        "K016",
+        "K017",
+        "K053"
+      ],
+      "related_questions": [
+        "Q002",
+        "Q014"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "跨组接线",
+        "公共端接线只检查一个输入点",
+        "未记录公共端组别"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: PLC 输入公共端分组排查"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: PLC 输入公共端分组排查"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
     },
     {
       "id": "plc_io_address_mapping",
@@ -192,13 +492,38 @@
       "level": "basic",
       "parent_id": "role_task_understanding",
       "description": "能把现场传感器名称、端子号、PLC 输入地址和程序变量对应起来，形成可用于本地工作流、可选平台导入或实训记录中的 I/O 映射表。",
-      "prerequisites": ["sensor_nameplate_reading"],
-      "related_knowledge": ["K021", "K022", "K025", "K049", "K057"],
-      "related_questions": ["Q002", "Q012", "Q016"],
-      "related_tasks": ["T001", "T005"],
-      "common_errors": ["E_IO_MAPPING", "地址写错一位", "元件名称和程序变量不一致"],
+      "prerequisites": [
+        "sensor_nameplate_reading"
+      ],
+      "related_knowledge": [
+        "K021",
+        "K022",
+        "K025",
+        "K049",
+        "K057"
+      ],
+      "related_questions": [
+        "Q002",
+        "Q012",
+        "Q016"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "E_IO_MAPPING",
+        "地址写错一位",
+        "元件名称和程序变量不一致"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: PLC I/O 地址映射"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: PLC I/O 地址映射"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
     },
     {
       "id": "io_mapping_table_build",
@@ -206,13 +531,32 @@
       "level": "basic",
       "parent_id": "plc_io_address_mapping",
       "description": "能按元件名称、传感器类型、线色、端子号、PLC 地址、程序变量、当前状态填写 I/O 映射表。",
-      "prerequisites": ["plc_io_address_mapping"],
-      "related_knowledge": ["K022", "K025"],
-      "related_questions": ["Q002"],
-      "related_tasks": ["T001"],
-      "common_errors": ["只填 PLC 地址不填现场端子", "变量名无法对应程序", "未记录当前状态"],
+      "prerequisites": [
+        "plc_io_address_mapping"
+      ],
+      "related_knowledge": [
+        "K022",
+        "K025"
+      ],
+      "related_questions": [
+        "Q002"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "只填 PLC 地址不填现场端子",
+        "变量名无法对应程序",
+        "未记录当前状态"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "星辰导入需求: 结构化变量和测试输入"]
+      "sources": [
+        "project_curated",
+        "星辰导入需求: 结构化变量和测试输入"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
     },
     {
       "id": "program_variable_lookup",
@@ -220,13 +564,41 @@
       "level": "medium",
       "parent_id": "plc_io_address_mapping",
       "description": "能在 PLC 程序中查找输入地址或变量被哪些逻辑使用，判断现场信号是否进入了正确的程序条件。",
-      "prerequisites": ["plc_io_address_mapping", "plc_input_monitoring"],
-      "related_knowledge": ["K023", "K026", "K027", "K028", "K042", "K061"],
-      "related_questions": ["Q002", "Q007", "Q012", "Q015"],
-      "related_tasks": ["T001", "T005"],
-      "common_errors": ["只看接线不查程序变量", "变量重名或地址引用错误", "把输出地址当输入地址"],
+      "prerequisites": [
+        "plc_io_address_mapping",
+        "plc_input_monitoring"
+      ],
+      "related_knowledge": [
+        "K023",
+        "K026",
+        "K027",
+        "K028",
+        "K042",
+        "K061"
+      ],
+      "related_questions": [
+        "Q002",
+        "Q007",
+        "Q012",
+        "Q015"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "只看接线不查程序变量",
+        "变量重名或地址引用错误",
+        "把输出地址当输入地址"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: PLC 输入信号与程序变量对应"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: PLC 输入信号与程序变量对应"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
     },
     {
       "id": "plc_input_monitoring",
@@ -234,13 +606,39 @@
       "level": "medium",
       "parent_id": "role_task_understanding",
       "description": "能在教师确认安全后，通过 PLC 输入指示灯或在线监控观察输入点状态，并与传感器动作灯和现场工件状态进行对比。",
-      "prerequisites": ["electrical_safety_check", "plc_io_address_mapping"],
-      "related_knowledge": ["K029", "K032", "K033", "K056", "K058"],
-      "related_questions": ["Q005", "Q008", "Q009", "Q012"],
-      "related_tasks": ["T001"],
-      "common_errors": ["只看在线监控不看现场", "只看传感器灯不看 PLC 输入点", "未确认监控地址是否正确"],
+      "prerequisites": [
+        "electrical_safety_check",
+        "plc_io_address_mapping"
+      ],
+      "related_knowledge": [
+        "K029",
+        "K032",
+        "K033",
+        "K056",
+        "K058"
+      ],
+      "related_questions": [
+        "Q005",
+        "Q008",
+        "Q009",
+        "Q012"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "只看在线监控不看现场",
+        "只看传感器灯不看 PLC 输入点",
+        "未确认监控地址是否正确"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "安全要求: 通电监控需确认设备状态"]
+      "sources": [
+        "project_curated",
+        "安全要求: 通电监控需确认设备状态"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
     },
     {
       "id": "input_led_compare",
@@ -248,13 +646,39 @@
       "level": "medium",
       "parent_id": "plc_input_monitoring",
       "description": "能对比传感器动作灯、PLC 输入灯和在线监控状态，判断故障位于检测侧、接线侧、输入模块侧还是程序映射侧。",
-      "prerequisites": ["sensor_led_observation", "plc_input_monitoring"],
-      "related_knowledge": ["K030", "K031", "K032", "K056"],
-      "related_questions": ["Q005", "Q008", "Q012"],
-      "related_tasks": ["T001", "T005"],
-      "common_errors": ["看到传感器灯亮就认为输入正常", "输入灯亮但仍排查传感器本体", "未做三者状态对比"],
+      "prerequisites": [
+        "sensor_led_observation",
+        "plc_input_monitoring"
+      ],
+      "related_knowledge": [
+        "K030",
+        "K031",
+        "K032",
+        "K056"
+      ],
+      "related_questions": [
+        "Q005",
+        "Q008",
+        "Q012"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "看到传感器灯亮就认为输入正常",
+        "输入灯亮但仍排查传感器本体",
+        "未做三者状态对比"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: 输入点无响应故障定位"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: 输入点无响应故障定位"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition",
+        "plc_control_debug"
+      ]
     },
     {
       "id": "input_no_response_fault_scope",
@@ -262,13 +686,40 @@
       "level": "medium",
       "parent_id": "plc_input_monitoring",
       "description": "能按电源、传感器、接线、公共端、PLC 输入点、地址映射和程序变量的顺序定位输入点无响应原因。",
-      "prerequisites": ["sensor_wiring_judgement", "plc_input_common_terminal", "input_led_compare"],
-      "related_knowledge": ["K034", "K038", "K039", "K041", "K065"],
-      "related_questions": ["Q004", "Q005", "Q018"],
-      "related_tasks": ["T001", "T005"],
-      "common_errors": ["E_NO_DIAG_ORDER", "跳过电源和公共端直接改程序", "无记录地反复换线"],
+      "prerequisites": [
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal",
+        "input_led_compare"
+      ],
+      "related_knowledge": [
+        "K034",
+        "K038",
+        "K039",
+        "K041",
+        "K065"
+      ],
+      "related_questions": [
+        "Q004",
+        "Q005",
+        "Q018"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "E_NO_DIAG_ORDER",
+        "跳过电源和公共端直接改程序",
+        "无记录地反复换线"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: 输入点无响应故障定位"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: 输入点无响应故障定位"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
     },
     {
       "id": "no_response_power_path_check",
@@ -276,13 +727,35 @@
       "level": "medium",
       "parent_id": "input_no_response_fault_scope",
       "description": "能检查 DC24V、0V、传感器供电端和输入模块公共端是否形成完整回路；涉及测量时必须遵守通电测量安全规范。",
-      "prerequisites": ["multimeter_voltage_measurement", "input_no_response_fault_scope"],
-      "related_knowledge": ["K004", "K036", "K044", "K045"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "common_errors": ["只检查信号线不检查供电", "0V 断开未发现", "测量点选择错误"],
+      "prerequisites": [
+        "multimeter_voltage_measurement",
+        "input_no_response_fault_scope"
+      ],
+      "related_knowledge": [
+        "K004",
+        "K036",
+        "K044",
+        "K045"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "只检查信号线不检查供电",
+        "0V 断开未发现",
+        "测量点选择错误"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "安全要求: 通电测量需教师确认"]
+      "sources": [
+        "project_curated",
+        "安全要求: 通电测量需教师确认"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
     },
     {
       "id": "no_response_sensor_side_check",
@@ -290,13 +763,36 @@
       "level": "medium",
       "parent_id": "input_no_response_fault_scope",
       "description": "能检查传感器检测距离、目标材质、安装角度、动作灯和输出端电压，判断传感器是否真正输出有效信号。",
-      "prerequisites": ["sensor_led_observation", "sensor_output_logic"],
-      "related_knowledge": ["K010", "K036", "K037", "K047"],
-      "related_questions": ["Q001", "Q005"],
-      "related_tasks": ["T001"],
-      "common_errors": ["检测距离过远", "目标材质不匹配", "传感器灯亮但输出端未测量"],
+      "prerequisites": [
+        "sensor_led_observation",
+        "sensor_output_logic"
+      ],
+      "related_knowledge": [
+        "K010",
+        "K036",
+        "K037",
+        "K047"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "检测距离过远",
+        "目标材质不匹配",
+        "传感器灯亮但输出端未测量"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: 传感器侧故障排查"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: 传感器侧故障排查"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
     },
     {
       "id": "no_response_common_terminal_check",
@@ -304,13 +800,34 @@
       "level": "medium",
       "parent_id": "input_no_response_fault_scope",
       "description": "能判断输入公共端是否与传感器 NPN/PNP 类型匹配，并检查公共端组是否接到正确的 DC24V 或 0V。",
-      "prerequisites": ["plc_input_common_terminal", "plc_input_grouping"],
-      "related_knowledge": ["K016", "K019", "K020"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "common_errors": ["E_SENSOR_NPN_PNP", "公共端接反", "输入公共端组别接错"],
+      "prerequisites": [
+        "plc_input_common_terminal",
+        "plc_input_grouping"
+      ],
+      "related_knowledge": [
+        "K016",
+        "K019",
+        "K020"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "E_SENSOR_NPN_PNP",
+        "公共端接反",
+        "输入公共端组别接错"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: PLC 输入公共端判断"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: PLC 输入公共端判断"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
     },
     {
       "id": "no_response_address_mapping_check",
@@ -318,13 +835,37 @@
       "level": "medium",
       "parent_id": "input_no_response_fault_scope",
       "description": "能在输入灯或在线监控状态正常时，继续检查 PLC 地址、变量引用和程序条件是否与现场元件一致。",
-      "prerequisites": ["io_mapping_table_build", "program_variable_lookup"],
-      "related_knowledge": ["K023", "K024", "K040", "K043"],
-      "related_questions": ["Q002", "Q005"],
-      "related_tasks": ["T001", "T005"],
-      "common_errors": ["E_IO_MAPPING", "现场输入正常但程序看错地址", "变量未绑定到实际输入点"],
+      "prerequisites": [
+        "io_mapping_table_build",
+        "program_variable_lookup"
+      ],
+      "related_knowledge": [
+        "K023",
+        "K024",
+        "K040",
+        "K043"
+      ],
+      "related_questions": [
+        "Q002",
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "E_IO_MAPPING",
+        "现场输入正常但程序看错地址",
+        "变量未绑定到实际输入点"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: PLC 地址映射排查"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: PLC 地址映射排查"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
     },
     {
       "id": "diagnosis_record_feedback",
@@ -332,13 +873,35 @@
       "level": "medium",
       "parent_id": "input_no_response_fault_scope",
       "description": "能记录故障现象、检查顺序、证据、定位结论和修复建议，为星辰 Agent 输出学生反馈和教师视图提供结构化依据。",
-      "prerequisites": ["input_no_response_fault_scope"],
-      "related_knowledge": ["K048", "K049", "K050", "K063"],
-      "related_questions": ["Q005", "Q019"],
-      "related_tasks": ["T005"],
-      "common_errors": ["只写结论不写证据", "没有记录检查顺序", "反馈建议无法落到下一次实训任务"],
+      "prerequisites": [
+        "input_no_response_fault_scope"
+      ],
+      "related_knowledge": [
+        "K048",
+        "K049",
+        "K050",
+        "K063"
+      ],
+      "related_questions": [
+        "Q005",
+        "Q019"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "common_errors": [
+        "只写结论不写证据",
+        "没有记录检查顺序",
+        "反馈建议无法落到下一次实训任务"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "星辰导入需求: 诊断结果和反馈闭环"]
+      "sources": [
+        "project_curated",
+        "星辰导入需求: 诊断结果和反馈闭环"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
     },
     {
       "id": "personalized_training_task_recommendation",
@@ -346,13 +909,45 @@
       "level": "application",
       "parent_id": "diagnosis_record_feedback",
       "description": "能根据学生在安全、传感器类型、接线、公共端、I/O 映射、输入监控和故障定位中的薄弱点，推荐一节课内可完成的个性化实训任务。",
-      "prerequisites": ["diagnosis_record_feedback"],
-      "related_knowledge": ["K001", "K014", "K016", "K021", "K034", "K049", "K050", "K052", "K064", "K066"],
-      "related_questions": ["Q001", "Q002", "Q005", "Q019", "Q020"],
-      "related_tasks": ["T001", "T005"],
-      "common_errors": ["推荐任务过大", "推荐内容脱离 NPN/PNP 和 PLC 输入排查场景", "未把薄弱点映射到具体练习"],
+      "prerequisites": [
+        "diagnosis_record_feedback"
+      ],
+      "related_knowledge": [
+        "K001",
+        "K014",
+        "K016",
+        "K021",
+        "K034",
+        "K049",
+        "K050",
+        "K052",
+        "K064",
+        "K066"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q002",
+        "Q005",
+        "Q019",
+        "Q020"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "推荐任务过大",
+        "推荐内容脱离 NPN/PNP 和 PLC 输入排查场景",
+        "未把薄弱点映射到具体练习"
+      ],
       "source": "project_curated",
-      "sources": ["project_curated", "MVP 场景: 个性化实训任务推荐"]
+      "sources": [
+        "project_curated",
+        "MVP 场景: 个性化实训任务推荐"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
     }
   ]
 }

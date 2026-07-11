@@ -1,0 +1,109 @@
+{
+  "version": "0.1.0",
+  "source": "project_curated",
+  "profile_schema_version": "0.1.0",
+  "profiles": [
+    {
+      "id": "automation_line_commissioning_maintenance_newcomer",
+      "role_name": "自动化生产线装调与运维技术员",
+      "learner_stage": "职业新人",
+      "description": "在自动化产线或机电设备工作站中，完成传感器、PLC 输入、气动执行机构和基础电气控制链路的装调、监控和故障排查。",
+      "mvp_focus_task": "传感器 NPN/PNP 接线与 PLC 输入信号排查",
+      "radar_dimension_scores": [
+        {
+          "dimension_id": "mechanical_structure",
+          "required_score": 2.0,
+          "score_description": "能识读简单装配图、了解机械传动基本结构，能在指导下完成简单拆装",
+          "ability_nodes": []
+        },
+        {
+          "dimension_id": "electrical_safety_diagram",
+          "required_score": 4.5,
+          "score_description": "熟练掌握断电检查、万用表使用、安全用电规范，能识读中等复杂电气原理图",
+          "ability_nodes": [
+            "electrical_safety_check",
+            "power_isolation_confirmation",
+            "dc24v_power_check",
+            "multimeter_voltage_measurement",
+            "no_response_power_path_check"
+          ]
+        },
+        {
+          "dimension_id": "sensor_signal_acquisition",
+          "required_score": 4.5,
+          "score_description": "精通 NPN/PNP 类型识别、输出逻辑判断、接线判断和传感器侧异常排查",
+          "ability_nodes": [
+            "sensor_type_identification",
+            "sensor_nameplate_reading",
+            "sensor_output_logic",
+            "sensor_led_observation",
+            "sensor_wiring_color_code",
+            "sensor_wiring_judgement",
+            "no_response_sensor_side_check",
+            "input_led_compare"
+          ]
+        },
+        {
+          "dimension_id": "plc_control_debug",
+          "required_score": 4.0,
+          "score_description": "熟练 I/O 地址映射、程序监控、输入公共端判断和程序变量查找",
+          "ability_nodes": [
+            "plc_input_common_terminal",
+            "plc_input_grouping",
+            "plc_io_address_mapping",
+            "io_mapping_table_build",
+            "program_variable_lookup",
+            "plc_input_monitoring",
+            "no_response_common_terminal_check",
+            "no_response_address_mapping_check"
+          ]
+        },
+        {
+          "dimension_id": "pneumatic_actuator",
+          "required_score": 3.0,
+          "score_description": "能理解气动回路基本组成、气缸动作顺序，能在指导下完成气动故障排查",
+          "ability_nodes": []
+        },
+        {
+          "dimension_id": "servo_step_motion",
+          "required_score": 2.5,
+          "score_description": "了解伺服/步进驱动基本概念、脉冲控制方式和限位保护，能识别基础定位异常",
+          "ability_nodes": []
+        },
+        {
+          "dimension_id": "industrial_robot_network",
+          "required_score": 1.5,
+          "score_description": "了解工业机器人基本 I/O 通信方式和工业网络基本概念",
+          "ability_nodes": []
+        },
+        {
+          "dimension_id": "equipment_inspection_troubleshooting",
+          "required_score": 3.5,
+          "score_description": "能按排查顺序定位输入点无响应等系统级故障，完成诊断记录和反馈闭环",
+          "ability_nodes": [
+            "input_no_response_fault_scope",
+            "diagnosis_record_feedback",
+            "personalized_training_task_recommendation"
+          ]
+        }
+      ],
+      "reference_dimension_focus": {
+        "high": [
+          "electrical_safety_diagram",
+          "sensor_signal_acquisition",
+          "plc_control_debug"
+        ],
+        "medium": [
+          "pneumatic_actuator",
+          "equipment_inspection_troubleshooting"
+        ],
+        "low": [
+          "servo_step_motion",
+          "mechanical_structure",
+          "industrial_robot_network"
+        ]
+      },
+      "job_profile_id": "automation_line_commissioning_maintenance_newcomer"
+    }
+  ]
+}
