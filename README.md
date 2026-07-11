@@ -113,6 +113,11 @@ http://127.0.0.1:8765
 
 聊天接口支持 OpenAI-compatible Chat Completions。没有配置时会自动使用规则兜底回答。
 
+自建.env文件，内容格式如下：
+LLM_API_KEY=sk-**
+LLM_BASE_URL=https://api.deepseek.com
+LLM_MODEL=deepseek-chat
+
 ```powershell
 $env:LLM_API_KEY="your_api_key"
 $env:LLM_BASE_URL="https://api.openai.com/v1"
