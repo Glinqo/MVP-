@@ -1,11 +1,18 @@
+import http.client
 import json
+import logging
 import os
+import time
 import urllib.error
 import urllib.request
 
 
 DEFAULT_BASE_URL = "https://api.deepseek.com/v1"
 DEFAULT_MODEL = "deepseek-chat"
+MAX_RETRIES = 2
+RETRY_DELAY = 1.5  # seconds between retries
+
+logger = logging.getLogger(__name__)
 
 
 class LLMError(RuntimeError):
@@ -43,25 +50,46 @@ def chat_completion(messages, temperature=0.2, timeout=60):
         "temperature": temperature,
     }
 
-    request = urllib.request.Request(
-        chat_completions_url(cfg["base_url"]),
-        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {cfg['api_key']}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
-    )
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    url = chat_completions_url(cfg["base_url"])
 
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            data = json.loads(response.read().decode("utf-8"))
+    last_error = None
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            request = urllib.request.Request(
+                url,
+                data=body,
+                headers={
+                    "Authorization": f"Bearer {cfg['api_key']}",
+                    "Content-Type": "application/json",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                data = json.loads(response.read().decode("utf-8"))
+                return data["choices"][0]["message"]["content"]
 
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-        raise LLMError(str(exc)) from exc
+        except (
+            urllib.error.URLError,
+            TimeoutError,
+            json.JSONDecodeError,
+            http.client.HTTPException,
+            ConnectionError,
+            OSError,
+        ) as exc:
+            last_error = exc
+            if attempt < MAX_RETRIES:
+                logger.warning(
+                    "LLM call attempt %d/%d failed: %s. Retrying in %.1fs...",
+                    attempt + 1, MAX_RETRIES + 1, exc, RETRY_DELAY,
+                )
+                time.sleep(RETRY_DELAY)
+            # else: last attempt failed, fall through
 
-    try:
-        return data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise LLMError(f"Unexpected LLM response shape: {exc}") from exc
 
-    except (KeyError, IndexError, TypeError) as exc:
-        raise LLMError("Unexpected LLM response shape") from exc
+    raise LLMError(
+        f"LLM call failed after {MAX_RETRIES + 1} attempts. "
+        f"Last error: {last_error}"
+    ) from last_error

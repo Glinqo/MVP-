@@ -1,10 +1,25 @@
 import argparse
 import json
 import mimetypes
+import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+
+# 加载 .env 文件中的环境变量（必须在其他服务模块导入之前）
+_ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
+if _ENV_PATH.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(_ENV_PATH)
+    except ImportError:
+        # 手动解析 .env 作为 fallback
+        for _line in _ENV_PATH.read_text(encoding="utf-8").splitlines():
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _key, _, _val = _line.partition("=")
+                os.environ[_key.strip()] = _val.strip().strip('"').strip("'")
 
 
 ROOT = Path(__file__).resolve().parents[1]

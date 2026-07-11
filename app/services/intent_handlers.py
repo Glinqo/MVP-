@@ -7,10 +7,11 @@ that follows the same shape as chat_message() for frontend consistency.
 """
 
 import json
+import logging
 from pathlib import Path
 
 from .assist import assist
-from .data_loader import primary_job_profile
+from .data_loader import load_data, primary_job_profile
 from .feedback import load_session_record
 from .graph import build_ability_graph, build_student_ability_graph
 from .learner_context import learner_context_pack
@@ -59,9 +60,13 @@ def _base_result(payload, intent_result):
     }
 
 
+logger = logging.getLogger(__name__)
+
+
 def _llm_answer(system_content, user_content, temperature=0.3):
     """Attempt LLM call; return (answer, error_str)."""
     if not is_configured():
+        logger.warning("LLM 未配置：请检查 .env 中 LLM_API_KEY / LLM_BASE_URL / LLM_MODEL 是否已设置")
         return None, "LLM 未配置"
     try:
         messages = [
@@ -69,8 +74,12 @@ def _llm_answer(system_content, user_content, temperature=0.3):
             {"role": "user", "content": user_content},
         ]
         answer = chat_completion(messages, temperature=temperature)
+        if not answer or not answer.strip():
+            logger.warning("LLM 返回了空内容")
+            return None, "LLM 返回空内容"
         return answer, ""
     except LLMError as exc:
+        logger.error("LLM 调用失败: %s", exc)
         return None, str(exc)
 
 
@@ -356,6 +365,50 @@ def handle_clarify(payload, intent_result):
 
 
 
+# ── 元问题检测：用户问知识库本身有什么内容 ──────────────────────────
+
+_META_KEYWORDS = [
+    "知识库都有哪些", "知识库包含什么", "知识库有什么", "你懂哪些",
+    "你能做什么", "你可以帮我什么", "你能帮我什么", "你会什么",
+    "有哪些内容", "有什么内容", "包含哪些", "涵盖哪些", "涉及哪些",
+    "知识库的内容", "知识库内容", "知识库介绍", "介绍一下知识库",
+    "能力图谱有哪些", "有哪些能力", "有哪些知识点",
+    "你能干什么", "你能干嘛", "你可以做什么",
+]
+
+
+def _is_meta_question(message: str) -> bool:
+    """检测是否在问系统/知识库本身的元问题。"""
+    text = str(message or "")
+    return any(kw in text for kw in _META_KEYWORDS)
+
+
+def _build_knowledge_overview():
+    """生成知识库内容概览。"""
+    data = load_data()
+    # 按能力域聚合
+    from collections import OrderedDict
+    domains = OrderedDict()
+    for item in data["knowledge"]:
+        aid = item.get("ability_node_id", "")
+        ability = data["ability_by_id"].get(aid, {})
+        domain_name = ability.get("name", aid) or "其他"
+        if domain_name not in domains:
+            domains[domain_name] = []
+        domains[domain_name].append(f"{item.get('topic', '')}")
+
+    lines = [
+        f"知识库目前包含 **{len(data['knowledge'])} 条** 知识条目，覆盖 **{len(domains)} 个** 能力领域：\n"
+    ]
+    for domain, topics in domains.items():
+        sample = "、".join(topics[:2])
+        more = f" 等 {len(topics)} 条" if len(topics) > 2 else f"（{len(topics)} 条）"
+        lines.append(f"- **{domain}**：{sample}{more}")
+
+    lines.append(f"\n你可以直接问我具体知识，比如「NPN传感器怎么接线」「气缸不动了怎么排查」等。")
+    return "\n".join(lines)
+
+
 def handle_knowledge_qa(payload, intent_result):
     """
     Handle knowledge/concept questions.
@@ -364,6 +417,14 @@ def handle_knowledge_qa(payload, intent_result):
     """
     message = payload.get("message") or payload.get("user_input") or ""
     result = _base_result(payload, intent_result)
+
+    # 元问题直接返回知识库概览
+    if _is_meta_question(message):
+        result["answer"] = _build_knowledge_overview()
+        result["reasoning_steps"] = ["检测到元问题，返回知识库内容概览"]
+        result["fallback_used"] = True
+        return result
+
     knowledge_items = search_knowledge(message, limit=5)
 
     result["knowledge_refs"] = knowledge_items
@@ -386,15 +447,25 @@ def handle_knowledge_qa(payload, intent_result):
             f"[{item.get('id')}] {item.get('topic', '')}\n{item.get('content', '')}\n来源: {item.get('source', '')}"
             for item in knowledge_items[:4]
         )
+        system = (
+            "你是机电一体化岗位培训 AI。请基于以下知识库内容回答学生的问题。"
+            "回答要准确、简洁、有依据。"
+            "涉及接线、通电、设备操作时，先提醒安全。"
+        )
+        user = f"学生问题：{message}\n\n可参考的知识库内容：\n{knowledge_text}"
     else:
-        knowledge_text = "知识库中暂未找到相关内容。"
-
-    system = (
-        "你是机电一体化岗位培训 AI。请基于以下知识库内容回答学生的问题。"
-        "回答要准确、简洁、有依据。如果知识库中没有相关信息，请如实说明。"
-        "涉及接线、通电、设备操作时，先提醒安全。"
-    )
-    user = f"学生问题：{message}\n\n可参考的知识库内容：\n{knowledge_text}"
+        # 检索为空时，让 LLM 用自身知识自由回答，开头注明知识库暂无相关条目
+        system = (
+            "你是机电一体化岗位培训 AI。"
+            "当前知识库中没有直接匹配的内容，但你可以用自己的专业知识回答学生的问题。"
+            "回答要准确、简洁、有依据。"
+            "涉及接线、通电、设备操作时，必须优先提醒安全规范。"
+        )
+        user = (
+            f"学生问题：{message}\n\n"
+            "注意：知识库中暂未检索到相关内容，请基于你的专业知识直接回答。"
+            "在回答开头用一句话简要说明「知识库暂无相关条目，以下为通用知识参考」。"
+        )
 
     answer, error = _llm_answer(system, user)
     if answer:
