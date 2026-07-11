@@ -4,6 +4,15 @@ from .assist import assist
 from .data_loader import primary_job_profile
 from .feedback import append_session_event
 from .graph import build_student_ability_graph
+from .intent import classify_intent
+from .intent_handlers import (
+    handle_clarify,
+    handle_graph,
+    handle_knowledge_qa,
+    handle_learning_path,
+    handle_quiz,
+    generate_clarify_questions,
+)
 from .learner_context import format_context_for_prompt, learner_context_pack
 from .llm_client import LLMError, chat_completion, is_configured
 from .retrieval import search_knowledge
@@ -226,6 +235,25 @@ def chat_message(payload):
     session_id = payload.get("session_id")
     profile = primary_job_profile()
     learner_context = learner_context_pack(session_id)
+
+    # ── intent classification ──────────────────────────────────
+    history = payload.get("history", [])[-8:]
+    intent_result = classify_intent(message, history=history, context=context)
+    intent = intent_result.get("intent", "diagnosis")
+
+    # ── route to handler ────────────────────────────────────────
+    if intent == "quiz":
+        return _finalize(handle_quiz(payload, intent_result), session_id)
+    if intent == "graph":
+        return _finalize(handle_graph(payload, intent_result), session_id)
+    if intent == "learning_path":
+        return _finalize(handle_learning_path(payload, intent_result), session_id)
+    if intent == "knowledge_qa":
+        return _finalize(handle_knowledge_qa(payload, intent_result), session_id)
+    if intent == "clarify":
+        return _finalize(handle_clarify(payload, intent_result), session_id)
+
+    # diagnosis / clarify → existing assist flow
     assist_result = assist({"user_input": message, "context": context})
     evidence_used = evidence_used_from_assist(assist_result, context)
     reasoning_steps = reasoning_steps_from_assist(assist_result)
@@ -236,7 +264,40 @@ def chat_message(payload):
     llm_error = ""
     answer = fallback_answer(assist_result)
 
-    if is_configured():
+    # ── LLM-powered clarification ────────────────────────────────
+    clarify_handled = False
+    if assist_result.get("status") == "need_clarification" and is_configured():
+        try:
+            clarify_qs, clarify_safety, _ = generate_clarify_questions(
+                message, assist_result, context,
+                history=payload.get("history", [])[-4:]
+            )
+            if clarify_qs:
+                pattern_title = (assist_result.get("matched_pattern") or {}).get(
+                    "title", "输入信号排查"
+                )
+                question_lines = "\n".join(
+                    f"{i + 1}. **{q.get('question', '')}**"
+                    + (
+                        f"\n   > {q.get('why_needed', '')}"
+                        if q.get("why_needed")
+                        else ""
+                    )
+                    for i, q in enumerate(clarify_qs)
+                )
+                answer = (
+                    f"我先按「{pattern_title}」的情况来理解。目前信息还不够完整，想先确认几个关键信息：\n\n"
+                    f"{question_lines}\n\n"
+                    "你也可以在右侧「现场状态」面板直接选择传感器动作灯、PLC 输入灯和在线监控的状态。"
+                )
+                if clarify_safety:
+                    reasoning_steps.insert(0, clarify_safety)
+                clarify_handled = True
+                fallback_used = False
+        except Exception:
+            pass  # keep static fallback
+
+    if is_configured() and not clarify_handled:
         history = payload.get("history", [])[-8:]
         messages = [{"role": "system", "content": build_system_prompt(profile)}]
         for item in history:
@@ -272,6 +333,8 @@ def chat_message(payload):
         "fallback_used": fallback_used,
         "llm_configured": is_configured(),
         "llm_error": llm_error,
+        "intent": intent,
+        "intent_source": intent_result.get("source", "keyword"),
     }
 
     if session_id:
@@ -290,4 +353,21 @@ def chat_message(payload):
         result["student_graph"] = build_student_ability_graph(session_id)
         result["learner_context"] = learner_context_pack(session_id)
 
+    return result
+
+
+def _finalize(result, session_id):
+    """Record session event and attach updated graph/context for non-diagnosis intents."""
+    if session_id:
+        append_session_event(
+            session_id,
+            {
+                "event_type": "chat_message",
+                "intent": result.get("intent"),
+                "intent_source": result.get("intent_source"),
+                "answer": result.get("answer", "")[:200],
+            },
+        )
+        result["student_graph"] = build_student_ability_graph(session_id)
+        result["learner_context"] = learner_context_pack(session_id)
     return result
