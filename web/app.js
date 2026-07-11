@@ -216,23 +216,110 @@ function renderStudentDashboard(data) {
   attachDashboardActions($("studentDashboard"));
 }
 
-function renderMessageExtras(meta = {}) {
+// ── Inline Chat Cards ─────────────────────────────────────────────
+
+function dotColor(label) {
+  if (/匹配|现象|symptom/i.test(label)) return "match";
+  if (/能力|ability/i.test(label)) return "ability";
+  if (/知识|knowledge/i.test(label)) return "knowledge";
+  return "context";
+}
+
+function renderEvidenceStrip(evidence) {
+  if (!evidence || !evidence.length) return "";
+  return `
+    <div class="evidence-strip">
+      ${evidence.map(item => `
+        <span class="evi-tag">
+          <span class="evi-dot ${dotColor(item.label)}"></span>
+          ${escapeHtml(item.label)}: ${escapeHtml(String(item.value || ""))}
+        </span>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderReasoningBar(steps) {
+  if (!steps || !steps.length) return "";
+  return `
+    <div class="reasoning-bar">
+      ${steps.map((s, i) => {
+        const arrow = i > 0 ? '<span class="rarrow">→</span>' : '';
+        return `${arrow}<span class="rstep">${i + 1}. ${escapeHtml(typeof s === "string" ? s : (s.label || s.value || ""))}</span>`;
+      }).join("")}
+    </div>
+  `;
+}
+
+function renderKnowledgeCards(refs) {
+  if (!refs || !refs.length) return "";
+  return refs.slice(0, 4).map(item => `
+    <div class="kb-card-inline" data-kb-id="${escapeHtml(item.id || "")}" onclick="this.classList.toggle('expanded')">
+      <div class="kbci-head">
+        <span class="kbci-id">${escapeHtml(item.id || "")}</span>
+        <span class="kbci-topic">${escapeHtml(item.topic || item.id || "")}</span>
+        <span class="kbci-source">${escapeHtml(item.source || "")}</span>
+      </div>
+      <div class="kbci-content">${escapeHtml(item.content || "").replaceAll("\n", "<br>")}</div>
+      <div class="kbci-tags">${(item.tags || []).slice(0, 3).map(t => `<span class="kbci-tag">${escapeHtml(t)}</span>`).join("")}</div>
+      <div class="kbci-actions">
+        <button type="button" data-ask="${escapeHtml(`请详细讲解「${item.topic || item.id}」这个知识点`)}" data-knowledge-id="${escapeHtml(item.id || "")}">追问</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderAbilityCards(abilities) {
+  if (!abilities || !abilities.length) return "";
+  return abilities.slice(0, 3).map(item => `
+    <div class="ability-card-inline">
+      <div class="aci-head">
+        <span class="aci-name">⚡ ${escapeHtml(item.name || item.id || "")}</span>
+        <span class="aci-badge hit">已命中</span>
+      </div>
+      <div class="aci-reason">${escapeHtml(item.reason || item.description || "")}</div>
+      <div class="aci-actions">
+        <button type="button" data-ask="${escapeHtml(`请讲解「${item.name || item.id}」这个能力，结合我的问题说明怎么练。`)}" data-ability-id="${escapeHtml(item.id || "")}" data-explain-type="ability">问 AI 讲解</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderTaskCards(tasks) {
+  if (!tasks || !tasks.length) return "";
+  return tasks.slice(0, 3).map(item => `
+    <div class="task-card-inline">
+      <div class="tci-head">
+        <span class="tci-type ${escapeHtml(item.type || "training_task")}">${item.type === "learning_resource" ? "📖 学习资料" : "📋 实训任务"}</span>
+        <span class="tci-title">${escapeHtml(item.title || "")}</span>
+        ${item.estimated_minutes ? `<span class="tci-meta">约${item.estimated_minutes}分钟</span>` : ""}
+      </div>
+      <div class="tci-action">${escapeHtml(item.action || item.deliverable || "")}</div>
+      <div class="tci-actions">
+        <button type="button" data-ask="${escapeHtml(`我想做这个实训任务：「${item.title || ""}」，请告诉我具体步骤和安全注意事项。`)}">开始这个任务</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderMessageCards(meta = {}) {
   const evidence = meta.evidence_used || [];
   const steps = meta.reasoning_steps || [];
   const refs = meta.knowledge_refs || [];
-  if (!evidence.length && !steps.length && !refs.length) return "";
-  return `
-    <details class="message-evidence">
-      <summary>判断依据与知识引用</summary>
-      ${steps.length ? `<h4>判断步骤</h4>${renderCompactItems(steps)}` : ""}
-      ${evidence.length ? `<h4>证据</h4>${renderCompactItems(evidence)}` : ""}
-      ${refs.length ? `<h4>知识引用</h4>${renderCompactItems(refs.map((item) => ({
-        label: `${item.id || ""} ${item.topic || ""}`.trim(),
-        value: item.content,
-        source: item.source
-      })))}` : ""}
-    </details>
-  `;
+  const abilities = meta.highlighted_abilities || [];
+  const tasks = meta.remediation_cards || [];
+
+  const parts = [
+    renderReasoningBar(steps),
+    renderEvidenceStrip(evidence),
+    renderKnowledgeCards(refs),
+    renderAbilityCards(abilities),
+    renderTaskCards(tasks),
+  ].filter(Boolean);
+
+  if (!parts.length) return "";
+
+  return `<div class="chat-cards">${parts.join("")}</div>`;
 }
 
 function collectContext() {
@@ -259,7 +346,7 @@ function renderMessages() {
     const fallback = message.meta?.fallback_used
       ? `<div class="message-meta">规则兜底回答</div>`
       : "";
-    const extras = message.role === "assistant" ? renderMessageExtras(message.meta) : "";
+    const extras = message.role === "assistant" ? renderMessageCards(message.meta) : "";
     return `
       <article class="message ${message.role}">
         <div class="message-role">${roleLabel}</div>
@@ -272,6 +359,7 @@ function renderMessages() {
       </article>
     `;
   }).join("");
+  attachAskButtons($("chatMessages"));
   $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
 }
 
