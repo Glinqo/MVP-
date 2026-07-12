@@ -2,6 +2,7 @@
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
+    <script src="/d3.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>机电岗位培训 AI</title>
     <link rel="stylesheet" href="/styles.css" />
@@ -181,7 +182,7 @@
             </div>
 
             <div id="graphViewJob" class="graph-view active">
-              <div id="jobGraphDiagram" class="graph-diagram" aria-label="岗位能力图谱可视化"></div>
+              <div id="jobGraphDiagram" class="graph-diagram force-graph-container" aria-label="岗位能力图谱可视化"></div>
               <div class="proposal-box">
                 <h3>岗位图谱更新建议</h3>
                 <textarea id="jobMaterialInput" rows="3" placeholder="粘贴企业岗位描述、招聘 JD、行业要求或教师材料，生成待确认的岗位能力更新建议。"></textarea>
@@ -205,7 +206,7 @@
             </div>
 
             <div id="graphViewStudent" class="graph-view">
-              <div id="studentGraphDiagram" class="graph-diagram" aria-label="学生个人能力图谱可视化"></div>
+              <div id="studentGraphDiagram" class="graph-diagram force-graph-container" aria-label="学生个人能力图谱可视化"></div>
               <div class="workspace-grid">
                 <div>
                   <h3>学生个人能力节点</h3>
@@ -230,7 +231,7 @@
             </div>
 
             <div id="graphViewCurrent" class="graph-view">
-              <div id="currentGraphDiagram" class="graph-diagram" aria-label="当前问题能力图谱可视化"></div>
+              <div id="currentGraphDiagram" class="graph-diagram force-graph-container" aria-label="当前问题能力图谱可视化"></div>
               <div class="workspace-grid">
                 <div>
                   <h3>当前问题命中节点</h3>
@@ -318,6 +319,7 @@
       </div>
     </aside>
 
+    <script src="/graph-renderer.js"></script>
     <script src="/app.js"></script>
   </body>
 </html>
