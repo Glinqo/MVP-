@@ -683,8 +683,10 @@ function renderGraphDiagram(graph, targetId) {
 }
 
 function renderDemandSources(graph) {
+  var el = $("jobDemandSources");
+  if (!el) return;
   const sources = graph?.demand_sources || [];
-  $("jobDemandSources").innerHTML = sources.length ? `
+  el.innerHTML = sources.length ? `
     <ul class="item-list">
       ${sources.map((item) => `
         <li>

@@ -7,6 +7,27 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
+  <div id="welcomeScreen" class="welcome-overlay">
+    <div class="welcome-card">
+      <div class="welcome-logo">
+        <svg width="48" height="48" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </div>
+      <h1>数控工具协同培训 AI</h1>
+      <p class="welcome-subtitle" id="welcomeSubtitle">请选择您的身份</p>
+      <div id="identityButtons" class="identity-buttons">
+        <button id="identityStudent" class="identity-btn student-btn">学生</button>
+        <button id="identityAdmin" class="identity-btn admin-btn">管理</button>
+      </div>
+      <div id="jobSelection" class="job-selection" style="display:none">
+        <button class="back-btn" id="backToIdentity">← 返回</button>
+        <p class="welcome-subtitle">请选择岗位</p>
+        <div class="job-list">
+          <button data-job="automation_line_commissioning_maintenance_newcomer" class="job-btn">自动化生产线装调与运维技术员</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
     <header class="topbar">
       <div>
         <p class="eyebrow">Mechatronics Training AI</p>
@@ -318,6 +339,9 @@
       </div>
     </aside>
 
-    <script src="/app.js"></script>
+    <script>
+document.addEventListener("DOMContentLoaded",function(){var s=document.getElementById("identityStudent");var a=document.getElementById("identityAdmin");var b=document.getElementById("backToIdentity");var j=document.querySelectorAll("[data-job]");if(s)s.addEventListener("click",function(){document.getElementById("identityButtons").style.display="none";document.getElementById("welcomeSubtitle").textContent="请选择岗位";document.getElementById("jobSelection").style.display="block"});if(a)a.addEventListener("click",function(){alert("管理界面暂未开放")});if(b)b.addEventListener("click",function(){document.getElementById("jobSelection").style.display="none";document.getElementById("identityButtons").style.display="flex";document.getElementById("welcomeSubtitle").textContent="请选择您的身份"});j.forEach(function(btn){btn.addEventListener("click",function(){document.getElementById("welcomeScreen").style.display="none";if(typeof boot==="function")boot()})})});
+</script>
+<script src="/app.js"></script>
   </body>
 </html>
