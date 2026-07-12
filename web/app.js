@@ -550,6 +550,8 @@ function statusLabel(status) {
 }
 
 function renderGraphNodes(graph, targetId) {
+  var target = $(targetId);
+  if (!target) return;
   $(targetId).innerHTML = (graph?.nodes || []).map((node) => {
     const evidence = node.evidence?.length
       ? `<ul class="node-evidence">${node.evidence.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
@@ -609,6 +611,7 @@ function splitLabel(label, maxLength = 12) {
 
 function renderGraphDiagram(graph, targetId) {
   const target = $(targetId);
+  if (!target) return;
   const nodes = graph?.nodes || [];
   if (!nodes.length) {
     target.innerHTML = '<p class="muted">暂无图谱数据</p>';
@@ -801,7 +804,7 @@ function renderGraph(graph, type = "current") {
   $("mermaidOutput").textContent = graph?.mermaid || "";
   renderGraphDiagram(graph, "currentGraphDiagram");
   renderGraphNodes(graph, "graphList");
-  $("currentGraphMeta").textContent = graph?.nodes?.some((node) => node.status === "weak")
+  var metaEl = $("currentGraphMeta"); if (metaEl) metaEl.textContent = graph?.nodes?.some((node) => node.status === "weak")
     ? "本次问题命中的能力节点已高亮为薄弱，请结合右侧知识缺口和实训任务补救。"
     : "提交问题后会显示本次暴露的能力缺口。";
 }
@@ -1494,6 +1497,7 @@ async function loadTeacherSummary() {
 }
 
 async function boot() {
+  if (state.booted) return; state.booted = true;
   try {
     const health = await api("/api/health");
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
@@ -1534,6 +1538,11 @@ async function boot() {
     addMessage("assistant", `服务连接失败：${error.message}`);
   }
 }
+
+
+
+
+
 
 $("chatForm").addEventListener("submit", (event) => {
   event.preventDefault();

@@ -201,28 +201,11 @@
               <button data-graph-view="current" type="button">当前问题图谱</button>
             </div>
 
-            <div id="graphViewJob" class="graph-view active">
-              <div id="jobGraphDiagram" class="graph-diagram" aria-label="岗位能力图谱可视化"></div>
-              <div class="proposal-box">
-                <h3>岗位图谱更新建议</h3>
-                <textarea id="jobMaterialInput" rows="3" placeholder="粘贴企业岗位描述、招聘 JD、行业要求或教师材料，生成待确认的岗位能力更新建议。"></textarea>
-                <div class="question-actions">
-                  <button id="generateJobProposals" type="button">生成更新建议</button>
-                  <button id="confirmJobProposals" type="button">确认全部待处理建议</button>
-                </div>
-                <div id="jobProposalList" class="section-block muted">暂无待确认建议</div>
+         <div id=" + D + "graphViewJob" + D + " class=" + D + "graph-view active" + D + ">
+              <div class=" + D + "graph-toolbar" + D + ">
+                <span class=" + D + "muted" + D + ">" + chr(23720) + chr(33021) + chr(21147) + chr(22270) + chr(33021) + chr(35745) + chr(22294) + chr(22270) + chr(26666) + chr(20301) + chr(22270) + chr(32423) + chr(35745) + "</span>
               </div>
-              <div class="workspace-grid">
-                <div>
-                  <h3>岗位能力节点</h3>
-                  <div id="jobGraphList" class="graph-list"></div>
-                </div>
-                <div>
-                  <h3>企业/行业需求来源</h3>
-                  <div id="jobDemandSources" class="section-block muted">加载中</div>
-                </div>
-              </div>
-              <pre id="jobMermaidOutput" class="mermaid-box">加载中</pre>
+              <div id=" + D + "jobCompetencyGraph" + D + " class=" + D + "competency-graph" + D + " style=" + D + "width:100%;min-height:520px;" + D + "></div>
             </div>
 
             <div id="graphViewStudent" class="graph-view">
