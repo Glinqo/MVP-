@@ -454,14 +454,126 @@ button:hover {
   margin-top: 10px;
 }
 
-.graph-diagram {
-  min-height: 280px;
-  overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #ffffff;
-  margin-bottom: 16px;
+.graph-legend-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0 12px;
   padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 68%);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.legend-block {
+  min-width: 0;
+}
+
+.legend-note {
+  grid-column: 1 / -1;
+}
+
+.legend-block strong {
+  display: block;
+  margin-bottom: 7px;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.legend-note span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #334155;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.legend-dot,
+.legend-ring,
+.legend-size {
+  display: inline-block;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #94a3b8;
+  border-radius: 999px;
+}
+
+.legend-ring {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #94a3b8;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.legend-ring.dashed {
+  border-style: dashed;
+}
+
+.legend-line {
+  width: 26px;
+  height: 0;
+  border-top: 2px solid #94a3b8;
+}
+
+.legend-line.solid {
+  border-color: #cbd5e1;
+}
+
+.legend-line.dashed-line {
+  border-color: #94a3b8;
+  border-top-style: dashed;
+}
+
+.legend-size {
+  border: 1.5px solid #64748b;
+  border-radius: 999px;
+  background: #f8fafc;
+}
+
+.legend-size.sm {
+  width: 8px;
+  height: 8px;
+}
+
+.legend-size.md {
+  width: 12px;
+  height: 12px;
+}
+
+.legend-size.lg {
+  width: 17px;
+  height: 17px;
+}
+
+.graph-diagram {
+    width: 100%;
+    min-width: 600px;
+    min-height: 450px;
+    position: relative;
+    overflow: hidden;
 }
 
 .ability-svg {
@@ -1303,6 +1415,10 @@ button:hover {
   .explain-drawer {
     width: min(560px, 100vw);
   }
+
+  .graph-legend-panel {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -1364,6 +1480,45 @@ button:hover {
     align-items: flex-start;
     flex-direction: column;
   }
+
+  .graph-legend-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ForceGraph D3.js styles */
+.force-graph-container {
+    width: 100%;
+    min-height: 480px;
+    position: relative;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.force-graph-container svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.force-graph-container .node:hover circle {
+    stroke-width: 4px !important;
+    opacity: 1 !important;
+}
+.force-graph-container .links line {
+    transition: stroke-opacity 0.2s;
+}
+.graph-tooltip {
+    position: absolute;
+    background: #1e293b;
+    color: #f1f5f9;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    pointer-events: none;
+    z-index: 100;
+    max-width: 220px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 

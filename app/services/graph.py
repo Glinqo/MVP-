@@ -123,6 +123,7 @@ def next_best_action(ability_id, status):
 
 
 def node_payload(ability_id, key, status="normal", **extra):
+    ability = load_data()["ability_by_id"].get(ability_id, {})
     return {
         "id": ability_id,
         "key": key,
@@ -130,6 +131,10 @@ def node_payload(ability_id, key, status="normal", **extra):
         "status": status,
         "status_label": STATUS_LABELS.get(status, status),
         "source": ability_source(ability_id),
+        "level": ability.get("level"),
+        "parent_id": ability.get("parent_id"),
+        "description": ability.get("description", ""),
+        "radar_dimension_ids": ability.get("radar_dimension_ids", []),
         **extra,
     }
 
