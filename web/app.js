@@ -1544,6 +1544,103 @@ async function boot() {
 
 
 
+
+
+async function loadJobGraph() {
+  try {
+    var g = await api("/api/graph/job");
+    var d = await api("/api/radar/profile");
+    renderJobCompetencyGraph(g, d);
+  } catch(e) { console.warn("loadJobGraph:", e); }
+}
+
+function renderJobCompetencyGraph(graph, dims) {
+  var c = document.getElementById("jobCompetencyGraph");
+  if (!c || !graph || !dims) return;
+  var nodes = graph.nodes || [];
+  var edges = graph.edges || [];
+  var dimensions = dims.dimensions || [];
+  if (!nodes.length || !dimensions.length) { c.innerHTML = ""; return; }
+  
+  var nodeDim = {
+    electrical_safety_check: "electrical_safety_diagram",
+    power_isolation_confirmation: "electrical_safety_diagram",
+    sensor_type_identification: "sensor_signal_acquisition",
+    sensor_wiring_judgement: "sensor_signal_acquisition",
+    input_led_compare: "sensor_signal_acquisition",
+    plc_input_common_terminal: "plc_control_debug",
+    plc_io_address_mapping: "plc_control_debug",
+    plc_input_monitoring: "plc_control_debug",
+    input_no_response_fault_scope: "plc_control_debug",
+    program_variable_lookup: "plc_control_debug",
+    no_response_common_terminal_check: "plc_control_debug",
+    diagnosis_record_feedback: "equipment_inspection_troubleshooting"
+  };
+  
+  var colors = { core: "#059669", industry_hot: "#d97706", industry: "#2563eb", weak: "#e11d48" };
+  
+  var w = c.clientWidth || 760, h = 480;
+  var cx = w / 2, cy = h / 2, dimR = Math.min(w, h) * 0.3;
+  var angleStep = (2 * Math.PI) / dimensions.length;
+  
+  // Dimension positions
+  var dp = {};
+  dimensions.forEach(function(d, i) {
+    var a = -Math.PI / 2 + i * angleStep;
+    dp[d.id] = { x: cx + dimR * Math.cos(a), y: cy + dimR * Math.sin(a), a: a };
+  });
+  
+  // Node positions
+  var np = {};
+  nodes.forEach(function(n, i) {
+    var pid = nodeDim[n.id];
+    var p = dp[pid];
+    if (p) {
+      var col = Math.floor(i / 3);
+      var row = i % 3;
+      np[n.id] = { x: p.x + (col - 1) * 50, y: p.y + 30 + row * 28 };
+    } else {
+      np[n.id] = { x: cx + (i - nodes.length/2) * 30, y: cy + 60 };
+    }
+  });
+  
+  // Build SVG
+  var svg = "";
+  svg += "<svg width="" + w + "" height="" + h + "" viewBox="0 0 " + w + " " + h + "">";
+  svg += "<rect width="" + w + "" height="" + h + "" fill="#f8fafc" rx="10"/>";
+  
+  // Title
+  svg += "<text x="" + (w/2) + "" y="24" text-anchor="middle" fill="#172033" font-size="15" font-weight="700">岗位能力图谱 · 矢量关系图</text>";
+  
+  // Dimension circles
+  dimensions.forEach(function(d) {
+    var p = dp[d.id];
+    if (!p) return;
+    svg += "<circle cx="" + p.x + "" cy="" + p.y + "" r="16" fill="rgba(15,118,110,0.08)" stroke="rgba(15,118,110,0.2)" stroke-width="1.5"/>";
+    svg += "<text x="" + p.x + "" y="" + (p.y + 4) + "" text-anchor="middle" fill="#0f766e" font-size="10" font-weight="700">" + (d.short_name || d.name || "").slice(0, 4) + "</text>";
+  });
+  
+  // Edges
+  edges.forEach(function(e) {
+    var f = np[e.from], t = np[e.to];
+    if (!f || !t) return;
+    var mx = (f.x + t.x) / 2, my = (f.y + t.y) / 2 - 20;
+    svg += "<path d="M" + f.x + " " + f.y + " Q" + mx + " " + my + " " + t.x + " " + t.y + "" fill="none" stroke="#cbd5e1" stroke-width="1.2"/>";
+  });
+  
+  // Ability nodes
+  nodes.forEach(function(n) {
+    var p = np[n.id];
+    if (!p) return;
+    var col = colors[n.status] || "#94a3b8";
+    svg += "<circle cx="" + p.x + "" cy="" + p.y + "" r="7" fill="" + col + "" opacity="0.85" style="cursor:pointer"/>";
+    var lbl = (n.label || n.id || "").slice(0, 10);
+    svg += "<text x="" + (p.x + 12) + "" y="" + (p.y + 3) + "" fill="#334155" font-size="9.5">" + lbl + "</text>";
+  });
+  
+  svg += "</svg>";
+  c.innerHTML = svg;
+}
 $("chatForm").addEventListener("submit", (event) => {
   event.preventDefault();
   sendChat();

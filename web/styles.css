@@ -1405,3 +1405,5 @@ button:hover {
   background: #fff; font-size: 14px; font-weight: 500; cursor: pointer;
 }
 .job-btn:hover { border-color: #0f766e; background: #f0fdfa; }
+
+.graph-toolbar { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; margin-bottom: 8px; }
