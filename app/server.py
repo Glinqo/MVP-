@@ -32,6 +32,9 @@ from app.services.scenario import list_scenarios, start_scenario, step_scenario 
 from app.services.scoring import score_answers  # noqa: E402
 from app.services.student_dashboard import build_student_dashboard  # noqa: E402
 
+from scripts.pipeline.evidence_store import list_snapshots, get_snapshot, version_diff, version_rollback
+from app.services.matching import compute_match
+
 
 WEB_DIR = ROOT / "web"
 
@@ -118,6 +121,20 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/scenarios":
             return self.send_json(list_scenarios())
 
+        if path == "/api/graph/job/versions":
+            job_role = parse_qs(parsed.query).get("job_role", [None])[0]
+            return self.send_json({"versions": list_snapshots(job_role)})
+
+        if path == "/api/graph/job/versions/diff":
+            v1 = parse_qs(parsed.query).get("v1", [""])[0]
+            v2 = parse_qs(parsed.query).get("v2", [""])[0]
+            job_role = parse_qs(parsed.query).get("job_role", [None])[0]
+            return self.send_json(version_diff(v1, v2, job_role))
+
+        if path == "/api/student/job-match":
+            session_id = parse_qs(parsed.query).get("session_id", [None])[0]
+            return self.send_json(compute_match(session_id))
+
         return self.serve_static(path)
 
     def do_POST(self):
@@ -174,6 +191,9 @@ class MVPHandler(BaseHTTPRequestHandler):
         except Exception as exc:  # pragma: no cover - defensive boundary for demo server
             return self.send_error_json(500, str(exc))
 
+
+            if path == "/api/graph/job/versions/rollback":
+                return self.send_json(version_rollback(payload.get("version"), payload.get("job_role")))
         return self.send_error_json(404, "API endpoint not found")
 
     def serve_static(self, request_path):

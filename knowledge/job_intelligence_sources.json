@@ -1,64 +1,177 @@
 {
-  "version": "0.1.0",
-  "description": "岗位情报更新来源配置。默认只启用本地演示材料；真实联网来源必须由教师或项目负责人确认公开可访问、允许低频采集。",
-  "policy": {
-    "enabled": true,
+  "version": "0.2.0",
+  "update_policy": {
+    "cycle": "daily_incremental + weekly_full",
+    "max_sources_per_run": 5,
+    "rate_limit_delay_s": 3.0,
     "respect_robots_txt": true,
-    "max_sources_per_run": 3,
-    "request_interval_seconds": 2,
-    "timeout_seconds": 10,
-    "max_bytes_per_source": 500000,
-    "user_agent": "mechatronics-agent-mvp-job-intelligence/0.1; low-volume educational demo",
-    "source": "project_curated"
+    "max_pages_per_source": 200,
+    "compliance": "public_job_posts_only_no_resume_no_personal_data"
   },
-  "target_job_role": "自动化生产线装调与运维技术员",
-  "global_keywords": [
-    "自动化生产线",
-    "机电一体化",
-    "PLC",
-    "传感器",
-    "NPN",
-    "PNP",
-    "24V",
-    "I/O",
-    "设备调试",
-    "运行维护",
-    "故障排查",
-    "气动"
-  ],
   "sources": [
     {
-      "id": "demo_local_automation_job_seed",
-      "enabled": true,
-      "type": "local_file",
-      "path": "docs/references/job_intelligence_seed.md",
-      "source_type": "project_curated",
-      "source": "docs/references/job_intelligence_seed.md",
-      "job_role": "自动化生产线装调与运维技术员",
-      "keywords": [
-        "传感器接线",
-        "PLC 输入",
-        "公共端",
-        "I/O 地址",
-        "在线监控",
-        "气缸不动作"
+      "id": "zhilian_zhaopin",
+      "name": "智联招聘",
+      "source_type": "job_platform",
+      "enabled": false,
+      "base_url": "https://www.zhaopin.com",
+      "search_url": "https://sou.zhaopin.com/?jl=765&kw=自动化%20机电&p=1",
+      "rate_limit_s": 3.0,
+      "max_pages": 50,
+      "respect_robots_txt": true,
+      "fields": [
+        "title",
+        "company",
+        "salary",
+        "location",
+        "skills",
+        "responsibilities",
+        "requirements"
       ],
-      "notes": "安全默认样例，用于演示从岗位材料生成待确认图谱建议。"
+      "compliance_notes": "仅抓公开岗位列表，不登录不抓简历",
+      "notes": "需要处理反爬，建议先走合作/API渠道"
     },
     {
-      "id": "example_public_job_page_disabled",
+      "id": "boss_zhipin",
+      "name": "BOSS直聘",
+      "source_type": "job_platform",
       "enabled": false,
-      "type": "url",
-      "url": "https://example.com/public-job-description",
-      "source_type": "public_job_page",
-      "source": "example_disabled_placeholder",
-      "job_role": "自动化生产线装调与运维技术员",
-      "keywords": [
-        "PLC",
-        "传感器",
-        "自动化设备调试"
+      "base_url": "https://www.zhipin.com",
+      "search_url": "https://www.zhipin.com/web/geek/job?city=100010000&query=机电一体化",
+      "rate_limit_s": 5.0,
+      "max_pages": 30,
+      "respect_robots_txt": true,
+      "fields": [
+        "title",
+        "company",
+        "salary",
+        "skills",
+        "responsibilities",
+        "requirements"
       ],
-      "notes": "占位示例。把 url 替换为已确认允许采集的公开岗位页面后再启用。"
+      "compliance_notes": "仅抓公开岗位列表，不登录不抓简历",
+      "notes": "反爬严格，建议使用API或降低频率"
+    },
+    {
+      "id": "qiancheng_wuyou",
+      "name": "前程无忧",
+      "source_type": "job_platform",
+      "enabled": false,
+      "base_url": "https://www.51job.com",
+      "search_url": "https://search.51job.com/list/000000,000000,0000,00,9,99,自动化,2,1.html",
+      "rate_limit_s": 3.0,
+      "max_pages": 50,
+      "respect_robots_txt": true,
+      "fields": [
+        "title",
+        "company",
+        "salary",
+        "location",
+        "skills",
+        "responsibilities"
+      ],
+      "compliance_notes": "仅抓公开岗位列表",
+      "notes": "中等反爬强度"
+    },
+    {
+      "id": "siemens_career",
+      "name": "西门子招聘",
+      "source_type": "enterprise_official",
+      "enabled": false,
+      "base_url": "https://jobs.siemens.com.cn",
+      "search_url": "https://jobs.siemens.com.cn/search/?q=自动化",
+      "rate_limit_s": 2.0,
+      "max_pages": 20,
+      "respect_robots_txt": true,
+      "fields": [
+        "title",
+        "department",
+        "responsibilities",
+        "requirements",
+        "location"
+      ],
+      "compliance_notes": "企业官网公开招聘页",
+      "notes": "低反爬风险"
+    },
+    {
+      "id": "inovance_career",
+      "name": "汇川技术招聘",
+      "source_type": "enterprise_official",
+      "enabled": false,
+      "base_url": "https://www.inovance.com/career",
+      "search_url": "https://www.inovance.com/career/social",
+      "rate_limit_s": 2.0,
+      "max_pages": 20,
+      "respect_robots_txt": true,
+      "fields": [
+        "title",
+        "department",
+        "responsibilities",
+        "requirements"
+      ],
+      "compliance_notes": "企业官网公开招聘页",
+      "notes": "低反爬风险"
+    },
+    {
+      "id": "byd_career",
+      "name": "比亚迪招聘",
+      "source_type": "enterprise_official",
+      "enabled": false,
+      "base_url": "https://www.byd.com/career",
+      "search_url": "https://www.byd.com/career/search?q=自动化",
+      "rate_limit_s": 2.0,
+      "max_pages": 20,
+      "respect_robots_txt": true,
+      "fields": [
+        "title",
+        "department",
+        "responsibilities",
+        "requirements"
+      ],
+      "compliance_notes": "企业官网公开招聘页",
+      "notes": "低反爬风险"
+    },
+    {
+      "id": "demo_local_automation_job_seed",
+      "name": "Demo 本地种子数据",
+      "source_type": "local_file",
+      "enabled": true,
+      "base_url": "",
+      "search_url": "",
+      "local_path": "docs/references/job_intelligence_seed.md",
+      "rate_limit_s": 0,
+      "max_pages": 10,
+      "respect_robots_txt": true,
+      "fields": [
+        "title",
+        "company",
+        "skills",
+        "responsibilities",
+        "requirements"
+      ],
+      "compliance_notes": "本地演示数据",
+      "notes": "用于离线测试管线，不涉及网络抓取"
+    },
+    {
+      "id": "demo_sample_jd",
+      "name": "Demo 示例岗位JD",
+      "source_type": "local_file",
+      "enabled": true,
+      "base_url": "",
+      "search_url": "",
+      "local_path": "data/raw_jobs/sample_job_postings.json",
+      "rate_limit_s": 0,
+      "max_pages": 20,
+      "respect_robots_txt": true,
+      "fields": [
+        "title",
+        "company",
+        "skills",
+        "responsibilities",
+        "requirements"
+      ],
+      "compliance_notes": "本地示例数据",
+      "notes": "用于演示管线全流程"
     }
   ]
 }
