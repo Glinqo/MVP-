@@ -767,14 +767,27 @@ function showGraphNodeDetail(node, graph) {
     <div class="score-grid">
       <div class="metric"><strong>${escapeHtml(node.mastery_score ?? "-")}</strong><span>掌握度</span></div>
       <div class="metric"><strong>${escapeHtml(node.confidence ?? "-")}</strong><span>置信度</span></div>
-      <div class="metric"><strong>${escapeHtml(node.evidence_count ?? 0)}</strong><span>证据数</span></div>
+      <div class="metric"><strong>${escapeHtml(node.evidence_count ?? 0)}</strong><span>证据总数</span></div>
+      <div class="metric"><strong>${escapeHtml(node.avg_confidence ?? "-")}</strong><span>平均置信度</span></div>
     </div>
-    <h3>为什么更新</h3>
-    ${(node.update_reasons || node.evidence || []).length ? `
-      <ul class="compact-list">${(node.update_reasons || node.evidence || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-    ` : '<p class="muted">暂无明确证据</p>'}
+    <h3>证据来源分布</h3>
+    ${node.source_types ? Object.entries(node.source_types).map(([src, cnt]) => `
+      <div style="display:flex;justify-content:space-between;padding:2px 0;font-size:13px">
+        <span>${escapeHtml(src)}</span><span>${escapeHtml(cnt)} 条</span>
+      </div>
+    `).join("") : '<p class="muted">暂无证据</p>'}
+    <h3>最新证据</h3>
+    ${node.latest_evidence && node.latest_evidence.length ? `
+      <ul class="item-list">
+        ${node.latest_evidence.slice(0, 3).map(function(ev) {
+          return '<li><div style="font-size:12px">' + escapeHtml(ev.evidence_snippet || '') + '</div><div class="muted">' + escapeHtml(ev.source_type || '') + ' · ' + escapeHtml(ev.extracted_at || '') + ' · conf=' + escapeHtml(ev.confidence || '') + '</div></li>';
+        }).join("")}
+      </ul>
+    ` : '<p class="muted">暂无最新证据</p>'}
     <h3>下一步</h3>
     <p>${escapeHtml(node.next_best_action || "先查看讲解，再完成一个关联训练任务。")}</p>
+    <h3>版本历史</h3>
+    <div id="versionInfo_${escapeHtml(node.id)}" style="font-size:12px;color:#64748b">加载中...</div>
     <h3>相关事件</h3>
     ${events.length ? `
       <ul class="item-list">
@@ -799,6 +812,13 @@ function showGraphNodeDetail(node, graph) {
       loadPersonalizedPlan("today", button.dataset.planNode);
     });
   });
+  // Load version list for this node
+  fetch("/api/graph/job/versions").then(function(r) { return r.json(); }).then(function(data) {
+    var verDiv = document.getElementById("versionInfo_" + node.id);
+    if (verDiv && data.versions) {
+      verDiv.innerHTML = "共 " + data.versions.length + " 个版本，最新：" + (data.versions[0] ? data.versions[0].version : "-");
+    }
+  }).catch(function() {});
   $("nodeDetailDrawer").classList.add("open");
   $("nodeDetailDrawer").setAttribute("aria-hidden", "false");
 }

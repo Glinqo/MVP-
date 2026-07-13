@@ -22,3 +22,5 @@ demo_test.py
 _git_push_temp*
 _phase*
 _builder*
+ .tmp-playwright/
+ web/.pnpm-store/

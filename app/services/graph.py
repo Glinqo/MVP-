@@ -300,6 +300,21 @@ def build_job_ability_graph():
             edges.append({"from": "role", "to": ability_id, "type": "industry_extension"})
             lines.append(f"  R --> {key_by_id[ability_id]}")
 
+    # Attach evidence metadata from SQLite
+    try:
+        from scripts.pipeline.evidence_store import ability_evidence_summary
+        for n in nodes:
+            aid = n["id"]
+            ev_summary = ability_evidence_summary(aid, profile.get("role_name"))
+            n["evidence_count"] = ev_summary["evidence_count"]
+            n["avg_confidence"] = ev_summary["avg_confidence"]
+            n["last_updated_at"] = ev_summary["last_updated_at"]
+            n["source_types"] = ev_summary["source_type_distribution"]
+            n["latest_evidence"] = ev_summary["latest_evidence"]
+    except Exception:
+        pass
+
+
     append_status_classes(lines, nodes)
 
     return {

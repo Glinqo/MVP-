@@ -118,6 +118,21 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/teacher/summary":
             return self.send_json(teacher_summary())
 
+        if path == "/api/graph/job/proposals/pending":
+            job_role = parse_qs(parsed.query).get("job_role", [None])[0]
+            from scripts.pipeline.evidence_store import get_pending_proposals
+            return self.send_json({"proposals": get_pending_proposals(job_role)})
+
+        if path == "/api/graph/job/proposals/confirm-sqlite":
+            from scripts.pipeline.evidence_store import confirm_proposal, reject_proposal
+            pid = payload.get("proposal_id", "")
+            action = payload.get("action", "confirm")
+            if action == "confirm":
+                result = confirm_proposal(pid, payload.get("confirmed_by", "teacher"))
+            else:
+                result = reject_proposal(pid)
+            return self.send_json(result)
+
         if path == "/api/scenarios":
             return self.send_json(list_scenarios())
 
@@ -163,6 +178,61 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json({**event_result, "student_graph": build_student_ability_graph(payload.get("session_id"))})
             if path == "/api/graph/job/proposals":
                 return self.send_json(generate_job_graph_proposals(payload))
+
+
+            if path == "/api/graph/job/ingest":
+                text = payload.get("text", "")
+                source_type = payload.get("source_type", "teacher_material")
+                use_llm = payload.get("use_llm", False)
+                from scripts.pipeline.cleaner import extract_skill_spans, map_skills_to_abilities, load_ability_nodes
+                from scripts.pipeline.evidence_store import add_event, add_proposal, compute_proposal_score
+                from scripts.pipeline.sqlite_store import proposal_threshold as pt
+                nodes = load_ability_nodes()
+                if use_llm:
+                    from scripts.pipeline.llm_extractor import extract_with_both
+                    abilities = extract_with_both(text, nodes)
+                else:
+                    skills = extract_skill_spans(text)
+                    abilities = map_skills_to_abilities(skills, nodes)
+                events = []
+                for a in abilities[:5]:
+                    aid = str(a.get('ability_id', a.get('id', 'unknown')))
+                    conf = float(a.get("confidence", 0.5)) if isinstance(a.get("confidence"), (int, float)) else 0.5
+                    ev = add_event(
+                        job_role='??????????????',
+                        ability_id=aid,
+                        evidence_text=text[:300],
+                        source_type=source_type,
+                        extraction_method='llm_assisted' if use_llm else 'rule_lexicon_v1',
+                        confidence=conf
+                    )
+                    events.append({**ev, "ability": a})
+                proposals = []
+                for a in abilities[:5]:
+                    score = compute_proposal_score(source_type, 0.75, len(abilities), 1)
+                    threshold = pt(score)
+                    if threshold in ('auto_approve', 'pending'):
+                        aid = str(a.get("ability_id", a.get("id", "unknown")))
+                        pr = add_proposal(
+                            job_role='??????????????',
+                            ability_id=aid,
+                            action='strengthen',
+                            suggested_weight_delta=round(score * 0.15, 2),
+                            evidence=text[:200],
+                            source='ingest_' + source_type,
+                            proposal_score=score
+                        )
+                        pr["ability_name"] = a.get("name") or a.get("ability_name")
+                        pr["threshold"] = threshold
+                        proposals.append(pr)
+                return self.send_json({
+                    "text_analyzed": text[:100],
+                    "abilities_matched": abilities[:5],
+                    "events_created": events,
+                    "proposals_generated": proposals,
+                    "llm_used": use_llm,
+                    "method": "llm_extraction" if use_llm else "rule_lexicon",
+                })
             if path == "/api/graph/job/proposals/confirm":
                 result = confirm_job_graph_proposals(payload)
                 return self.send_json({**result, "job_graph": build_job_ability_graph()})
