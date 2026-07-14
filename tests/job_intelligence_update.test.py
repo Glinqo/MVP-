@@ -7,6 +7,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 PYTHON = sys.executable
 
 
@@ -60,6 +62,41 @@ def write_sqlite_sources_config(tmp_dir):
     return path
 
 
+def write_enterprise_sources_config(tmp_dir):
+    config = {
+        "version": "0.1.0-test",
+        "policy": {
+            "enabled": True,
+            "respect_robots_txt": True,
+            "max_sources_per_run": 1,
+            "request_interval_seconds": 0,
+            "timeout_seconds": 5,
+            "max_bytes_per_source": 200000,
+            "user_agent": "mechatronics-agent-mvp-test",
+        },
+        "target_job_role": "自动化生产线装调与运维技术员",
+        "global_keywords": ["PLC", "传感器", "NPN", "PNP", "公共端", "在线监控", "电气安全"],
+        "sources": [
+            {
+                "id": "enterprise_official_fixture",
+                "enabled": True,
+                "type": "local_file",
+                "path": "tests/fixtures/enterprise_career_sample.html",
+                "source_type": "enterprise_official",
+                "source": "样例制造企业官网招聘页",
+                "company": "样例制造企业",
+                "base_url": "https://careers.example.com",
+                "adapter": "siemens_career",
+                "job_role": "自动化生产线装调与运维技术员",
+                "keywords": ["PLC 输入", "公共端", "传感器", "电气安全"],
+            }
+        ],
+    }
+    path = Path(tmp_dir) / "job_intelligence_sources.enterprise.test.json"
+    path.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
+    return path
+
+
 def main():
     summary = run_updater(
         "--sources",
@@ -97,6 +134,43 @@ def main():
         assert applied["sqlite_ingest"]["event_count"] > 0
         assert applied["sqlite_ingest"]["proposal_count"] > 0
         assert run_log.exists()
+
+    with tempfile.TemporaryDirectory() as tmp:
+        from scripts.enterprises.site_adapters import parse_enterprise_job_posts
+
+        html = (ROOT / "tests" / "fixtures" / "enterprise_career_sample.html").read_text(encoding="utf-8")
+        parsed = parse_enterprise_job_posts(
+            {
+                "id": "enterprise_official_fixture",
+                "source_type": "enterprise_official",
+                "source": "样例制造企业官网招聘页",
+                "company": "样例制造企业",
+                "adapter": "siemens_career",
+            },
+            html,
+            base_url="https://careers.example.com",
+        )
+        assert len(parsed) >= 2
+        assert any(item["site_adapter"] == "siemens_career" for item in parsed)
+        assert any("PLC" in item["text"] for item in parsed)
+
+        db_path = Path(tmp) / "enterprise_evidence.db"
+        run_log = Path(tmp) / "enterprise_runs.json"
+        sources = write_enterprise_sources_config(tmp)
+        applied = run_updater(
+            "--sources",
+            str(sources),
+            "--run-log",
+            str(run_log),
+            env_overrides={"MVP_EVIDENCE_DB_PATH": str(db_path)},
+        )
+        assert applied["ok"] is True
+        assert applied["collected_count"] == 1
+        assert applied["collected_sources"][0]["structured_post_count"] >= 2
+        assert applied["sqlite_ingest"]["document_count"] >= 2
+        assert applied["sqlite_ingest"]["sources"][0]["structured_post_count"] >= 2
+        assert applied["sqlite_ingest"]["event_count"] > 0
+        assert applied["sqlite_ingest"]["proposal_count"] > 0
 
     print("job_intelligence_update.test.py passed")
 

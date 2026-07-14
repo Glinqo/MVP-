@@ -117,6 +117,18 @@ button:hover{border-color:var(--primary);background:rgba(15,118,110,0.1)}
 .proposal-box{border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:16px;padding:12px}
 .question-actions,.quiz-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
 .question-actions button{min-height:32px;padding:6px 10px}
+.job-admin-grid{display:grid;grid-template-columns:minmax(320px,1.05fr) minmax(280px,.95fr);gap:14px;margin-bottom:14px}
+.job-admin-card{border:1px solid var(--line);border-radius:10px;background:var(--card-bg);padding:14px}
+.job-admin-card h3{margin:0 0 10px}
+.job-admin-form{display:grid;gap:10px}
+.job-admin-form label{display:grid;gap:6px;color:var(--text-secondary);font-size:13px;font-weight:700}
+.inline-check{display:flex!important;align-items:center;gap:8px}
+.inline-check input{width:auto}
+.job-admin-summary{display:grid;gap:10px}
+.job-admin-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+.compact-toolbar{margin-bottom:0}
+.proposal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.job-proposal-list .question-actions{margin-top:8px}
 .personalized-quiz{margin:12px 0 18px}
 .personalized-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 .personalized-card details{margin-top:8px}
@@ -208,6 +220,7 @@ button:hover{border-color:var(--primary);background:rgba(15,118,110,0.1)}
 @media (max-width:640px){
 .topbar{align-items:flex-start;flex-direction:column}
 .top-actions,.chat-input,.context-grid,.score-grid,.feedback-row{grid-template-columns:1fr;width:100%}
+.job-admin-grid,.job-admin-metrics{grid-template-columns:1fr}
 .top-actions{display:grid}
 .chat-layout{padding:10px}
 .workspace-overlay{padding:0}

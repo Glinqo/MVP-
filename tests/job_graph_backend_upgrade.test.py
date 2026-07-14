@@ -188,6 +188,23 @@ def test_llm_extractor_fallback():
     assert semantic_mapped[0]["match_method"] == "semantic_similarity"
     assert semantic_mapped[0]["similarity_score"] > 0.18
 
+    original_embedding_match = extractor._embedding_node_match
+    extractor._embedding_node_match = lambda skill_name, dim_id, nodes: (
+        nodes[1],
+        "embedding_similarity",
+        0.91,
+    )
+    try:
+        embedding_mapped = extractor._validate_and_map(
+            [{"skill_name": "上电前回路确认", "matched_dimension_id": "plc_control_debug", "confidence": 0.8}],
+            semantic_nodes,
+        )
+        assert embedding_mapped[0]["ability_id"] == "electrical_safety_check"
+        assert embedding_mapped[0]["match_method"] == "embedding_similarity"
+        assert embedding_mapped[0]["similarity_score"] == 0.91
+    finally:
+        extractor._embedding_node_match = original_embedding_match
+
     original = extractor.is_configured
     extractor.is_configured = lambda: False
     try:
@@ -232,6 +249,48 @@ def test_llm_extractor_fallback():
             else:
                 os.environ["LLM_EXTRACT_MAX_CALLS"] = original_max_calls
             extractor._LLM_CALL_COUNT = 0
+
+
+def test_embedding_client():
+    from app.services import embedding_client as embeddings
+
+    assert round(embeddings.cosine_similarity([1, 0], [1, 0]), 3) == 1.0
+    assert embeddings.cosine_similarity([1, 0], [0, 1]) == 0.0
+
+    original_embed_texts = embeddings.embed_texts
+    try:
+        def fake_embed_texts(texts, timeout=30):
+            vectors = []
+            for text in texts:
+                value = str(text)
+                if any(term in value for term in ["源型", "漏型", "公共端", "S/S"]):
+                    vectors.append([1.0, 0.0])
+                elif any(term in value for term in ["急停", "断电", "DC24V"]):
+                    vectors.append([0.0, 1.0])
+                else:
+                    vectors.append([0.4, 0.1])
+            return vectors
+
+        embeddings.embed_texts = fake_embed_texts
+        best = embeddings.best_embedding_match(
+            "源型漏型输入接法",
+            [
+                {
+                    "id": "plc_input_common_terminal",
+                    "name": "PLC 输入公共端判断",
+                    "description": "识别 COM、S/S、源型输入、漏型输入和公共端接法。",
+                },
+                {
+                    "id": "electrical_safety_check",
+                    "name": "电气安全检查",
+                    "description": "断电、急停和 DC24V 安全确认。",
+                },
+            ],
+        )
+        assert best["id"] == "plc_input_common_terminal"
+        assert best["score"] > 0.9
+    finally:
+        embeddings.embed_texts = original_embed_texts
 
 
 def test_batch_importer(db_path, tmp_dir):
@@ -414,6 +473,7 @@ def main():
         db_path = Path(tmp) / "evidence.db"
         test_sqlite_store(db_path)
         test_llm_extractor_fallback()
+        test_embedding_client()
         test_batch_importer(db_path, tmp)
         test_ingest_api(db_path)
     print("job_graph_backend_upgrade.test.py passed")

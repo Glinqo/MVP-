@@ -119,6 +119,31 @@ def html_to_text(raw: str) -> str:
     return parser.text()
 
 
+def parse_enterprise_posts(source: dict[str, Any], raw_html: str, base_url: str = "") -> list[dict[str, Any]]:
+    """Use site-level adapters for official enterprise career pages."""
+    if source.get("source_type") != "enterprise_official" and not source.get("adapter") and not source.get("site_adapter"):
+        return []
+    try:
+        from scripts.enterprises.site_adapters import parse_enterprise_job_posts
+
+        return parse_enterprise_job_posts(source, raw_html, base_url=base_url)
+    except Exception:
+        return []
+
+
+def structured_posts_text(posts: list[dict[str, Any]]) -> str:
+    if not posts:
+        return ""
+    from scripts.pipeline.job_data_importer import post_text
+
+    blocks = []
+    for index, post in enumerate(posts, 1):
+        text = post_text(post).strip()
+        if text:
+            blocks.append(f"structured_post: {index}\n{text}")
+    return "\n\n".join(blocks)
+
+
 def content_hash(text: str) -> str:
     return hashlib.sha256(normalize_text(text).encode("utf-8")).hexdigest()[:16]
 
@@ -162,7 +187,9 @@ def fetch_url(source: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]:
             final_url = response.geturl()
         truncated = len(raw) > max_bytes
         raw = raw[:max_bytes]
-        text = html_to_text(raw.decode(charset, errors="replace"))
+        raw_html = raw.decode(charset, errors="replace")
+        structured_posts = parse_enterprise_posts(source, raw_html, final_url)
+        text = structured_posts_text(structured_posts) or html_to_text(raw_html)
         return {
             "ok": True,
             "source_id": source.get("id"),
@@ -172,6 +199,7 @@ def fetch_url(source: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]:
             "robots_status": robots_status,
             "truncated": truncated,
             "text": text,
+            "structured_posts": structured_posts,
         }
     except (urllib.error.URLError, TimeoutError, UnicodeError) as exc:
         return {"ok": False, "skip_reason": f"fetch_failed:{exc}", "source_id": source.get("id"), "url": url}
@@ -186,7 +214,9 @@ def fetch_local_file(source: dict[str, Any]) -> dict[str, Any]:
         return {"ok": False, "skip_reason": "local_file_missing", "source_id": source.get("id"), "path": str(path)}
     from scripts.pipeline.job_data_importer import read_text_fallback
 
-    text = html_to_text(read_text_fallback(path))
+    raw_html = read_text_fallback(path)
+    structured_posts = parse_enterprise_posts(source, raw_html, source.get("url") or source.get("base_url") or "")
+    text = structured_posts_text(structured_posts) or html_to_text(raw_html)
     return {
         "ok": True,
         "source_id": source.get("id"),
@@ -194,6 +224,7 @@ def fetch_local_file(source: dict[str, Any]) -> dict[str, Any]:
         "source": source.get("source") or str(path.relative_to(ROOT)),
         "path": str(path),
         "text": text,
+        "structured_posts": structured_posts,
     }
 
 
@@ -333,6 +364,7 @@ def collect(config: dict[str, Any], args: argparse.Namespace) -> tuple[list[dict
                         "job_role": source.get("job_role") or config.get("target_job_role"),
                         "snippets": snippets,
                         "matched_abilities": matched,
+                        "structured_post_count": len(result.get("structured_posts", [])),
                     }
                 )
                 collected.append(result)
@@ -382,7 +414,7 @@ def ingest_collected_sources(
     max_abilities: int = 5,
 ) -> dict[str, Any]:
     """Write collected authorized job materials into the SQLite evidence pipeline."""
-    from scripts.pipeline.job_data_importer import SUPPORTED_SUFFIXES, import_path, ingest_job_text
+    from scripts.pipeline.job_data_importer import SUPPORTED_SUFFIXES, import_path, ingest_job_text, post_text
 
     results = []
     for item in collected:
@@ -391,6 +423,37 @@ def ingest_collected_sources(
         source = item.get("source") or item.get("source_id") or "job_intelligence_update"
         path_text = item.get("path")
         path = Path(path_text) if path_text else None
+
+        structured_posts = item.get("structured_posts") or []
+        if structured_posts:
+            document_count = 0
+            event_count = 0
+            proposal_count = 0
+            for post in structured_posts:
+                text = post_text(post).strip()
+                if not text:
+                    continue
+                imported = ingest_job_text(
+                    text,
+                    job_role=job_role,
+                    source_type=source_type,
+                    source=post.get("company") or source,
+                    source_url=post.get("source_url") or item.get("url", ""),
+                    use_llm=use_llm,
+                    max_abilities=max_abilities,
+                )
+                document_count += 1
+                event_count += len(imported["events_created"])
+                proposal_count += len(imported["proposals_generated"])
+            results.append({
+                "source_id": item.get("source_id"),
+                "source": source,
+                "document_count": document_count,
+                "structured_post_count": len(structured_posts),
+                "event_count": event_count,
+                "proposal_count": proposal_count,
+            })
+            continue
 
         if path and path.exists() and path.suffix.lower() in SUPPORTED_SUFFIXES:
             imported = import_path(
@@ -405,6 +468,7 @@ def ingest_collected_sources(
                 "source_id": item.get("source_id"),
                 "source": source,
                 "document_count": imported["document_count"],
+                "structured_post_count": 0,
                 "event_count": imported["event_count"],
                 "proposal_count": imported["proposal_count"],
             })
@@ -424,6 +488,7 @@ def ingest_collected_sources(
             "source_id": item.get("source_id"),
             "source": source,
             "document_count": 1,
+            "structured_post_count": 0,
             "event_count": len(imported["events_created"]),
             "proposal_count": len(imported["proposals_generated"]),
         })
@@ -493,6 +558,7 @@ def run_update(args: argparse.Namespace) -> dict[str, Any]:
                 "source_type": item.get("source_type"),
                 "content_hash": item.get("content_hash"),
                 "snippet_count": len(item.get("snippets", [])),
+                "structured_post_count": item.get("structured_post_count", 0),
             }
             for item in collected
         ],

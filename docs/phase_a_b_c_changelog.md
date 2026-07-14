@@ -45,6 +45,11 @@
   - 默认非 dry-run 写入 SQLite 证据链路，而不是只生成旧 JSON 提案。
   - 保留 `--store legacy/both` 兼容旧演示路径。
   - 本地授权来源和公开 URL 来源仍遵守低频、robots.txt、最大字节数限制。
+  - 企业官网 `enterprise_official` 来源优先走站点级 HTML 解析适配器：
+    - 新增 `scripts/enterprises/site_adapters.py`。
+    - 支持 JSON-LD `JobPosting`、招聘卡片、职位列表、表格行抽取。
+    - 内置 Siemens / 汇川 Inovance / BYD / generic enterprise 适配策略。
+    - 结构化岗位以 `structured_posts` 单条写入 SQLite，避免整页文本混杂。
 - 新增 `POST /api/job-data/collect`：
   - 后端可直接触发授权来源采集。
   - 支持 `dry_run`、`sources`、`source_id`、`max_sources`、`store`、`use_llm`、`max_abilities`。
@@ -77,15 +82,18 @@
   - 名称不完全一致时，按技能词项、中文 2/3-gram、英文/数字 token、维度一致性计算相似度。
   - 只映射到已知能力节点，并记录 `match_method` 与 `similarity_score`。
   - 对 root 节点降权，减少把具体技能错误映射到根任务节点。
+- 已接入可配置 embedding 向量召回增强：
+  - 新增 `app/services/embedding_client.py`，调用 OpenAI-compatible `/embeddings` 接口。
+  - 通过 `EMBEDDING_API_KEY`、`EMBEDDING_BASE_URL`、`EMBEDDING_MODEL` 启用。
+  - 可复用 `LLM_API_KEY` / `LLM_BASE_URL` 作为兼容网关配置。
+  - `EMBEDDING_MATCH_THRESHOLD` 控制命中阈值，默认 `0.68`。
+  - `EMBEDDING_MATCH_ENABLED=0` 可关闭向量匹配。
+  - 未配置或调用失败时自动回落本地词项相似度，不影响导入链路。
 - 新增 LLM 抽取缓存与调用上限：
   - 默认按 `prompt_version + model + 文本哈希` 缓存候选结果。
   - `LLM_EXTRACT_CACHE_DIR` 可指定缓存目录。
   - `LLM_EXTRACT_MAX_CALLS` 可限制单进程最大 LLM 抽取调用次数。
   - 缓存/预算只影响 LLM，规则抽取链路保持可用。
-
-未完成：
-
-- 还没有接入真正的 embedding 向量模型；当前先用本地可测试的词项相似度作为安全 fallback。
 
 ## Phase C：版本、确认与可解释
 
@@ -181,10 +189,26 @@ python tests\test_p0_pipeline.py
   - 默认岗位来源配置 dry-run 可识别新版配置格式
   - LLM 抽取缓存命中，不重复调用 fake LLM
   - LLM 候选“源型漏型输入接法”可通过语义 fallback 映射到 `plc_input_common_terminal`
+  - embedding 客户端余弦相似度、最佳候选召回和 LLM 映射接入点
+- `tests/job_intelligence_update.test.py`
+  - 企业官网站点适配器可解析结构化岗位
+  - `enterprise_official` 来源非 dry-run 以多条岗位记录写入 SQLite
+
+## 本轮完成的三个功能
+
+1. 已在前端管理入口恢复“岗位数据导入与提案审核”轻量页面：
+   - 功能工作台新增“岗位数据导入”。
+   - 工作台标签新增“岗位数据”。
+   - 页面支持粘贴岗位材料、选择来源类型、触发授权来源采集、查看最近岗位数据、审核待确认提案、批量确认并生成图谱快照。
+2. 已为企业官网来源增加站点级 HTML 解析适配器：
+   - `enterprise_official` 来源优先解析官方招聘页中的职位卡片/JSON-LD。
+   - 结构化岗位逐条进入 `raw_documents → job_posts → evidence_events → proposals`。
+3. 已接入 embedding 向量模型增强召回：
+   - 配置 embedding 后，LLM 抽取候选优先通过向量相似度映射到能力节点。
+   - 未配置时保留本地词项相似度 fallback。
 
 ## 下一步建议
 
-1. 在 Qian 分支的管理入口恢复“岗位数据导入与提案审核”轻量页面。
-2. 为企业官网来源增加站点级 HTML 解析适配器，优先处理企业官方招聘页。
-3. 如需更高召回，再接入 embedding 向量模型替换/增强当前本地词项相似度。
-4. 将采集运行状态、跳过原因和提案审核入口接入前端管理页。
+1. 给前端管理页补更细的采集运行日志与跳过原因筛选。
+2. 给不同企业官网沉淀更多站点专用 selector 与样例 fixtures。
+3. 如果后续数据量扩大，再考虑 SQLite FTS / 向量索引做离线检索加速。

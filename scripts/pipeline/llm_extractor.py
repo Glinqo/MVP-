@@ -215,9 +215,9 @@ def _validate_and_map(candidates, ability_nodes):
 def _best_node_match(skill_name, dim_id, ability_nodes):
     """Map a free-form LLM skill to the closest known ability node.
 
-    This intentionally uses a small deterministic similarity scorer instead of
-    remote embeddings: it is cheap, testable, and keeps all candidates inside
-    the curated ability-node boundary.
+    Direct name matches stay deterministic.  When an embedding model is
+    configured, vector similarity is used as the high-recall path; otherwise
+    the local deterministic term scorer remains the safe fallback.
     """
     direct = []
     for node in ability_nodes:
@@ -227,6 +227,10 @@ def _best_node_match(skill_name, dim_id, ability_nodes):
     if direct:
         node = sorted(direct, key=lambda item: (_node_priority(item[0]), len(str(item[0].get("name") or ""))))[0][0]
         return node, "direct_name", 1.0
+
+    embedding = _embedding_node_match(skill_name, dim_id, ability_nodes)
+    if embedding:
+        return embedding
 
     scored = []
     for node in ability_nodes:
@@ -238,6 +242,37 @@ def _best_node_match(skill_name, dim_id, ability_nodes):
 
     score, _, node = sorted(scored, key=lambda item: (-item[0], item[1], str(item[2].get("id") or "")))[0]
     return node, "semantic_similarity", round(score, 3)
+
+
+def _embedding_node_match(skill_name, dim_id, ability_nodes):
+    if os.environ.get("EMBEDDING_MATCH_ENABLED", "1").lower() in {"0", "false", "no"}:
+        return None
+    try:
+        from app.services.embedding_client import best_embedding_match, is_configured
+
+        if not is_configured():
+            return None
+        candidates = []
+        for node in ability_nodes:
+            dimension_hint = " ".join(str(item) for item in node.get("radar_dimension_ids", []) or [])
+            candidates.append({
+                **node,
+                "description": " ".join([
+                    str(node.get("description") or ""),
+                    dimension_hint,
+                    str(dim_id or ""),
+                ]),
+            })
+        result = best_embedding_match(skill_name, candidates, timeout=20)
+        if not result:
+            return None
+        threshold = float(os.environ.get("EMBEDDING_MATCH_THRESHOLD", "0.68"))
+        score = float(result.get("score", 0.0))
+        if score < threshold:
+            return None
+        return result["candidate"], "embedding_similarity", round(score, 3)
+    except Exception:
+        return None
 
 
 def _node_priority(node):

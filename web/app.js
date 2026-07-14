@@ -1,6 +1,13 @@
 const state = {
   questions: [],
   jobProfile: null,
+  jobAdmin: {
+    documents: [],
+    posts: [],
+    proposals: [],
+    versions: [],
+    graph: null
+  },
   messages: [],
   lastChat: null,
   lastDiagnosis: null,
@@ -22,6 +29,8 @@ const state = {
   activeGraphView: "job",
   sessionId: localStorage.getItem("mcp_session_id") || `demo-${Date.now()}`
 };
+
+const DEFAULT_JOB_ROLE = "自动化生产线装调与运维技术员";
 
 // ── Persistence helpers ──────────────────────────────────────────
 function persistSession() {
@@ -521,6 +530,7 @@ function renderToolSuggestions(items) {
     const selector = {
       dashboard: '[data-open-tool="dashboard"]',
       job_graph: '[data-open-tool="graph"][data-graph-view="job"]',
+      job_admin: '[data-open-tool="jobAdmin"]',
       student_graph: '[data-open-tool="graph"][data-graph-view="student"]',
       knowledge: '[data-open-tool="knowledge"]',
       tasks: '[data-open-tool="tasks"]',
@@ -844,6 +854,243 @@ function renderGraph(graph, type = "job") {
   }
 }
 
+function jobAdminRole() {
+  return ($("jobAdminRole")?.value || DEFAULT_JOB_ROLE).trim() || DEFAULT_JOB_ROLE;
+}
+
+function setJobAdminStatus(message, tone = "muted") {
+  const target = $("jobAdminStatus");
+  if (!target) return;
+  target.className = tone;
+  target.textContent = message;
+}
+
+function proposalScoreText(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num.toFixed(2) : "-";
+}
+
+async function refreshJobGraph(jobRole = "") {
+  const query = jobRole ? `?job_role=${encodeURIComponent(jobRole)}` : "";
+  const graph = await api(`/api/graph/job${query}`);
+  renderGraph(graph, "job");
+  return graph;
+}
+
+function renderJobAdminSummary(data) {
+  const documents = data.documents || [];
+  const posts = data.posts || [];
+  const proposals = data.proposals || [];
+  const versions = data.versions || [];
+  const graph = data.graph || {};
+  const confirmedCount = (graph.nodes || []).filter((node) => node.confirmed_proposal_id).length;
+  $("jobAdminSummary").classList.remove("muted");
+  $("jobAdminSummary").innerHTML = `
+    <div class="score-grid job-admin-metrics">
+      <div class="metric"><strong>${escapeHtml(documents.length)}</strong><span>最近原始资料</span></div>
+      <div class="metric"><strong>${escapeHtml(posts.length)}</strong><span>结构化岗位</span></div>
+      <div class="metric"><strong>${escapeHtml(proposals.length)}</strong><span>待审核提案</span></div>
+      <div class="metric"><strong>${escapeHtml(versions.length)}</strong><span>图谱快照</span></div>
+    </div>
+    <p class="muted">当前岗位：${escapeHtml(jobAdminRole())}；正式图谱中已有 ${escapeHtml(confirmedCount)} 个节点带确认提案证据。</p>
+  `;
+}
+
+function renderJobDataRecords(data) {
+  const posts = data.posts || [];
+  const documents = data.documents || [];
+  const postHtml = posts.length ? `
+    <ul class="item-list">
+      ${posts.slice(0, 6).map((post) => {
+        const fields = post.normalized_fields || post.fields || {};
+        const title = fields.title || post.title || post.job_role || "岗位记录";
+        const company = fields.company || post.company || "";
+        const skills = (fields.skills || []).slice(0, 3).join("；");
+        return `
+          <li>
+            <strong>${escapeHtml(title)}</strong>
+            <div>${escapeHtml(company || post.source_url || post.job_post_id || "")}</div>
+            ${skills ? `<div class="muted">${escapeHtml(skills)}</div>` : ""}
+          </li>
+        `;
+      }).join("")}
+    </ul>
+  ` : "";
+  const docHtml = documents.length ? `
+    <ul class="compact-list">
+      ${documents.slice(0, 6).map((doc) => `
+        <li>
+          <strong>${escapeHtml(doc.source_type || "source")}</strong>
+          <div>${escapeHtml(doc.source || doc.source_url || doc.document_id || "")}</div>
+          <div class="muted">${escapeHtml(doc.collected_at || "")}</div>
+        </li>
+      `).join("")}
+    </ul>
+  ` : "";
+  $("jobDataRecords").classList.remove("muted");
+  $("jobDataRecords").innerHTML = postHtml || docHtml || '<p class="muted">暂无导入数据。</p>';
+}
+
+function renderJobProposals(proposals) {
+  const target = $("jobProposalList");
+  if (!target) return;
+  if (!proposals || !proposals.length) {
+    target.classList.add("muted");
+    target.innerHTML = "暂无待审核提案。";
+    return;
+  }
+  target.classList.remove("muted");
+  target.innerHTML = `
+    <ul class="item-list job-proposal-list">
+      ${proposals.map((proposal) => `
+        <li>
+          <div class="proposal-head">
+            <strong>${escapeHtml(proposal.ability_name || proposal.ability_id || "能力节点")}</strong>
+            <span class="node-badge">score ${escapeHtml(proposalScoreText(proposal.proposal_score))}</span>
+          </div>
+          <div>${escapeHtml(proposal.evidence || "暂无证据摘要")}</div>
+          <div class="muted">${escapeHtml(proposal.proposal_id)} · ${escapeHtml(proposal.action || "strengthen")} · ${escapeHtml(proposal.source || "")}</div>
+          <div class="question-actions">
+            <button type="button" class="primary" data-confirm-proposal="${escapeHtml(proposal.proposal_id)}">确认并生成快照</button>
+            <button type="button" data-reject-proposal="${escapeHtml(proposal.proposal_id)}">驳回</button>
+          </div>
+        </li>
+      `).join("")}
+    </ul>
+  `;
+  target.querySelectorAll("[data-confirm-proposal]").forEach((button) => {
+    button.addEventListener("click", () => reviewJobProposal(button.dataset.confirmProposal, "confirm"));
+  });
+  target.querySelectorAll("[data-reject-proposal]").forEach((button) => {
+    button.addEventListener("click", () => reviewJobProposal(button.dataset.rejectProposal, "reject"));
+  });
+}
+
+async function loadJobAdmin() {
+  const role = jobAdminRole();
+  setJobAdminStatus("正在加载岗位数据...");
+  try {
+    const query = encodeURIComponent(role);
+    const [documents, posts, pending, versions, graph] = await Promise.all([
+      api("/api/job-data/documents?limit=12"),
+      api(`/api/job-data/posts?job_role=${query}&limit=12`),
+      api(`/api/graph/job/proposals/pending?job_role=${query}`),
+      api(`/api/graph/job/versions?job_role=${query}`),
+      api(`/api/graph/job?job_role=${query}`)
+    ]);
+    state.jobAdmin = {
+      documents: documents.documents || [],
+      posts: posts.posts || [],
+      proposals: pending.proposals || [],
+      versions: versions.versions || [],
+      graph
+    };
+    renderJobAdminSummary(state.jobAdmin);
+    renderJobDataRecords(state.jobAdmin);
+    renderJobProposals(state.jobAdmin.proposals);
+    setJobAdminStatus(`已加载：${state.jobAdmin.posts.length} 条岗位数据，${state.jobAdmin.proposals.length} 条待审核提案。`);
+    return state.jobAdmin;
+  } catch (error) {
+    setJobAdminStatus(`加载失败：${error.message}`);
+    $("jobAdminSummary").innerHTML = `<p class="muted">${escapeHtml(error.message)}</p>`;
+    $("jobProposalList").innerHTML = `<p class="muted">${escapeHtml(error.message)}</p>`;
+    return null;
+  }
+}
+
+async function ingestJobAdminMaterial() {
+  const text = ($("jobAdminText")?.value || "").trim();
+  if (!text) {
+    setJobAdminStatus("请先粘贴岗位材料。");
+    return;
+  }
+  setJobAdminStatus("正在导入材料并生成待审核提案...");
+  try {
+    const result = await api("/api/graph/job/ingest", {
+      method: "POST",
+      body: JSON.stringify({
+        job_role: jobAdminRole(),
+        text,
+        source_type: $("jobAdminSourceType")?.value || "teacher_material",
+        source: $("jobAdminSource")?.value || "manual_admin_import",
+        use_llm: Boolean($("jobAdminUseLlm")?.checked),
+        max_abilities: 8
+      })
+    });
+    setJobAdminStatus(`导入完成：新增 ${result.events_created?.length || 0} 条证据，生成 ${result.proposals_generated?.length || 0} 条提案。`, "status ok");
+    await loadJobAdmin();
+    await refreshJobGraph(jobAdminRole());
+  } catch (error) {
+    setJobAdminStatus(`导入失败：${error.message}`);
+  }
+}
+
+async function collectJobSources() {
+  setJobAdminStatus("正在运行授权来源采集...");
+  try {
+    const result = await api("/api/job-data/collect", {
+      method: "POST",
+      body: JSON.stringify({
+        max_sources: 3,
+        store: "sqlite",
+        use_llm: Boolean($("jobAdminUseLlm")?.checked),
+        max_abilities: 8
+      })
+    });
+    const structured = (result.collected_sources || []).reduce((total, item) => total + Number(item.structured_post_count || 0), 0);
+    setJobAdminStatus(`采集完成：${result.collected_count || 0} 个来源，${structured} 条结构化企业岗位，${result.proposal_count || 0} 条提案。`, "status ok");
+    await loadJobAdmin();
+    await refreshJobGraph(jobAdminRole());
+  } catch (error) {
+    setJobAdminStatus(`采集失败：${error.message}`);
+  }
+}
+
+async function reviewJobProposal(proposalId, action = "confirm") {
+  if (!proposalId) return;
+  setJobAdminStatus(action === "confirm" ? "正在确认提案并生成快照..." : "正在驳回提案...");
+  try {
+    const result = await api("/api/graph/job/proposals/confirm-sqlite", {
+      method: "POST",
+      body: JSON.stringify({
+        proposal_id: proposalId,
+        action,
+        confirmed_by: "admin_workspace"
+      })
+    });
+    if (result.proposal?.error) throw new Error(result.proposal.error);
+    setJobAdminStatus(action === "confirm" ? "提案已确认，岗位图谱已生成新快照。" : "提案已驳回。", "status ok");
+    await loadJobAdmin();
+    await refreshJobGraph(jobAdminRole());
+  } catch (error) {
+    setJobAdminStatus(`审核失败：${error.message}`);
+  }
+}
+
+async function batchConfirmJobProposals() {
+  const role = jobAdminRole();
+  if (!state.jobAdmin.proposals?.length) {
+    setJobAdminStatus("当前岗位没有待确认提案。");
+    return;
+  }
+  setJobAdminStatus("正在批量确认当前岗位提案...");
+  try {
+    const result = await api("/api/graph/job/proposals/confirm-sqlite-batch", {
+      method: "POST",
+      body: JSON.stringify({
+        confirm_all: true,
+        job_role: role,
+        confirmed_by: "admin_workspace_batch"
+      })
+    });
+    setJobAdminStatus(`批量确认完成：${result.confirmed_count || 0} 条提案，生成 ${result.snapshots?.length || 0} 个快照。`, "status ok");
+    await loadJobAdmin();
+    await refreshJobGraph(role);
+  } catch (error) {
+    setJobAdminStatus(`批量确认失败：${error.message}`);
+  }
+}
+
 function renderKnowledge(items) {
   $("knowledgeRefs").innerHTML = items?.length ? `
     <ul class="item-list">
@@ -983,6 +1230,7 @@ function workspaceTitle(panel) {
   return {
     dashboard: "学习驾驶舱",
     graph: "能力图谱",
+    jobAdmin: "岗位数据导入与提案审核",
     knowledge: "知识缺口",
     tasks: "实训任务",
     scenario: "排故角色扮演",
@@ -1001,6 +1249,7 @@ function setWorkspacePanel(panel) {
     section.classList.toggle("active", section.id === `workspace${panel.charAt(0).toUpperCase()}${panel.slice(1)}`);
   });
   if (panel === "dashboard") loadStudentDashboard();
+  if (panel === "jobAdmin") loadJobAdmin();
   if (panel === "plan") loadPersonalizedPlan();
   if (panel === "scenario") loadScenarios();
 }
@@ -1504,6 +1753,10 @@ $("loadPersonalizedPlan").addEventListener("click", () => loadPersonalizedPlan("
 $("loadTodayPlan").addEventListener("click", () => loadPersonalizedPlan("today"));
 $("loadSevenDayPlan").addEventListener("click", () => loadPersonalizedPlan("7_day"));
 $("refreshDashboard").addEventListener("click", loadStudentDashboard);
+$("refreshJobAdmin")?.addEventListener("click", loadJobAdmin);
+$("ingestJobMaterial")?.addEventListener("click", ingestJobAdminMaterial);
+$("collectJobSources")?.addEventListener("click", collectJobSources);
+$("batchConfirmProposals")?.addEventListener("click", batchConfirmJobProposals);
 $("startScenario").addEventListener("click", startScenario);
 document.querySelectorAll("[data-feedback]").forEach((button) => {
   button.addEventListener("click", () => submitFeedback(button.dataset.feedback));
