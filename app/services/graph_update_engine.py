@@ -21,6 +21,13 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat()
 
 
+def float_or_zero(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def read_runtime_json(path, default):
     if not path.exists():
         return default
@@ -466,6 +473,7 @@ def generate_proposals_from_evidence(job_role=None):
     """Read evidence from SQLite, compute scores, generate proposals"""
     try:
         from scripts.pipeline.evidence_store import query_events, add_proposal, compute_proposal_score, proposal_threshold
+        from .data_loader import primary_job_profile
         
         events = query_events(job_role=(job_role or None), limit=1000)
         abilities = {}
@@ -477,7 +485,7 @@ def generate_proposals_from_evidence(job_role=None):
             abilities[aid]["source_types"].add(ev.get("source_type", "unknown"))
             abilities[aid]["confs"].append(ev.get("confidence", 0.5))
 
-        JOB_ROLE = job_role or "??????????????"
+        target_role = job_role or primary_job_profile().get("role_name", "自动化生产线装调与运维技术员")
         proposals = []
         for aid, data in abilities.items():
             srclist = list(data["source_types"])
@@ -486,9 +494,9 @@ def generate_proposals_from_evidence(job_role=None):
             score = compute_proposal_score(source_type, avg_conf, data["count"], 7)
             threshold = proposal_threshold(score)
             if threshold in ("auto_approve", "pending"):
-                evidence_text = str(data["count"]) + "????????" + str(round(avg_conf, 2))
+                evidence_text = f"{data['count']} 条证据，平均置信度 {round(avg_conf, 2)}"
                 pr = add_proposal(
-                    job_role=JOB_ROLE,
+                    job_role=target_role,
                     ability_id=aid,
                     action="strengthen",
                     suggested_weight_delta=round(score * 0.2, 2),
@@ -502,3 +510,160 @@ def generate_proposals_from_evidence(job_role=None):
         return proposals
     except Exception as e:
         return {"error": str(e)}
+
+
+def dimension_scores_from_nodes(nodes):
+    scores = defaultdict(float)
+    for node in nodes:
+        weight = float_or_zero(node.get("demand_weight") or node.get("weight") or 0)
+        dimensions = node.get("radar_dimension_ids") or ["unknown"]
+        for dimension_id in dimensions:
+            scores[dimension_id] += weight
+    return {key: round(value, 2) for key, value in sorted(scores.items())}
+
+
+def build_confirmed_proposal_snapshot(job_role, proposals):
+    """Create a versioned job graph snapshot after SQLite proposals are confirmed."""
+    from app.services.graph import ability_label, build_job_ability_graph, node_payload
+    from scripts.pipeline.evidence_store import ability_evidence_summary, create_snapshot
+
+    graph = build_job_ability_graph()
+    nodes = [dict(node) for node in graph.get("nodes", [])]
+    by_id = {node["id"]: node for node in nodes}
+
+    for proposal in proposals:
+        ability_id = proposal.get("ability_id")
+        if not ability_id:
+            continue
+        node = by_id.get(ability_id)
+        if not node:
+            node = node_payload(ability_id, f"C{len(nodes) + 1}", "industry")
+            node["demand_weight"] = 0
+            node["evidence"] = []
+            node["demand_sources"] = []
+            nodes.append(node)
+            by_id[ability_id] = node
+
+        delta = float_or_zero(proposal.get("suggested_weight_delta"))
+        node["demand_weight"] = round(float_or_zero(node.get("demand_weight")) + delta, 2)
+        node["status"] = "industry_hot" if float_or_zero(proposal.get("proposal_score")) >= 0.75 else "industry"
+        node["status_label"] = "教师确认更新"
+        node.setdefault("evidence", [])
+        if proposal.get("evidence"):
+            node["evidence"] = list(dict.fromkeys(node["evidence"] + [proposal.get("evidence")]))[:5]
+        node.setdefault("demand_sources", [])
+        if proposal.get("source"):
+            node["demand_sources"] = list(dict.fromkeys(node["demand_sources"] + [proposal.get("source")]))
+        node["confirmed_proposal_id"] = proposal.get("proposal_id")
+        node["confirmed_by"] = proposal.get("confirmed_by")
+        node["confirmed_at"] = proposal.get("confirmed_at")
+        node["proposal_score"] = proposal.get("proposal_score")
+        node["label"] = node.get("label") or ability_label(ability_id)
+
+    for node in nodes:
+        evidence = ability_evidence_summary(node["id"], job_role)
+        node["evidence_count"] = evidence["evidence_count"]
+        node["avg_confidence"] = evidence["avg_confidence"]
+        node["last_updated_at"] = evidence["last_updated_at"]
+        node["source_types"] = evidence["source_type_distribution"]
+        node["latest_evidence"] = evidence["latest_evidence"]
+
+    dimension_scores = dimension_scores_from_nodes(nodes)
+    version = datetime.now(timezone.utc).strftime("v%Y%m%d.%H%M%S.%f")
+    snapshot = create_snapshot(job_role, nodes, dimension_scores, version)
+    return {
+        "snapshot": snapshot,
+        "snapshot_graph": {
+            "graph_type": "job_ability_snapshot",
+            "job_role": job_role,
+            "created_from": "confirmed_sqlite_proposals",
+            "confirmed_proposal_ids": [item.get("proposal_id") for item in proposals],
+            "nodes": nodes,
+            "edges": graph.get("edges", []),
+            "dimension_scores": dimension_scores,
+        },
+    }
+
+
+def confirm_sqlite_job_graph_proposal(payload):
+    """Confirm/reject a SQLite proposal and create a graph snapshot on confirmation."""
+    from scripts.pipeline.evidence_store import confirm_proposal, reject_proposal
+
+    proposal_id = payload.get("proposal_id", "")
+    action = payload.get("action", "confirm")
+    if action == "reject":
+        return {"action": "reject", "proposal": reject_proposal(proposal_id), "snapshot": None}
+
+    proposal = confirm_proposal(proposal_id, payload.get("confirmed_by", "teacher"))
+    if proposal.get("error"):
+        return {"action": "confirm", "proposal": proposal, "snapshot": None}
+
+    snapshot_result = build_confirmed_proposal_snapshot(proposal.get("job_role"), [proposal])
+    return {
+        "action": "confirm",
+        "proposal": proposal,
+        "snapshot": snapshot_result["snapshot"],
+        "snapshot_graph": snapshot_result["snapshot_graph"],
+    }
+
+
+def confirm_sqlite_job_graph_proposals(payload):
+    """Confirm/reject multiple SQLite proposals and snapshot confirmed changes by job role."""
+    from collections import defaultdict
+    from scripts.pipeline.evidence_store import confirm_proposal, get_pending_proposals, reject_proposal
+
+    payload = payload or {}
+    action = payload.get("action", "confirm")
+    confirmed_by = payload.get("confirmed_by", "teacher")
+    job_role = payload.get("job_role")
+    proposal_ids = list(dict.fromkeys(payload.get("proposal_ids") or []))
+
+    if payload.get("confirm_all"):
+        proposal_ids = [item["proposal_id"] for item in get_pending_proposals(job_role)]
+    if not proposal_ids:
+        raise ValueError("proposal_ids or confirm_all is required")
+
+    proposals = []
+    errors = []
+    if action == "reject":
+        for proposal_id in proposal_ids:
+            result = reject_proposal(proposal_id)
+            if result.get("error"):
+                errors.append({"proposal_id": proposal_id, "error": result["error"]})
+            else:
+                proposals.append(result)
+        return {
+            "action": "reject",
+            "requested_count": len(proposal_ids),
+            "rejected_count": len(proposals),
+            "proposals": proposals,
+            "errors": errors,
+            "snapshots": [],
+        }
+
+    by_role = defaultdict(list)
+    for proposal_id in proposal_ids:
+        proposal = confirm_proposal(proposal_id, confirmed_by)
+        if proposal.get("error"):
+            errors.append({"proposal_id": proposal_id, "error": proposal["error"]})
+            continue
+        proposals.append(proposal)
+        by_role[proposal.get("job_role")].append(proposal)
+
+    snapshots = []
+    for role, role_proposals in by_role.items():
+        snapshot_result = build_confirmed_proposal_snapshot(role, role_proposals)
+        snapshots.append({
+            "job_role": role,
+            "snapshot": snapshot_result["snapshot"],
+            "snapshot_graph": snapshot_result["snapshot_graph"],
+        })
+
+    return {
+        "action": "confirm",
+        "requested_count": len(proposal_ids),
+        "confirmed_count": len(proposals),
+        "proposals": proposals,
+        "errors": errors,
+        "snapshots": snapshots,
+    }

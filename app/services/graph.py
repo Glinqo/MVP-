@@ -250,9 +250,78 @@ def industry_demand_index():
     return demand, demand_sources
 
 
-def build_job_ability_graph():
+def apply_latest_sqlite_snapshot(job_role, nodes, edges, lines, key_by_id):
+    """Overlay the latest confirmed SQLite snapshot onto the current job graph."""
+    try:
+        from scripts.pipeline.evidence_store import get_snapshot, list_snapshots
+    except Exception:
+        return None
+
+    versions = list_snapshots(job_role)
+    if not versions:
+        return None
+    snapshot = get_snapshot(versions[0]["version"])
+    if not snapshot:
+        return None
+
+    data = load_data()
+    snapshot_nodes = {
+        node.get("id"): node
+        for node in snapshot.get("nodes", [])
+        if node.get("id") in data["ability_by_id"]
+    }
+    overlay_fields = {
+        "status",
+        "status_label",
+        "demand_weight",
+        "demand_labels",
+        "evidence",
+        "demand_sources",
+        "confirmed_proposal_id",
+        "confirmed_by",
+        "confirmed_at",
+        "proposal_score",
+    }
+
+    for node in nodes:
+        snapshot_node = snapshot_nodes.pop(node["id"], None)
+        if not snapshot_node:
+            continue
+        for field in overlay_fields:
+            if field in snapshot_node:
+                node[field] = snapshot_node[field]
+
+    for ability_id, snapshot_node in snapshot_nodes.items():
+        node_key = f"J{len(nodes) + 1}"
+        key_by_id[ability_id] = node_key
+        status = snapshot_node.get("status", "industry")
+        node = node_payload(ability_id, node_key, status)
+        for field in overlay_fields:
+            if field in snapshot_node:
+                node[field] = snapshot_node[field]
+        nodes.append(node)
+        lines.append(f'  {node_key}["{mermaid_text(ability_label(ability_id))}"]')
+
+        parent_id = data["ability_by_id"].get(ability_id, {}).get("parent_id")
+        if parent_id in key_by_id:
+            edges.append({"from": parent_id, "to": ability_id, "type": "snapshot_extension"})
+            lines.append(f"  {key_by_id[parent_id]} --> {node_key}")
+        else:
+            edges.append({"from": "role", "to": ability_id, "type": "snapshot_extension"})
+            lines.append(f"  R --> {node_key}")
+
+    return {
+        "version": snapshot.get("version"),
+        "created_at": snapshot.get("created_at"),
+        "node_count": snapshot.get("node_count"),
+        "source": snapshot.get("source"),
+    }
+
+
+def build_job_ability_graph(job_role=None):
     data = load_data()
     profile = primary_job_profile()
+    role_name = job_role or profile.get("role_name", "自动化生产线装调与运维技术员")
     chain = [item for item in profile.get("ability_chain", CORE_CHAIN) if item in data["ability_by_id"]]
     demand, demand_sources = industry_demand_index()
     extra_ids = [ability_id for ability_id in demand if ability_id not in chain]
@@ -261,7 +330,7 @@ def build_job_ability_graph():
     nodes = []
     edges = []
     key_by_id = {}
-    lines = ["flowchart TD", f'  R["岗位: {mermaid_text(profile.get("role_name", "自动化生产线装调与运维技术员"))}"]']
+    lines = ["flowchart TD", f'  R["岗位: {mermaid_text(role_name)}"]']
 
     for index, ability_id in enumerate(graph_ids):
         demand_item = demand.get(ability_id, {})
@@ -300,12 +369,23 @@ def build_job_ability_graph():
             edges.append({"from": "role", "to": ability_id, "type": "industry_extension"})
             lines.append(f"  R --> {key_by_id[ability_id]}")
 
+    active_snapshot = apply_latest_sqlite_snapshot(role_name, nodes, edges, lines, key_by_id)
+    if active_snapshot:
+        demand_sources.append({
+            "snapshot_id": active_snapshot.get("version"),
+            "collected_at": active_snapshot.get("created_at"),
+            "source_type": "sqlite_snapshot",
+            "source": active_snapshot.get("source"),
+            "evidence": "已确认 SQLite 岗位图谱快照",
+            "weight": 1,
+        })
+
     # Attach evidence metadata from SQLite
     try:
         from scripts.pipeline.evidence_store import ability_evidence_summary
         for n in nodes:
             aid = n["id"]
-            ev_summary = ability_evidence_summary(aid, profile.get("role_name"))
+            ev_summary = ability_evidence_summary(aid, role_name)
             n["evidence_count"] = ev_summary["evidence_count"]
             n["avg_confidence"] = ev_summary["avg_confidence"]
             n["last_updated_at"] = ev_summary["last_updated_at"]
@@ -320,7 +400,8 @@ def build_job_ability_graph():
     return {
         "graph_type": "job_ability",
         "graph_title": "岗位能力图谱",
-        "job_role": profile.get("role_name", "自动化生产线装调与运维技术员"),
+        "job_role": role_name,
+        "active_snapshot": active_snapshot,
         "update_policy": data["industry_demand_data"].get("update_policy", {}),
         "demand_sources": demand_sources,
         "pending_proposals": pending_job_proposals(),
@@ -329,6 +410,7 @@ def build_job_ability_graph():
             **graph_summary(nodes),
             "demand_source_count": len(demand_sources),
             "pending_proposal_count": len(pending_job_proposals()),
+            "active_snapshot_version": active_snapshot.get("version") if active_snapshot else None,
         },
         "nodes": nodes,
         "edges": edges,

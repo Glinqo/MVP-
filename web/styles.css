@@ -514,6 +514,21 @@ button:active{transform:translateY(0)}
 
 
 /* ── Identity & Job Selection Landing ── */
+
+/* ── Job Admin Panel ── */
+.job-admin-grid{display:grid;grid-template-columns:minmax(320px,1.05fr) minmax(280px,.95fr);gap:14px;margin-bottom:14px}
+.job-admin-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--card-bg);padding:14px}
+.job-admin-card h3{margin:0 0 10px;font-size:1rem;font-weight:700;color:var(--text)}
+.job-admin-form{display:grid;gap:10px}
+.job-admin-form label{display:grid;gap:6px;color:var(--text-secondary);font-size:13px;font-weight:700}
+.job-admin-form .inline-check{display:flex;align-items:center;gap:8px;flex-direction:row}
+.job-admin-summary{display:grid;gap:10px}
+.job-admin-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+.compact-toolbar{margin-top:0;margin-bottom:8px}
+@media (max-width:640px){
+.job-admin-grid,.job-admin-metrics{grid-template-columns:1fr}
+}
+
 .landing-overlay {
   position: fixed;
   inset: 0;
