@@ -52,7 +52,21 @@ function newSession() {
   location.reload();
 }
 
-const $ = (id) => document.getElementById(id);
+const $_raw = (id) => document.getElementById(id);
+const $ = (id) => {
+  const el = $_raw(id);
+  if (!el) {
+    return new Proxy({}, {
+      get(t, prop) {
+        if (prop === "classList") return { add() {}, remove() {}, toggle() {}, contains() { return false; } };
+        if (prop === "addEventListener") return () => {};
+        return () => {};
+      },
+      set(t, prop, value) { return true; }
+    });
+  }
+  return el;
+};
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
