@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
@@ -187,14 +187,14 @@
               <strong>岗位能力图谱</strong>
               <span>行业需求与岗位链路</span>
             </button>
-           <button data-open-tool="graph" data-graph-view="student" type="button">
-             <strong>个人能力图谱</strong>
-             <span>问答与自测动态更新</span>
-           </button>
-           <button data-open-tool="knowledge" type="button">
-             <strong>知识缺口</strong>
-             <span>NPN/PNP、公共端、I/O 地址</span>
-           </button>
+            <button data-open-tool="graph" data-graph-view="student" type="button">
+              <strong>个人能力图谱</strong>
+              <span>问答与自测动态更新</span>
+            </button>
+            <button data-open-tool="knowledge" type="button">
+              <strong>知识缺口</strong>
+              <span>NPN/PNP、公共端、I/O 地址</span>
+            </button>
             <button data-open-tool="tasks" type="button">
               <strong>实训任务</strong>
               <span>一节课内可完成的补救训练</span>
@@ -207,11 +207,10 @@
               <strong>自测验证 <span id="quizCount">加载中</span></strong>
               <span>8 题确定性评分</span>
             </button>
-           <button data-open-tool="plan" type="button">
-             <strong>个人培养方案</strong>
-             <span>知识讲解、视频资源、实训路径</span>
-           </button>
-         </div>
+            <button data-open-tool="plan" type="button">
+              <strong>个人培养方案</strong>
+          </div>
+            </button>
         </section>
 
         <div class="feedback-row">
@@ -240,8 +239,8 @@
           <button data-workspace-panel="tasks" type="button">实训任务</button>
           <button data-workspace-panel="scenario" type="button">角色扮演</button>
           <button data-workspace-panel="quiz" type="button">自测</button>
-         <button data-workspace-panel="plan" type="button">培养方案</button>
-       </nav>
+          <button data-workspace-panel="plan" type="button">培养方案</button>
+        </nav>
 
         <div class="workspace-body">
           <section id="workspaceDashboard" class="workspace-panel active">
@@ -255,12 +254,21 @@
           <section id="workspaceGraph" class="workspace-panel">
             <div class="graph-tabs">
               <button class="active" data-graph-view="job" type="button">岗位能力图谱</button>
-             <button data-graph-view="student" type="button">个人能力图谱</button>
-           </div>
+              <button data-graph-view="student" type="button">个人能力图谱</button>
+            </div>
 
             <div id="graphViewJob" class="graph-view active">
-             <div id="jobGraphDiagram" class="graph-diagram force-graph-container" aria-label="岗位能力图谱可视化"></div>
-             <div class="workspace-grid">
+              <div id="jobGraphDiagram" class="graph-diagram force-graph-container" aria-label="岗位能力图谱可视化"></div>
+              <div class="proposal-box">
+                <h3>岗位图谱更新建议</h3>
+                <textarea id="jobMaterialInput" rows="3" placeholder="粘贴企业岗位描述、招聘 JD、行业要求或教师材料，生成待确认的岗位能力更新建议。"></textarea>
+                <div class="question-actions">
+                  <button id="generateJobProposals" type="button">生成更新建议</button>
+                  <button id="confirmJobProposals" type="button">确认全部待处理建议</button>
+                </div>
+                <div id="jobProposalList" class="section-block muted">暂无待确认建议</div>
+              </div>
+              <div class="workspace-grid">
                 <div>
                   <h3>岗位能力节点</h3>
                   <div id="jobGraphList" class="graph-list"></div>
@@ -298,8 +306,7 @@
               <pre id="studentMermaidOutput" class="mermaid-box">加载中</pre>
             </div>
 
-            
-
+          </section>
           <section id="workspaceKnowledge" class="workspace-panel">
             <h3>知识缺口</h3>
             <div id="knowledgeRefs" class="section-block muted">暂无</div>
@@ -342,9 +349,10 @@
                 <button id="loadSevenDayPlan" type="button">7 天补强计划</button>
               </div>
             </div>
-           <div id="personalizedPlan" class="section-block muted">尚未生成培养方案。</div>
-         </section>
-       </div>
+            <div id="personalizedPlan" class="section-block muted">尚未生成培养方案。</div>
+          </section>
+
+        </div>
       </div>
       <aside id="nodeDetailDrawer" class="node-detail-drawer" aria-hidden="true">
         <button id="closeNodeDetail" type="button">关闭</button>
