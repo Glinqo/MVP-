@@ -187,18 +187,14 @@
               <strong>岗位能力图谱</strong>
               <span>行业需求与岗位链路</span>
             </button>
-            <button data-open-tool="graph" data-graph-view="student" type="button">
-              <strong>个人能力图谱</strong>
-              <span>问答与自测动态更新</span>
-            </button>
-            <button data-open-tool="graph" data-graph-view="current" type="button">
-              <strong>当前问题图谱</strong>
-              <span>本次问题命中的缺口</span>
-            </button>
-            <button data-open-tool="knowledge" type="button">
-              <strong>知识缺口</strong>
-              <span>NPN/PNP、公共端、I/O 地址</span>
-            </button>
+           <button data-open-tool="graph" data-graph-view="student" type="button">
+             <strong>个人能力图谱</strong>
+             <span>问答与自测动态更新</span>
+           </button>
+           <button data-open-tool="knowledge" type="button">
+             <strong>知识缺口</strong>
+             <span>NPN/PNP、公共端、I/O 地址</span>
+           </button>
             <button data-open-tool="tasks" type="button">
               <strong>实训任务</strong>
               <span>一节课内可完成的补救训练</span>
@@ -259,9 +255,8 @@
           <section id="workspaceGraph" class="workspace-panel">
             <div class="graph-tabs">
               <button class="active" data-graph-view="job" type="button">岗位能力图谱</button>
-              <button data-graph-view="student" type="button">个人能力图谱</button>
-              <button data-graph-view="current" type="button">当前问题图谱</button>
-            </div>
+             <button data-graph-view="student" type="button">个人能力图谱</button>
+           </div>
 
             <div id="graphViewJob" class="graph-view active">
               <div id="jobGraphDiagram" class="graph-diagram force-graph-container" aria-label="岗位能力图谱可视化"></div>
@@ -312,21 +307,7 @@
               <pre id="studentMermaidOutput" class="mermaid-box">加载中</pre>
             </div>
 
-            <div id="graphViewCurrent" class="graph-view">
-              <div id="currentGraphDiagram" class="graph-diagram force-graph-container" aria-label="当前问题能力图谱可视化"></div>
-              <div class="workspace-grid">
-                <div>
-                  <h3>当前问题命中节点</h3>
-                  <div id="graphList" class="graph-list"></div>
-                </div>
-                <div>
-                  <h3>说明</h3>
-                  <div id="currentGraphMeta" class="section-block muted">提交问题后会显示本次暴露的能力缺口。</div>
-                </div>
-              </div>
-              <pre id="mermaidOutput" class="mermaid-box">加载中</pre>
-            </div>
-          </section>
+            
 
           <section id="workspaceKnowledge" class="workspace-panel">
             <h3>知识缺口</h3>

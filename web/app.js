@@ -522,7 +522,6 @@ function renderToolSuggestions(items) {
       dashboard: '[data-open-tool="dashboard"]',
       job_graph: '[data-open-tool="graph"][data-graph-view="job"]',
       student_graph: '[data-open-tool="graph"][data-graph-view="student"]',
-      graph: '[data-open-tool="graph"][data-graph-view="current"]',
       knowledge: '[data-open-tool="knowledge"]',
       tasks: '[data-open-tool="tasks"]',
       quiz: '[data-open-tool="quiz"]',
@@ -705,8 +704,6 @@ function renderGraphDiagram(graph, targetId) {
   state.graphRenderers[targetId].update(graph);
   return;
 
-
-
 }
 
 function renderDemandSources(graph) {
@@ -826,7 +823,7 @@ function closeNodeDetail() {
   $("nodeDetailDrawer").setAttribute("aria-hidden", "true");
 }
 
-function renderGraph(graph, type = "current") {
+function renderGraph(graph, type = "job") {
   state.graphs[type] = graph || null;
   if (type === "job") {
     $("jobMermaidOutput").textContent = graph?.mermaid || "";
@@ -845,13 +842,6 @@ function renderGraph(graph, type = "current") {
     renderGraphUpdateLog(graph?.update_log || []);
     return;
   }
-  $("mermaidOutput").textContent = graph?.mermaid || "";
-  renderGraphLegend(graph, "currentGraphDiagram");
-  renderGraphDiagram(graph, "currentGraphDiagram");
-  renderGraphNodes(graph, "graphList");
-  $("currentGraphMeta").textContent = graph?.nodes?.some((node) => node.status === "weak")
-    ? "本次问题命中的能力节点已高亮为薄弱，请结合右侧知识缺口和实训任务补救。"
-    : "提交问题后会显示本次暴露的能力缺口。";
 }
 
 function renderKnowledge(items) {
@@ -1438,7 +1428,7 @@ function applyChatResult(data) {
   });
   renderSuggestedQuestions(data.suggested_questions || []);
   renderToolSuggestions(data.tool_suggestions || []);
-  renderGraph(data.ability_knowledge_view?.graph || {}, "current");
+
   if (data.student_graph) renderGraph(data.student_graph, "student");
   loadGraphUpdates();
   loadStudentDashboard();
@@ -1492,7 +1482,7 @@ async function submitDiagnosis() {
     });
     state.lastDiagnosis = data;
     renderScore(data);
-    renderGraph(data.ability_graph, "current");
+
     if (data.student_graph) renderGraph(data.student_graph, "student");
     await loadGraphUpdates();
     await loadStudentDashboard();
@@ -1534,10 +1524,9 @@ async function boot() {
     const health = await api("/api/health");
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
     $("healthStatus").classList.add("ok");
-    const [start, quiz, currentGraph, jobGraph, studentBootstrap, studentDashboard] = await Promise.all([
+    const [start, quiz, jobGraph, studentBootstrap, studentDashboard] = await Promise.all([
       api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId }) }),
       api("/api/quiz"),
-      api("/api/graph"),
       api("/api/graph/job"),
       api(`/api/student/bootstrap?session_id=${encodeURIComponent(state.sessionId)}`),
       api(`/api/student/dashboard?session_id=${encodeURIComponent(state.sessionId)}`)
@@ -1557,7 +1546,6 @@ async function boot() {
     }
     renderSuggestedQuestions(start.suggested_questions || []);
     renderQuiz(quiz.questions);
-    renderGraph(currentGraph, "current");
     renderGraph(jobGraph, "job");
     renderJobProposals(jobGraph.pending_proposals || []);
     renderGraph(studentBootstrap.student_graph, "student");
@@ -1616,7 +1604,6 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && $("explainDrawer").classList.contains("open")) closeExplainDrawer();
 });
 
-
   // ForceGraph responsive resize
   window.addEventListener('resize', () => {
     setTimeout(() => {
@@ -1651,5 +1638,3 @@ function selectJob(jobId) {
     if (typeof boot === "function") boot();
   }, 400);
 }
-
-
