@@ -19,6 +19,8 @@ from app.services.feedback import append_session_event, save_feedback, teacher_s
 from app.services.graph import build_ability_graph, build_job_ability_graph, build_student_ability_graph  # noqa: E402
 from app.services.graph_update_engine import (  # noqa: E402
     confirm_job_graph_proposals,
+    confirm_sqlite_job_graph_proposal,
+    confirm_sqlite_job_graph_proposals,
     generate_job_graph_proposals,
     graph_update_timeline,
     record_student_graph_event,
@@ -33,6 +35,7 @@ from app.services.scoring import score_answers  # noqa: E402
 from app.services.student_dashboard import build_student_dashboard  # noqa: E402
 
 from scripts.pipeline.evidence_store import list_snapshots, get_snapshot, version_diff, version_rollback
+from scripts.pipeline.job_data_importer import ingest_job_text
 from app.services.matching import compute_match
 
 
@@ -89,8 +92,23 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/job-profile":
             return self.send_json({"profile": primary_job_profile()})
 
+        if path == "/api/job-data/documents":
+            query = parse_qs(parsed.query)
+            source_type = query.get("source_type", [None])[0]
+            limit = int(query.get("limit", [50])[0])
+            from scripts.pipeline.evidence_store import list_raw_documents
+            return self.send_json({"documents": list_raw_documents(source_type, limit)})
+
+        if path == "/api/job-data/posts":
+            query = parse_qs(parsed.query)
+            job_role = query.get("job_role", [None])[0]
+            limit = int(query.get("limit", [50])[0])
+            from scripts.pipeline.evidence_store import list_job_posts
+            return self.send_json({"posts": list_job_posts(job_role, limit)})
+
         if path == "/api/graph/job":
-            return self.send_json(build_job_ability_graph())
+            job_role = parse_qs(parsed.query).get("job_role", [None])[0]
+            return self.send_json(build_job_ability_graph(job_role))
 
         if path == "/api/graph/student":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
@@ -122,16 +140,6 @@ class MVPHandler(BaseHTTPRequestHandler):
             job_role = parse_qs(parsed.query).get("job_role", [None])[0]
             from scripts.pipeline.evidence_store import get_pending_proposals
             return self.send_json({"proposals": get_pending_proposals(job_role)})
-
-        if path == "/api/graph/job/proposals/confirm-sqlite":
-            from scripts.pipeline.evidence_store import confirm_proposal, reject_proposal
-            pid = payload.get("proposal_id", "")
-            action = payload.get("action", "confirm")
-            if action == "confirm":
-                result = confirm_proposal(pid, payload.get("confirmed_by", "teacher"))
-            else:
-                result = reject_proposal(pid)
-            return self.send_json(result)
 
         if path == "/api/scenarios":
             return self.send_json(list_scenarios())
@@ -178,64 +186,55 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json({**event_result, "student_graph": build_student_ability_graph(payload.get("session_id"))})
             if path == "/api/graph/job/proposals":
                 return self.send_json(generate_job_graph_proposals(payload))
+            if path == "/api/job-data/collect":
+                from scripts.job_intelligence_update import DEFAULT_RUN_LOG, DEFAULT_SOURCES, run_update
 
+                def optional_int(value):
+                    if value in (None, ""):
+                        return None
+                    return int(value)
 
+                args = argparse.Namespace(
+                    sources=payload.get("sources", str(DEFAULT_SOURCES)),
+                    source_id=payload.get("source_id"),
+                    dry_run=bool(payload.get("dry_run", False)),
+                    max_sources=optional_int(payload.get("max_sources")),
+                    timeout=optional_int(payload.get("timeout")),
+                    max_bytes=optional_int(payload.get("max_bytes")),
+                    run_log=payload.get("run_log", str(DEFAULT_RUN_LOG)),
+                    store=payload.get("store", "sqlite"),
+                    use_llm=bool(payload.get("use_llm", False)),
+                    max_abilities=int(payload.get("max_abilities", 5) or 5),
+                )
+                return self.send_json(run_update(args))
             if path == "/api/graph/job/ingest":
-                text = payload.get("text", "")
+                text = (payload.get("text") or "").strip()
+                if not text:
+                    return self.send_error_json(400, "text is required")
                 source_type = payload.get("source_type", "teacher_material")
-                use_llm = payload.get("use_llm", False)
-                from scripts.pipeline.cleaner import extract_skill_spans, map_skills_to_abilities, load_ability_nodes
-                from scripts.pipeline.evidence_store import add_event, add_proposal, compute_proposal_score
-                from scripts.pipeline.sqlite_store import proposal_threshold as pt
-                nodes = load_ability_nodes()
-                if use_llm:
-                    from scripts.pipeline.llm_extractor import extract_with_both
-                    abilities = extract_with_both(text, nodes)
-                else:
-                    skills = extract_skill_spans(text)
-                    abilities = map_skills_to_abilities(skills, nodes)
-                events = []
-                for a in abilities[:5]:
-                    aid = str(a.get('ability_id', a.get('id', 'unknown')))
-                    conf = float(a.get("confidence", 0.5)) if isinstance(a.get("confidence"), (int, float)) else 0.5
-                    ev = add_event(
-                        job_role='??????????????',
-                        ability_id=aid,
-                        evidence_text=text[:300],
-                        source_type=source_type,
-                        extraction_method='llm_assisted' if use_llm else 'rule_lexicon_v1',
-                        confidence=conf
-                    )
-                    events.append({**ev, "ability": a})
-                proposals = []
-                for a in abilities[:5]:
-                    score = compute_proposal_score(source_type, 0.75, len(abilities), 1)
-                    threshold = pt(score)
-                    if threshold in ('auto_approve', 'pending'):
-                        aid = str(a.get("ability_id", a.get("id", "unknown")))
-                        pr = add_proposal(
-                            job_role='??????????????',
-                            ability_id=aid,
-                            action='strengthen',
-                            suggested_weight_delta=round(score * 0.15, 2),
-                            evidence=text[:200],
-                            source='ingest_' + source_type,
-                            proposal_score=score
-                        )
-                        pr["ability_name"] = a.get("name") or a.get("ability_name")
-                        pr["threshold"] = threshold
-                        proposals.append(pr)
-                return self.send_json({
-                    "text_analyzed": text[:100],
-                    "abilities_matched": abilities[:5],
-                    "events_created": events,
-                    "proposals_generated": proposals,
-                    "llm_used": use_llm,
-                    "method": "llm_extraction" if use_llm else "rule_lexicon",
-                })
+                source_url = payload.get("source_url", "")
+                source = payload.get("source", "ingest_" + source_type)
+                use_llm = bool(payload.get("use_llm", False))
+                job_role = payload.get("job_role") or primary_job_profile().get("role_name", "自动化生产线装调与运维技术员")
+                max_abilities = int(payload.get("max_abilities", 5) or 5)
+                return self.send_json(ingest_job_text(
+                    text,
+                    job_role=job_role,
+                    source_type=source_type,
+                    source=source,
+                    source_url=source_url,
+                    use_llm=use_llm,
+                    max_abilities=max_abilities,
+                ))
+            if path == "/api/graph/job/proposals/confirm-sqlite":
+                return self.send_json(confirm_sqlite_job_graph_proposal(payload))
+            if path == "/api/graph/job/proposals/confirm-sqlite-batch":
+                return self.send_json(confirm_sqlite_job_graph_proposals(payload))
             if path == "/api/graph/job/proposals/confirm":
                 result = confirm_job_graph_proposals(payload)
                 return self.send_json({**result, "job_graph": build_job_ability_graph()})
+            if path == "/api/graph/job/versions/rollback":
+                return self.send_json(version_rollback(payload.get("version"), payload.get("job_role")))
             if path == "/api/assist":
                 return self.send_json(assist(payload))
             if path == "/api/score":
@@ -260,10 +259,6 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_error_json(400, str(exc))
         except Exception as exc:  # pragma: no cover - defensive boundary for demo server
             return self.send_error_json(500, str(exc))
-
-
-            if path == "/api/graph/job/versions/rollback":
-                return self.send_json(version_rollback(payload.get("version"), payload.get("job_role")))
         return self.send_error_json(404, "API endpoint not found")
 
     def serve_static(self, request_path):

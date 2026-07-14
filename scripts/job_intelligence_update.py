@@ -140,7 +140,9 @@ def robots_allowed(url: str, user_agent: str, timeout: int) -> tuple[bool, str]:
 
 
 def fetch_url(source: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]:
-    url = source["url"]
+    url = source.get("url") or source.get("search_url")
+    if not url:
+        return {"ok": False, "skip_reason": "url_missing", "source_id": source.get("id")}
     user_agent = policy.get("user_agent", "mechatronics-agent-mvp-job-intelligence/0.1")
     timeout = int(policy.get("timeout_seconds", 10))
     max_bytes = int(policy.get("max_bytes_per_source", 500000))
@@ -176,10 +178,15 @@ def fetch_url(source: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]:
 
 
 def fetch_local_file(source: dict[str, Any]) -> dict[str, Any]:
-    path = resolve_path(source["path"])
+    path_text = source.get("path") or source.get("local_path")
+    if not path_text:
+        return {"ok": False, "skip_reason": "local_file_path_missing", "source_id": source.get("id")}
+    path = resolve_path(path_text)
     if not path.exists():
         return {"ok": False, "skip_reason": "local_file_missing", "source_id": source.get("id"), "path": str(path)}
-    text = html_to_text(path.read_text(encoding="utf-8", errors="replace"))
+    from scripts.pipeline.job_data_importer import read_text_fallback
+
+    text = html_to_text(read_text_fallback(path))
     return {
         "ok": True,
         "source_id": source.get("id"),
@@ -263,12 +270,31 @@ def select_sources(config: dict[str, Any], source_id: str | None, max_sources: i
     sources = [item for item in config.get("sources", []) if item.get("enabled", False)]
     if source_id:
         sources = [item for item in sources if item.get("id") == source_id]
-    limit = max_sources or int(config.get("policy", {}).get("max_sources_per_run", 3))
+    policy = config_policy(config)
+    limit = max_sources or int(policy.get("max_sources_per_run", 3))
     return sources[:limit]
 
 
+def config_policy(config: dict[str, Any]) -> dict[str, Any]:
+    """Support both old test fixture policy and current source registry format."""
+    policy = dict(config.get("policy") or config.get("update_policy") or {})
+    if "rate_limit_delay_s" in policy and "request_interval_seconds" not in policy:
+        policy["request_interval_seconds"] = policy["rate_limit_delay_s"]
+    return policy
+
+
+def source_kind(source: dict[str, Any]) -> str:
+    if source.get("type"):
+        return source["type"]
+    if source.get("source_type") == "local_file" or source.get("local_path"):
+        return "local_file"
+    if source.get("url") or source.get("search_url"):
+        return "url"
+    return "unknown"
+
+
 def collect(config: dict[str, Any], args: argparse.Namespace) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    policy = dict(config.get("policy", {}))
+    policy = config_policy(config)
     if args.timeout:
         policy["timeout_seconds"] = args.timeout
     if args.max_bytes:
@@ -280,7 +306,7 @@ def collect(config: dict[str, Any], args: argparse.Namespace) -> tuple[list[dict
     sources = select_sources(config, args.source_id, args.max_sources)
 
     for index, source in enumerate(sources):
-        source_type = source.get("type")
+        source_type = source_kind(source)
         if source_type == "local_file":
             result = fetch_local_file(source)
         elif source_type == "url":
@@ -309,7 +335,6 @@ def collect(config: dict[str, Any], args: argparse.Namespace) -> tuple[list[dict
                         "matched_abilities": matched,
                     }
                 )
-                result.pop("text", None)
                 collected.append(result)
 
         if source_type == "url" and index + 1 < len(sources):
@@ -351,6 +376,66 @@ def generate_proposals(material: str, collected: list[dict[str, Any]]) -> dict[s
     )
 
 
+def ingest_collected_sources(
+    collected: list[dict[str, Any]],
+    use_llm: bool = False,
+    max_abilities: int = 5,
+) -> dict[str, Any]:
+    """Write collected authorized job materials into the SQLite evidence pipeline."""
+    from scripts.pipeline.job_data_importer import SUPPORTED_SUFFIXES, import_path, ingest_job_text
+
+    results = []
+    for item in collected:
+        job_role = item.get("job_role") or "自动化生产线装调与运维技术员"
+        source_type = item.get("source_type", "job_intelligence_update")
+        source = item.get("source") or item.get("source_id") or "job_intelligence_update"
+        path_text = item.get("path")
+        path = Path(path_text) if path_text else None
+
+        if path and path.exists() and path.suffix.lower() in SUPPORTED_SUFFIXES:
+            imported = import_path(
+                path,
+                job_role=job_role,
+                source_type=source_type,
+                source=source,
+                use_llm=use_llm,
+                max_abilities=max_abilities,
+            )
+            results.append({
+                "source_id": item.get("source_id"),
+                "source": source,
+                "document_count": imported["document_count"],
+                "event_count": imported["event_count"],
+                "proposal_count": imported["proposal_count"],
+            })
+            continue
+
+        text = item.get("text") or "\n".join(item.get("snippets", []))
+        imported = ingest_job_text(
+            text,
+            job_role=job_role,
+            source_type=source_type,
+            source=source,
+            source_url=item.get("url", ""),
+            use_llm=use_llm,
+            max_abilities=max_abilities,
+        )
+        results.append({
+            "source_id": item.get("source_id"),
+            "source": source,
+            "document_count": 1,
+            "event_count": len(imported["events_created"]),
+            "proposal_count": len(imported["proposals_generated"]),
+        })
+
+    return {
+        "document_count": sum(item["document_count"] for item in results),
+        "event_count": sum(item["event_count"] for item in results),
+        "proposal_count": sum(item["proposal_count"] for item in results),
+        "sources": results,
+    }
+
+
 def summary_from_matches(collected: list[dict[str, Any]]) -> list[dict[str, Any]]:
     totals: dict[str, dict[str, Any]] = {}
     for item in collected:
@@ -373,15 +458,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--timeout", type=int, help="Override network timeout in seconds.")
     parser.add_argument("--max-bytes", type=int, help="Override max bytes per source.")
     parser.add_argument("--run-log", default=str(DEFAULT_RUN_LOG), help="Runtime log path for non-dry runs.")
+    parser.add_argument(
+        "--store",
+        choices=["sqlite", "legacy", "both"],
+        default="sqlite",
+        help="Where non-dry runs write proposals. sqlite uses the evidence-driven backend.",
+    )
+    parser.add_argument("--use-llm", action="store_true", help="Use the configured LLM as an auxiliary extractor.")
+    parser.add_argument("--max-abilities", type=int, default=5, help="Max abilities to extract per collected source.")
     return parser.parse_args()
 
 
-def main() -> int:
-    args = parse_args()
+def run_update(args: argparse.Namespace) -> dict[str, Any]:
     config = read_json(resolve_path(args.sources))
-    if not config.get("policy", {}).get("enabled", True):
-        print(json.dumps({"ok": False, "reason": "job_intelligence_policy_disabled"}, ensure_ascii=False, indent=2))
-        return 0
+    if not config_policy(config).get("enabled", True):
+        return {"ok": False, "reason": "job_intelligence_policy_disabled"}
 
     collected, skipped = collect(config, args)
     material = build_material(collected)
@@ -408,14 +499,35 @@ def main() -> int:
     }
 
     if collected and not args.dry_run:
-        proposal_result = generate_proposals(material, collected)
-        output["proposal_batch_id"] = proposal_result.get("batch_id")
-        output["proposal_count"] = len(proposal_result.get("proposals", []))
+        total_proposals = 0
+        if args.store in {"sqlite", "both"}:
+            sqlite_result = ingest_collected_sources(
+                collected,
+                use_llm=bool(args.use_llm),
+                max_abilities=int(args.max_abilities or 5),
+            )
+            output["sqlite_ingest"] = sqlite_result
+            total_proposals += sqlite_result["proposal_count"]
+        if args.store in {"legacy", "both"}:
+            proposal_result = generate_proposals(material, collected)
+            output["proposal_batch_id"] = proposal_result.get("batch_id")
+            output["legacy_proposal_count"] = len(proposal_result.get("proposals", []))
+            total_proposals += output["legacy_proposal_count"]
+        else:
+            output["proposal_batch_id"] = None
+            output["legacy_proposal_count"] = 0
+        output["proposal_count"] = total_proposals
         append_run_log(resolve_path(args.run_log), output)
     else:
         output["proposal_batch_id"] = None
+        output["legacy_proposal_count"] = 0
         output["proposal_count"] = 0
 
+    return output
+
+
+def main() -> int:
+    output = run_update(parse_args())
     print(json.dumps(output, ensure_ascii=False, indent=2))
     return 0
 

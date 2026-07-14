@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """Phase 0 Pipeline Tests"""
-import json, sys, os
+import json, sys, os, tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+_TMP_DB = tempfile.TemporaryDirectory()
+os.environ["MVP_EVIDENCE_DB_PATH"] = str(Path(_TMP_DB.name) / "evidence.db")
 
 from scripts.crawler_framework import load_sources, get_crawler, BaseCrawler
 from scripts.pipeline.cleaner import extract_skill_spans, map_skills_to_abilities, normalize_title, load_lexicon, load_ability_nodes
@@ -107,4 +109,9 @@ if enterprise_src:
     check("enterprise crawler dispatch", c3.__class__.__name__ == "EnterpriseCrawler")
 
 print(f"\n=== Results: {passed} passed, {failed} failed out of {passed + failed} ===")
+try:
+    from scripts.pipeline.evidence_store import close
+    close()
+finally:
+    _TMP_DB.cleanup()
 sys.exit(0 if failed == 0 else 1)
