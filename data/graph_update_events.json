@@ -460,6 +460,48 @@
       "created_at": "2026-07-14T02:32:08.971963+00:00",
       "session_id": "demo-1783996322457",
       "event_id": "20260714T023208971963+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC 输入公共端判断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K006",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看电源端子与输入公共端区别讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-14T02:54:05.379833+00:00",
+      "session_id": "demo-1783997627652",
+      "event_id": "20260714T025405379833+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "sensor_wiring_judgement"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线判断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K014",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看输出类型与公共端匹配讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-14T02:54:06.018383+00:00",
+      "session_id": "demo-1783997627652",
+      "event_id": "20260714T025406018383+0000"
     }
   ]
 }

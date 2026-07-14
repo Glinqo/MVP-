@@ -528,7 +528,6 @@ function renderToolSuggestions(items) {
       quiz: '[data-open-tool="quiz"]',
       scenario: '[data-open-tool="scenario"]',
       plan: '[data-open-tool="plan"]',
-      teacher: '[data-open-tool="teacher"]'
     }[item.id];
     if (selector) document.querySelector(selector)?.classList.add("suggested");
   }
@@ -999,7 +998,6 @@ function workspaceTitle(panel) {
     scenario: "排故角色扮演",
     quiz: "自测验证",
     plan: "个人培养方案",
-    teacher: "教师/师傅摘要"
   }[panel] || "功能工作台";
 }
 
@@ -1012,7 +1010,6 @@ function setWorkspacePanel(panel) {
   document.querySelectorAll(".workspace-panel").forEach((section) => {
     section.classList.toggle("active", section.id === `workspace${panel.charAt(0).toUpperCase()}${panel.slice(1)}`);
   });
-  if (panel === "teacher") loadTeacherSummary();
   if (panel === "dashboard") loadStudentDashboard();
   if (panel === "plan") loadPersonalizedPlan();
   if (panel === "scenario") loadScenarios();
@@ -1532,16 +1529,6 @@ async function submitFeedback(feedback) {
   await loadStudentDashboard();
 }
 
-async function loadTeacherSummary() {
-  const data = await api("/api/teacher/summary");
-  $("teacherSummary").innerHTML = `
-    <p>会话数：${data.session_count}</p>
-    <p>反馈统计：${escapeHtml(JSON.stringify(data.feedback_counts))}</p>
-    <p>Top 薄弱点：${(data.top_weak_abilities || []).map((item) => `${escapeHtml(item.ability_name)}(${item.count})`).join("，") || "暂无"}</p>
-    <p>${escapeHtml(data.teaching_suggestion)}</p>
-  `;
-}
-
 async function boot() {
   try {
     const health = await api("/api/health");
@@ -1597,7 +1584,6 @@ $("refreshDashboard").addEventListener("click", loadStudentDashboard);
 $("startScenario").addEventListener("click", startScenario);
 $("generateJobProposals").addEventListener("click", generateJobProposals);
 $("confirmJobProposals").addEventListener("click", confirmJobProposals);
-$("loadTeacherSummary").addEventListener("click", loadTeacherSummary);
 document.querySelectorAll("[data-feedback]").forEach((button) => {
   button.addEventListener("click", () => submitFeedback(button.dataset.feedback));
 });
@@ -1665,3 +1651,5 @@ function selectJob(jobId) {
     if (typeof boot === "function") boot();
   }, 400);
 }
+
+

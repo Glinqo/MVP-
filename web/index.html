@@ -211,15 +211,11 @@
               <strong>自测验证 <span id="quizCount">加载中</span></strong>
               <span>8 题确定性评分</span>
             </button>
-            <button data-open-tool="plan" type="button">
-              <strong>个人培养方案</strong>
-              <span>知识讲解、视频资源、实训路径</span>
-            </button>
-            <button data-open-tool="teacher" type="button">
-              <strong>教师/师傅摘要</strong>
-              <span>高频薄弱点与教学建议</span>
-            </button>
-          </div>
+           <button data-open-tool="plan" type="button">
+             <strong>个人培养方案</strong>
+             <span>知识讲解、视频资源、实训路径</span>
+           </button>
+         </div>
         </section>
 
         <div class="feedback-row">
@@ -248,9 +244,8 @@
           <button data-workspace-panel="tasks" type="button">实训任务</button>
           <button data-workspace-panel="scenario" type="button">角色扮演</button>
           <button data-workspace-panel="quiz" type="button">自测</button>
-          <button data-workspace-panel="plan" type="button">培养方案</button>
-          <button data-workspace-panel="teacher" type="button">教师摘要</button>
-        </nav>
+         <button data-workspace-panel="plan" type="button">培养方案</button>
+       </nav>
 
         <div class="workspace-body">
           <section id="workspaceDashboard" class="workspace-panel active">
@@ -375,15 +370,9 @@
                 <button id="loadSevenDayPlan" type="button">7 天补强计划</button>
               </div>
             </div>
-            <div id="personalizedPlan" class="section-block muted">尚未生成培养方案。</div>
-          </section>
-
-          <section id="workspaceTeacher" class="workspace-panel">
-            <h3>教师/师傅摘要</h3>
-            <button id="loadTeacherSummary" class="secondary-action" type="button">刷新摘要</button>
-            <div id="teacherSummary" class="section-block muted">尚未加载</div>
-          </section>
-        </div>
+           <div id="personalizedPlan" class="section-block muted">尚未生成培养方案。</div>
+         </section>
+       </div>
       </div>
       <aside id="nodeDetailDrawer" class="node-detail-drawer" aria-hidden="true">
         <button id="closeNodeDetail" type="button">关闭</button>
