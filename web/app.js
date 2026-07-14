@@ -16,7 +16,6 @@ const state = {
   graphRenderers: {}, graphs: {
     job: null,
     student: null,
-    current: null
   },
   activeWorkspace: "dashboard",
   activeGraphView: "job",
@@ -827,7 +826,7 @@ function closeNodeDetail() {
   $("nodeDetailDrawer").setAttribute("aria-hidden", "true");
 }
 
-function renderGraph(graph, type = "current") {
+function renderGraph(graph, type = "job") {
   state.graphs[type] = graph || null;
   if (type === "job") {
     $("jobMermaidOutput").textContent = graph?.mermaid || "";
@@ -846,13 +845,6 @@ function renderGraph(graph, type = "current") {
     renderGraphUpdateLog(graph?.update_log || []);
     return;
   }
-  $("mermaidOutput").textContent = graph?.mermaid || "";
-  renderGraphLegend(graph, "currentGraphDiagram");
-  renderGraphDiagram(graph, "currentGraphDiagram");
-  renderGraphNodes(graph, "graphList");
-  $("currentGraphMeta").textContent = graph?.nodes?.some((node) => node.status === "weak")
-    ? "本次问题命中的能力节点已高亮为薄弱，请结合右侧知识缺口和实训任务补救。"
-    : "提交问题后会显示本次暴露的能力缺口。";
 }
 
 function renderKnowledge(items) {
@@ -999,7 +991,6 @@ function workspaceTitle(panel) {
     scenario: "排故角色扮演",
     quiz: "自测验证",
     plan: "个人培养方案",
-    teacher: "教师/师傅摘要"
   }[panel] || "功能工作台";
 }
 
@@ -1012,7 +1003,6 @@ function setWorkspacePanel(panel) {
   document.querySelectorAll(".workspace-panel").forEach((section) => {
     section.classList.toggle("active", section.id === `workspace${panel.charAt(0).toUpperCase()}${panel.slice(1)}`);
   });
-  if (panel === "teacher") loadTeacherSummary();
   if (panel === "dashboard") loadStudentDashboard();
   if (panel === "plan") loadPersonalizedPlan();
   if (panel === "scenario") loadScenarios();
@@ -1441,7 +1431,6 @@ function applyChatResult(data) {
   });
   renderSuggestedQuestions(data.suggested_questions || []);
   renderToolSuggestions(data.tool_suggestions || []);
-  renderGraph(data.ability_knowledge_view?.graph || {}, "current");
   if (data.student_graph) renderGraph(data.student_graph, "student");
   loadGraphUpdates();
   loadStudentDashboard();
@@ -1495,7 +1484,6 @@ async function submitDiagnosis() {
     });
     state.lastDiagnosis = data;
     renderScore(data);
-    renderGraph(data.ability_graph, "current");
     if (data.student_graph) renderGraph(data.student_graph, "student");
     await loadGraphUpdates();
     await loadStudentDashboard();
@@ -1532,25 +1520,14 @@ async function submitFeedback(feedback) {
   await loadStudentDashboard();
 }
 
-async function loadTeacherSummary() {
-  const data = await api("/api/teacher/summary");
-  $("teacherSummary").innerHTML = `
-    <p>会话数：${data.session_count}</p>
-    <p>反馈统计：${escapeHtml(JSON.stringify(data.feedback_counts))}</p>
-    <p>Top 薄弱点：${(data.top_weak_abilities || []).map((item) => `${escapeHtml(item.ability_name)}(${item.count})`).join("，") || "暂无"}</p>
-    <p>${escapeHtml(data.teaching_suggestion)}</p>
-  `;
-}
-
 async function boot() {
   try {
     const health = await api("/api/health");
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
     $("healthStatus").classList.add("ok");
-    const [start, quiz, currentGraph, jobGraph, studentBootstrap, studentDashboard] = await Promise.all([
+    const [start, quiz, jobGraph, studentBootstrap, studentDashboard] = await Promise.all([
       api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId }) }),
       api("/api/quiz"),
-      api("/api/graph"),
       api("/api/graph/job"),
       api(`/api/student/bootstrap?session_id=${encodeURIComponent(state.sessionId)}`),
       api(`/api/student/dashboard?session_id=${encodeURIComponent(state.sessionId)}`)
@@ -1570,7 +1547,6 @@ async function boot() {
     }
     renderSuggestedQuestions(start.suggested_questions || []);
     renderQuiz(quiz.questions);
-    renderGraph(currentGraph, "current");
     renderGraph(jobGraph, "job");
     renderJobProposals(jobGraph.pending_proposals || []);
     renderGraph(studentBootstrap.student_graph, "student");
@@ -1597,7 +1573,6 @@ $("refreshDashboard").addEventListener("click", loadStudentDashboard);
 $("startScenario").addEventListener("click", startScenario);
 $("generateJobProposals").addEventListener("click", generateJobProposals);
 $("confirmJobProposals").addEventListener("click", confirmJobProposals);
-$("loadTeacherSummary").addEventListener("click", loadTeacherSummary);
 document.querySelectorAll("[data-feedback]").forEach((button) => {
   button.addEventListener("click", () => submitFeedback(button.dataset.feedback));
 });
