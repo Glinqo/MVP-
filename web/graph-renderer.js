@@ -152,7 +152,6 @@ class ForceGraph {
         this.linkG = this.svg.append('g');
         this.nodeG = this.svg.append('g');
         this.labelG = this.svg.append('g');
-        this.legendG = this.svg.append('g').attr('class', 'graph-legend');
     }
 
     _setupSimulation() {
@@ -190,152 +189,7 @@ class ForceGraph {
             n.x = cx + r * Math.cos(a);
             n.y = cy + r * Math.sin(a);
         });
-    }
-
-    _statusLegendItems(nodes) {
-        const present = new Set((nodes || []).map(node => node.status));
-        const all = [
-            { status: 'industry_hot', label: '行业高频' },
-            { status: 'core', label: '岗位核心' },
-            { status: 'industry', label: '行业补充' },
-            { status: 'weak', label: '薄弱' },
-            { status: 'improving', label: '正在提升' },
-            { status: 'mastered', label: '已掌握' },
-            { status: 'recommended_next', label: '建议下一步' },
-            { status: 'touched', label: '问答命中' },
-            { status: 'root', label: '中心节点' },
-        ];
-        const visible = all.filter(item => present.has(item.status));
-        return visible.length ? visible.slice(0, 5) : all.slice(0, 3);
-    }
-
-    _renderLegend(graphData, nodes, edges) {
-        const g = this.legendG;
-        g.selectAll('*').remove();
-
-        const width = this.width < 920 ? 246 : 292;
-        const x = Math.max(14, this.width - width - 18);
-        const y = 16;
-        const dimensionItems = [
-            { key: 'electrical_safety_diagram', label: '电气安全' },
-            { key: 'sensor_signal_acquisition', label: '传感器/信号' },
-            { key: 'plc_control_debug', label: 'PLC 控制' },
-            { key: 'equipment_inspection_troubleshooting', label: '排故诊断' },
-        ].map(item => ({ ...item, color: this._dimColor(item.key) }));
-        const statusItems = this._statusLegendItems(nodes);
-        const height = 246 + statusItems.length * 22;
-
-        g.attr('transform', `translate(${x},${y})`);
-        g.append('rect')
-            .attr('width', width)
-            .attr('height', height)
-            .attr('rx', 12)
-            .attr('ry', 12)
-            .attr('fill', 'rgba(255,255,255,0.94)')
-            .attr('stroke', '#cbd5e1')
-            .attr('stroke-width', 1)
-            .attr('filter', 'url(#ns)');
-
-        g.append('text')
-            .attr('x', 14)
-            .attr('y', 24)
-            .attr('font-size', 13)
-            .attr('font-weight', 800)
-            .attr('fill', '#0f172a')
-            .text('图例 · 读图规则');
-
-        g.append('text')
-            .attr('x', 14)
-            .attr('y', 43)
-            .attr('font-size', 10.5)
-            .attr('fill', '#64748b')
-            .text('参考网络图：颜色分社区，大小看连接强度');
-
-        let cy = 67;
-        g.append('text').attr('x', 14).attr('y', cy).attr('font-size', 11).attr('font-weight', 700).attr('fill', '#334155').text('颜色 = 能力维度/社区');
-        cy += 15;
-        dimensionItems.forEach((item, index) => {
-            const rowY = cy + index * 21;
-            g.append('circle')
-                .attr('cx', 22)
-                .attr('cy', rowY)
-                .attr('r', 6)
-                .attr('fill', item.color.fill)
-                .attr('stroke', item.color.stroke)
-                .attr('stroke-width', 1.4);
-            g.append('text')
-                .attr('x', 36)
-                .attr('y', rowY + 4)
-                .attr('font-size', 11)
-                .attr('fill', '#1e293b')
-                .text(item.label);
-        });
-
-        cy += dimensionItems.length * 21 + 12;
-        g.append('text').attr('x', 14).attr('y', cy).attr('font-size', 11).attr('font-weight', 700).attr('fill', '#334155').text('大小 = 连接度/证据强度');
-        const sizeY = cy + 23;
-        [
-            { r: 5, label: '低' },
-            { r: 8, label: '中' },
-            { r: 12, label: '高' },
-        ].forEach((item, index) => {
-            const cx = 28 + index * 58;
-            g.append('circle')
-                .attr('cx', cx)
-                .attr('cy', sizeY)
-                .attr('r', item.r)
-                .attr('fill', '#f8fafc')
-                .attr('stroke', '#64748b')
-                .attr('stroke-width', 1.2);
-            g.append('text')
-                .attr('x', cx + 16)
-                .attr('y', sizeY + 4)
-                .attr('font-size', 10.5)
-                .attr('fill', '#475569')
-                .text(item.label);
-        });
-
-        cy += 54;
-        g.append('text').attr('x', 14).attr('y', cy).attr('font-size', 11).attr('font-weight', 700).attr('fill', '#334155').text('线条 = 关系类型');
-        const edgeY1 = cy + 19;
-        g.append('line').attr('x1', 18).attr('y1', edgeY1).attr('x2', 56).attr('y2', edgeY1).attr('stroke', '#cbd5e1').attr('stroke-width', 2).attr('marker-end', 'url(#ar)');
-        g.append('text').attr('x', 68).attr('y', edgeY1 + 4).attr('font-size', 10.5).attr('fill', '#475569').text('主链/先后依赖');
-        const edgeY2 = edgeY1 + 22;
-        g.append('line').attr('x1', 18).attr('y1', edgeY2).attr('x2', 56).attr('y2', edgeY2).attr('stroke', '#94a3b8').attr('stroke-width', 1.5).attr('stroke-dasharray', '6,4').attr('marker-end', 'url(#ar)');
-        g.append('text').attr('x', 68).attr('y', edgeY2 + 4).attr('font-size', 10.5).attr('fill', '#475569').text('行业/证据补充');
-
-        cy += 66;
-        g.append('text').attr('x', 14).attr('y', cy).attr('font-size', 11).attr('font-weight', 700).attr('fill', '#334155').text('外环 = 节点状态');
-        cy += 19;
-        statusItems.forEach((item, index) => {
-            const rowY = cy + index * 22;
-            const style = this._statusStyle(item.status);
-            g.append('circle')
-                .attr('cx', 24)
-                .attr('cy', rowY - 3)
-                .attr('r', 8)
-                .attr('fill', '#ffffff')
-                .attr('stroke', style.stroke)
-                .attr('stroke-width', Math.max(1.6, Math.min(3, style.width)))
-                .attr('stroke-dasharray', style.dash);
-            g.append('text')
-                .attr('x', 42)
-                .attr('y', rowY + 1)
-                .attr('font-size', 10.5)
-                .attr('fill', '#475569')
-                .text(item.label);
-        });
-
-        const hintY = height - 15;
-        g.append('text')
-            .attr('x', 14)
-            .attr('y', hintY)
-            .attr('font-size', 10.5)
-            .attr('fill', '#64748b')
-            .text('滚轮缩放 · 拖拽节点 · 点击查看证据');
-    }
-
-    update(graphData) {
+    }    update(graphData) {
         if (!graphData || !graphData.nodes) return;
         const nodeMap = new Map();
         (graphData.nodes || []).forEach(n => {
@@ -448,7 +302,6 @@ class ForceGraph {
         });
 
         this.selLabels = lg;
-        this._renderLegend(graphData, nodes, edges);
 
         // Click
         if (this.onNodeClick) {

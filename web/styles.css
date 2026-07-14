@@ -1520,3 +1520,239 @@ button:hover {
     max-width: 220px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
+
+
+/* ── Identity & Job Selection Landing ── */
+.landing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0a1628 0%, #1a2a4a 40%, #1e3a5f 100%);
+}
+
+.landing-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(15, 118, 110, 0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(168, 85, 247, 0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.landing-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 680px;
+  padding: 40px 24px;
+}
+
+.landing-header {
+  text-align: center;
+  margin-bottom: 48px;
+  position: relative;
+}
+
+.landing-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+
+.landing-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  letter-spacing: -0.01em;
+  margin: 0 0 8px;
+}
+
+.landing-subtitle {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.landing-back {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #cbd5e1;
+  padding: 8px 16px 8px 12px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.landing-back:hover {
+  background: rgba(255,255,255,0.12);
+  color: #f1f5f9;
+}
+
+.landing-step {
+  display: none;
+  animation: landingFadeIn 0.5s ease-out;
+}
+.landing-step.active {
+  display: block;
+}
+
+@keyframes landingFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes landingCardIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.landing-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.landing-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  padding: 24px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.25s ease;
+  animation: landingCardIn 0.5s ease-out backwards;
+  font-family: inherit;
+  color: inherit;
+}
+.landing-card:nth-child(1) { animation-delay: 0.1s; }
+.landing-card:nth-child(2) { animation-delay: 0.2s; }
+
+.landing-card:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.18);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+
+.landing-card:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.landing-card-icon {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border-radius: 14px;
+}
+
+.landing-card[data-identity="admin"] .landing-card-icon {
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.1);
+}
+
+.landing-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.landing-card-body strong {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 4px;
+}
+.landing-card-body span {
+  display: block;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.landing-card-arrow {
+  flex-shrink: 0;
+  color: #64748b;
+  transition: color 0.2s, transform 0.2s;
+}
+.landing-card:hover .landing-card-arrow {
+  color: #38bdf8;
+  transform: translateX(4px);
+}
+
+.landing-card[data-identity="admin"]:hover .landing-card-arrow {
+  color: #a78bfa;
+}
+
+/* Job card specifics */
+.job-card-lg .landing-card-icon {
+  width: 48px;
+  height: 48px;
+  color: #0f766e;
+  background: rgba(15, 118, 110, 0.12);
+}
+
+.job-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.job-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  padding: 2px 10px;
+  border-radius: 20px;
+  line-height: 1.5;
+}
+.job-tag.core {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+/* Transition state */
+.landing-overlay.fade-out {
+  animation: landingFadeOut 0.4s ease-in forwards;
+}
+
+@keyframes landingFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@media (max-width: 640px) {
+  .landing-header h1 { font-size: 1.5rem; }
+  .landing-header h2 { font-size: 1.25rem; }
+  .landing-card { padding: 18px; gap: 14px; }
+  .landing-card-icon { width: 44px; height: 44px; }
+  .landing-card-icon svg { width: 44px; height: 44px; }
+  .landing-card-body strong { font-size: 1rem; }
+  .landing-back { position: static; transform: none; margin-bottom: 16px; }
+}

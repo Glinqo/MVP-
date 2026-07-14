@@ -397,6 +397,69 @@
       "created_at": "2026-07-10T05:42:38.696014+00:00",
       "session_id": "demo-1783661960412",
       "event_id": "20260710T054238696014+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "program_variable_lookup"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "program_variable_lookup",
+          "name": "程序变量与输入地址查找"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K026",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看常开触点含义讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-14T02:07:08.449039+00:00",
+      "session_id": "demo-1783916359506",
+      "event_id": "20260714T020708449039+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "input_led_compare"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "input_led_compare",
+          "name": "传感器灯与 PLC 输入灯对比"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K031",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看传感器灯与 PLC 输入灯对比讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-14T02:32:07.065614+00:00",
+      "session_id": "demo-1783996322457",
+      "event_id": "20260714T023207065614+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC 输入公共端判断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K016",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看PLC 输入公共端作用讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-14T02:32:08.971963+00:00",
+      "session_id": "demo-1783996322457",
+      "event_id": "20260714T023208971963+0000"
     }
   ]
 }

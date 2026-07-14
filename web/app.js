@@ -692,7 +692,6 @@ function renderGraphDiagram(graph, targetId) {
     target.innerHTML = '<p class="muted">暂无图谱数据</p>';
     return;
   }
-  renderGraphLegend(graph, targetId);
   target.style.minHeight = '450px';
   if (!state.graphRenderers) state.graphRenderers = {};
   if (!state.graphRenderers[targetId]) {
@@ -832,6 +831,7 @@ function renderGraph(graph, type = "current") {
   state.graphs[type] = graph || null;
   if (type === "job") {
     $("jobMermaidOutput").textContent = graph?.mermaid || "";
+    renderGraphLegend(graph, "jobGraphDiagram");
     renderGraphDiagram(graph, "jobGraphDiagram");
     renderGraphNodes(graph, "jobGraphList");
     renderDemandSources(graph);
@@ -839,6 +839,7 @@ function renderGraph(graph, type = "current") {
   }
   if (type === "student") {
     $("studentMermaidOutput").textContent = graph?.mermaid || "";
+    renderGraphLegend(graph, "studentGraphDiagram");
     renderGraphDiagram(graph, "studentGraphDiagram");
     renderGraphNodes(graph, "studentGraphList");
     renderStudentEvidence(graph);
@@ -846,6 +847,7 @@ function renderGraph(graph, type = "current") {
     return;
   }
   $("mermaidOutput").textContent = graph?.mermaid || "";
+  renderGraphLegend(graph, "currentGraphDiagram");
   renderGraphDiagram(graph, "currentGraphDiagram");
   renderGraphNodes(graph, "graphList");
   $("currentGraphMeta").textContent = graph?.nodes?.some((node) => node.status === "weak")
@@ -1638,4 +1640,28 @@ document.addEventListener("keydown", (event) => {
     }, 200);
   });
 
-boot();
+// boot() called after job selection via selectJob()
+
+// ── Landing / Identity & Job Selection ──
+function selectIdentity(identity) {
+  localStorage.setItem("mcp_identity", identity);
+  document.getElementById("landingStepIdentity").classList.remove("active");
+  document.getElementById("landingStepJob").classList.add("active");
+}
+
+function backToIdentity() {
+  document.getElementById("landingStepJob").classList.remove("active");
+  document.getElementById("landingStepIdentity").classList.add("active");
+}
+
+function selectJob(jobId) {
+  localStorage.setItem("mcp_job_id", jobId);
+  const overlay = document.getElementById("landingOverlay");
+  overlay.classList.add("fade-out");
+  setTimeout(function() {
+    overlay.style.display = "none";
+    document.body.style.overflow = "";
+    // Start the app if not already started
+    if (typeof boot === "function") boot();
+  }, 400);
+}

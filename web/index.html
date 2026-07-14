@@ -8,6 +8,93 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
+    <!-- ── Identity & Job Selection Overlay ── -->
+    <div id="landingOverlay" class="landing-overlay">
+      <div class="landing-bg"></div>
+      <div class="landing-container">
+
+        <!-- Step 1: Identity -->
+        <div id="landingStepIdentity" class="landing-step active">
+          <div class="landing-header">
+            <h1>机电岗位培训 AI</h1>
+            <p class="landing-subtitle">Mechatronics Training AI</p>
+          </div>
+          <div class="landing-cards">
+            <button class="landing-card" data-identity="student" onclick="selectIdentity('student')">
+              <div class="landing-card-icon">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                  <path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>学生入口</strong>
+                <span>进入学习模式，完成岗位实训与能力评估</span>
+              </div>
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+            <button class="landing-card" data-identity="admin" onclick="selectIdentity('admin')">
+              <div class="landing-card-icon">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>管理入口</strong>
+                <span>管理岗位图谱、查看教学摘要与反馈</span>
+              </div>
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Job Position -->
+        <div id="landingStepJob" class="landing-step">
+          <div class="landing-header">
+            <button class="landing-back" onclick="backToIdentity()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
+              返回
+            </button>
+            <h2>选择目标岗位</h2>
+            <p class="landing-subtitle">当前为你匹配以下岗位能力图谱</p>
+          </div>
+          <div class="landing-cards">
+            <button class="landing-card job-card-lg" onclick="selectJob('automation_line_technician')">
+              <div class="landing-card-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>自动化生产线装调与运维技术员</strong>
+                <span>传感器 NPN/PNP 接线与 PLC 输入信号排查 · 25 个能力节点 · 20 道诊断题</span>
+                <div class="job-meta">
+                  <span class="job-tag">行业高频</span>
+                  <span class="job-tag core">岗位核心</span>
+                  <span class="job-tag">66 个知识点</span>
+                </div>
+              </div>
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <header class="topbar">
       <div>
         <p class="eyebrow">Mechatronics Training AI</p>
