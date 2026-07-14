@@ -39,12 +39,12 @@ class ForceGraph {
 
     _dimColor(dim) {
         const m = {
-            root: { fill: '#f8fafc', stroke: '#334155', text: '#0f172a', icon: '\u{1F3AF}' },
-            safety: { fill: '#fef2f2', stroke: '#dc2626', text: '#991b1b', icon: '\u26A1' },
-            sensor: { fill: '#eff6ff', stroke: '#2563eb', text: '#1e40af', icon: '\u{1F4E1}' },
-            plc: { fill: '#ecfdf5', stroke: '#059669', text: '#065f46', icon: '\u2699' },
-            fault: { fill: '#f5f3ff', stroke: '#7c3aed', text: '#4c1d95', icon: '\u{1F527}' },
-            _: { fill: '#f8fafc', stroke: '#64748b', text: '#1e293b', icon: '\u{1F4A0}' }
+            root: { fill: '#1e293b', stroke: '#475569', text: '#cbd5e1', icon: '\u{1F3AF}' },
+            safety: { fill: 'rgba(239,68,68,0.08)', stroke: '#dc2626', text: '#fca5a5', icon: '\u26A1' },
+            sensor: { fill: 'rgba(59,130,246,0.08)', stroke: '#3b82f6', text: '#93c5fd', icon: '\u{1F4E1}' },
+            plc: { fill: 'rgba(5,150,105,0.08)', stroke: '#10b981', text: '#6ee7b7', icon: '\u2699' },
+            fault: { fill: 'rgba(124,58,237,0.08)', stroke: '#8b5cf6', text: '#a78bfa', icon: '\u{1F527}' },
+            _: { fill: '#1e293b', stroke: '#64748b', text: '#94a3b8', icon: '\u{1F4A0}' }
         };
         const d = (dim || '').toLowerCase();
         if (d.includes('root') || d.includes('role') || d.includes('student')) return m.root;
@@ -121,17 +121,17 @@ class ForceGraph {
         );
     }
 
-    _keepInBounds(node) {
-        const pad = (node.radius || 32) + 68;
-        node.x = Math.max(pad, Math.min(this.width - pad, node.x || this.width / 2));
-        node.y = Math.max(pad, Math.min(this.height - pad, node.y || this.height / 2));
-    }
+   _keepInBounds(node) {
+        const pad = (node.radius || 32) + 15;
+       node.x = Math.max(pad, Math.min(this.width - pad, node.x || this.width / 2));
+       node.y = Math.max(pad, Math.min(this.height - pad, node.y || this.height / 2));
+   }
 
     _setupSVG() {
         this.svg = d3.select(this.container)
             .append('svg').attr('width', this.width).attr('height', this.height)
             .attr('viewBox', [0, 0, this.width, this.height])
-            .style('background', '#ffffff')
+            .style('background', '#0f1d35')
             .style('border-radius', '8px')
             .style('cursor', 'grab');
         this.defs = this.svg.append('defs');
@@ -142,11 +142,11 @@ class ForceGraph {
 
         // Arrow marker
         this.defs.append('marker').attr('id', 'ar').attr('viewBox', '0 -5 10 10').attr('refX', 38).attr('refY', 0).attr('markerWidth', 5).attr('markerHeight', 5).attr('orient', 'auto')
-            .append('path').attr('d', 'M0,-4L8,0L0,4').attr('fill', '#94a3b8');
+            .append('path').attr('d', 'M0,-4L8,0L0,4').attr('fill', '#475569');
 
         // Grid background
         const g = this.defs.append('pattern').attr('id', 'gd').attr('width', 24).attr('height', 24).attr('patternUnits', 'userSpaceOnUse');
-        g.append('path').attr('d', 'M 24 0 L 0 0 0 24').attr('fill', 'none').attr('stroke', '#f1f5f9').attr('stroke-width', 0.5);
+        g.append('path').attr('d', 'M 24 0 L 0 0 0 24').attr('fill', 'none').attr('stroke', '#1e293b').attr('stroke-width', 0.5);
         this.svg.append('rect').attr('width', '100%').attr('height', '100%').attr('fill', 'url(#gd)');
 
         this.linkG = this.svg.append('g');
@@ -230,7 +230,7 @@ class ForceGraph {
         this.linkG.selectAll('line').remove();
         this.selEdges = this.linkG.selectAll('line').data(edges, d => d.source + '-' + d.target)
             .enter().append('line')
-            .attr('stroke', d => d.type === 'industry_extension' ? '#94a3b8' : '#cbd5e1')
+            .attr('stroke', d => d.type === 'industry_extension' ? '#475569' : '#64748b')
             .attr('stroke-width', d => d.type === 'industry_extension' ? 1 : 2)
             .attr('stroke-dasharray', d => d.type === 'industry_extension' ? '6,4' : null)
             .attr('marker-end', 'url(#ar)').attr('opacity', 0.45);
@@ -276,11 +276,11 @@ class ForceGraph {
 
         // Label background (hidden, sized by text)
         lg.append('rect').attr('class', 'lb').attr('rx', 4).attr('ry', 4)
-            .attr('fill', 'rgba(255,255,255,0.92)').attr('stroke', '#e2e8f0').attr('stroke-width', 1);
+            .attr('fill', 'rgba(15,29,53,0.92)').attr('stroke', '#334155').attr('stroke-width', 1);
 
         // Label text
         const labelText = lg.append('text').attr('class', 'lt').attr('text-anchor', 'middle').attr('font-size', '11px').attr('font-weight', '600')
-            .attr('fill', '#1e293b').attr('pointer-events', 'none');
+            .attr('fill', '#e2e8f0').attr('pointer-events', 'none');
         labelText.each(function(d) {
             const text = d3.select(this);
             d.labelLines.forEach((line, index) => {

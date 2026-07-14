@@ -607,10 +607,10 @@ function splitLabel(label, maxLength = 12) {
 
 function graphDimensionLegend() {
   return [
-    { label: "电气安全", fill: "#fef2f2", stroke: "#dc2626" },
-    { label: "传感器/信号", fill: "#eff6ff", stroke: "#2563eb" },
-    { label: "PLC 控制", fill: "#ecfdf5", stroke: "#059669" },
-    { label: "排故诊断", fill: "#f5f3ff", stroke: "#7c3aed" }
+    { label: "电气安全", fill: "rgba(239,68,68,0.12)", stroke: "#dc2626" },
+    { label: "传感器/信号", fill: "rgba(59,130,246,0.12)", stroke: "#2563eb" },
+    { label: "PLC 控制", fill: "rgba(5,150,105,0.12)", stroke: "#059669" },
+    { label: "排故诊断", fill: "rgba(124,58,237,0.12)", stroke: "#7c3aed" }
   ];
 }
 
@@ -1196,70 +1196,6 @@ async function loadPersonalizedQuiz() {
     $("loadPersonalizedQuiz").textContent = "根据我的情况生成练习题";
   }
 }
-
-function renderJobProposals(proposals) {
-  $("jobProposalList").innerHTML = proposals?.length ? `
-    <ul class="item-list">
-      ${proposals.map((proposal) => `
-        <li>
-          <strong>${escapeHtml(proposal.ability_name)} · ${escapeHtml(proposal.action)}</strong>
-          <div>${escapeHtml(proposal.evidence)}</div>
-          <div class="muted">${escapeHtml(proposal.proposal_id)} · delta ${escapeHtml(proposal.suggested_weight_delta)} · source: ${escapeHtml(proposal.source)}</div>
-        </li>
-      `).join("")}
-    </ul>
-  ` : '<p class="muted">暂无待确认建议</p>';
-}
-
-async function generateJobProposals() {
-  const material = $("jobMaterialInput").value.trim();
-  if (!material) {
-    $("jobProposalList").innerHTML = '<p class="muted">请先粘贴岗位材料。</p>';
-    return;
-  }
-  $("generateJobProposals").disabled = true;
-  $("generateJobProposals").textContent = "生成中";
-  try {
-    const data = await api("/api/graph/job/proposals", {
-      method: "POST",
-      body: JSON.stringify({
-        material,
-        source_type: "teacher_curated",
-        source: "web_workspace_input"
-      })
-    });
-    renderJobProposals(data.proposals || []);
-    const jobGraph = await api("/api/graph/job");
-    renderGraph(jobGraph, "job");
-  } catch (error) {
-    $("jobProposalList").innerHTML = `<p class="muted">生成失败：${escapeHtml(error.message)}</p>`;
-  } finally {
-    $("generateJobProposals").disabled = false;
-    $("generateJobProposals").textContent = "生成更新建议";
-  }
-}
-
-async function confirmJobProposals() {
-  $("confirmJobProposals").disabled = true;
-  $("confirmJobProposals").textContent = "确认中";
-  try {
-    const data = await api("/api/graph/job/proposals/confirm", {
-      method: "POST",
-      body: JSON.stringify({
-        confirm_all: true,
-        confirmed_by: "demo_teacher"
-      })
-    });
-    renderGraph(data.job_graph, "job");
-    renderJobProposals(data.job_graph?.pending_proposals || []);
-  } catch (error) {
-    $("jobProposalList").innerHTML = `<p class="muted">确认失败：${escapeHtml(error.message)}</p>`;
-  } finally {
-    $("confirmJobProposals").disabled = false;
-    $("confirmJobProposals").textContent = "确认全部待处理建议";
-  }
-}
-
 function renderPersonalizedPlan(plan) {
   state.personalizedPlan = plan;
   state.learnerContext = plan?.learner_context || state.learnerContext;
@@ -1547,7 +1483,6 @@ async function boot() {
     renderSuggestedQuestions(start.suggested_questions || []);
     renderQuiz(quiz.questions);
     renderGraph(jobGraph, "job");
-    renderJobProposals(jobGraph.pending_proposals || []);
     renderGraph(studentBootstrap.student_graph, "student");
     renderGraphUpdateLog(studentBootstrap.student_graph?.update_log || []);
     renderStudentDashboard(studentDashboard);
@@ -1570,8 +1505,6 @@ $("loadTodayPlan").addEventListener("click", () => loadPersonalizedPlan("today")
 $("loadSevenDayPlan").addEventListener("click", () => loadPersonalizedPlan("7_day"));
 $("refreshDashboard").addEventListener("click", loadStudentDashboard);
 $("startScenario").addEventListener("click", startScenario);
-$("generateJobProposals").addEventListener("click", generateJobProposals);
-$("confirmJobProposals").addEventListener("click", confirmJobProposals);
 document.querySelectorAll("[data-feedback]").forEach((button) => {
   button.addEventListener("click", () => submitFeedback(button.dataset.feedback));
 });
