@@ -246,13 +246,6 @@ class ForceGraph {
         // Label group (background + text)
         const lg = ngEnter.append("g").attr("class", "label-group");
 
-        // Label background pill
-        lg.append("rect").attr("class", "label-bg")
-            .attr("rx", 5).attr("ry", 5)
-            .attr("fill", "rgba(15,23,42,0.85)")
-            .attr("stroke", "rgba(148,163,184,0.25)")
-            .attr("stroke-width", 1);
-
         // Label text
         const lbl = lg.append("text").attr("class", "node-label")
             .attr("text-anchor", "middle")
@@ -279,17 +272,6 @@ class ForceGraph {
             d._labelHeight = lines.length * 15 + 10;
         });
 
-        // Size label backgrounds after text is laid out
-        lg.each(function(d) {
-            const bg = d3.select(this).select(".label-bg");
-            const w = d._labelWidth || 100;
-            const h = d._labelHeight || 28;
-            const r = d.radius || 22;
-            bg.attr("x", -w/2)
-              .attr("y", r + 6)
-              .attr("width", w)
-              .attr("height", h);
-        });
 
         this.selNodes = ngEnter.merge(ng);
 
@@ -358,4 +340,5 @@ class ForceGraph {
         this.svg?.remove();
     }
 }
+
 
