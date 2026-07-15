@@ -502,6 +502,216 @@
       "created_at": "2026-07-14T02:54:06.018383+00:00",
       "session_id": "demo-1783997627652",
       "event_id": "20260714T025406018383+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC 输入公共端判断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K016",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看PLC 输入公共端作用讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-14T12:54:26.171980+00:00",
+      "session_id": "demo-1784033637074",
+      "event_id": "20260714T125426171980+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "input_led_compare"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "input_led_compare",
+          "name": "传感器灯与 PLC 输入灯对比"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K031",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看传感器灯与 PLC 输入灯对比讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-14T12:54:31.500801+00:00",
+      "session_id": "demo-1784033637074",
+      "event_id": "20260714T125431500801+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "input_led_compare"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "input_led_compare",
+          "name": "传感器灯与 PLC 输入灯对比"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K031",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看传感器灯与 PLC 输入灯对比讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-14T12:54:32.834195+00:00",
+      "session_id": "demo-1784033637074",
+      "event_id": "20260714T125432834195+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC 输入公共端判断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K016",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看PLC 输入公共端作用讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-14T12:54:33.948133+00:00",
+      "session_id": "demo-1784033637074",
+      "event_id": "20260714T125433948133+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "input_led_compare"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "input_led_compare",
+          "name": "传感器灯与 PLC 输入灯对比"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K031",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看传感器灯与 PLC 输入灯对比讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-14T12:54:35.358920+00:00",
+      "session_id": "demo-1784033637074",
+      "event_id": "20260714T125435358920+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC 输入公共端判断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K006",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看电源端子与输入公共端区别讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-15T03:27:26.909960+00:00",
+      "session_id": "demo-1784086015728",
+      "event_id": "20260715T032726909960+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "sensor_wiring_judgement"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线判断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K014",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看输出类型与公共端匹配讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-15T03:27:30.966828+00:00",
+      "session_id": "demo-1784086015728",
+      "event_id": "20260715T032730966828+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC 输入公共端判断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K006",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看电源端子与输入公共端区别讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-15T03:31:03.282526+00:00",
+      "session_id": "demo-1784086135086",
+      "event_id": "20260715T033103282526+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC 输入公共端判断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K006",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看电源端子与输入公共端区别讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-15T03:32:33.311332+00:00",
+      "session_id": "demo-1784086322781",
+      "event_id": "20260715T033233311332+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC 输入公共端判断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K006",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看电源端子与输入公共端区别讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-15T05:37:04.930118+00:00",
+      "session_id": "demo-1784089717787",
+      "event_id": "20260715T053704930118+0000"
     }
   ]
 }

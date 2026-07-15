@@ -8,13 +8,13 @@ class ForceGraph {
         if (!this.container) { console.warn("ForceGraph: container", containerId, "not found"); return; }
         this.id = containerId;
         this.options = Object.assign({
-            chargeStrength: -850,
-            linkDistance: 165,
-            alphaDecay: 0.025,
-            velocityDecay: 0.42,
-            collideExtra: 22,
-            minRadius: 28,
-            maxRadius: 54
+            chargeStrength: -1200,
+            linkDistance: 200,
+            alphaDecay: 0.018,
+            velocityDecay: 0.38,
+            collideExtra: 28,
+            minRadius: 24,
+            maxRadius: 60
         }, options);
         this._initSize();
         this._setupSVG();
@@ -40,10 +40,10 @@ class ForceGraph {
     _dimColor(dim) {
         const m = {
             root: { fill: '#1e293b', stroke: '#475569', text: '#cbd5e1', icon: '\u{1F3AF}' },
-            safety: { fill: 'rgba(239,68,68,0.08)', stroke: '#dc2626', text: '#fca5a5', icon: '\u26A1' },
-            sensor: { fill: 'rgba(59,130,246,0.08)', stroke: '#3b82f6', text: '#93c5fd', icon: '\u{1F4E1}' },
-            plc: { fill: 'rgba(5,150,105,0.08)', stroke: '#10b981', text: '#6ee7b7', icon: '\u2699' },
-            fault: { fill: 'rgba(124,58,237,0.08)', stroke: '#8b5cf6', text: '#a78bfa', icon: '\u{1F527}' },
+            safety: { fill: 'rgba(239,68,68,0.18)', stroke: '#ef4444', text: '#fca5a5', icon: '\u26A1' },
+            sensor: { fill: 'rgba(59,130,246,0.18)', stroke: '#60a5fa', text: '#93c5fd', icon: '\u{1F4E1}' },
+            plc: { fill: 'rgba(5,150,105,0.18)', stroke: '#34d399', text: '#6ee7b7', icon: '\u2699' },
+            fault: { fill: 'rgba(124,58,237,0.18)', stroke: '#a78bfa', text: '#a78bfa', icon: '\u{1F527}' },
             _: { fill: '#1e293b', stroke: '#64748b', text: '#94a3b8', icon: '\u{1F4A0}' }
         };
         const d = (dim || '').toLowerCase();
@@ -131,7 +131,7 @@ class ForceGraph {
         this.svg = d3.select(this.container)
             .append('svg').attr('width', this.width).attr('height', this.height)
             .attr('viewBox', [0, 0, this.width, this.height])
-            .style('background', '#0f1d35')
+            .style('background', '#0a1628')
             .style('border-radius', '8px')
             .style('cursor', 'grab');
         this.defs = this.svg.append('defs');
@@ -145,7 +145,7 @@ class ForceGraph {
             .append('path').attr('d', 'M0,-4L8,0L0,4').attr('fill', '#475569');
 
         // Grid background
-        const g = this.defs.append('pattern').attr('id', 'gd').attr('width', 24).attr('height', 24).attr('patternUnits', 'userSpaceOnUse');
+        const g = this.defs.append('pattern').attr('id', 'gd').attr('width', 32).attr('height', 32).attr('patternUnits', 'userSpaceOnUse');
         g.append('path').attr('d', 'M 24 0 L 0 0 0 24').attr('fill', 'none').attr('stroke', '#1e293b').attr('stroke-width', 0.5);
         this.svg.append('rect').attr('width', '100%').attr('height', '100%').attr('fill', 'url(#gd)');
 
@@ -226,14 +226,24 @@ class ForceGraph {
         }).map(n => ({ ...n, radius: this._nodeRadius(n), labelDx: 0, labelDy: 0 }));
         this._circleInit(nodes);
 
-        // --- EDGES ---
-        this.linkG.selectAll('line').remove();
-        this.selEdges = this.linkG.selectAll('line').data(edges, d => d.source + '-' + d.target)
-            .enter().append('line')
-            .attr('stroke', d => d.type === 'industry_extension' ? '#475569' : '#64748b')
-            .attr('stroke-width', d => d.type === 'industry_extension' ? 1 : 2)
-            .attr('stroke-dasharray', d => d.type === 'industry_extension' ? '6,4' : null)
-            .attr('marker-end', 'url(#ar)').attr('opacity', 0.45);
+        // --- EDGES (curved paths) ---
+        this.linkG.selectAll('path').remove();
+        this.selEdges = this.linkG.selectAll('path').data(edges, d => d.source + '-' + d.target)
+            .enter().append('path')
+            .attr('fill', 'none')
+            .attr('stroke', d => {
+                if (d.type === 'hierarchy') return '#475569';
+                if (d.type === 'industry_extension') return '#4b5563';
+                return '#64748b';
+            })
+            .attr('stroke-width', d => {
+                if (d.type === 'hierarchy') return 0.8;
+                if (d.type === 'industry_extension') return 1;
+                return 1.8;
+            })
+            .attr('stroke-dasharray', d => (d.type === 'industry_extension' || d.type === 'hierarchy') ? '4,4' : null)
+            .attr('marker-end', d => (d.type === 'industry_extension' || d.type === 'hierarchy') ? null : 'url(#ar)')
+            .attr('opacity', d => d.type === 'hierarchy' ? 0.3 : 0.5);
 
         // --- NODES ---
         this.nodeG.selectAll('g').remove();
@@ -248,12 +258,18 @@ class ForceGraph {
             .attr('stroke-dasharray', d => this._statusStyle(d.status).dash)
             .style('cursor', 'pointer');
 
-        // Inner fill
+        // Inner fill - gradient-like with glow
+        ng.append('circle').attr('class', 'ng')
+            .attr('r', d => d.radius + 3)
+            .attr('fill', 'none')
+            .attr('stroke', d => this._dimColor(d.radar_dimension_ids?.[0] || '').stroke)
+            .attr('stroke-width', 0.5)
+            .attr('opacity', 0.3);
         ng.append('circle').attr('class', 'nf')
             .attr('r', d => d.radius)
             .attr('fill', d => this._dimColor(d.radar_dimension_ids?.[0] || '').fill)
             .attr('stroke', d => this._dimColor(d.radar_dimension_ids?.[0] || '').stroke)
-            .attr('stroke-width', 1.5)
+            .attr('stroke-width', 1.2)
             .attr('filter', 'url(#ns)')
             .style('cursor', 'pointer');
 
@@ -318,8 +334,16 @@ class ForceGraph {
         this.sim.on('tick', () => {
             this.nodes.forEach(d => this._keepInBounds(d));
             this.selEdges
-                .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-                .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+                .attr('d', d => {
+                    const sx = d.source.x, sy = d.source.y;
+                    const tx = d.target.x, ty = d.target.y;
+                    const dx = tx - sx, dy = ty - sy;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const curve = Math.min(dist * 0.15, 40);
+                    const mx = (sx + tx) / 2 - (dy / dist) * curve;
+                    const my = (sy + ty) / 2 + (dx / dist) * curve;
+                    return `M${sx},${sy} Q${mx},${my} ${tx},${ty}`;
+                });
             this.selNodes.attr('transform', d => `translate(${d.x},${d.y})`);
             this.selLabels.attr('transform', d => `translate(${(d.x || 0) + (d.labelDx || 0)},${(d.y || 0) + (d.radius || 32) + 22 + (d.labelDy || 0)})`);
 

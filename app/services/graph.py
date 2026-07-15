@@ -11,13 +11,30 @@ from .graph_update_engine import (
 
 
 CORE_CHAIN = [
+    "role_task_understanding",
     "electrical_safety_check",
+    "power_isolation_confirmation",
+    "dc24v_power_check",
+    "multimeter_voltage_measurement",
     "sensor_type_identification",
+    "sensor_nameplate_reading",
+    "sensor_output_logic",
+    "sensor_led_observation",
+    "sensor_wiring_color_code",
     "sensor_wiring_judgement",
     "plc_input_common_terminal",
+    "plc_input_grouping",
     "plc_io_address_mapping",
+    "io_mapping_table_build",
+    "program_variable_lookup",
     "plc_input_monitoring",
+    "input_led_compare",
     "input_no_response_fault_scope",
+    "no_response_power_path_check",
+    "no_response_sensor_side_check",
+    "no_response_common_terminal_check",
+    "no_response_address_mapping_check",
+    "diagnosis_record_feedback",
     "personalized_training_task_recommendation",
 ]
 
@@ -339,6 +356,9 @@ def build_job_ability_graph(job_role=None):
         status = "industry_hot" if demand_item.get("weight", 0) >= 1.0 else "core"
         if ability_id not in chain:
             status = "industry"
+        # If no demand weight at all, still show as "core"
+        if demand_item.get("weight", 0) == 0 and ability_id in chain:
+            status = "core"
         nodes.append(
             node_payload(
                 ability_id,
@@ -358,6 +378,16 @@ def build_job_ability_graph(job_role=None):
         if chain[index] in key_by_id and chain[index + 1] in key_by_id:
             edges.append({"from": chain[index], "to": chain[index + 1], "type": "job_chain"})
             lines.append(f"  {key_by_id[chain[index]]} --> {key_by_id[chain[index + 1]]}")
+
+    # Add parent-child hierarchy edges for all nodes in graph
+    for node_item in nodes:
+        ability = data["ability_by_id"].get(node_item["id"], {})
+        parent_id = ability.get("parent_id")
+        if parent_id and parent_id in key_by_id:
+            already_has_edge = any(e["from"] == parent_id and e["to"] == node_item["id"] for e in edges)
+            if not already_has_edge:
+                edges.append({"from": parent_id, "to": node_item["id"], "type": "hierarchy"})
+                lines.append(f"  {key_by_id[parent_id]} --> {key_by_id[node_item['id']]}")
 
     for ability_id in extra_ids:
         ability = data["ability_by_id"].get(ability_id, {})

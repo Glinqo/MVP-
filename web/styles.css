@@ -138,8 +138,8 @@ body::before {
 /* Suggestions */
 .suggestion-row{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 14px}
 .suggestion-row button{
-  border-color:rgba(20,184,166,0.25);color:var(--primary-light);
-  background:rgba(15,118,110,0.08); border-radius:var(--radius-sm);
+  border-color:var(--primary);color:#fff;
+  background:var(--primary); border-radius:var(--radius-sm);
   font-size:13px; padding:8px 14px; transition:all .2s;
 }
 .suggestion-row button:hover{background:rgba(15,118,110,0.15);transform:translateY(-1px)}
@@ -427,20 +427,20 @@ button:active{transform:translateY(0)}
 /* ── Chat Cards ── */
 .chat-cards{display:grid;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
 .kb-card-inline{
-  border:1px solid rgba(56,189,248,0.25); border-radius:var(--radius-sm);
-  background:rgba(56,189,248,0.06); padding:12px 14px; transition:all .2s;
+  border:1px solid rgba(56,189,248,0.4); border-radius:var(--radius-sm);
+  background:rgba(56,189,248,0.12); padding:12px 14px; transition:all .2s;
 }
-.kb-card-inline:hover{border-color:rgba(56,189,248,0.4);transform:translateY(-1px)}
+.kb-card-inline:hover{border-color:rgba(56,189,248,0.6);background:rgba(56,189,248,0.18);transform:translateY(-1px)}
 .ability-card-inline{
-  border:1px solid rgba(251,191,36,0.3); border-radius:var(--radius-sm);
-  background:rgba(251,191,36,0.06); padding:12px 14px; transition:all .2s;
+  border:1px solid rgba(251,191,36,0.45); border-radius:var(--radius-sm);
+  background:rgba(251,191,36,0.12); padding:12px 14px; transition:all .2s;
 }
-.ability-card-inline:hover{border-color:rgba(251,191,36,0.5);transform:translateY(-1px)}
+.ability-card-inline:hover{border-color:rgba(251,191,36,0.65);background:rgba(251,191,36,0.18);transform:translateY(-1px)}
 .task-card-inline{
-  border:1px solid rgba(34,197,94,0.25); border-radius:var(--radius-sm);
-  background:rgba(34,197,94,0.06); padding:12px 14px; transition:all .2s;
+  border:1px solid rgba(34,197,94,0.4); border-radius:var(--radius-sm);
+  background:rgba(34,197,94,0.12); padding:12px 14px; transition:all .2s;
 }
-.task-card-inline:hover{border-color:rgba(34,197,94,0.4);transform:translateY(-1px)}
+.task-card-inline:hover{border-color:rgba(34,197,94,0.6);background:rgba(34,197,94,0.18);transform:translateY(-1px)}
 .evidence-strip{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
 .evidence-strip .evi-tag{
   display:inline-flex;align-items:center;gap:3px;font-size:11px;
@@ -454,7 +454,7 @@ button:active{transform:translateY(0)}
 
 /* ── Graph ── */
 .force-graph-container{
-  width:100%; min-height:480px; position:relative; overflow:hidden;
+  width:100%; min-height:620px; position:relative; overflow:hidden;
   background:rgba(255,255,255,0.02); border-radius:var(--radius);
   border:1px solid var(--line);
 }
