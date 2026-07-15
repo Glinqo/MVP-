@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Mechatronics Training AI - Unified Dark Theme
  * Design language derived from landing overlay:
  *   - Gradient backgrounds with radial glows
@@ -48,7 +48,7 @@ body{
   min-height:100vh;
 }
 
-/* ── Body background glow (matching landing) ── */
+/* 鈹€鈹€ Body background glow (matching landing) 鈹€鈹€ */
 body::before {
   content: "";
   position: fixed;
@@ -61,7 +61,7 @@ body::before {
     radial-gradient(ellipse 40% 30% at 50% 50%, rgba(168,85,247,0.03) 0%, transparent 60%);
 }
 
-/* ── Topbar ── */
+/* 鈹€鈹€ Topbar 鈹€鈹€ */
 .topbar{
   position: relative; z-index: 1;
   display:flex; align-items:center; justify-content:space-between; gap:20px;
@@ -87,7 +87,7 @@ body::before {
 }
 .status.ok{color:var(--primary-light);border-color:rgba(20,184,166,0.3);background:rgba(15,118,110,0.1)}
 
-/* ── Chat Layout ── */
+/* 鈹€鈹€ Chat Layout 鈹€鈹€ */
 .chat-layout{
   position:relative; z-index:1;
   display:grid; grid-template-columns:minmax(420px,1fr) 390px; gap:20px;
@@ -178,7 +178,7 @@ button:active{transform:translateY(0)}
 .primary:hover{background:var(--primary-dark);box-shadow:0 4px 16px rgba(15,118,110,0.4)}
 .secondary-action{width:100%;margin-top:12px;font-weight:600}
 
-/* ── Tool Drawer / Sidebar ── */
+/* 鈹€鈹€ Tool Drawer / Sidebar 鈹€鈹€ */
 .tool-drawer{overflow-y:auto;padding:16px}
 .tool-drawer details{
   border:1px solid var(--line); border-radius:var(--radius);
@@ -312,7 +312,7 @@ button:active{transform:translateY(0)}
 .personalized-card summary{cursor:pointer;color:var(--primary-light);font-weight:700}
 .plan-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
 
-/* ── Workspace Overlay ── */
+/* 鈹€鈹€ Workspace Overlay 鈹€鈹€ */
 .workspace-overlay{
   display:none; position:fixed; inset:0; z-index:20;
   background:rgba(5,13,26,0.75);
@@ -352,7 +352,7 @@ button:active{transform:translateY(0)}
 .workspace-grid{display:grid;grid-template-columns:1fr;gap:20px}
 .workspace-body h3{font-size:1rem;font-weight:700;color:var(--text);margin:0 0 10px}
 
-/* ── Dashboard ── */
+/* 鈹€鈹€ Dashboard 鈹€鈹€ */
 .dashboard-panel{min-height:180px}
 .dashboard-hero{
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px;
@@ -373,7 +373,7 @@ button:active{transform:translateY(0)}
 .dashboard-chip.weak{border-color:var(--weak-line);color:#fb7185}
 .dashboard-chip.mastered{border-color:rgba(34,197,94,0.3);color:#22c55e}
 
-/* ── Drawers ── */
+/* 鈹€鈹€ Drawers 鈹€鈹€ */
 .node-detail-drawer{
   position:fixed; top:0; right:0; z-index:30;
   width:min(520px,100vw); height:100vh;
@@ -409,7 +409,7 @@ button:active{transform:translateY(0)}
 .explain-content{overflow-y:auto;padding:20px;line-height:1.7}
 .explain-drawer .suggestion-row{border-top:1px solid var(--line);padding:14px 20px}
 
-/* ── Scenario ── */
+/* 鈹€鈹€ Scenario 鈹€鈹€ */
 .scenario-list,.scenario-options{display:grid;gap:10px}
 .scenario-option,.scenario-options button{
   display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;
@@ -424,7 +424,7 @@ button:active{transform:translateY(0)}
 .scenario-option small{display:block;margin-top:4px;color:var(--muted)}
 .scenario-options button{grid-template-columns:1fr;cursor:pointer}
 
-/* ── Chat Cards ── */
+/* 鈹€鈹€ Chat Cards 鈹€鈹€ */
 .chat-cards{display:grid;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
 .kb-card-inline{
   border:1px solid rgba(56,189,248,0.4); border-radius:var(--radius-sm);
@@ -452,12 +452,8 @@ button:active{transform:translateY(0)}
   margin-top:8px; font-size:12px; color:var(--muted); line-height:1.5;
 }
 
-/* ── Graph ── */
-.force-graph-container{
-  width:100%; min-height:620px; position:relative; overflow:hidden;
-  background:rgba(255,255,255,0.02); border-radius:var(--radius);
-  border:1px solid var(--line);
-}
+/* 鈹€鈹€ Graph 鈹€鈹€ */
+.force-graph-container{width:100%;min-height:650px;position:relative;overflow:hidden;background:#0f172a;border-radius:12px;border:none}
 .graph-tooltip{
   position:absolute; background:#1e293b; color:#f1f5f9;
   padding:8px 12px; border-radius:6px; font-size:13px;
@@ -465,7 +461,7 @@ button:active{transform:translateY(0)}
   box-shadow:0 6px 16px rgba(0,0,0,0.4);
 }
 
-/* ── Mermaid ── */
+/* 鈹€鈹€ Mermaid 鈹€鈹€ */
 .mermaid-box{
   min-height:160px; overflow:auto;
   border:1px solid var(--line); border-radius:var(--radius);
@@ -477,17 +473,17 @@ button:active{transform:translateY(0)}
 .feedback-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
 .feedback-row button{font-size:13px;font-weight:500}
 
-/* ── Misc ── */
+/* 鈹€鈹€ Misc 鈹€鈹€ */
 .muted{color:var(--muted);line-height:1.6}
 #feedbackStatus{font-size:13px;color:var(--primary-light);margin-top:8px}
 
-/* ── Scrollbar ── */
+/* 鈹€鈹€ Scrollbar 鈹€鈹€ */
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.18)}
 
-/* ── Responsive ── */
+/* 鈹€鈹€ Responsive 鈹€鈹€ */
 @media (max-width:1100px){
   .chat-layout{grid-template-columns:1fr;height:auto}
   .chat-main{min-height:70vh}
@@ -513,9 +509,9 @@ button:active{transform:translateY(0)}
 
 
 
-/* ── Identity & Job Selection Landing ── */
+/* 鈹€鈹€ Identity & Job Selection Landing 鈹€鈹€ */
 
-/* ── Job Admin Panel ── */
+/* 鈹€鈹€ Job Admin Panel 鈹€鈹€ */
 .job-admin-grid{display:grid;grid-template-columns:minmax(320px,1.05fr) minmax(280px,.95fr);gap:14px;margin-bottom:14px}
 .job-admin-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--card-bg);padding:14px}
 .job-admin-card h3{margin:0 0 10px;font-size:1rem;font-weight:700;color:var(--text)}
@@ -762,3 +758,4 @@ button:active{transform:translateY(0)}
   .landing-card-body strong { font-size: 1rem; }
   .landing-back { position: static; transform: none; margin-bottom: 16px; }
 }
+
