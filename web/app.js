@@ -24,7 +24,7 @@ const state = {
     job: null,
     student: null,
   },
-  activeWorkspace: "dashboard",
+  activeWorkspace: "graph",
   activeGraphView: "job",
   sessionId: localStorage.getItem("mcp_session_id") || `demo-${Date.now()}`
 };
@@ -1221,7 +1221,6 @@ async function startScenario() {
   });
   renderScenarioStage(data);
   if (data.student_graph) renderGraph(data.student_graph, "student");
-  await loadStudentDashboard();
 }
 
 async function submitScenarioStep(choiceId) {
@@ -1240,7 +1239,6 @@ async function submitScenarioStep(choiceId) {
   renderScenarioStage(data);
   if (data.student_graph) renderGraph(data.student_graph, "student");
   await loadGraphUpdates();
-  await loadStudentDashboard();
 }
 
 function workspaceTitle(panel) {
@@ -1265,7 +1263,6 @@ function setWorkspacePanel(panel) {
   document.querySelectorAll(".workspace-panel").forEach((section) => {
     section.classList.toggle("active", section.id === `workspace${panel.charAt(0).toUpperCase()}${panel.slice(1)}`);
   });
-  if (panel === "dashboard") loadStudentDashboard();
   if (panel === "jobAdmin") loadJobAdmin();
   if (panel === "plan") loadPersonalizedPlan();
   if (panel === "scenario") loadScenarios();
@@ -1307,7 +1304,7 @@ async function loadStudentDashboard() {
 async function openWorkspace(panel, graphView) {
   $("workspaceOverlay").classList.add("open");
   $("workspaceOverlay").setAttribute("aria-hidden", "false");
-  setWorkspacePanel(panel || "dashboard");
+  setWorkspacePanel(panel || "graph");
   if (panel === "graph" || graphView) {
     setGraphView(graphView || state.activeGraphView || "job");
     if ((graphView || state.activeGraphView) === "student") {
@@ -1696,7 +1693,6 @@ function applyChatResult(data) {
   renderToolSuggestions(data.tool_suggestions || []);
   if (data.student_graph) renderGraph(data.student_graph, "student");
   loadGraphUpdates();
-  loadStudentDashboard();
   renderKnowledge(data.knowledge_gaps || []);
   renderTasks(data.remediation_cards || []);
 }
@@ -1780,7 +1776,6 @@ async function submitFeedback(feedback) {
   });
   $("feedbackStatus").textContent = `反馈已保存：${result.feedback}`;
   await refreshStudentGraph();
-  await loadStudentDashboard();
 }
 
 async function boot() {
@@ -1788,12 +1783,11 @@ async function boot() {
     const health = await api("/api/health");
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
     $("healthStatus").classList.add("ok");
-    const [start, quiz, jobGraph, studentBootstrap, studentDashboard] = await Promise.all([
+    const [start, quiz, jobGraph, studentBootstrap] = await Promise.all([
       api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId }) }),
       api("/api/quiz"),
       api("/api/graph/job"),
       api(`/api/student/bootstrap?session_id=${encodeURIComponent(state.sessionId)}`),
-      api(`/api/student/dashboard?session_id=${encodeURIComponent(state.sessionId)}`)
     ]);
     state.learnerContext = studentBootstrap.learner_context || start.learner_context || null;
     renderJobProfile(start.job_profile || {});
@@ -1814,7 +1808,6 @@ async function boot() {
     renderJobProposals(jobGraph.pending_proposals || []);
     renderGraph(studentBootstrap.student_graph, "student");
     renderGraphUpdateLog(studentBootstrap.student_graph?.update_log || []);
-    renderStudentDashboard(studentDashboard);
   } catch (error) {
     $("healthStatus").textContent = "未连接";
     $("healthStatus").classList.remove("ok");
@@ -1832,7 +1825,6 @@ $("loadPersonalizedQuiz").addEventListener("click", loadPersonalizedQuiz);
 $("loadPersonalizedPlan").addEventListener("click", () => loadPersonalizedPlan("staged"));
 $("loadTodayPlan").addEventListener("click", () => loadPersonalizedPlan("today"));
 $("loadSevenDayPlan").addEventListener("click", () => loadPersonalizedPlan("7_day"));
-$("refreshDashboard").addEventListener("click", loadStudentDashboard);
 $("refreshJobAdmin")?.addEventListener("click", loadJobAdmin);
 $("ingestJobMaterial")?.addEventListener("click", ingestJobAdminMaterial);
 $("collectJobSources")?.addEventListener("click", collectJobSources);

@@ -179,10 +179,6 @@
         <section class="launcher-panel">
           <h2>功能工作台</h2>
           <div class="tool-launcher">
-            <button data-open-tool="dashboard" type="button">
-              <strong>学习驾驶舱</strong>
-              <span>下一步先做什么</span>
-            </button>
             <button data-open-tool="graph" type="button">
               <strong>能力图谱</strong>
               <span>岗位需求与个人能力可视化</span>
@@ -233,8 +229,7 @@
         </header>
 
         <nav class="workspace-tabs" aria-label="功能工作台">
-          <button class="active" data-workspace-panel="dashboard" type="button">学习驾驶舱</button>
-          <button data-workspace-panel="graph" type="button">能力图谱</button>
+          <button class="active" data-workspace-panel="graph" type="button">能力图谱</button>
           <button data-workspace-panel="jobAdmin" type="button">岗位数据</button>
           <button data-workspace-panel="knowledge" type="button">知识缺口</button>
           <button data-workspace-panel="tasks" type="button">实训任务</button>
@@ -244,15 +239,8 @@
         </nav>
 
         <div class="workspace-body">
-          <section id="workspaceDashboard" class="workspace-panel active">
-            <div class="plan-toolbar">
-              <h3>学生学习驾驶舱</h3>
-              <button id="refreshDashboard" type="button">刷新驾驶舱</button>
-            </div>
-            <div id="studentDashboard" class="dashboard-panel muted">驾驶舱加载中</div>
-          </section>
 
-          <section id="workspaceGraph" class="workspace-panel">
+          <section id="workspaceGraph" class="workspace-panel active">
             <div class="graph-tabs">
               <button class="active" data-graph-view="job" type="button">岗位能力图谱</button>
               <button data-graph-view="student" type="button">个人能力图谱</button>
