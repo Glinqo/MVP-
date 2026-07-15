@@ -8,6 +8,10 @@
 
 - `https://github.com/NanmiCoder/MediaCrawler`
 - `https://github.com/NanmiCoder/CrawlerTutorial`
+- `https://www.bilibili.com/video/BV1PsCdYjEyK`
+- `https://github.com/D4Vinci/Scrapling`
+
+图谱前端和更新策略的完整审查见：[岗位能力图谱更新审查与优化方案](job_ability_graph_optimization_plan.md)。
 
 本仓库没有复制上述项目代码，只借鉴结构思路：
 
@@ -16,6 +20,12 @@
 - 低频运行：默认每天一次，默认最多 3 个来源。
 - 可审计：每次输出来源、摘要、命中的能力点和建议批次。
 - 合规边界：不做登录、Cookie、代理、验证码、反检测和大规模采集。
+
+资源取舍：
+
+- MediaCrawler：学习多平台内容采集架构，只能作为后续弱信号来源，不作为岗位能力图谱主数据入口。
+- CrawlerTutorial 与配套 B 站课程：作为团队爬虫工程训练材料。
+- Scrapling：后续可选为公开企业招聘页和公开 HTML 的通用抽取层，但默认关闭，且必须遵守来源条款。
 
 ## 文件位置
 

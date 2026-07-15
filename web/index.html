@@ -1,12 +1,100 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
+    <script src="/d3.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>机电岗位培训 AI</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
+    <!-- ── Identity & Job Selection Overlay ── -->
+    <div id="landingOverlay" class="landing-overlay">
+      <div class="landing-bg"></div>
+      <div class="landing-container">
+
+        <!-- Step 1: Identity -->
+        <div id="landingStepIdentity" class="landing-step active">
+          <div class="landing-header">
+            <h1>机电岗位培训 AI</h1>
+            <p class="landing-subtitle">Mechatronics Training AI</p>
+          </div>
+          <div class="landing-cards">
+            <button class="landing-card" data-identity="student" onclick="selectIdentity('student')">
+              <div class="landing-card-icon">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                  <path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>学生入口</strong>
+                <span>进入学习模式，完成岗位实训与能力评估</span>
+              </div>
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+            <button class="landing-card" data-identity="admin" onclick="selectIdentity('admin')">
+              <div class="landing-card-icon">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>管理入口</strong>
+                <span>管理岗位图谱、查看教学摘要与反馈</span>
+              </div>
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Job Position -->
+        <div id="landingStepJob" class="landing-step">
+          <div class="landing-header">
+            <button class="landing-back" onclick="backToIdentity()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
+              返回
+            </button>
+            <h2>选择目标岗位</h2>
+            <p class="landing-subtitle">当前为你匹配以下岗位能力图谱</p>
+          </div>
+          <div class="landing-cards">
+            <button class="landing-card job-card-lg" onclick="selectJob('automation_line_technician')">
+              <div class="landing-card-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>自动化生产线装调与运维技术员</strong>
+                <span>传感器 NPN/PNP 接线与 PLC 输入信号排查 · 25 个能力节点 · 20 道诊断题</span>
+                <div class="job-meta">
+                  <span class="job-tag">行业高频</span>
+                  <span class="job-tag core">岗位核心</span>
+                  <span class="job-tag">66 个知识点</span>
+                </div>
+              </div>
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <header class="topbar">
       <div>
         <p class="eyebrow">Mechatronics Training AI</p>
@@ -103,10 +191,6 @@
               <strong>个人能力图谱</strong>
               <span>问答与自测动态更新</span>
             </button>
-            <button data-open-tool="graph" data-graph-view="current" type="button">
-              <strong>当前问题图谱</strong>
-              <span>本次问题命中的缺口</span>
-            </button>
             <button data-open-tool="knowledge" type="button">
               <strong>知识缺口</strong>
               <span>NPN/PNP、公共端、I/O 地址</span>
@@ -125,13 +209,8 @@
             </button>
             <button data-open-tool="plan" type="button">
               <strong>个人培养方案</strong>
-              <span>知识讲解、视频资源、实训路径</span>
-            </button>
-            <button data-open-tool="teacher" type="button">
-              <strong>教师/师傅摘要</strong>
-              <span>高频薄弱点与教学建议</span>
-            </button>
           </div>
+            </button>
         </section>
 
         <div class="feedback-row">
@@ -161,7 +240,6 @@
           <button data-workspace-panel="scenario" type="button">角色扮演</button>
           <button data-workspace-panel="quiz" type="button">自测</button>
           <button data-workspace-panel="plan" type="button">培养方案</button>
-          <button data-workspace-panel="teacher" type="button">教师摘要</button>
         </nav>
 
         <div class="workspace-body">
@@ -177,11 +255,10 @@
             <div class="graph-tabs">
               <button class="active" data-graph-view="job" type="button">岗位能力图谱</button>
               <button data-graph-view="student" type="button">个人能力图谱</button>
-              <button data-graph-view="current" type="button">当前问题图谱</button>
             </div>
 
             <div id="graphViewJob" class="graph-view active">
-              <div id="jobGraphDiagram" class="graph-diagram" aria-label="岗位能力图谱可视化"></div>
+              <div id="jobGraphDiagram" class="graph-diagram force-graph-container" aria-label="岗位能力图谱可视化"></div>
               <div class="proposal-box">
                 <h3>岗位图谱更新建议</h3>
                 <textarea id="jobMaterialInput" rows="3" placeholder="粘贴企业岗位描述、招聘 JD、行业要求或教师材料，生成待确认的岗位能力更新建议。"></textarea>
@@ -205,7 +282,7 @@
             </div>
 
             <div id="graphViewStudent" class="graph-view">
-              <div id="studentGraphDiagram" class="graph-diagram" aria-label="学生个人能力图谱可视化"></div>
+              <div id="studentGraphDiagram" class="graph-diagram force-graph-container" aria-label="学生个人能力图谱可视化"></div>
               <div class="workspace-grid">
                 <div>
                   <h3>学生个人能力节点</h3>
@@ -229,22 +306,7 @@
               <pre id="studentMermaidOutput" class="mermaid-box">加载中</pre>
             </div>
 
-            <div id="graphViewCurrent" class="graph-view">
-              <div id="currentGraphDiagram" class="graph-diagram" aria-label="当前问题能力图谱可视化"></div>
-              <div class="workspace-grid">
-                <div>
-                  <h3>当前问题命中节点</h3>
-                  <div id="graphList" class="graph-list"></div>
-                </div>
-                <div>
-                  <h3>说明</h3>
-                  <div id="currentGraphMeta" class="section-block muted">提交问题后会显示本次暴露的能力缺口。</div>
-                </div>
-              </div>
-              <pre id="mermaidOutput" class="mermaid-box">加载中</pre>
-            </div>
           </section>
-
           <section id="workspaceKnowledge" class="workspace-panel">
             <h3>知识缺口</h3>
             <div id="knowledgeRefs" class="section-block muted">暂无</div>
@@ -290,11 +352,6 @@
             <div id="personalizedPlan" class="section-block muted">尚未生成培养方案。</div>
           </section>
 
-          <section id="workspaceTeacher" class="workspace-panel">
-            <h3>教师/师傅摘要</h3>
-            <button id="loadTeacherSummary" class="secondary-action" type="button">刷新摘要</button>
-            <div id="teacherSummary" class="section-block muted">尚未加载</div>
-          </section>
         </div>
       </div>
       <aside id="nodeDetailDrawer" class="node-detail-drawer" aria-hidden="true">
@@ -318,6 +375,7 @@
       </div>
     </aside>
 
+    <script src="/graph-renderer.js"></script>
     <script src="/app.js"></script>
   </body>
 </html>

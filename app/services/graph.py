@@ -123,6 +123,7 @@ def next_best_action(ability_id, status):
 
 
 def node_payload(ability_id, key, status="normal", **extra):
+    ability = load_data()["ability_by_id"].get(ability_id, {})
     return {
         "id": ability_id,
         "key": key,
@@ -130,6 +131,10 @@ def node_payload(ability_id, key, status="normal", **extra):
         "status": status,
         "status_label": STATUS_LABELS.get(status, status),
         "source": ability_source(ability_id),
+        "level": ability.get("level"),
+        "parent_id": ability.get("parent_id"),
+        "description": ability.get("description", ""),
+        "radar_dimension_ids": ability.get("radar_dimension_ids", []),
         **extra,
     }
 
@@ -294,6 +299,21 @@ def build_job_ability_graph():
         else:
             edges.append({"from": "role", "to": ability_id, "type": "industry_extension"})
             lines.append(f"  R --> {key_by_id[ability_id]}")
+
+    # Attach evidence metadata from SQLite
+    try:
+        from scripts.pipeline.evidence_store import ability_evidence_summary
+        for n in nodes:
+            aid = n["id"]
+            ev_summary = ability_evidence_summary(aid, profile.get("role_name"))
+            n["evidence_count"] = ev_summary["evidence_count"]
+            n["avg_confidence"] = ev_summary["avg_confidence"]
+            n["last_updated_at"] = ev_summary["last_updated_at"]
+            n["source_types"] = ev_summary["source_type_distribution"]
+            n["latest_evidence"] = ev_summary["latest_evidence"]
+    except Exception:
+        pass
+
 
     append_status_classes(lines, nodes)
 

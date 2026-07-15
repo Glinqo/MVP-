@@ -13,10 +13,9 @@ const state = {
   scenarios: [],
   activeScenario: null,
   graphUpdates: [],
-  graphs: {
+  graphRenderers: {}, graphs: {
     job: null,
     student: null,
-    current: null
   },
   activeWorkspace: "dashboard",
   activeGraphView: "job",
@@ -607,79 +606,107 @@ function splitLabel(label, maxLength = 12) {
   return lines.slice(0, 3);
 }
 
+function graphDimensionLegend() {
+  return [
+    { label: "电气安全", fill: "#fef2f2", stroke: "#dc2626" },
+    { label: "传感器/信号", fill: "#eff6ff", stroke: "#2563eb" },
+    { label: "PLC 控制", fill: "#ecfdf5", stroke: "#059669" },
+    { label: "排故诊断", fill: "#f5f3ff", stroke: "#7c3aed" }
+  ];
+}
+
+function graphStatusLegend(graph) {
+  const present = new Set((graph?.nodes || []).map((node) => node.status));
+  const items = [
+    { status: "industry_hot", label: "行业高频" },
+    { status: "core", label: "岗位核心" },
+    { status: "industry", label: "行业补充" },
+    { status: "weak", label: "薄弱" },
+    { status: "improving", label: "正在提升" },
+    { status: "mastered", label: "已掌握" },
+    { status: "recommended_next", label: "建议下一步" },
+    { status: "touched", label: "问答命中" }
+  ];
+  const visible = items.filter((item) => present.has(item.status));
+  return visible.length ? visible : items.slice(0, 3);
+}
+
+function renderGraphLegend(graph, targetId) {
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  const legendId = `${targetId}Legend`;
+  let legend = document.getElementById(legendId);
+  if (!legend) {
+    legend = document.createElement("div");
+    legend.id = legendId;
+    legend.className = "graph-legend-panel";
+    target.parentNode.insertBefore(legend, target);
+  }
+  const statusItems = graphStatusLegend(graph);
+  legend.innerHTML = `
+    <div class="legend-block legend-note">
+      <strong>读图规则</strong>
+      <span>参考网络图：节点越大代表连接/证据越强；颜色代表能力社区；点击节点看证据。</span>
+    </div>
+    <div class="legend-block">
+      <strong>颜色 = 能力维度</strong>
+      <div class="legend-items">
+        ${graphDimensionLegend().map((item) => `
+          <span class="legend-chip">
+            <i class="legend-dot" style="background:${item.fill};border-color:${item.stroke}"></i>${escapeHtml(item.label)}
+          </span>
+        `).join("")}
+      </div>
+    </div>
+    <div class="legend-block">
+      <strong>外环 = 节点状态</strong>
+      <div class="legend-items">
+        ${statusItems.map((item) => {
+          const color = graphColor(item.status);
+          const dashed = ["industry_hot", "industry", "recommended_next"].includes(item.status) ? " dashed" : "";
+          return `
+            <span class="legend-chip">
+              <i class="legend-ring${dashed}" style="border-color:${color.stroke}"></i>${escapeHtml(item.label)}
+            </span>
+          `;
+        }).join("")}
+      </div>
+    </div>
+    <div class="legend-block">
+      <strong>线条/大小</strong>
+      <div class="legend-items">
+        <span class="legend-chip"><i class="legend-line solid"></i>主链</span>
+        <span class="legend-chip"><i class="legend-line dashed-line"></i>补充关系</span>
+        <span class="legend-chip"><i class="legend-size sm"></i><i class="legend-size md"></i><i class="legend-size lg"></i>强度</span>
+      </div>
+    </div>
+  `;
+}
+
 function renderGraphDiagram(graph, targetId) {
-  const target = $(targetId);
+  const target = document.getElementById(targetId);
   const nodes = graph?.nodes || [];
   if (!nodes.length) {
+    document.getElementById(`${targetId}Legend`)?.remove();
     target.innerHTML = '<p class="muted">暂无图谱数据</p>';
     return;
   }
-
-  const maxPerRow = 7;
-  const rowCount = Math.max(1, Math.ceil(nodes.length / maxPerRow));
-  const perRow = Math.min(maxPerRow, Math.ceil(nodes.length / rowCount));
-  const width = Math.max(980, perRow * 156 + 80);
-  const height = Math.max(360, rowCount * 132 + 150);
-  const nodeWidth = 138;
-  const nodeHeight = 82;
-  const top = 70;
-  const rowGap = 132;
-  const colGap = 156;
-  const positions = new Map();
-
-  nodes.forEach((node, index) => {
-    const row = Math.floor(index / perRow);
-    const col = index % perRow;
-    const x = 34 + col * colGap;
-    const y = top + row * rowGap;
-    positions.set(node.id, { x, y, cx: x + nodeWidth / 2, cy: y + nodeHeight / 2 });
-  });
-
-  const edgeSvg = (graph?.edges || []).map((edge) => {
-    const from = positions.get(edge.from);
-    const to = positions.get(edge.to);
-    if (!from || !to) return "";
-    const startX = from.x + nodeWidth;
-    const startY = from.y + nodeHeight / 2;
-    const endX = to.x;
-    const endY = to.y + nodeHeight / 2;
-    const midX = (startX + endX) / 2;
-    return `<path d="M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}" class="svg-edge" marker-end="url(#arrow)" />`;
-  }).join("");
-
-  const nodeSvg = nodes.map((node) => {
-    const position = positions.get(node.id);
-    const color = graphColor(node.status);
-    const lines = splitLabel(node.label);
-    const textLines = lines.map((line, index) => `
-      <tspan x="${position.x + nodeWidth / 2}" y="${position.y + 30 + index * 17}">${escapeHtml(line)}</tspan>
-    `).join("");
-    return `
-      <g class="svg-node" data-node-id="${escapeHtml(node.id)}" data-node-label="${escapeHtml(node.label)}">
-        <rect x="${position.x}" y="${position.y}" width="${nodeWidth}" height="${nodeHeight}" rx="8" fill="${color.fill}" stroke="${color.stroke}" stroke-width="2"></rect>
-        <text text-anchor="middle" fill="${color.text}" font-size="13" font-weight="700">${textLines}</text>
-        <text x="${position.x + nodeWidth / 2}" y="${position.y + 70}" text-anchor="middle" fill="#667085" font-size="11">${escapeHtml(node.status_label || statusLabel(node.status))}</text>
-      </g>
-    `;
-  }).join("");
-
-  target.innerHTML = `
-    <svg class="ability-svg" viewBox="0 0 ${width} ${height}" role="img">
-      <defs>
-        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
-          <path d="M0,0 L0,6 L9,3 z" fill="#64748b"></path>
-        </marker>
-      </defs>
-      ${edgeSvg}
-      ${nodeSvg}
-    </svg>
-  `;
-  target.querySelectorAll(".svg-node").forEach((node) => {
-    node.addEventListener("click", () => {
-      const graphNode = nodes.find((item) => item.id === node.dataset.nodeId);
-      if (graphNode) showGraphNodeDetail(graphNode, graph);
+  target.style.minHeight = '450px';
+  if (!state.graphRenderers) state.graphRenderers = {};
+  if (!state.graphRenderers[targetId]) {
+    target.innerHTML = '';
+    state.graphRenderers[targetId] = new ForceGraph(targetId, {
+      onNodeClick: (node, g) => {
+        const d = g.nodes.find(n => n.id === node.id);
+        if (d) showGraphNodeDetail(d, g);
+      }
     });
-  });
+  }
+  state.graphRenderers[targetId].update(graph);
+  return;
+
+
+
 }
 
 function renderDemandSources(graph) {
@@ -738,14 +765,27 @@ function showGraphNodeDetail(node, graph) {
     <div class="score-grid">
       <div class="metric"><strong>${escapeHtml(node.mastery_score ?? "-")}</strong><span>掌握度</span></div>
       <div class="metric"><strong>${escapeHtml(node.confidence ?? "-")}</strong><span>置信度</span></div>
-      <div class="metric"><strong>${escapeHtml(node.evidence_count ?? 0)}</strong><span>证据数</span></div>
+      <div class="metric"><strong>${escapeHtml(node.evidence_count ?? 0)}</strong><span>证据总数</span></div>
+      <div class="metric"><strong>${escapeHtml(node.avg_confidence ?? "-")}</strong><span>平均置信度</span></div>
     </div>
-    <h3>为什么更新</h3>
-    ${(node.update_reasons || node.evidence || []).length ? `
-      <ul class="compact-list">${(node.update_reasons || node.evidence || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-    ` : '<p class="muted">暂无明确证据</p>'}
+    <h3>证据来源分布</h3>
+    ${node.source_types ? Object.entries(node.source_types).map(([src, cnt]) => `
+      <div style="display:flex;justify-content:space-between;padding:2px 0;font-size:13px">
+        <span>${escapeHtml(src)}</span><span>${escapeHtml(cnt)} 条</span>
+      </div>
+    `).join("") : '<p class="muted">暂无证据</p>'}
+    <h3>最新证据</h3>
+    ${node.latest_evidence && node.latest_evidence.length ? `
+      <ul class="item-list">
+        ${node.latest_evidence.slice(0, 3).map(function(ev) {
+          return '<li><div style="font-size:12px">' + escapeHtml(ev.evidence_snippet || '') + '</div><div class="muted">' + escapeHtml(ev.source_type || '') + ' · ' + escapeHtml(ev.extracted_at || '') + ' · conf=' + escapeHtml(ev.confidence || '') + '</div></li>';
+        }).join("")}
+      </ul>
+    ` : '<p class="muted">暂无最新证据</p>'}
     <h3>下一步</h3>
     <p>${escapeHtml(node.next_best_action || "先查看讲解，再完成一个关联训练任务。")}</p>
+    <h3>版本历史</h3>
+    <div id="versionInfo_${escapeHtml(node.id)}" style="font-size:12px;color:#64748b">加载中...</div>
     <h3>相关事件</h3>
     ${events.length ? `
       <ul class="item-list">
@@ -770,6 +810,13 @@ function showGraphNodeDetail(node, graph) {
       loadPersonalizedPlan("today", button.dataset.planNode);
     });
   });
+  // Load version list for this node
+  fetch("/api/graph/job/versions").then(function(r) { return r.json(); }).then(function(data) {
+    var verDiv = document.getElementById("versionInfo_" + node.id);
+    if (verDiv && data.versions) {
+      verDiv.innerHTML = "共 " + data.versions.length + " 个版本，最新：" + (data.versions[0] ? data.versions[0].version : "-");
+    }
+  }).catch(function() {});
   $("nodeDetailDrawer").classList.add("open");
   $("nodeDetailDrawer").setAttribute("aria-hidden", "false");
 }
@@ -779,10 +826,11 @@ function closeNodeDetail() {
   $("nodeDetailDrawer").setAttribute("aria-hidden", "true");
 }
 
-function renderGraph(graph, type = "current") {
+function renderGraph(graph, type = "job") {
   state.graphs[type] = graph || null;
   if (type === "job") {
     $("jobMermaidOutput").textContent = graph?.mermaid || "";
+    renderGraphLegend(graph, "jobGraphDiagram");
     renderGraphDiagram(graph, "jobGraphDiagram");
     renderGraphNodes(graph, "jobGraphList");
     renderDemandSources(graph);
@@ -790,18 +838,13 @@ function renderGraph(graph, type = "current") {
   }
   if (type === "student") {
     $("studentMermaidOutput").textContent = graph?.mermaid || "";
+    renderGraphLegend(graph, "studentGraphDiagram");
     renderGraphDiagram(graph, "studentGraphDiagram");
     renderGraphNodes(graph, "studentGraphList");
     renderStudentEvidence(graph);
     renderGraphUpdateLog(graph?.update_log || []);
     return;
   }
-  $("mermaidOutput").textContent = graph?.mermaid || "";
-  renderGraphDiagram(graph, "currentGraphDiagram");
-  renderGraphNodes(graph, "graphList");
-  $("currentGraphMeta").textContent = graph?.nodes?.some((node) => node.status === "weak")
-    ? "本次问题命中的能力节点已高亮为薄弱，请结合右侧知识缺口和实训任务补救。"
-    : "提交问题后会显示本次暴露的能力缺口。";
 }
 
 function renderKnowledge(items) {
@@ -948,7 +991,6 @@ function workspaceTitle(panel) {
     scenario: "排故角色扮演",
     quiz: "自测验证",
     plan: "个人培养方案",
-    teacher: "教师/师傅摘要"
   }[panel] || "功能工作台";
 }
 
@@ -961,7 +1003,6 @@ function setWorkspacePanel(panel) {
   document.querySelectorAll(".workspace-panel").forEach((section) => {
     section.classList.toggle("active", section.id === `workspace${panel.charAt(0).toUpperCase()}${panel.slice(1)}`);
   });
-  if (panel === "teacher") loadTeacherSummary();
   if (panel === "dashboard") loadStudentDashboard();
   if (panel === "plan") loadPersonalizedPlan();
   if (panel === "scenario") loadScenarios();
@@ -1390,7 +1431,6 @@ function applyChatResult(data) {
   });
   renderSuggestedQuestions(data.suggested_questions || []);
   renderToolSuggestions(data.tool_suggestions || []);
-  renderGraph(data.ability_knowledge_view?.graph || {}, "current");
   if (data.student_graph) renderGraph(data.student_graph, "student");
   loadGraphUpdates();
   loadStudentDashboard();
@@ -1444,7 +1484,6 @@ async function submitDiagnosis() {
     });
     state.lastDiagnosis = data;
     renderScore(data);
-    renderGraph(data.ability_graph, "current");
     if (data.student_graph) renderGraph(data.student_graph, "student");
     await loadGraphUpdates();
     await loadStudentDashboard();
@@ -1481,25 +1520,14 @@ async function submitFeedback(feedback) {
   await loadStudentDashboard();
 }
 
-async function loadTeacherSummary() {
-  const data = await api("/api/teacher/summary");
-  $("teacherSummary").innerHTML = `
-    <p>会话数：${data.session_count}</p>
-    <p>反馈统计：${escapeHtml(JSON.stringify(data.feedback_counts))}</p>
-    <p>Top 薄弱点：${(data.top_weak_abilities || []).map((item) => `${escapeHtml(item.ability_name)}(${item.count})`).join("，") || "暂无"}</p>
-    <p>${escapeHtml(data.teaching_suggestion)}</p>
-  `;
-}
-
 async function boot() {
   try {
     const health = await api("/api/health");
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
     $("healthStatus").classList.add("ok");
-    const [start, quiz, currentGraph, jobGraph, studentBootstrap, studentDashboard] = await Promise.all([
+    const [start, quiz, jobGraph, studentBootstrap, studentDashboard] = await Promise.all([
       api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId }) }),
       api("/api/quiz"),
-      api("/api/graph"),
       api("/api/graph/job"),
       api(`/api/student/bootstrap?session_id=${encodeURIComponent(state.sessionId)}`),
       api(`/api/student/dashboard?session_id=${encodeURIComponent(state.sessionId)}`)
@@ -1519,7 +1547,6 @@ async function boot() {
     }
     renderSuggestedQuestions(start.suggested_questions || []);
     renderQuiz(quiz.questions);
-    renderGraph(currentGraph, "current");
     renderGraph(jobGraph, "job");
     renderJobProposals(jobGraph.pending_proposals || []);
     renderGraph(studentBootstrap.student_graph, "student");
@@ -1546,7 +1573,6 @@ $("refreshDashboard").addEventListener("click", loadStudentDashboard);
 $("startScenario").addEventListener("click", startScenario);
 $("generateJobProposals").addEventListener("click", generateJobProposals);
 $("confirmJobProposals").addEventListener("click", confirmJobProposals);
-$("loadTeacherSummary").addEventListener("click", loadTeacherSummary);
 document.querySelectorAll("[data-feedback]").forEach((button) => {
   button.addEventListener("click", () => submitFeedback(button.dataset.feedback));
 });
@@ -1579,4 +1605,38 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && $("explainDrawer").classList.contains("open")) closeExplainDrawer();
 });
 
-boot();
+
+  // ForceGraph responsive resize
+  window.addEventListener('resize', () => {
+    setTimeout(() => {
+      Object.values(state.graphRenderers || {}).forEach(function(gr) {
+        if (gr && gr.resize) gr.resize();
+      });
+    }, 200);
+  });
+
+// boot() called after job selection via selectJob()
+
+// ── Landing / Identity & Job Selection ──
+function selectIdentity(identity) {
+  localStorage.setItem("mcp_identity", identity);
+  document.getElementById("landingStepIdentity").classList.remove("active");
+  document.getElementById("landingStepJob").classList.add("active");
+}
+
+function backToIdentity() {
+  document.getElementById("landingStepJob").classList.remove("active");
+  document.getElementById("landingStepIdentity").classList.add("active");
+}
+
+function selectJob(jobId) {
+  localStorage.setItem("mcp_job_id", jobId);
+  const overlay = document.getElementById("landingOverlay");
+  overlay.classList.add("fade-out");
+  setTimeout(function() {
+    overlay.style.display = "none";
+    document.body.style.overflow = "";
+    // Start the app if not already started
+    if (typeof boot === "function") boot();
+  }, 400);
+}

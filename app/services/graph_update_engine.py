@@ -460,3 +460,45 @@ def confirm_job_graph_proposals(payload):
     write_runtime_json(JOB_CONFIRMED_PATH, confirmed_store)
     write_runtime_json(JOB_PROPOSALS_PATH, store)
     return {"confirmed": True, "snapshot": snapshot, "confirmed_proposals": proposals}
+
+
+def generate_proposals_from_evidence(job_role=None):
+    """Read evidence from SQLite, compute scores, generate proposals"""
+    try:
+        from scripts.pipeline.evidence_store import query_events, add_proposal, compute_proposal_score, proposal_threshold
+        
+        events = query_events(job_role=(job_role or None), limit=1000)
+        abilities = {}
+        for ev in events:
+            aid = ev["ability_id"]
+            if aid not in abilities:
+                abilities[aid] = {"count": 0, "source_types": set(), "confs": []}
+            abilities[aid]["count"] += 1
+            abilities[aid]["source_types"].add(ev.get("source_type", "unknown"))
+            abilities[aid]["confs"].append(ev.get("confidence", 0.5))
+
+        JOB_ROLE = job_role or "??????????????"
+        proposals = []
+        for aid, data in abilities.items():
+            srclist = list(data["source_types"])
+            source_type = srclist[0] if srclist else "unknown"
+            avg_conf = sum(data["confs"]) / len(data["confs"]) if data["confs"] else 0.5
+            score = compute_proposal_score(source_type, avg_conf, data["count"], 7)
+            threshold = proposal_threshold(score)
+            if threshold in ("auto_approve", "pending"):
+                evidence_text = str(data["count"]) + "????????" + str(round(avg_conf, 2))
+                pr = add_proposal(
+                    job_role=JOB_ROLE,
+                    ability_id=aid,
+                    action="strengthen",
+                    suggested_weight_delta=round(score * 0.2, 2),
+                    evidence=evidence_text,
+                    source="evidence_aggregation",
+                    proposal_score=score
+                )
+                pr["threshold"] = threshold
+                pr["evidence_count"] = data["count"]
+                proposals.append(pr)
+        return proposals
+    except Exception as e:
+        return {"error": str(e)}

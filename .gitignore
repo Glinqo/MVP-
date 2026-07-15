@@ -1,4 +1,4 @@
-__pycache__/
+﻿__pycache__/
 *.pyc
 .env
 .DS_Store
@@ -7,3 +7,20 @@ data/sessions/*.json
 !data/sessions/.gitkeep
 data/job_intelligence_runs.json
 data/job_intelligence_raw/
+web/node_modules/
+web/pnpm-lock.yaml
+.codex-audit/
+demo_test.py
+
+# Runtime evidence data
+data/evidence/
+data/raw_jobs/
+
+# Temp files
+.codex-audit/
+demo_test.py
+_git_push_temp*
+_phase*
+_builder*
+ .tmp-playwright/
+ web/.pnpm-store/
