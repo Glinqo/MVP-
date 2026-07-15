@@ -776,11 +776,101 @@ function renderGraphUpdateLog(updates) {
   ` : '<p class="muted">暂无更新日志</p>';
 }
 
+function renderMasteryBars(node) {
+  const dimensions = [
+    ["knowledge_mastery", "知识理解"],
+    ["procedure_mastery", "过程掌握"],
+    ["transfer_score", "迁移应用"],
+    ["safety_score", "安全合规"]
+  ];
+  if (!dimensions.some(([key]) => node[key] !== undefined && node[key] !== null)) return "";
+  return `
+    <h3>四维认知画像</h3>
+    <div class="mastery-bars">
+      ${dimensions.map(([key, label]) => {
+        const value = Number(node[key] ?? 0);
+        const width = Math.max(0, Math.min(100, value));
+        return `
+          <div class="mastery-bar-row">
+            <div class="mastery-bar-label"><span>${escapeHtml(label)}</span><strong>${escapeHtml(width)}</strong></div>
+            <div class="mastery-bar-track"><i style="width:${width}%"></i></div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function renderStrategyTags(node) {
+  const tags = node.strategy_tags || [];
+  const gate = node.safety_gate;
+  if (!tags.length && !gate) return "";
+  return `
+    <h3>策略与安全门</h3>
+    <div class="strategy-tags">
+      ${gate ? `<span class="strategy-tag ${gate.passed ? "ok" : "warn"}">${gate.passed ? "安全门通过" : "安全需复核"}：${escapeHtml(gate.reason || "")}</span>` : ""}
+      ${tags.map((tag) => `<span class="strategy-tag warn">${escapeHtml(tag.label || tag.tag)}${tag.persistence ? ` · ${escapeHtml(tag.persistence)}` : ""}</span>`).join("")}
+    </div>
+  `;
+}
+
+function renderProcessMetrics(node) {
+  const metrics = node.process_metrics || {};
+  const items = [
+    ["safety_compliance", "安全顺序"],
+    ["evidence_quality", "证据质量"],
+    ["fault_localization", "故障定位"],
+    ["diagnostic_efficiency", "排故效率"],
+    ["closure_verification", "闭环验证"]
+  ].filter(([key]) => metrics[key] !== undefined && metrics[key] !== null);
+  if (!items.length) return "";
+  return `
+    <h3>排故过程指标</h3>
+    <div class="process-metrics">
+      ${items.map(([key, label]) => `<span>${escapeHtml(label)} ${escapeHtml(Math.round(Number(metrics[key] || 0) * 100))}</span>`).join("")}
+    </div>
+  `;
+}
+
+function renderEvidenceTimeline(node, events) {
+  const normalized = node.normalized_events || [];
+  const process = node.process_evidence || [];
+  const merged = [
+    ...normalized.map((event) => ({
+      type: event.event_type,
+      reason: event.evidence_summary,
+      created_at: event.created_at,
+      source: event.source,
+      outcome: event.outcome
+    })),
+    ...process.map((event) => ({
+      type: "diagnostic_action",
+      reason: `${event.action_id || ""} / ${event.classification || ""}`,
+      created_at: event.timestamp,
+      source: event.source,
+      outcome: event.classification
+    })),
+    ...(events || [])
+  ].filter((event) => event.type || event.reason);
+  if (!merged.length) return '<p class="muted">暂无事件记录</p>';
+  return `
+    <ol class="evidence-timeline">
+      ${merged.slice(-8).reverse().map((event) => `
+        <li>
+          <strong>${escapeHtml(event.type || "event")}${event.outcome ? ` · ${escapeHtml(event.outcome)}` : ""}</strong>
+          <div>${escapeHtml(event.reason || event.note || "")}</div>
+          <div class="muted">${escapeHtml(event.created_at || "")} · source: ${escapeHtml(event.source || "")}</div>
+        </li>
+      `).join("")}
+    </ol>
+  `;
+}
+
 function showGraphNodeDetail(node, graph) {
   const events = node.evidence_events || [];
   $("graphEvidencePanel").innerHTML = `
     <strong>${escapeHtml(node.label)}</strong>
-    <p>状态：${escapeHtml(node.status_label || statusLabel(node.status))}；掌握度：${escapeHtml(node.mastery_score ?? "-")}；置信度：${escapeHtml(node.confidence ?? "-")}</p>
+    <p>状态：${escapeHtml(node.status_label || statusLabel(node.status))}；掌握度：${escapeHtml(node.mastery_score ?? "-")}；认知分：${escapeHtml(node.cognitive_mastery_score ?? "-")}；置信度：${escapeHtml(node.confidence ?? "-")}</p>
     <p>${(node.update_reasons || node.evidence || []).map(escapeHtml).join("；") || "暂无明确证据"}</p>
   `;
   $("nodeDetailContent").innerHTML = `
@@ -788,10 +878,14 @@ function showGraphNodeDetail(node, graph) {
     <p>状态：${escapeHtml(node.status_label || statusLabel(node.status))}</p>
     <div class="score-grid">
       <div class="metric"><strong>${escapeHtml(node.mastery_score ?? "-")}</strong><span>掌握度</span></div>
+      <div class="metric"><strong>${escapeHtml(node.cognitive_mastery_score ?? "-")}</strong><span>认知综合分</span></div>
       <div class="metric"><strong>${escapeHtml(node.confidence ?? "-")}</strong><span>置信度</span></div>
       <div class="metric"><strong>${escapeHtml(node.evidence_count ?? 0)}</strong><span>证据总数</span></div>
-      <div class="metric"><strong>${escapeHtml(node.avg_confidence ?? "-")}</strong><span>平均置信度</span></div>
+      <div class="metric"><strong>${escapeHtml(node.uncertainty ?? "-")}</strong><span>不确定性</span></div>
     </div>
+    ${renderMasteryBars(node)}
+    ${renderProcessMetrics(node)}
+    ${renderStrategyTags(node)}
     <h3>证据来源分布</h3>
     ${node.source_types ? Object.entries(node.source_types).map(([src, cnt]) => `
       <div style="display:flex;justify-content:space-between;padding:2px 0;font-size:13px">
@@ -808,20 +902,11 @@ function showGraphNodeDetail(node, graph) {
     ` : '<p class="muted">暂无最新证据</p>'}
     <h3>下一步</h3>
     <p>${escapeHtml(node.next_best_action || "先查看讲解，再完成一个关联训练任务。")}</p>
+    ${node.why_next ? `<p class="muted">推荐理由：${escapeHtml(node.why_next)}</p>` : ""}
     <h3>版本历史</h3>
     <div id="versionInfo_${escapeHtml(node.id)}" style="font-size:12px;color:#64748b">加载中...</div>
-    <h3>相关事件</h3>
-    ${events.length ? `
-      <ul class="item-list">
-        ${events.map((event) => `
-          <li>
-            <strong>${escapeHtml(event.event_type || "event")}</strong>
-            <div>${escapeHtml(event.reason || event.note || "")}</div>
-            <div class="muted">${escapeHtml(event.created_at || "")} · source: ${escapeHtml(event.source || "")}</div>
-          </li>
-        `).join("")}
-      </ul>
-    ` : '<p class="muted">暂无事件记录</p>'}
+    <h3>证据时间线</h3>
+    ${renderEvidenceTimeline(node, events)}
     <div class="question-actions">
       <button type="button" data-ask="${escapeHtml(`请讲解“${node.label}”这个能力，结合我的问题说明怎么练。`)}" data-explain-type="ability" data-ability-id="${escapeHtml(node.id)}" data-event-type="ability_explained">问 AI 讲解</button>
       <button type="button" data-plan-node="${escapeHtml(node.id)}">生成培养方案</button>
