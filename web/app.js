@@ -1830,8 +1830,6 @@ $("ingestJobMaterial")?.addEventListener("click", ingestJobAdminMaterial);
 $("collectJobSources")?.addEventListener("click", collectJobSources);
 $("batchConfirmProposals")?.addEventListener("click", batchConfirmJobProposals);
 $("startScenario").addEventListener("click", startScenario);
-$("generateJobProposals").addEventListener("click", generateJobProposals);
-$("confirmJobProposals").addEventListener("click", confirmJobProposals);
 document.querySelectorAll("[data-feedback]").forEach((button) => {
   button.addEventListener("click", () => submitFeedback(button.dataset.feedback));
 });
