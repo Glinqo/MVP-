@@ -1,7 +1,7 @@
 import json
 
 from .assist import assist
-from .data_loader import primary_job_profile
+from .data_loader import primary_job_profile, job_profile_by_id
 from .feedback import append_session_event
 from .graph import build_student_ability_graph
 from .intent import classify_intent
@@ -44,7 +44,8 @@ def welcome_questions():
 
 def chat_start(payload=None):
     payload = payload or {}
-    profile = primary_job_profile()
+    job_role = payload.get("job_role")
+    profile = job_profile_by_id(job_role) if job_role else primary_job_profile()
     role_name = profile.get("role_name", "自动化生产线装调与运维技术员")
     learner_stage = profile.get("learner_stage", "职业新人")
     focus_task = profile.get("mvp_focus_task", "传感器 NPN/PNP 接线与 PLC 输入信号排查")

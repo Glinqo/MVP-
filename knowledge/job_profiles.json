@@ -147,6 +147,1022 @@
         "MVP 场景: 自动化生产线装调与运维职业新人培训"
       ],
       "radar_profile_id": "automation_line_commissioning_maintenance_newcomer"
+    },
+    {
+      "id": "mechanical_electrical_maintenance_worker",
+      "role_name": "机电设备维修工",
+      "learner_stage": "职业新人",
+      "target_learners": [
+        "高职机电一体化实训学生",
+        "入职 0-6 个月设备维修新人"
+      ],
+      "job_context": "在机电设备维修工作站中，完成机械零部件拆装与调整、电气图纸识读与元件识别、设备点检与异常判断、常见机电故障的诊断与维修记录。",
+      "core_job_tasks": [
+        "按规范流程完成机械零部件的拆装与传动机构调整",
+        "识读电气原理图和接线图，识别电气元件",
+        "按点检标准流程完成设备日常巡检和参数记录",
+        "识别设备异常状态，判断故障类型",
+        "按“先外后内、先机后电”原则排查故障并记录反馈"
+      ],
+      "ability_chain": [
+        "mw_01",
+        "mw_02",
+        "mw_03",
+        "mw_04",
+        "mw_05",
+        "mw_06",
+        "mw_07",
+        "mw_08",
+        "mw_09",
+        "mw_10",
+        "mw_11",
+        "mw_12",
+        "mw_13",
+        "mw_14",
+        "mw_15",
+        "mw_16",
+        "mw_17",
+        "mw_18",
+        "mw_19",
+        "mw_20"
+      ],
+      "ability_areas": [
+        "机械装配",
+        "电气识图",
+        "设备点检",
+        "故障维修"
+      ],
+      "course_mapping": [
+        {
+          "course": "机械制图与CAD",
+          "training_value": "支撑机械图纸识读和装配图理解"
+        },
+        {
+          "course": "机械装配技术",
+          "training_value": "支撑零部件拆装和传动机构调整"
+        },
+        {
+          "course": "电工电子技术",
+          "training_value": "支撑电气识图和元件识别"
+        },
+        {
+          "course": "设备点检与维护",
+          "training_value": "支撑点检流程和异常状态判断"
+        },
+        {
+          "course": "机电设备故障诊断",
+          "training_value": "支撑机械和电气故障诊断与维修记录"
+        }
+      ],
+      "training_stages": [
+        {
+          "stage": "机械装配基础",
+          "goal": "能识读机械图纸并完成零部件的基本拆装。",
+          "ability_ids": [
+            "mw_01",
+            "mw_02",
+            "mw_03",
+            "mw_04",
+            "mw_05"
+          ],
+          "evidence": [
+            "装配记录表",
+            "拆装过程照片"
+          ]
+        },
+        {
+          "stage": "电气识图与元件",
+          "goal": "能识读电气图纸并正确识别常见电气元件。",
+          "ability_ids": [
+            "mw_06",
+            "mw_07",
+            "mw_08",
+            "mw_09",
+            "mw_10"
+          ],
+          "evidence": [
+            "电气符号识别表",
+            "元件功能说明"
+          ]
+        },
+        {
+          "stage": "设备点检与监控",
+          "goal": "能按标准流程完成设备点检并记录运行参数。",
+          "ability_ids": [
+            "mw_11",
+            "mw_12",
+            "mw_13",
+            "mw_14",
+            "mw_15"
+          ],
+          "evidence": [
+            "点检记录表",
+            "异常状态报告"
+          ]
+        },
+        {
+          "stage": "故障诊断与维修",
+          "goal": "能按排查顺序诊断常见机电故障并规范记录维修过程。",
+          "ability_ids": [
+            "mw_16",
+            "mw_17",
+            "mw_18",
+            "mw_19",
+            "mw_20"
+          ],
+          "evidence": [
+            "故障诊断记录",
+            "维修报告"
+          ]
+        }
+      ],
+      "assessment_policy": {
+        "diagnosis_method": "诊断题和排故状态表",
+        "scoring_method": "确定性规则评分",
+        "llm_role": "解释错因、组织反馈和生成学习建议，不自由改分",
+        "teacher_review": "涉及真实设备拆装、接线调整和安全判断时，由教师或实训指导人员复核"
+      },
+      "mvp_focus_task": "机械零部件拆装与电气识图基础实训",
+      "safety_notice": "拆装前先断电并确认设备处于安全状态；使用工具前检查完好性；涉及旋转机械和电气操作时由教师或实训指导人员确认安全。",
+      "sources": [
+        "project_curated",
+        "MVP 场景: 机电设备维修工职业新人培训"
+      ],
+      "radar_profile_id": "mechanical_electrical_maintenance_worker"
+    },
+    {
+      "id": "automation_line_commissioning_maintenance",
+      "role_name": "自动化生产线装调与运维技术员",
+      "learner_stage": "职业新人",
+      "target_learners": [
+        "高职机电一体化实训学生",
+        "入职 0-6 个月设备调试新人"
+      ],
+      "job_context": "在自动化产线或机电设备工作站中，完成电气安全等相关领域的装调、监控和故障排查。",
+      "core_job_tasks": [
+        "电气安全相关基础操作",
+        "综合排故相关综合排故"
+      ],
+      "ability_chain": [
+        "at_01",
+        "at_02",
+        "at_03",
+        "at_04",
+        "at_05",
+        "at_06",
+        "at_07",
+        "at_08",
+        "at_09",
+        "at_10",
+        "at_11",
+        "at_12",
+        "at_13",
+        "at_14",
+        "at_15",
+        "at_16",
+        "at_17",
+        "at_18",
+        "at_19",
+        "at_20",
+        "at_21",
+        "at_22",
+        "at_23",
+        "at_24",
+        "at_25",
+        "at_26",
+        "at_27",
+        "at_28",
+        "at_29",
+        "at_30",
+        "at_31",
+        "at_32",
+        "at_33"
+      ],
+      "ability_areas": [
+        "电气安全",
+        "传感器",
+        "PLC",
+        "气动",
+        "伺服",
+        "综合排故"
+      ],
+      "course_mapping": [],
+      "training_stages": [
+        {
+          "stage": "电气安全",
+          "goal": "掌握电气安全相关知识与技能。",
+          "ability_ids": [
+            "at_01",
+            "at_02",
+            "at_03",
+            "at_04"
+          ],
+          "evidence": [
+            "电气安全实操记录",
+            "电气安全考核成绩"
+          ]
+        },
+        {
+          "stage": "传感器",
+          "goal": "掌握传感器相关知识与技能。",
+          "ability_ids": [
+            "at_05",
+            "at_06",
+            "at_07",
+            "at_08",
+            "at_09",
+            "at_10"
+          ],
+          "evidence": [
+            "传感器实操记录",
+            "传感器考核成绩"
+          ]
+        },
+        {
+          "stage": "PLC",
+          "goal": "掌握PLC相关知识与技能。",
+          "ability_ids": [
+            "at_11",
+            "at_12",
+            "at_13",
+            "at_14",
+            "at_15",
+            "at_16",
+            "at_17"
+          ],
+          "evidence": [
+            "PLC实操记录",
+            "PLC考核成绩"
+          ]
+        },
+        {
+          "stage": "气动",
+          "goal": "掌握气动相关知识与技能。",
+          "ability_ids": [
+            "at_18",
+            "at_19",
+            "at_20",
+            "at_21",
+            "at_22"
+          ],
+          "evidence": [
+            "气动实操记录",
+            "气动考核成绩"
+          ]
+        },
+        {
+          "stage": "伺服",
+          "goal": "掌握伺服相关知识与技能。",
+          "ability_ids": [
+            "at_23",
+            "at_24",
+            "at_25",
+            "at_26"
+          ],
+          "evidence": [
+            "伺服实操记录",
+            "伺服考核成绩"
+          ]
+        },
+        {
+          "stage": "综合排故",
+          "goal": "掌握综合排故相关知识与技能。",
+          "ability_ids": [
+            "at_27",
+            "at_28",
+            "at_29",
+            "at_30",
+            "at_31",
+            "at_32",
+            "at_33"
+          ],
+          "evidence": [
+            "综合排故实操记录",
+            "综合排故考核成绩"
+          ]
+        }
+      ],
+      "assessment_policy": {
+        "diagnosis_method": "诊断题和排故状态表",
+        "scoring_method": "确定性规则评分",
+        "llm_role": "解释错因、组织反馈和生成学习建议，不自由改分",
+        "teacher_review": "涉及真实设备操作时由教师或实训指导人员复核"
+      },
+      "mvp_focus_task": "电气安全与PLC信号排查综合实训",
+      "safety_notice": "接线和拆线前先断电；调试前确认急停、气源、电源和设备状态。",
+      "sources": [
+        "project_curated",
+        "MVP 场景: 自动化生产线装调与运维技术员职业新人培训"
+      ],
+      "radar_profile_id": "automation_line_commissioning_maintenance"
+    },
+    {
+      "id": "automation_equipment_debugger",
+      "role_name": "自动化设备调试员",
+      "learner_stage": "职业新人",
+      "target_learners": [
+        "高职机电一体化实训学生",
+        "入职 0-6 个月设备调试新人"
+      ],
+      "job_context": "在自动化产线或机电设备工作站中，完成传感器信号等相关领域的装调、监控和故障排查。",
+      "core_job_tasks": [
+        "传感器信号相关基础操作",
+        "运行验证相关综合排故"
+      ],
+      "ability_chain": [
+        "ad_01",
+        "ad_02",
+        "ad_03",
+        "ad_04",
+        "ad_05",
+        "ad_06",
+        "ad_07",
+        "ad_08",
+        "ad_09",
+        "ad_10",
+        "ad_11",
+        "ad_12",
+        "ad_13",
+        "ad_14",
+        "ad_15",
+        "ad_16",
+        "ad_17",
+        "ad_18",
+        "ad_19",
+        "ad_20"
+      ],
+      "ability_areas": [
+        "传感器信号",
+        "PLC 调试",
+        "执行机构联动",
+        "运行验证"
+      ],
+      "course_mapping": [],
+      "training_stages": [
+        {
+          "stage": "传感器信号",
+          "goal": "掌握传感器信号相关知识与技能。",
+          "ability_ids": [
+            "ad_01",
+            "ad_02",
+            "ad_03",
+            "ad_04",
+            "ad_05"
+          ],
+          "evidence": [
+            "传感器信号实操记录",
+            "传感器信号考核成绩"
+          ]
+        },
+        {
+          "stage": "PLC 调试",
+          "goal": "掌握PLC 调试相关知识与技能。",
+          "ability_ids": [
+            "ad_06",
+            "ad_07",
+            "ad_08",
+            "ad_09",
+            "ad_10"
+          ],
+          "evidence": [
+            "PLC 调试实操记录",
+            "PLC 调试考核成绩"
+          ]
+        },
+        {
+          "stage": "执行机构联动",
+          "goal": "掌握执行机构联动相关知识与技能。",
+          "ability_ids": [
+            "ad_11",
+            "ad_12",
+            "ad_13",
+            "ad_14",
+            "ad_15"
+          ],
+          "evidence": [
+            "执行机构联动实操记录",
+            "执行机构联动考核成绩"
+          ]
+        },
+        {
+          "stage": "运行验证",
+          "goal": "掌握运行验证相关知识与技能。",
+          "ability_ids": [
+            "ad_16",
+            "ad_17",
+            "ad_18",
+            "ad_19",
+            "ad_20"
+          ],
+          "evidence": [
+            "运行验证实操记录",
+            "运行验证考核成绩"
+          ]
+        }
+      ],
+      "assessment_policy": {
+        "diagnosis_method": "诊断题和排故状态表",
+        "scoring_method": "确定性规则评分",
+        "llm_role": "解释错因、组织反馈和生成学习建议，不自由改分",
+        "teacher_review": "涉及真实设备操作时由教师或实训指导人员复核"
+      },
+      "mvp_focus_task": "传感器信号与PLC调试综合实训",
+      "safety_notice": "接线和拆线前先断电；调试前确认急停、气源、电源和设备状态。",
+      "sources": [
+        "project_curated",
+        "MVP 场景: 自动化设备调试员职业新人培训"
+      ],
+      "radar_profile_id": "automation_equipment_debugger"
+    },
+    {
+      "id": "industrial_robot_maintenance",
+      "role_name": "工业机器人系统运维员",
+      "learner_stage": "职业新人",
+      "target_learners": [
+        "高职机电一体化实训学生",
+        "入职 0-6 个月设备调试新人"
+      ],
+      "job_context": "在自动化产线或机电设备工作站中，完成机器人操作等相关领域的装调、监控和故障排查。",
+      "core_job_tasks": [
+        "机器人操作相关基础操作",
+        "故障排查相关综合排故"
+      ],
+      "ability_chain": [
+        "ir_01",
+        "ir_02",
+        "ir_03",
+        "ir_04",
+        "ir_05",
+        "ir_06",
+        "ir_07",
+        "ir_08",
+        "ir_09",
+        "ir_10",
+        "ir_11",
+        "ir_12",
+        "ir_13",
+        "ir_14",
+        "ir_15",
+        "ir_16",
+        "ir_17",
+        "ir_18",
+        "ir_19",
+        "ir_20"
+      ],
+      "ability_areas": [
+        "机器人操作",
+        "I/O 通信",
+        "工作站安全",
+        "故障排查"
+      ],
+      "course_mapping": [],
+      "training_stages": [
+        {
+          "stage": "机器人操作",
+          "goal": "掌握机器人操作相关知识与技能。",
+          "ability_ids": [
+            "ir_01",
+            "ir_02",
+            "ir_03",
+            "ir_04",
+            "ir_05"
+          ],
+          "evidence": [
+            "机器人操作实操记录",
+            "机器人操作考核成绩"
+          ]
+        },
+        {
+          "stage": "I/O 通信",
+          "goal": "掌握I/O 通信相关知识与技能。",
+          "ability_ids": [
+            "ir_06",
+            "ir_07",
+            "ir_08",
+            "ir_09",
+            "ir_10"
+          ],
+          "evidence": [
+            "I/O 通信实操记录",
+            "I/O 通信考核成绩"
+          ]
+        },
+        {
+          "stage": "工作站安全",
+          "goal": "掌握工作站安全相关知识与技能。",
+          "ability_ids": [
+            "ir_11",
+            "ir_12",
+            "ir_13",
+            "ir_14",
+            "ir_15"
+          ],
+          "evidence": [
+            "工作站安全实操记录",
+            "工作站安全考核成绩"
+          ]
+        },
+        {
+          "stage": "故障排查",
+          "goal": "掌握故障排查相关知识与技能。",
+          "ability_ids": [
+            "ir_16",
+            "ir_17",
+            "ir_18",
+            "ir_19",
+            "ir_20"
+          ],
+          "evidence": [
+            "故障排查实操记录",
+            "故障排查考核成绩"
+          ]
+        }
+      ],
+      "assessment_policy": {
+        "diagnosis_method": "诊断题和排故状态表",
+        "scoring_method": "确定性规则评分",
+        "llm_role": "解释错因、组织反馈和生成学习建议，不自由改分",
+        "teacher_review": "涉及真实设备操作时由教师或实训指导人员复核"
+      },
+      "mvp_focus_task": "机器人操作与工作站安全实训",
+      "safety_notice": "接线和拆线前先断电；调试前确认急停、气源、电源和设备状态。",
+      "sources": [
+        "project_curated",
+        "MVP 场景: 工业机器人系统运维员职业新人培训"
+      ],
+      "radar_profile_id": "industrial_robot_maintenance"
+    },
+    {
+      "id": "plc_electrical_control_technician",
+      "role_name": "PLC 电气控制技术员",
+      "learner_stage": "职业新人",
+      "target_learners": [
+        "高职机电一体化实训学生",
+        "入职 0-6 个月设备调试新人"
+      ],
+      "job_context": "在自动化产线或机电设备工作站中，完成低压电器等相关领域的装调、监控和故障排查。",
+      "core_job_tasks": [
+        "低压电器相关基础操作",
+        "电气控制逻辑相关综合排故"
+      ],
+      "ability_chain": [
+        "pc_01",
+        "pc_02",
+        "pc_03",
+        "pc_04",
+        "pc_05",
+        "pc_06",
+        "pc_07",
+        "pc_08",
+        "pc_09",
+        "pc_10",
+        "pc_11",
+        "pc_12",
+        "pc_13",
+        "pc_14",
+        "pc_15",
+        "pc_16",
+        "pc_17",
+        "pc_18",
+        "pc_19",
+        "pc_20"
+      ],
+      "ability_areas": [
+        "低压电器",
+        "PLC 编程",
+        "I/O 映射",
+        "电气控制逻辑"
+      ],
+      "course_mapping": [],
+      "training_stages": [
+        {
+          "stage": "低压电器",
+          "goal": "掌握低压电器相关知识与技能。",
+          "ability_ids": [
+            "pc_01",
+            "pc_02",
+            "pc_03",
+            "pc_04",
+            "pc_05"
+          ],
+          "evidence": [
+            "低压电器实操记录",
+            "低压电器考核成绩"
+          ]
+        },
+        {
+          "stage": "PLC 编程",
+          "goal": "掌握PLC 编程相关知识与技能。",
+          "ability_ids": [
+            "pc_06",
+            "pc_07",
+            "pc_08",
+            "pc_09",
+            "pc_10"
+          ],
+          "evidence": [
+            "PLC 编程实操记录",
+            "PLC 编程考核成绩"
+          ]
+        },
+        {
+          "stage": "I/O 映射",
+          "goal": "掌握I/O 映射相关知识与技能。",
+          "ability_ids": [
+            "pc_11",
+            "pc_12",
+            "pc_13",
+            "pc_14",
+            "pc_15"
+          ],
+          "evidence": [
+            "I/O 映射实操记录",
+            "I/O 映射考核成绩"
+          ]
+        },
+        {
+          "stage": "电气控制逻辑",
+          "goal": "掌握电气控制逻辑相关知识与技能。",
+          "ability_ids": [
+            "pc_16",
+            "pc_17",
+            "pc_18",
+            "pc_19",
+            "pc_20"
+          ],
+          "evidence": [
+            "电气控制逻辑实操记录",
+            "电气控制逻辑考核成绩"
+          ]
+        }
+      ],
+      "assessment_policy": {
+        "diagnosis_method": "诊断题和排故状态表",
+        "scoring_method": "确定性规则评分",
+        "llm_role": "解释错因、组织反馈和生成学习建议，不自由改分",
+        "teacher_review": "涉及真实设备操作时由教师或实训指导人员复核"
+      },
+      "mvp_focus_task": "PLC编程与电气控制逻辑实训",
+      "safety_notice": "接线和拆线前先断电；调试前确认急停、气源、电源和设备状态。",
+      "sources": [
+        "project_curated",
+        "MVP 场景: PLC 电气控制技术员职业新人培训"
+      ],
+      "radar_profile_id": "plc_electrical_control_technician"
+    },
+    {
+      "id": "sensor_industrial_network_debugger",
+      "role_name": "传感器与工业网络调试员",
+      "learner_stage": "职业新人",
+      "target_learners": [
+        "高职机电一体化实训学生",
+        "入职 0-6 个月设备调试新人"
+      ],
+      "job_context": "在自动化产线或机电设备工作站中，完成传感器接线等相关领域的装调、监控和故障排查。",
+      "core_job_tasks": [
+        "传感器接线相关基础操作",
+        "数据采集相关综合排故"
+      ],
+      "ability_chain": [
+        "sn_01",
+        "sn_02",
+        "sn_03",
+        "sn_04",
+        "sn_05",
+        "sn_06",
+        "sn_07",
+        "sn_08",
+        "sn_09",
+        "sn_10",
+        "sn_11",
+        "sn_12",
+        "sn_13",
+        "sn_14",
+        "sn_15",
+        "sn_16",
+        "sn_17",
+        "sn_18",
+        "sn_19",
+        "sn_20"
+      ],
+      "ability_areas": [
+        "传感器接线",
+        "信号采集",
+        "工业通信",
+        "数据采集"
+      ],
+      "course_mapping": [],
+      "training_stages": [
+        {
+          "stage": "传感器接线",
+          "goal": "掌握传感器接线相关知识与技能。",
+          "ability_ids": [
+            "sn_01",
+            "sn_02",
+            "sn_03",
+            "sn_04",
+            "sn_05"
+          ],
+          "evidence": [
+            "传感器接线实操记录",
+            "传感器接线考核成绩"
+          ]
+        },
+        {
+          "stage": "信号采集",
+          "goal": "掌握信号采集相关知识与技能。",
+          "ability_ids": [
+            "sn_06",
+            "sn_07",
+            "sn_08",
+            "sn_09",
+            "sn_10"
+          ],
+          "evidence": [
+            "信号采集实操记录",
+            "信号采集考核成绩"
+          ]
+        },
+        {
+          "stage": "工业通信",
+          "goal": "掌握工业通信相关知识与技能。",
+          "ability_ids": [
+            "sn_11",
+            "sn_12",
+            "sn_13",
+            "sn_14",
+            "sn_15"
+          ],
+          "evidence": [
+            "工业通信实操记录",
+            "工业通信考核成绩"
+          ]
+        },
+        {
+          "stage": "数据采集",
+          "goal": "掌握数据采集相关知识与技能。",
+          "ability_ids": [
+            "sn_16",
+            "sn_17",
+            "sn_18",
+            "sn_19",
+            "sn_20"
+          ],
+          "evidence": [
+            "数据采集实操记录",
+            "数据采集考核成绩"
+          ]
+        }
+      ],
+      "assessment_policy": {
+        "diagnosis_method": "诊断题和排故状态表",
+        "scoring_method": "确定性规则评分",
+        "llm_role": "解释错因、组织反馈和生成学习建议，不自由改分",
+        "teacher_review": "涉及真实设备操作时由教师或实训指导人员复核"
+      },
+      "mvp_focus_task": "传感器信号与工业网络调试实训",
+      "safety_notice": "接线和拆线前先断电；调试前确认急停、气源、电源和设备状态。",
+      "sources": [
+        "project_curated",
+        "MVP 场景: 传感器与工业网络调试员职业新人培训"
+      ],
+      "radar_profile_id": "sensor_industrial_network_debugger"
+    },
+    {
+      "id": "servo_step_drive_debugger",
+      "role_name": "伺服/步进驱动调试员",
+      "learner_stage": "职业新人",
+      "target_learners": [
+        "高职机电一体化实训学生",
+        "入职 0-6 个月设备调试新人"
+      ],
+      "job_context": "在自动化产线或机电设备工作站中，完成电机驱动等相关领域的装调、监控和故障排查。",
+      "core_job_tasks": [
+        "电机驱动相关基础操作",
+        "定位异常排查相关综合排故"
+      ],
+      "ability_chain": [
+        "sd_01",
+        "sd_02",
+        "sd_03",
+        "sd_04",
+        "sd_05",
+        "sd_06",
+        "sd_07",
+        "sd_08",
+        "sd_09",
+        "sd_10",
+        "sd_11",
+        "sd_12",
+        "sd_13",
+        "sd_14",
+        "sd_15",
+        "sd_16",
+        "sd_17",
+        "sd_18",
+        "sd_19",
+        "sd_20"
+      ],
+      "ability_areas": [
+        "电机驱动",
+        "参数设置",
+        "运动控制",
+        "定位异常排查"
+      ],
+      "course_mapping": [],
+      "training_stages": [
+        {
+          "stage": "电机驱动",
+          "goal": "掌握电机驱动相关知识与技能。",
+          "ability_ids": [
+            "sd_01",
+            "sd_02",
+            "sd_03",
+            "sd_04",
+            "sd_05"
+          ],
+          "evidence": [
+            "电机驱动实操记录",
+            "电机驱动考核成绩"
+          ]
+        },
+        {
+          "stage": "参数设置",
+          "goal": "掌握参数设置相关知识与技能。",
+          "ability_ids": [
+            "sd_06",
+            "sd_07",
+            "sd_08",
+            "sd_09",
+            "sd_10"
+          ],
+          "evidence": [
+            "参数设置实操记录",
+            "参数设置考核成绩"
+          ]
+        },
+        {
+          "stage": "运动控制",
+          "goal": "掌握运动控制相关知识与技能。",
+          "ability_ids": [
+            "sd_11",
+            "sd_12",
+            "sd_13",
+            "sd_14",
+            "sd_15"
+          ],
+          "evidence": [
+            "运动控制实操记录",
+            "运动控制考核成绩"
+          ]
+        },
+        {
+          "stage": "定位异常排查",
+          "goal": "掌握定位异常排查相关知识与技能。",
+          "ability_ids": [
+            "sd_16",
+            "sd_17",
+            "sd_18",
+            "sd_19",
+            "sd_20"
+          ],
+          "evidence": [
+            "定位异常排查实操记录",
+            "定位异常排查考核成绩"
+          ]
+        }
+      ],
+      "assessment_policy": {
+        "diagnosis_method": "诊断题和排故状态表",
+        "scoring_method": "确定性规则评分",
+        "llm_role": "解释错因、组织反馈和生成学习建议，不自由改分",
+        "teacher_review": "涉及真实设备操作时由教师或实训指导人员复核"
+      },
+      "mvp_focus_task": "伺服/步进驱动参数调试实训",
+      "safety_notice": "接线和拆线前先断电；调试前确认急停、气源、电源和设备状态。",
+      "sources": [
+        "project_curated",
+        "MVP 场景: 伺服/步进驱动调试员职业新人培训"
+      ],
+      "radar_profile_id": "servo_step_drive_debugger"
+    },
+    {
+      "id": "cnc_maintenance_worker",
+      "role_name": "数控设备维护员",
+      "learner_stage": "职业新人",
+      "target_learners": [
+        "高职机电一体化实训学生",
+        "入职 0-6 个月设备调试新人"
+      ],
+      "job_context": "在自动化产线或机电设备工作站中，完成机械传动等相关领域的装调、监控和故障排查。",
+      "core_job_tasks": [
+        "机械传动相关基础操作",
+        "设备维护相关综合排故"
+      ],
+      "ability_chain": [
+        "cm_01",
+        "cm_02",
+        "cm_03",
+        "cm_04",
+        "cm_05",
+        "cm_06",
+        "cm_07",
+        "cm_08",
+        "cm_09",
+        "cm_10",
+        "cm_11",
+        "cm_12",
+        "cm_13",
+        "cm_14",
+        "cm_15",
+        "cm_16",
+        "cm_17",
+        "cm_18",
+        "cm_19",
+        "cm_20"
+      ],
+      "ability_areas": [
+        "机械传动",
+        "电气检查",
+        "报警诊断",
+        "设备维护"
+      ],
+      "course_mapping": [],
+      "training_stages": [
+        {
+          "stage": "机械传动",
+          "goal": "掌握机械传动相关知识与技能。",
+          "ability_ids": [
+            "cm_01",
+            "cm_02",
+            "cm_03",
+            "cm_04",
+            "cm_05"
+          ],
+          "evidence": [
+            "机械传动实操记录",
+            "机械传动考核成绩"
+          ]
+        },
+        {
+          "stage": "电气检查",
+          "goal": "掌握电气检查相关知识与技能。",
+          "ability_ids": [
+            "cm_06",
+            "cm_07",
+            "cm_08",
+            "cm_09",
+            "cm_10"
+          ],
+          "evidence": [
+            "电气检查实操记录",
+            "电气检查考核成绩"
+          ]
+        },
+        {
+          "stage": "报警诊断",
+          "goal": "掌握报警诊断相关知识与技能。",
+          "ability_ids": [
+            "cm_11",
+            "cm_12",
+            "cm_13",
+            "cm_14",
+            "cm_15"
+          ],
+          "evidence": [
+            "报警诊断实操记录",
+            "报警诊断考核成绩"
+          ]
+        },
+        {
+          "stage": "设备维护",
+          "goal": "掌握设备维护相关知识与技能。",
+          "ability_ids": [
+            "cm_16",
+            "cm_17",
+            "cm_18",
+            "cm_19",
+            "cm_20"
+          ],
+          "evidence": [
+            "设备维护实操记录",
+            "设备维护考核成绩"
+          ]
+        }
+      ],
+      "assessment_policy": {
+        "diagnosis_method": "诊断题和排故状态表",
+        "scoring_method": "确定性规则评分",
+        "llm_role": "解释错因、组织反馈和生成学习建议，不自由改分",
+        "teacher_review": "涉及真实设备操作时由教师或实训指导人员复核"
+      },
+      "mvp_focus_task": "数控设备维护与报警诊断实训",
+      "safety_notice": "接线和拆线前先断电；调试前确认急停、气源、电源和设备状态。",
+      "sources": [
+        "project_curated",
+        "MVP 场景: 数控设备维护员职业新人培训"
+      ],
+      "radar_profile_id": "cnc_maintenance_worker"
     }
   ]
 }

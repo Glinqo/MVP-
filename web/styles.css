@@ -530,9 +530,10 @@ button:active{transform:translateY(0)}
   inset: 0;
   z-index: 10000;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: linear-gradient(135deg, #0a1628 0%, #1a2a4a 40%, #1e3a5f 100%);
 }
 
@@ -550,7 +551,7 @@ button:active{transform:translateY(0)}
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 680px;
+  max-width: 680px; margin: auto;
   padding: 40px 24px;
 }
 
@@ -758,4 +759,5 @@ button:active{transform:translateY(0)}
   .landing-card-body strong { font-size: 1rem; }
   .landing-back { position: static; transform: none; margin-bottom: 16px; }
 }
+
 

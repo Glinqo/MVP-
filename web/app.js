@@ -1783,10 +1783,11 @@ async function boot() {
     const health = await api("/api/health");
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
     $("healthStatus").classList.add("ok");
+    const jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
     const [start, quiz, jobGraph, studentBootstrap] = await Promise.all([
-      api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId }) }),
+      api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId, job_role: jobId }) }),
       api("/api/quiz"),
-      api("/api/graph/job"),
+      api(`/api/graph/job?job_role=${encodeURIComponent(jobId)}`),
       api(`/api/student/bootstrap?session_id=${encodeURIComponent(state.sessionId)}`),
     ]);
     state.learnerContext = studentBootstrap.learner_context || start.learner_context || null;

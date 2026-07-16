@@ -1,4 +1,4 @@
-import json
+﻿import json
 from functools import lru_cache
 from pathlib import Path
 
@@ -79,3 +79,11 @@ def public_questions():
             }
         )
     return questions
+
+def job_profile_by_id(profile_id=None):
+    """Return a job profile by id, or the primary profile if id is None."""
+    profiles = load_data()["job_profiles"]
+    if not profile_id:
+        return profiles[0] if profiles else {}
+    by_id = load_data()["job_profile_by_id"]
+    return by_id.get(profile_id, profiles[0] if profiles else {})

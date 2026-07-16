@@ -948,6 +948,3295 @@
       "radar_dimension_ids": [
         "equipment_inspection_troubleshooting"
       ]
+    },
+    {
+      "id": "mw_01",
+      "name": "机械装配基础",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握机械零部件的基本装配流程、工具使用和装配工艺要求。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_structure"
+      ]
+    },
+    {
+      "id": "mw_02",
+      "name": "机械制图识读",
+      "level": "basic",
+      "parent_id": "mw_01",
+      "description": "能识读机械零件图和装配图，理解尺寸公差、形位公差和表面粗糙度标注。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_structure"
+      ]
+    },
+    {
+      "id": "mw_03",
+      "name": "装配图识读",
+      "level": "basic",
+      "parent_id": "mw_01",
+      "description": "能识读部件装配图和总装配图，理解各零部件之间的装配关系。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_structure"
+      ]
+    },
+    {
+      "id": "mw_04",
+      "name": "零部件拆装",
+      "level": "basic",
+      "parent_id": "mw_01",
+      "description": "能按规范流程完成常见机械零部件的拆卸与安装，正确使用拆装工具。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_structure"
+      ]
+    },
+    {
+      "id": "mw_05",
+      "name": "传动机构调整",
+      "level": "medium",
+      "parent_id": "mw_04",
+      "description": "能对带传动、链传动、齿轮传动等常见机构进行间隙调整和张紧力校准。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_structure"
+      ]
+    },
+    {
+      "id": "mw_06",
+      "name": "电气符号识读",
+      "level": "basic",
+      "parent_id": null,
+      "description": "能识读常见电气元件符号和电气图纸中的基本标注规范。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "mw_07",
+      "name": "电气原理图识读",
+      "level": "basic",
+      "parent_id": "mw_06",
+      "description": "能识读设备电气原理图，理解主回路和控制回路的关系。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "mw_08",
+      "name": "接线图识读",
+      "level": "basic",
+      "parent_id": "mw_06",
+      "description": "能识读接线图和端子排图，明确各元件的实际接线位置。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "mw_09",
+      "name": "电气元件识别",
+      "level": "basic",
+      "parent_id": "mw_06",
+      "description": "能识别断路器、接触器、继电器、传感器等常见电气元件并说出其功能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "mw_10",
+      "name": "低压电器选型",
+      "level": "medium",
+      "parent_id": "mw_09",
+      "description": "能根据负载类型和功率选择合适的低压电器元件。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "mw_11",
+      "name": "设备点检流程",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握设备点检的标准流程，能按照点检表逐项完成检查。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "mw_12",
+      "name": "点检标准识读",
+      "level": "basic",
+      "parent_id": "mw_11",
+      "description": "能读懂设备点检标准，了解各项检查指标的正常范围。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "mw_13",
+      "name": "运行参数记录",
+      "level": "basic",
+      "parent_id": "mw_11",
+      "description": "能正确记录设备运行参数，包括温度、振动、电流、压力等关键指标。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "mw_14",
+      "name": "异常状态识别",
+      "level": "medium",
+      "parent_id": "mw_11",
+      "description": "能通过点检数据识别设备异常状态，判断是否需要停机检修。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "mw_15",
+      "name": "点检报告编写",
+      "level": "medium",
+      "parent_id": "mw_14",
+      "description": "能根据点检记录编写规范的点检报告，提出维护建议。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "mw_16",
+      "name": "常见故障分类",
+      "level": "medium",
+      "parent_id": null,
+      "description": "能按机械类、电气类、控制类对设备常见故障进行分类。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "mw_17",
+      "name": "故障排查顺序",
+      "level": "medium",
+      "parent_id": "mw_16",
+      "description": "掌握“先外后内、先机后电、先简后繁”的故障排查原则和顺序。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "mw_18",
+      "name": "机械故障诊断",
+      "level": "medium",
+      "parent_id": "mw_16",
+      "description": "能通过听、看、测等方法诊断常见机械故障原因。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_structure",
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "mw_19",
+      "name": "电气故障诊断",
+      "level": "medium",
+      "parent_id": "mw_16",
+      "description": "能使用万用表等工具诊断常见电气故障，定位故障点。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram",
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "mw_20",
+      "name": "维修记录反馈",
+      "level": "medium",
+      "parent_id": "mw_16",
+      "description": "能规范记录维修过程和结果，形成可追溯的维修档案并反馈改进建议。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "at_01",
+      "name": "电气安全规范",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握电气安全规范的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "at_02",
+      "name": "断电隔离操作",
+      "level": "basic",
+      "parent_id": "at_01",
+      "description": "掌握断电隔离操作的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "at_03",
+      "name": "直流电源检查",
+      "level": "basic",
+      "parent_id": "at_01",
+      "description": "掌握直流电源检查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "at_04",
+      "name": "万用表使用",
+      "level": "basic",
+      "parent_id": "at_02",
+      "description": "掌握万用表使用的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "at_05",
+      "name": "传感器类型识别",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握传感器类型识别的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "at_06",
+      "name": "传感器规格识读",
+      "level": "basic",
+      "parent_id": "at_05",
+      "description": "掌握传感器规格识读的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "at_07",
+      "name": "传感器输出逻辑",
+      "level": "basic",
+      "parent_id": "at_05",
+      "description": "掌握传感器输出逻辑的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "at_08",
+      "name": "传感器状态判断",
+      "level": "basic",
+      "parent_id": "at_05",
+      "description": "掌握传感器状态判断的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "at_09",
+      "name": "传感器接线规范",
+      "level": "basic",
+      "parent_id": "at_05",
+      "description": "掌握传感器接线规范的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "at_10",
+      "name": "传感器接线诊断",
+      "level": "medium",
+      "parent_id": "at_09",
+      "description": "掌握传感器接线诊断的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "at_11",
+      "name": "PLC输入公共端",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握PLC输入公共端的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "at_12",
+      "name": "PLC输入分组",
+      "level": "basic",
+      "parent_id": "at_11",
+      "description": "掌握PLC输入分组的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "at_13",
+      "name": "PLC地址映射",
+      "level": "basic",
+      "parent_id": "at_11",
+      "description": "掌握PLC地址映射的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "at_14",
+      "name": "I/O映射表编制",
+      "level": "basic",
+      "parent_id": "at_13",
+      "description": "掌握I/O映射表编制的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "at_15",
+      "name": "程序变量查找",
+      "level": "basic",
+      "parent_id": "at_13",
+      "description": "掌握程序变量查找的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "at_16",
+      "name": "PLC信号监控",
+      "level": "basic",
+      "parent_id": "at_11",
+      "description": "掌握PLC信号监控的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "at_17",
+      "name": "信号灯对比判断",
+      "level": "basic",
+      "parent_id": "at_16",
+      "description": "掌握信号灯对比判断的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "at_18",
+      "name": "气动元件识别",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握气动元件识别的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "pneumatic_actuator"
+      ]
+    },
+    {
+      "id": "at_19",
+      "name": "气动回路识读",
+      "level": "basic",
+      "parent_id": "at_18",
+      "description": "掌握气动回路识读的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "pneumatic_actuator"
+      ]
+    },
+    {
+      "id": "at_20",
+      "name": "气动回路接线",
+      "level": "basic",
+      "parent_id": "at_18",
+      "description": "掌握气动回路接线的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "pneumatic_actuator"
+      ]
+    },
+    {
+      "id": "at_21",
+      "name": "气动动作调试",
+      "level": "medium",
+      "parent_id": "at_20",
+      "description": "掌握气动动作调试的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "pneumatic_actuator"
+      ]
+    },
+    {
+      "id": "at_22",
+      "name": "气动故障排查",
+      "level": "medium",
+      "parent_id": "at_20",
+      "description": "掌握气动故障排查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "pneumatic_actuator"
+      ]
+    },
+    {
+      "id": "at_23",
+      "name": "伺服参数设置",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握伺服参数设置的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "at_24",
+      "name": "伺服回零操作",
+      "level": "basic",
+      "parent_id": "at_23",
+      "description": "掌握伺服回零操作的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "at_25",
+      "name": "伺服定位调试",
+      "level": "medium",
+      "parent_id": "at_23",
+      "description": "掌握伺服定位调试的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "at_26",
+      "name": "伺服异常排查",
+      "level": "medium",
+      "parent_id": "at_23",
+      "description": "掌握伺服异常排查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "at_27",
+      "name": "故障定位分析",
+      "level": "medium",
+      "parent_id": null,
+      "description": "掌握故障定位分析的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "at_28",
+      "name": "电源链路排查",
+      "level": "medium",
+      "parent_id": "at_27",
+      "description": "掌握电源链路排查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "at_29",
+      "name": "传感器侧排查",
+      "level": "medium",
+      "parent_id": "at_27",
+      "description": "掌握传感器侧排查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "at_30",
+      "name": "公共端排查",
+      "level": "medium",
+      "parent_id": "at_27",
+      "description": "掌握公共端排查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "at_31",
+      "name": "地址映射排查",
+      "level": "medium",
+      "parent_id": "at_27",
+      "description": "掌握地址映射排查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "at_32",
+      "name": "诊断记录反馈",
+      "level": "medium",
+      "parent_id": "at_27",
+      "description": "掌握诊断记录反馈的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "at_33",
+      "name": "实训任务推荐",
+      "level": "application",
+      "parent_id": "at_32",
+      "description": "掌握实训任务推荐的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "ad_01",
+      "name": "传感器类型识别",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握传感器类型识别的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "ad_02",
+      "name": "传感器输出逻辑",
+      "level": "basic",
+      "parent_id": "ad_01",
+      "description": "掌握传感器输出逻辑的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "ad_03",
+      "name": "传感器状态判断",
+      "level": "basic",
+      "parent_id": "ad_01",
+      "description": "掌握传感器状态判断的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "ad_04",
+      "name": "传感器接线规范",
+      "level": "basic",
+      "parent_id": "ad_01",
+      "description": "掌握传感器接线规范的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "ad_05",
+      "name": "信号采集验证",
+      "level": "basic",
+      "parent_id": "ad_01",
+      "description": "掌握信号采集验证的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "ad_06",
+      "name": "PLC地址映射",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握PLC地址映射的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "ad_07",
+      "name": "I/O映射表编制",
+      "level": "basic",
+      "parent_id": "ad_06",
+      "description": "掌握I/O映射表编制的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "ad_08",
+      "name": "程序变量查找",
+      "level": "basic",
+      "parent_id": "ad_06",
+      "description": "掌握程序变量查找的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "ad_09",
+      "name": "PLC信号监控",
+      "level": "basic",
+      "parent_id": "ad_06",
+      "description": "掌握PLC信号监控的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "ad_10",
+      "name": "启停控制调试",
+      "level": "medium",
+      "parent_id": "ad_09",
+      "description": "掌握启停控制调试的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "ad_11",
+      "name": "执行器类型识别",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握执行器类型识别的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "pneumatic_actuator"
+      ]
+    },
+    {
+      "id": "ad_12",
+      "name": "气动回路接线",
+      "level": "basic",
+      "parent_id": "ad_11",
+      "description": "掌握气动回路接线的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "pneumatic_actuator"
+      ]
+    },
+    {
+      "id": "ad_13",
+      "name": "伺服参数设置",
+      "level": "basic",
+      "parent_id": "ad_11",
+      "description": "掌握伺服参数设置的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "pneumatic_actuator"
+      ]
+    },
+    {
+      "id": "ad_14",
+      "name": "执行器联动调试",
+      "level": "medium",
+      "parent_id": "ad_11",
+      "description": "掌握执行器联动调试的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "pneumatic_actuator"
+      ]
+    },
+    {
+      "id": "ad_15",
+      "name": "动作顺序验证",
+      "level": "medium",
+      "parent_id": "ad_14",
+      "description": "掌握动作顺序验证的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "pneumatic_actuator"
+      ]
+    },
+    {
+      "id": "ad_16",
+      "name": "试运行流程",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握试运行流程的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "ad_17",
+      "name": "运行参数监测",
+      "level": "basic",
+      "parent_id": "ad_16",
+      "description": "掌握运行参数监测的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "ad_18",
+      "name": "动作逻辑验证",
+      "level": "medium",
+      "parent_id": "ad_16",
+      "description": "掌握动作逻辑验证的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "ad_19",
+      "name": "异常状态记录",
+      "level": "basic",
+      "parent_id": "ad_16",
+      "description": "掌握异常状态记录的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "ad_20",
+      "name": "调试报告编写",
+      "level": "medium",
+      "parent_id": "ad_19",
+      "description": "掌握调试报告编写的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "ir_01",
+      "name": "机器人基本操作",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握机器人基本操作的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "ir_02",
+      "name": "示教器使用",
+      "level": "basic",
+      "parent_id": "ir_01",
+      "description": "掌握示教器使用的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "ir_03",
+      "name": "坐标系设定",
+      "level": "basic",
+      "parent_id": "ir_01",
+      "description": "掌握坐标系设定的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "ir_04",
+      "name": "程序编写基础",
+      "level": "basic",
+      "parent_id": "ir_01",
+      "description": "掌握程序编写基础的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "ir_05",
+      "name": "轨迹调试",
+      "level": "medium",
+      "parent_id": "ir_04",
+      "description": "掌握轨迹调试的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "ir_06",
+      "name": "机器人I/O配置",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握机器人I/O配置的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "ir_07",
+      "name": "PLC通信联调",
+      "level": "basic",
+      "parent_id": "ir_06",
+      "description": "掌握PLC通信联调的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "ir_08",
+      "name": "信号交互验证",
+      "level": "basic",
+      "parent_id": "ir_06",
+      "description": "掌握信号交互验证的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "ir_09",
+      "name": "网络通信检查",
+      "level": "medium",
+      "parent_id": "ir_06",
+      "description": "掌握网络通信检查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "ir_10",
+      "name": "通信异常处理",
+      "level": "medium",
+      "parent_id": "ir_09",
+      "description": "掌握通信异常处理的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "ir_11",
+      "name": "工作站安全规范",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握工作站安全规范的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "ir_12",
+      "name": "安全围栏检查",
+      "level": "basic",
+      "parent_id": "ir_11",
+      "description": "掌握安全围栏检查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "ir_13",
+      "name": "急停回路验证",
+      "level": "basic",
+      "parent_id": "ir_11",
+      "description": "掌握急停回路验证的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "ir_14",
+      "name": "安全联锁调试",
+      "level": "medium",
+      "parent_id": "ir_11",
+      "description": "掌握安全联锁调试的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "ir_15",
+      "name": "安全程序编写",
+      "level": "medium",
+      "parent_id": "ir_14",
+      "description": "掌握安全程序编写的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "ir_16",
+      "name": "机器人报警识别",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握机器人报警识别的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "ir_17",
+      "name": "伺服故障排查",
+      "level": "medium",
+      "parent_id": "ir_16",
+      "description": "掌握伺服故障排查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "ir_18",
+      "name": "I/O故障诊断",
+      "level": "medium",
+      "parent_id": "ir_16",
+      "description": "掌握I/O故障诊断的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "ir_19",
+      "name": "通信故障处理",
+      "level": "medium",
+      "parent_id": "ir_16",
+      "description": "掌握通信故障处理的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "ir_20",
+      "name": "维护记录反馈",
+      "level": "medium",
+      "parent_id": "ir_16",
+      "description": "掌握维护记录反馈的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "pc_01",
+      "name": "低压电器识别",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握低压电器识别的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "pc_02",
+      "name": "断路器选型",
+      "level": "basic",
+      "parent_id": "pc_01",
+      "description": "掌握断路器选型的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "pc_03",
+      "name": "接触器接线",
+      "level": "basic",
+      "parent_id": "pc_01",
+      "description": "掌握接触器接线的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "pc_04",
+      "name": "继电器逻辑",
+      "level": "basic",
+      "parent_id": "pc_01",
+      "description": "掌握继电器逻辑的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "pc_05",
+      "name": "电气安全规范",
+      "level": "basic",
+      "parent_id": "pc_01",
+      "description": "掌握电气安全规范的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "pc_06",
+      "name": "PLC硬件配置",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握PLC硬件配置的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_07",
+      "name": "PLC编程基础",
+      "level": "basic",
+      "parent_id": "pc_06",
+      "description": "掌握PLC编程基础的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_08",
+      "name": "梯形图编写",
+      "level": "basic",
+      "parent_id": "pc_06",
+      "description": "掌握梯形图编写的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_09",
+      "name": "程序调试",
+      "level": "medium",
+      "parent_id": "pc_06",
+      "description": "掌握程序调试的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_10",
+      "name": "程序优化",
+      "level": "medium",
+      "parent_id": "pc_09",
+      "description": "掌握程序优化的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_11",
+      "name": "PLC地址映射",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握PLC地址映射的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_12",
+      "name": "I/O映射表编制",
+      "level": "basic",
+      "parent_id": "pc_11",
+      "description": "掌握I/O映射表编制的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_13",
+      "name": "输入输出接线",
+      "level": "basic",
+      "parent_id": "pc_11",
+      "description": "掌握输入输出接线的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_14",
+      "name": "信号监控",
+      "level": "basic",
+      "parent_id": "pc_11",
+      "description": "掌握信号监控的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_15",
+      "name": "变量查找",
+      "level": "basic",
+      "parent_id": "pc_11",
+      "description": "掌握变量查找的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_16",
+      "name": "启停控制逻辑",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握启停控制逻辑的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_17",
+      "name": "互锁逻辑设计",
+      "level": "basic",
+      "parent_id": "pc_16",
+      "description": "掌握互锁逻辑设计的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_18",
+      "name": "顺序控制",
+      "level": "medium",
+      "parent_id": "pc_16",
+      "description": "掌握顺序控制的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_19",
+      "name": "定时计数控制",
+      "level": "basic",
+      "parent_id": "pc_16",
+      "description": "掌握定时计数控制的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pc_20",
+      "name": "控制回路调试",
+      "level": "medium",
+      "parent_id": "pc_19",
+      "description": "掌握控制回路调试的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "sn_01",
+      "name": "传感器类型识别",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握传感器类型识别的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_02",
+      "name": "传感器规格识读",
+      "level": "basic",
+      "parent_id": "sn_01",
+      "description": "掌握传感器规格识读的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_03",
+      "name": "传感器接线规范",
+      "level": "basic",
+      "parent_id": "sn_01",
+      "description": "掌握传感器接线规范的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_04",
+      "name": "传感器接线诊断",
+      "level": "basic",
+      "parent_id": "sn_01",
+      "description": "掌握传感器接线诊断的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_05",
+      "name": "传感器状态判断",
+      "level": "basic",
+      "parent_id": "sn_01",
+      "description": "掌握传感器状态判断的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_06",
+      "name": "信号类型识别",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握信号类型识别的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_07",
+      "name": "模拟量采集",
+      "level": "basic",
+      "parent_id": "sn_06",
+      "description": "掌握模拟量采集的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_08",
+      "name": "数字量采集",
+      "level": "basic",
+      "parent_id": "sn_06",
+      "description": "掌握数字量采集的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_09",
+      "name": "信号转换",
+      "level": "medium",
+      "parent_id": "sn_06",
+      "description": "掌握信号转换的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_10",
+      "name": "信号异常排查",
+      "level": "medium",
+      "parent_id": "sn_09",
+      "description": "掌握信号异常排查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_11",
+      "name": "工业以太网基础",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握工业以太网基础的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "sn_12",
+      "name": "现场总线配置",
+      "level": "basic",
+      "parent_id": "sn_11",
+      "description": "掌握现场总线配置的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "sn_13",
+      "name": "通信协议理解",
+      "level": "basic",
+      "parent_id": "sn_11",
+      "description": "掌握通信协议理解的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "sn_14",
+      "name": "网络拓扑识读",
+      "level": "basic",
+      "parent_id": "sn_11",
+      "description": "掌握网络拓扑识读的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "sn_15",
+      "name": "通信参数设置",
+      "level": "medium",
+      "parent_id": "sn_14",
+      "description": "掌握通信参数设置的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "sn_16",
+      "name": "数据采集配置",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握数据采集配置的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "sn_17",
+      "name": "数据报文分析",
+      "level": "medium",
+      "parent_id": "sn_16",
+      "description": "掌握数据报文分析的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "sn_18",
+      "name": "数据异常处理",
+      "level": "medium",
+      "parent_id": "sn_16",
+      "description": "掌握数据异常处理的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "sn_19",
+      "name": "采集系统调试",
+      "level": "medium",
+      "parent_id": "sn_16",
+      "description": "掌握采集系统调试的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "sn_20",
+      "name": "调试报告编写",
+      "level": "medium",
+      "parent_id": "sn_19",
+      "description": "掌握调试报告编写的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_network"
+      ]
+    },
+    {
+      "id": "sd_01",
+      "name": "伺服电机基础",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握伺服电机基础的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_02",
+      "name": "步进电机基础",
+      "level": "basic",
+      "parent_id": "sd_01",
+      "description": "掌握步进电机基础的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_03",
+      "name": "驱动器识别",
+      "level": "basic",
+      "parent_id": "sd_01",
+      "description": "掌握驱动器识别的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_04",
+      "name": "电机接线规范",
+      "level": "basic",
+      "parent_id": "sd_01",
+      "description": "掌握电机接线规范的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_05",
+      "name": "电源检查",
+      "level": "basic",
+      "parent_id": "sd_01",
+      "description": "掌握电源检查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_06",
+      "name": "驱动器参数设置",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握驱动器参数设置的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_07",
+      "name": "电子齿轮比",
+      "level": "basic",
+      "parent_id": "sd_06",
+      "description": "掌握电子齿轮比的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_08",
+      "name": "加减速设置",
+      "level": "basic",
+      "parent_id": "sd_06",
+      "description": "掌握加减速设置的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_09",
+      "name": "限位保护配置",
+      "level": "basic",
+      "parent_id": "sd_06",
+      "description": "掌握限位保护配置的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_10",
+      "name": "回零参数设置",
+      "level": "basic",
+      "parent_id": "sd_06",
+      "description": "掌握回零参数设置的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_11",
+      "name": "运动控制指令",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握运动控制指令的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_12",
+      "name": "定位控制",
+      "level": "medium",
+      "parent_id": "sd_11",
+      "description": "掌握定位控制的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_13",
+      "name": "速度控制",
+      "level": "medium",
+      "parent_id": "sd_11",
+      "description": "掌握速度控制的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_14",
+      "name": "转矩控制",
+      "level": "medium",
+      "parent_id": "sd_11",
+      "description": "掌握转矩控制的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_15",
+      "name": "多轴联动",
+      "level": "medium",
+      "parent_id": "sd_14",
+      "description": "掌握多轴联动的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_motion"
+      ]
+    },
+    {
+      "id": "sd_16",
+      "name": "定位偏差分析",
+      "level": "medium",
+      "parent_id": null,
+      "description": "掌握定位偏差分析的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "sd_17",
+      "name": "振动异常排查",
+      "level": "medium",
+      "parent_id": "sd_16",
+      "description": "掌握振动异常排查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "sd_18",
+      "name": "过载故障处理",
+      "level": "medium",
+      "parent_id": "sd_16",
+      "description": "掌握过载故障处理的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "sd_19",
+      "name": "回零异常排查",
+      "level": "medium",
+      "parent_id": "sd_16",
+      "description": "掌握回零异常排查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "sd_20",
+      "name": "维护记录编写",
+      "level": "basic",
+      "parent_id": "sd_16",
+      "description": "掌握维护记录编写的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "cm_01",
+      "name": "机械传动基础",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握机械传动基础的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_structure"
+      ]
+    },
+    {
+      "id": "cm_02",
+      "name": "丝杠导轨检查",
+      "level": "basic",
+      "parent_id": "cm_01",
+      "description": "掌握丝杠导轨检查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_structure"
+      ]
+    },
+    {
+      "id": "cm_03",
+      "name": "主轴系统检查",
+      "level": "basic",
+      "parent_id": "cm_01",
+      "description": "掌握主轴系统检查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_structure"
+      ]
+    },
+    {
+      "id": "cm_04",
+      "name": "润滑系统维护",
+      "level": "basic",
+      "parent_id": "cm_01",
+      "description": "掌握润滑系统维护的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_structure"
+      ]
+    },
+    {
+      "id": "cm_05",
+      "name": "传动精度调整",
+      "level": "medium",
+      "parent_id": "cm_04",
+      "description": "掌握传动精度调整的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_structure"
+      ]
+    },
+    {
+      "id": "cm_06",
+      "name": "电气安全规范",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握电气安全规范的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "cm_07",
+      "name": "电气元件检查",
+      "level": "basic",
+      "parent_id": "cm_06",
+      "description": "掌握电气元件检查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "cm_08",
+      "name": "接线端子检查",
+      "level": "basic",
+      "parent_id": "cm_06",
+      "description": "掌握接线端子检查的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "cm_09",
+      "name": "电源电压检测",
+      "level": "basic",
+      "parent_id": "cm_06",
+      "description": "掌握电源电压检测的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "cm_10",
+      "name": "电气图纸识读",
+      "level": "basic",
+      "parent_id": "cm_06",
+      "description": "掌握电气图纸识读的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "cm_11",
+      "name": "报警代码解读",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握报警代码解读的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "cm_12",
+      "name": "常见报警分类",
+      "level": "basic",
+      "parent_id": "cm_11",
+      "description": "掌握常见报警分类的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "cm_13",
+      "name": "报警信息分析",
+      "level": "medium",
+      "parent_id": "cm_11",
+      "description": "掌握报警信息分析的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "cm_14",
+      "name": "系统自诊断",
+      "level": "medium",
+      "parent_id": "cm_11",
+      "description": "掌握系统自诊断的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "cm_15",
+      "name": "报警排查流程",
+      "level": "medium",
+      "parent_id": "cm_14",
+      "description": "掌握报警排查流程的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "cm_16",
+      "name": "日常维护流程",
+      "level": "basic",
+      "parent_id": null,
+      "description": "掌握日常维护流程的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "cm_17",
+      "name": "定期保养项目",
+      "level": "basic",
+      "parent_id": "cm_16",
+      "description": "掌握定期保养项目的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "cm_18",
+      "name": "精度检测校准",
+      "level": "medium",
+      "parent_id": "cm_16",
+      "description": "掌握精度检测校准的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "cm_19",
+      "name": "维护记录编写",
+      "level": "basic",
+      "parent_id": "cm_16",
+      "description": "掌握维护记录编写的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "cm_20",
+      "name": "备件管理基础",
+      "level": "basic",
+      "parent_id": "cm_16",
+      "description": "掌握备件管理基础的基本知识和操作技能。",
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "project_curated"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
     }
   ]
 }
