@@ -6,7 +6,7 @@
   "nodes": [
     {
       "id": "role_task_understanding",
-      "name": "自动化产线输入信号排查任务理解",
+      "name": "岗位任务理解",
       "level": "root",
       "parent_id": null,
       "description": "能说明自动化产线装调与运维技术员在传感器到 PLC 输入链路中的任务边界：确认安全、识别传感器、判断接线、查看 PLC 输入、定位无响应原因并形成反馈。",
@@ -45,7 +45,7 @@
     },
     {
       "id": "electrical_safety_check",
-      "name": "电气安全检查",
+      "name": "电气安全规范",
       "level": "basic",
       "parent_id": "role_task_understanding",
       "description": "能在接线、拆线和通电调试前完成断电、急停、DC24V 电源、气源和现场状态检查；不确定设备状态时请教师或实训指导人员确认。",
@@ -82,7 +82,7 @@
     },
     {
       "id": "power_isolation_confirmation",
-      "name": "断电与隔离确认",
+      "name": "断电隔离操作",
       "level": "basic",
       "parent_id": "electrical_safety_check",
       "description": "能在拆接传感器线缆前确认电源已断开，必要时用万用表复核 DC24V 输出端状态，并保留教师确认步骤。",
@@ -116,7 +116,7 @@
     },
     {
       "id": "dc24v_power_check",
-      "name": "DC24V 电源检查",
+      "name": "直流电源检查",
       "level": "basic",
       "parent_id": "electrical_safety_check",
       "description": "能在安全条件下检查 PLC 输入模块和传感器供电所需的 DC24V 电源正负极、端子标识和电压范围。",
@@ -150,7 +150,7 @@
     },
     {
       "id": "multimeter_voltage_measurement",
-      "name": "万用表直流电压测量",
+      "name": "万用表使用",
       "level": "basic",
       "parent_id": "electrical_safety_check",
       "description": "能选择直流电压档位，按安全规范测量 DC24V、0V 和传感器输出端，避免表笔短接端子。",
@@ -184,7 +184,7 @@
     },
     {
       "id": "sensor_type_identification",
-      "name": "NPN/PNP 传感器类型识别",
+      "name": "传感器类型识别",
       "level": "basic",
       "parent_id": "role_task_understanding",
       "description": "能通过铭牌、型号、接线图和输出说明区分 NPN 与 PNP 传感器，知道两者输出方向不同，必须匹配 PLC 输入公共端。",
@@ -226,7 +226,7 @@
     },
     {
       "id": "sensor_nameplate_reading",
-      "name": "传感器铭牌与型号读取",
+      "name": "传感器规格识读",
       "level": "basic",
       "parent_id": "sensor_type_identification",
       "description": "能从传感器本体、说明书或型号后缀中提取供电电压、输出类型、线缆颜色和检测方式。",
@@ -260,7 +260,7 @@
     },
     {
       "id": "sensor_output_logic",
-      "name": "传感器输出逻辑判断",
+      "name": "传感器输出逻辑",
       "level": "basic",
       "parent_id": "sensor_type_identification",
       "description": "能解释 NPN 常见为下拉输出、PNP 常见为上拉输出，并能判断有效信号出现时 PLC 输入端应接近 0V 还是 DC24V。",
@@ -299,7 +299,7 @@
     },
     {
       "id": "sensor_led_observation",
-      "name": "传感器指示灯状态观察",
+      "name": "传感器状态判断",
       "level": "basic",
       "parent_id": "sensor_type_identification",
       "description": "能观察传感器电源灯和动作灯，结合工件位置判断检测条件是否满足，并知道指示灯亮不代表 PLC 已收到输入。",
@@ -335,7 +335,7 @@
     },
     {
       "id": "sensor_wiring_color_code",
-      "name": "传感器线色与端子识别",
+      "name": "传感器接线规范",
       "level": "basic",
       "parent_id": "sensor_type_identification",
       "description": "能识别常见三线传感器棕、蓝、黑线功能，并在断电状态下核对 DC24V、0V 和输出线接入位置。",
@@ -370,7 +370,7 @@
     },
     {
       "id": "sensor_wiring_judgement",
-      "name": "传感器接线判断",
+      "name": "传感器接线诊断",
       "level": "medium",
       "parent_id": "sensor_type_identification",
       "description": "能根据 NPN/PNP 类型、PLC 输入公共端和现场端子图，判断传感器供电线、输出线和公共端连接是否正确；接线调整必须先断电。",
@@ -412,7 +412,7 @@
     },
     {
       "id": "plc_input_common_terminal",
-      "name": "PLC 输入公共端判断",
+      "name": "PLC输入公共端",
       "level": "medium",
       "parent_id": "role_task_understanding",
       "description": "能识别 PLC 输入模块公共端 COM/S/S 或公共端组别，判断该组输入适合接收 NPN 还是 PNP 传感器信号。",
@@ -453,7 +453,7 @@
     },
     {
       "id": "plc_input_grouping",
-      "name": "PLC 输入公共端分组识别",
+      "name": "PLC输入分组",
       "level": "medium",
       "parent_id": "plc_input_common_terminal",
       "description": "能确认多个输入点是否共用同一公共端组，避免把传感器输出接入不同公共端组导致信号异常。",
@@ -488,7 +488,7 @@
     },
     {
       "id": "plc_io_address_mapping",
-      "name": "PLC I/O 地址映射",
+      "name": "PLC地址映射",
       "level": "basic",
       "parent_id": "role_task_understanding",
       "description": "能把现场传感器名称、端子号、PLC 输入地址和程序变量对应起来，形成可用于本地工作流、可选平台导入或实训记录中的 I/O 映射表。",
@@ -527,7 +527,7 @@
     },
     {
       "id": "io_mapping_table_build",
-      "name": "I/O 映射表填写",
+      "name": "I/O映射表编制",
       "level": "basic",
       "parent_id": "plc_io_address_mapping",
       "description": "能按元件名称、传感器类型、线色、端子号、PLC 地址、程序变量、当前状态填写 I/O 映射表。",
@@ -560,7 +560,7 @@
     },
     {
       "id": "program_variable_lookup",
-      "name": "程序变量与输入地址查找",
+      "name": "程序变量查找",
       "level": "medium",
       "parent_id": "plc_io_address_mapping",
       "description": "能在 PLC 程序中查找输入地址或变量被哪些逻辑使用，判断现场信号是否进入了正确的程序条件。",
@@ -602,7 +602,7 @@
     },
     {
       "id": "plc_input_monitoring",
-      "name": "PLC 输入信号监控",
+      "name": "PLC信号监控",
       "level": "medium",
       "parent_id": "role_task_understanding",
       "description": "能在教师确认安全后，通过 PLC 输入指示灯或在线监控观察输入点状态，并与传感器动作灯和现场工件状态进行对比。",
@@ -642,7 +642,7 @@
     },
     {
       "id": "input_led_compare",
-      "name": "传感器灯与 PLC 输入灯对比",
+      "name": "信号灯对比判断",
       "level": "medium",
       "parent_id": "plc_input_monitoring",
       "description": "能对比传感器动作灯、PLC 输入灯和在线监控状态，判断故障位于检测侧、接线侧、输入模块侧还是程序映射侧。",
@@ -682,7 +682,7 @@
     },
     {
       "id": "input_no_response_fault_scope",
-      "name": "输入点无响应故障定位",
+      "name": "故障定位分析",
       "level": "medium",
       "parent_id": "plc_input_monitoring",
       "description": "能按电源、传感器、接线、公共端、PLC 输入点、地址映射和程序变量的顺序定位输入点无响应原因。",
@@ -723,7 +723,7 @@
     },
     {
       "id": "no_response_power_path_check",
-      "name": "无响应故障的电源链路检查",
+      "name": "电源链路排查",
       "level": "medium",
       "parent_id": "input_no_response_fault_scope",
       "description": "能检查 DC24V、0V、传感器供电端和输入模块公共端是否形成完整回路；涉及测量时必须遵守通电测量安全规范。",
@@ -759,7 +759,7 @@
     },
     {
       "id": "no_response_sensor_side_check",
-      "name": "无响应故障的传感器侧检查",
+      "name": "传感器侧排查",
       "level": "medium",
       "parent_id": "input_no_response_fault_scope",
       "description": "能检查传感器检测距离、目标材质、安装角度、动作灯和输出端电压，判断传感器是否真正输出有效信号。",
@@ -796,7 +796,7 @@
     },
     {
       "id": "no_response_common_terminal_check",
-      "name": "无响应故障的公共端检查",
+      "name": "公共端排查",
       "level": "medium",
       "parent_id": "input_no_response_fault_scope",
       "description": "能判断输入公共端是否与传感器 NPN/PNP 类型匹配，并检查公共端组是否接到正确的 DC24V 或 0V。",
@@ -831,7 +831,7 @@
     },
     {
       "id": "no_response_address_mapping_check",
-      "name": "无响应故障的地址映射检查",
+      "name": "地址映射排查",
       "level": "medium",
       "parent_id": "input_no_response_fault_scope",
       "description": "能在输入灯或在线监控状态正常时，继续检查 PLC 地址、变量引用和程序条件是否与现场元件一致。",
@@ -869,7 +869,7 @@
     },
     {
       "id": "diagnosis_record_feedback",
-      "name": "诊断记录与反馈闭环",
+      "name": "诊断记录反馈",
       "level": "medium",
       "parent_id": "input_no_response_fault_scope",
       "description": "能记录故障现象、检查顺序、证据、定位结论和修复建议，为星辰 Agent 输出学生反馈和教师视图提供结构化依据。",
@@ -905,7 +905,7 @@
     },
     {
       "id": "personalized_training_task_recommendation",
-      "name": "个性化实训任务推荐",
+      "name": "实训任务推荐",
       "level": "application",
       "parent_id": "diagnosis_record_feedback",
       "description": "能根据学生在安全、传感器类型、接线、公共端、I/O 映射、输入监控和故障定位中的薄弱点，推荐一节课内可完成的个性化实训任务。",
