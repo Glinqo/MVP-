@@ -1,0 +1,416 @@
+{
+  "meta": {
+    "test_set": "机电专业知识问答测试集 — 模块二验收",
+    "version": "1.0",
+    "date": "2026-07-16",
+    "total_cases": 30,
+    "knowledge_base": "knowledge_50.json (K001-K066)",
+    "usage": "逐条向系统提问，检查回答是否包含 expected_knowledge_ids 中的知识、是否引用正确来源、是否满足 evaluation_criteria"
+  },
+  "cases": [
+    {
+      "id": "T001",
+      "category": "电气安全",
+      "question": "接线前需要做哪些安全确认？",
+      "expected_knowledge_ids": ["K001", "K002"],
+      "expected_source": "GB/T 5226.1-2019",
+      "evaluation_criteria": [
+        "回答包含「切断控制电源」或「断电」要求",
+        "回答包含「急停确认」或「急停状态检查」",
+        "回答包含「教师确认现场安全」步骤",
+        "注明参考来源（教材/标准）"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T002",
+      "category": "电气安全",
+      "question": "万用表通电测量时要注意什么？",
+      "expected_knowledge_ids": ["K003", "K008"],
+      "expected_source": "PLC 实训指导书",
+      "evaluation_criteria": [
+        "回答包含「选择正确档位（直流电压档）」",
+        "回答包含「避免表笔短接端子」",
+        "回答包含「测量前确认安全」",
+        "有安全提醒"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T003",
+      "category": "电气安全",
+      "question": "急停按钮复位后可以直接启动设备吗？",
+      "expected_knowledge_ids": ["K002", "K060"],
+      "expected_source": "GB/T 5226.1-2019",
+      "evaluation_criteria": [
+        "明确回答「不可以」或「需要先确认条件」",
+        "说明急停复位不等于安全启动条件满足",
+        "提到需要确认气缸位置、输出状态、同组人员"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T004",
+      "category": "电气安全",
+      "question": "传感器拆换的安全流程是什么？",
+      "expected_knowledge_ids": ["K001", "K003", "K013"],
+      "expected_source": "PLC 实训指导书",
+      "evaluation_criteria": [
+        "有断电→确认安全→拆换→教师确认→通电的完整流程",
+        "提到禁止带电拔插传感器"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T005",
+      "category": "电气安全",
+      "question": "DC24V 电源端子测量时容易犯什么错误？",
+      "expected_knowledge_ids": ["K003", "K004", "K005"],
+      "expected_source": "PLC 实训指导书",
+      "evaluation_criteria": [
+        "提到「电流档测电压」错误",
+        "提到「把交流端子当作 DC24V」错误",
+        "提到「表笔跨接相邻端子」错误"
+      ],
+      "min_acceptable_score": 0.6
+    },
+    {
+      "id": "T006",
+      "category": "NPN/PNP传感器接线",
+      "question": "NPN传感器和PNP传感器有什么区别？",
+      "expected_knowledge_ids": ["K009", "K010", "K011"],
+      "expected_source": "西门子工业支持中心技术论坛",
+      "evaluation_criteria": [
+        "说明NPN导通输出低电平(0V)，PNP导通输出高电平(24V)",
+        "说明NPN接PLC源型输入，PNP接漏型输入",
+        "提到电流走向的区别"
+      ],
+      "min_acceptable_score": 0.8
+    },
+    {
+      "id": "T007",
+      "category": "NPN/PNP传感器接线",
+      "question": "三线制传感器棕线、蓝线、黑线分别接什么？",
+      "expected_knowledge_ids": ["K005", "K007", "K012"],
+      "expected_source": "PLC 实训指导书",
+      "evaluation_criteria": [
+        "说明棕线接DC24V（电源正）",
+        "说明蓝线接0V（电源负）",
+        "说明黑线为信号输出线接PLC输入点",
+        "提醒以实际图纸为准"
+      ],
+      "min_acceptable_score": 0.8
+    },
+    {
+      "id": "T008",
+      "category": "NPN/PNP传感器接线",
+      "question": "PLC输入公共端（COM）接错了会怎样？",
+      "expected_knowledge_ids": ["K006", "K015"],
+      "expected_source": "PLC 实训指导书 / 西门子技术论坛",
+      "evaluation_criteria": [
+        "说明公共端接错会导致传感器有动作但PLC输入点无信号",
+        "区分公共端和普通0V端子的不同",
+        "提到不同PLC品牌的公共端定义可能不同"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T009",
+      "category": "NPN/PNP传感器接线",
+      "question": "西门子PLC源型输入和漏型输入分别对应什么传感器？",
+      "expected_knowledge_ids": ["K009", "K011", "K014"],
+      "expected_source": "西门子工业支持中心技术论坛",
+      "evaluation_criteria": [
+        "说明源型输入=正信号输入（可接PNP传感器）",
+        "说明漏型输入=负信号输入（可接NPN传感器）",
+        "提到西门子和三菱对源型/漏型定义不同"
+      ],
+      "min_acceptable_score": 0.8
+    },
+    {
+      "id": "T010",
+      "category": "NPN/PNP传感器接线",
+      "question": "为什么传感器动作灯亮了但PLC输入灯不亮？",
+      "expected_knowledge_ids": ["K015", "K062", "K017"],
+      "expected_source": "PLC 实训指导书 / AutomationDirect",
+      "evaluation_criteria": [
+        "提到检查信号输出线是否接对",
+        "提到检查NPN/PNP匹配和公共端接线",
+        "提到检查输入模块供电",
+        "提到勿先改程序，应先查硬件链路"
+      ],
+      "min_acceptable_score": 0.8
+    },
+    {
+      "id": "T011",
+      "category": "PLC输入信号排查",
+      "question": "PLC输入灯亮了但程序里没反应是怎么回事？",
+      "expected_knowledge_ids": ["K016", "K061", "K017"],
+      "expected_source": "PLC 实训指导书",
+      "evaluation_criteria": [
+        "提到检查程序中的变量地址是否与硬件地址一致",
+        "提到在线监控确认信号状态",
+        "提到检查互锁条件/报警条件",
+        "提到区分输入正常和程序条件未成立"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T012",
+      "category": "PLC输入信号排查",
+      "question": "排故时先查硬件还是先改程序？为什么？",
+      "expected_knowledge_ids": ["K019", "K020", "K062"],
+      "expected_source": "《机电设备故障诊断与维修》",
+      "evaluation_criteria": [
+        "明确回答「先查硬件」",
+        "说明理由：传感器→接线→PLC输入灯→在线监控→程序的排查顺序",
+        "提到改程序是最后一步"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T013",
+      "category": "PLC输入信号排查",
+      "question": "怎么用PLC在线监控排查输入信号问题？",
+      "expected_knowledge_ids": ["K016", "K017", "K058"],
+      "expected_source": "PLC 实训指导书",
+      "evaluation_criteria": [
+        "提到连接PLC后打开在线监控界面",
+        "提到观察输入点的ON/OFF状态与实际传感器状态是否一致",
+        "提到可以在线监控中查看变量值和强制信号"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T014",
+      "category": "PLC输入信号排查",
+      "question": "输入信号排查的标准顺序是什么？",
+      "expected_knowledge_ids": ["K019", "K020", "K056"],
+      "expected_source": "《机电设备故障诊断与维修》",
+      "evaluation_criteria": [
+        "有清晰的排查顺序",
+        "包含断电检查→接线确认→传感器类型匹配→PLC监控→程序地址核对",
+        "体现从硬件到软件的逻辑"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T015",
+      "category": "PLC输入信号排查",
+      "question": "多个传感器同时没信号，可能是什么问题？",
+      "expected_knowledge_ids": ["K004", "K006", "K053"],
+      "expected_source": "PLC 实训指导书",
+      "evaluation_criteria": [
+        "提到检查DC24V供电是否正常",
+        "提到检查公共端是否断开或误接",
+        "提到检查输入模块供电",
+        "提到区分「一个传感器坏」和「一组传感器坏」"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T016",
+      "category": "气动系统",
+      "question": "气缸不动了应该怎么排查？",
+      "expected_knowledge_ids": ["K023", "K024", "K065"],
+      "expected_source": "PLC 实训指导书 / 《自动化生产线安装与调试》课程标准",
+      "evaluation_criteria": [
+        "提到四层排查：电气输入→程序输出→电磁阀→气路/机械",
+        "提到检查气源压力和节流阀",
+        "提到检查电磁阀线圈是否得电",
+        "不要只调气压或只改程序"
+      ],
+      "min_acceptable_score": 0.8
+    },
+    {
+      "id": "T017",
+      "category": "气动系统",
+      "question": "电磁阀手动按钮的作用是什么？",
+      "expected_knowledge_ids": ["K023", "K024"],
+      "expected_source": "《自动化生产线安装与调试》课程标准",
+      "evaluation_criteria": [
+        "说明手动按钮可以强制驱动阀芯换向",
+        "用于在没有电控信号时测试气路",
+        "提醒手动操作前注意安全位置"
+      ],
+      "min_acceptable_score": 0.6
+    },
+    {
+      "id": "T018",
+      "category": "气动系统",
+      "question": "气缸动作慢可能是什么原因？",
+      "expected_knowledge_ids": ["K023", "K024"],
+      "expected_source": "《自动化生产线安装与调试》课程标准",
+      "evaluation_criteria": [
+        "提到节流阀开度太小",
+        "提到气源压力不足",
+        "提到气管弯折或漏气",
+        "提到负载过大或机械卡滞"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T019",
+      "category": "万用表测量",
+      "question": "如何用万用表测量DC24V供电？",
+      "expected_knowledge_ids": ["K003", "K008", "K004"],
+      "expected_source": "PLC 实训指导书",
+      "evaluation_criteria": [
+        "提到选择直流电压档（DCV）",
+        "提到红表笔接DC24V端子、黑表笔接0V端子",
+        "提到正常读数应在24V左右",
+        "有安全提醒（先确认万用表和端子状态）"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T020",
+      "category": "万用表测量",
+      "question": "万用表测电压时电流档测电压会怎样？",
+      "expected_knowledge_ids": ["K003", "K008"],
+      "expected_source": "PLC 实训指导书",
+      "evaluation_criteria": [
+        "明确说明用电流档测电压是危险操作",
+        "说明可能烧断万用表保险甚至损坏设备",
+        "强调测量前确认档位的安全习惯"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T021",
+      "category": "万用表测量",
+      "question": "传感器输出信号怎么用万用表判断NPN还是PNP？",
+      "expected_knowledge_ids": ["K009", "K010", "K008"],
+      "expected_source": "西门子工业支持中心技术论坛",
+      "evaluation_criteria": [
+        "提到传感器触发时测输出端对0V的电压",
+        "NPN导通时输出接近0V，PNP导通时输出接近24V",
+        "提醒先确认传感器型号和供电正常"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T022",
+      "category": "故障排查流程",
+      "question": "产线设备不动作，排故第一步应该做什么？",
+      "expected_knowledge_ids": ["K019", "K001", "K002"],
+      "expected_source": "《机电设备故障诊断与维修》",
+      "evaluation_criteria": [
+        "回答包含安全检查（断电、急停、气源）",
+        "提到确认设备当前状态和故障现象",
+        "不要建议直接改程序或换零件",
+        "体现「先安全、再观察、再排查」的思路"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T023",
+      "category": "故障排查流程",
+      "question": "完成一次排故后应该记录什么？",
+      "expected_knowledge_ids": ["K063", "K066"],
+      "expected_source": "教育部专业教学标准 / 项目反馈闭环设计",
+      "evaluation_criteria": [
+        "提到记录故障现象",
+        "提到记录排查顺序和测量证据",
+        "提到记录结论和未确认风险",
+        "提到建议后续训练方向"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T024",
+      "category": "故障排查流程",
+      "question": "输入灯不亮时为什么不能直接换传感器？",
+      "expected_knowledge_ids": ["K017", "K018", "K062"],
+      "expected_source": "PLC 实训指导书 / AutomationDirect",
+      "evaluation_criteria": [
+        "说明传感器不亮不一定是传感器坏",
+        "先查供电→接线→端子→公共端→传感器本身",
+        "直接换传感器可能徒劳并引入新问题"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T025",
+      "category": "故障排查流程",
+      "question": "信号排查中常见的学生错误有哪些？",
+      "expected_knowledge_ids": ["K018", "K019", "K020"],
+      "expected_source": "PLC 实训指导书 / 教师确认资料",
+      "evaluation_criteria": [
+        "提到「一开始就改程序」的错误",
+        "提到「不查公共端」的错误",
+        "提到「传感器灯和PLC灯不分」的错误",
+        "提到「忽略NPN/PNP匹配」的错误"
+      ],
+      "min_acceptable_score": 0.6
+    },
+    {
+      "id": "T026",
+      "category": "故障排查流程",
+      "question": "什么是「三联状态」排查法？",
+      "expected_knowledge_ids": ["K017", "K019"],
+      "expected_source": "PLC 实训指导书 / 项目规则",
+      "evaluation_criteria": [
+        "说明三联指：传感器动作灯、PLC输入指示灯、PLC在线监控",
+        "说明三者对照可以锁定故障在传感器侧、接线侧还是程序侧"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T027",
+      "category": "岗位能力认知",
+      "question": "自动化生产线装调与运维技术员需要掌握哪些能力？",
+      "expected_knowledge_ids": ["K047", "K048"],
+      "expected_source": "机电一体化技术专业教学标准 / 人才培养方案",
+      "evaluation_criteria": [
+        "列出不少于5种能力（如电气安全、传感器检测、PLC控制、气动执行、故障排查等）",
+        "说明能力之间的层次关系（基础→核心→综合）"
+      ],
+      "min_acceptable_score": 0.6
+    },
+    {
+      "id": "T028",
+      "category": "岗位能力认知",
+      "question": "课程学的知识和岗位能力有什么关系？",
+      "expected_knowledge_ids": ["K047", "K048"],
+      "expected_source": "机电一体化专业教学标准",
+      "evaluation_criteria": [
+        "说明课程知识与岗位能力的映射关系",
+        "举例：传感器课程→信号采集能力，PLC课程→控制逻辑能力"
+      ],
+      "min_acceptable_score": 0.6
+    },
+    {
+      "id": "T029",
+      "category": "边界/元问题",
+      "question": "知识库里都有哪些内容？",
+      "expected_knowledge_ids": [],
+      "expected_source": "",
+      "evaluation_criteria": [
+        "应触发元问题检测，返回知识库概览",
+        "说明知识库覆盖的能力领域和条目数量",
+        "不要试图假装检索到具体知识条目来回答"
+      ],
+      "min_acceptable_score": 0.7
+    },
+    {
+      "id": "T030",
+      "category": "边界/元问题",
+      "question": "机器人的运动学逆解怎么求？",
+      "expected_knowledge_ids": [],
+      "expected_source": "",
+      "evaluation_criteria": [
+        "应明确告知知识库暂未收录该问题",
+        "不得编造具体技术参数或公式",
+        "可建议查阅相关教材或咨询专业教师",
+        "不要假装回答了技术问题"
+      ],
+      "min_acceptable_score": 0.8
+    }
+  ],
+  "scoring_guide": {
+    "per_criterion": "满足=1.0, 部分满足=0.5, 未满足=0.0",
+    "pass_threshold": "每道题得分 >= min_acceptable_score",
+    "overall_pass": "30 题中至少 24 题通过（80%通过率）"
+  }
+}

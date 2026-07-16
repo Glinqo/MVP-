@@ -1,8 +1,8 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "role": "自动化生产线装调与运维技术员",
   "scenario": "传感器 NPN/PNP 接线与 PLC 输入信号排查",
-  "source": "PLC 实训指导书/教师确认资料/课程标准待补充",
+  "source": "主知识库(66条) + 导入条目合并",
   "items": [
     {
       "id": "K001",
@@ -10,10 +10,36 @@
       "ability_node_id": "electrical_safety_check",
       "job_task": "传感器输入信号排查前的安全准备",
       "content": "接线、拆线或更换传感器前，先切断控制电源，确认急停、气源和设备处于安全状态；通电测量前应由教师确认现场安全。",
-      "common_errors": ["只按停止按钮不切断电源", "未确认气缸初始位", "带电拔插传感器"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只按停止按钮不切断电源",
+        "未确认气缸初始位",
+        "带电拔插传感器"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "GB/T 5226.1-2019 机械电气安全通用技术条件；PLC 实训指导书（安全操作规范）",
+      "equipment": [
+        "PLC控制柜",
+        "急停按钮",
+        "电源开关",
+        "气源阀门"
+      ],
+      "fault_symptom": "设备带电操作风险；急停未复位或误启动",
+      "safety_requirement": "接线拆线前必须切断控制电源；急停复位后需确认输出状态和气缸位置才能启动；通电前由教师检查现场安全",
+      "keywords": [
+        "安全",
+        "断电",
+        "急停",
+        "电源",
+        "气源",
+        "确认",
+        "安全操作"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K002",
@@ -21,10 +47,36 @@
       "ability_node_id": "electrical_safety_check",
       "job_task": "调试前确认产线不会误动作",
       "content": "急停用于快速阻止危险动作，复位急停后仍需确认启动条件、气缸位置和输出状态，不能把急停复位当成设备可直接运行。",
-      "common_errors": ["急停复位后直接启动", "忽略输出保持状态", "未通知同组人员"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "急停复位后直接启动",
+        "忽略输出保持状态",
+        "未通知同组人员"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "GB/T 5226.1-2019 机械电气安全通用技术条件；PLC 实训指导书（安全操作规范）",
+      "equipment": [
+        "PLC控制柜",
+        "急停按钮",
+        "电源开关",
+        "气源阀门"
+      ],
+      "fault_symptom": "设备带电操作风险；急停未复位或误启动",
+      "safety_requirement": "接线拆线前必须切断控制电源；急停复位后需确认输出状态和气缸位置才能启动；通电前由教师检查现场安全",
+      "keywords": [
+        "安全",
+        "断电",
+        "急停",
+        "电源",
+        "气源",
+        "确认",
+        "安全操作"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K003",
@@ -32,10 +84,34 @@
       "ability_node_id": "multimeter_voltage_measurement",
       "job_task": "通电排查 DC24V 和输入信号",
       "content": "通电测量只用于确认电压与信号状态，必须选择正确档位和测量点，避免表笔短接端子；不确定时先停机并请教师确认。",
-      "common_errors": ["电流档测电压", "表笔跨接相邻端子", "测量时身体或工具碰到运动部件"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "电流档测电压",
+        "表笔跨接相邻端子",
+        "测量时身体或工具碰到运动部件"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书（万用表操作规范）；GB/T 5226.1-2019 电气安全要求",
+      "equipment": [
+        "数字万用表",
+        "PLC端子排",
+        "DC24V电源"
+      ],
+      "fault_symptom": "测量结果异常；表笔误触导致短路或读数错误",
+      "safety_requirement": "选择直流电压档（DCV）；红表笔接正、黑表笔接负；不能电流档测电压；表笔不能跨接相邻端子",
+      "keywords": [
+        "万用表",
+        "电压",
+        "直流",
+        "测量",
+        "档位",
+        "表笔"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K004",
@@ -43,10 +119,34 @@
       "ability_node_id": "dc24v_power_check",
       "job_task": "确认传感器和 PLC 输入模块供电",
       "content": "三线制传感器通常需要 DC24V 和 0V 供电，输出线再把有效信号送入 PLC 输入点；供电回路不完整时，传感器可能不工作或输出不稳定。",
-      "common_errors": ["只看电源灯不测端子", "0V 断开未发现", "把交流端子当作 DC24V"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只看电源灯不测端子",
+        "0V 断开未发现",
+        "把交流端子当作 DC24V"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第3章 传感器与PLC接线",
+      "equipment": [
+        "24V开关电源",
+        "万用表",
+        "PLC电源模块"
+      ],
+      "fault_symptom": "传感器不工作；输出不稳定；PLC输入模块无供电",
+      "safety_requirement": "万用表选择直流电压档；表笔不能跨接相邻端子；确认端子后再测量",
+      "keywords": [
+        "DC24V",
+        "0V",
+        "供电",
+        "电源",
+        "正负极",
+        "万用表"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K005",
@@ -54,10 +154,34 @@
       "ability_node_id": "dc24v_power_check",
       "job_task": "核对传感器棕线和蓝线供电",
       "content": "常见三线传感器棕线接 DC24V，蓝线接 0V，黑线为输出信号；实际接线仍需以设备端子图和传感器说明为准。",
-      "common_errors": ["棕蓝线接反", "只按颜色接线不看图纸", "多个 0V 端子未确认是否共地"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "棕蓝线接反",
+        "只按颜色接线不看图纸",
+        "多个 0V 端子未确认是否共地"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第3章 传感器与PLC接线",
+      "equipment": [
+        "24V开关电源",
+        "万用表",
+        "PLC电源模块"
+      ],
+      "fault_symptom": "传感器不工作；输出不稳定；PLC输入模块无供电",
+      "safety_requirement": "万用表选择直流电压档；表笔不能跨接相邻端子；确认端子后再测量",
+      "keywords": [
+        "DC24V",
+        "0V",
+        "供电",
+        "电源",
+        "正负极",
+        "万用表"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K006",
@@ -65,10 +189,34 @@
       "ability_node_id": "plc_input_common_terminal",
       "job_task": "判断 PLC 输入回路是否形成",
       "content": "DC24V/0V 是供电端子，PLC 输入公共端决定输入回路的参考电位；公共端接错会导致传感器有动作但输入点无信号。",
-      "common_errors": ["把公共端当普通 0V", "只接输入点不接公共端", "不同公共端组混接"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "把公共端当普通 0V",
+        "只接输入点不接公共端",
+        "不同公共端组混接"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "西门子工业支持中心技术论坛「PLC输入类型源型/漏型与传感器选型匹配」(2010)；PLC 实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART/S7-1200)",
+        "传感器",
+        "端子排"
+      ],
+      "fault_symptom": "传感器有动作但PLC输入点无信号；COM接错导致输入回路不完整",
+      "safety_requirement": "接线前断电；确认公共端组划分和接线方式（源型/漏型）",
+      "keywords": [
+        "公共端",
+        "COM",
+        "输入回路",
+        "源型",
+        "漏型",
+        "接线"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K007",
@@ -76,10 +224,35 @@
       "ability_node_id": "sensor_wiring_color_code",
       "job_task": "识别传感器供电线和输出线",
       "content": "三线制传感器通常包含电源正、电源负和信号输出三类线，输出线接入 PLC 输入点，供电线保证传感器内部电路工作。",
-      "common_errors": ["把输出线当 0V", "只接两根线", "忽略传感器型号差异"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "把输出线当 0V",
+        "只接两根线",
+        "忽略传感器型号差异"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第3章 传感器选型与接线",
+      "equipment": [
+        "三线制传感器",
+        "万用表",
+        "剥线钳",
+        "端子起"
+      ],
+      "fault_symptom": "棕蓝黑三线接错导致传感器不工作或输出异常",
+      "safety_requirement": "接线前断电；棕线=DC24V、蓝线=0V、黑线=信号输出；以端子图和传感器说明为准",
+      "keywords": [
+        "棕线",
+        "蓝线",
+        "黑线",
+        "三线制",
+        "接线",
+        "颜色"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K008",
@@ -87,10 +260,35 @@
       "ability_node_id": "sensor_wiring_color_code",
       "job_task": "核对传感器到端子排接线",
       "content": "常见棕线为 DC24V、蓝线为 0V、黑线为输出信号，但线色只能作为初步判断，最终应核对铭牌、说明书和端子图。",
-      "common_errors": ["只靠线色判断", "黑线接到错误输入点", "换传感器后不重新核对"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只靠线色判断",
+        "黑线接到错误输入点",
+        "换传感器后不重新核对"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第3章 传感器选型与接线",
+      "equipment": [
+        "三线制传感器",
+        "万用表",
+        "剥线钳",
+        "端子起"
+      ],
+      "fault_symptom": "棕蓝黑三线接错导致传感器不工作或输出异常",
+      "safety_requirement": "接线前断电；棕线=DC24V、蓝线=0V、黑线=信号输出；以端子图和传感器说明为准",
+      "keywords": [
+        "棕线",
+        "蓝线",
+        "黑线",
+        "三线制",
+        "接线",
+        "颜色"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K009",
@@ -98,10 +296,33 @@
       "ability_node_id": "sensor_nameplate_reading",
       "job_task": "确认传感器供电和输出类型",
       "content": "铭牌或型号信息通常包含电压范围、检测方式、输出类型和接线提示；排查前先确认这些信息，避免按经验误接。",
-      "common_errors": ["忽略型号后缀", "把检测类型当输出类型", "未记录传感器型号"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "忽略型号后缀",
+        "把检测类型当输出类型",
+        "未记录传感器型号"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；传感器产品手册（电感式/光电式传感器说明书）",
+      "equipment": [
+        "传感器铭牌",
+        "传感器说明书",
+        "型号查询工具"
+      ],
+      "fault_symptom": "无法从铭牌确认传感器类型、供电电压和输出方式",
+      "safety_requirement": "读取铭牌时注意不要触碰带电端子；不确定时查说明书或问教师",
+      "keywords": [
+        "铭牌",
+        "型号",
+        "规格",
+        "传感器参数",
+        "说明书"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K010",
@@ -109,10 +330,32 @@
       "ability_node_id": "sensor_led_observation",
       "job_task": "判断传感器是否检测到工件",
       "content": "动作灯通常表示传感器检测条件成立，但不等同于 PLC 输入点已收到信号；还需要看输出线电压和 PLC 输入状态。",
-      "common_errors": ["灯亮就认为 PLC 正常", "未调整检测距离", "忽略工件材质"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "灯亮就认为 PLC 正常",
+        "未调整检测距离",
+        "忽略工件材质"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；传感器产品手册",
+      "equipment": [
+        "传感器(电感式/光电式/磁性)",
+        "PLC输入模块"
+      ],
+      "fault_symptom": "传感器LED指示灯不亮或异常闪烁；有遮挡但灯不亮",
+      "safety_requirement": "观察指示灯时注意手部不要触及运动部件；传感器安装位置需保证安全距离",
+      "keywords": [
+        "动作灯",
+        "指示灯",
+        "传感器",
+        "LED",
+        "检测状态"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K011",
@@ -120,10 +363,36 @@
       "ability_node_id": "sensor_output_logic",
       "job_task": "判断 NPN 传感器与输入公共端匹配关系",
       "content": "NPN 传感器常见为下拉输出，有效时输出端接近 0V；PLC 输入公共端通常需要接到正侧以形成输入电流回路。",
-      "common_errors": ["把 NPN 当作输出 DC24V", "公共端接反", "只记名称不理解电流路径"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "把 NPN 当作输出 DC24V",
+        "公共端接反",
+        "只记名称不理解电流路径"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "西门子工业支持中心技术论坛「西门子PLC与NPN（源型）和PNP（漏型）传感器的接线说明」(2015)；AutomationDirect Sinking and Sourcing Sensor Wiring Basics",
+      "equipment": [
+        "NPN传感器",
+        "PNP传感器",
+        "万用表",
+        "PLC输入模块"
+      ],
+      "fault_symptom": "NPN导通输出低电平(0V)，PNP导通输出高电平(24V)；逻辑判断错误导致排故方向错误",
+      "safety_requirement": "用万用表验证输出电平前先确认供电正常；表笔不要短路",
+      "keywords": [
+        "NPN",
+        "PNP",
+        "输出逻辑",
+        "高电平",
+        "低电平",
+        "导通",
+        "截止"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K012",
@@ -131,10 +400,36 @@
       "ability_node_id": "sensor_output_logic",
       "job_task": "判断 PNP 传感器与输入公共端匹配关系",
       "content": "PNP 传感器常见为上拉输出，有效时输出端接近 DC24V；PLC 输入公共端通常需要接到 0V 侧以形成输入回路。",
-      "common_errors": ["把 PNP 接到不匹配公共端", "只看传感器灯不测输出", "混用 NPN/PNP 备件"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "把 PNP 接到不匹配公共端",
+        "只看传感器灯不测输出",
+        "混用 NPN/PNP 备件"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "西门子工业支持中心技术论坛「西门子PLC与NPN（源型）和PNP（漏型）传感器的接线说明」(2015)；AutomationDirect Sinking and Sourcing Sensor Wiring Basics",
+      "equipment": [
+        "NPN传感器",
+        "PNP传感器",
+        "万用表",
+        "PLC输入模块"
+      ],
+      "fault_symptom": "NPN导通输出低电平(0V)，PNP导通输出高电平(24V)；逻辑判断错误导致排故方向错误",
+      "safety_requirement": "用万用表验证输出电平前先确认供电正常；表笔不要短路",
+      "keywords": [
+        "NPN",
+        "PNP",
+        "输出逻辑",
+        "高电平",
+        "低电平",
+        "导通",
+        "截止"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K013",
@@ -142,10 +437,34 @@
       "ability_node_id": "sensor_type_identification",
       "job_task": "更换或排查传感器前确认输出类型",
       "content": "优先通过型号、接线图和说明书判断 NPN/PNP；无法确认时，在安全条件下通过输出端有效电压变化辅助判断。",
-      "common_errors": ["凭外观判断类型", "未记录判别依据", "带电随意换线测试"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "凭外观判断类型",
+        "未记录判别依据",
+        "带电随意换线测试"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "西门子工业支持中心技术论坛「西门子PLC与NPN（源型）和PNP（漏型）传感器的接线说明」(2015)；PLC 实训指导书",
+      "equipment": [
+        "NPN传感器",
+        "PNP传感器",
+        "传感器型号标签"
+      ],
+      "fault_symptom": "NPN/PNP混淆导致输入信号逻辑相反；PLC无法正确读取传感器状态",
+      "safety_requirement": "识别传感器类型后确认与PLC输入模式匹配；更换传感器时必须先断电",
+      "keywords": [
+        "NPN",
+        "PNP",
+        "类型识别",
+        "源型",
+        "漏型",
+        "传感器型号"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K014",
@@ -153,10 +472,34 @@
       "ability_node_id": "sensor_wiring_judgement",
       "job_task": "判断传感器接入 PLC 输入是否正确",
       "content": "传感器输出类型必须和 PLC 输入公共端匹配；若匹配错误，传感器动作灯可能正常，但 PLC 输入点仍无有效信号。",
-      "common_errors": ["NPN/PNP 混接", "公共端接到错误电位", "未查看输入模块类型"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "NPN/PNP 混接",
+        "公共端接到错误电位",
+        "未查看输入模块类型"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；AutomationDirect Sinking and Sourcing Sensor Wiring Basics",
+      "equipment": [
+        "传感器",
+        "PLC输入模块",
+        "万用表",
+        "端子起"
+      ],
+      "fault_symptom": "传感器动作灯亮但PLC输入灯不亮；输入信号异常",
+      "safety_requirement": "先断电检查接线和端子压接；通电测量时注意表笔不要短接",
+      "keywords": [
+        "输入灯",
+        "动作灯",
+        "接线判断",
+        "信号链路",
+        "排查"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K015",
@@ -164,10 +507,34 @@
       "ability_node_id": "sensor_type_identification",
       "job_task": "识别现场传感器接线方式",
       "content": "二线制传感器和三线制传感器接线方式不同，不能简单套用棕蓝黑三线规则；本 MVP 默认聚焦三线制传感器。",
-      "common_errors": ["二线制传感器按三线制接", "忽略漏电流", "未确认实物线数"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "二线制传感器按三线制接",
+        "忽略漏电流",
+        "未确认实物线数"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "西门子工业支持中心技术论坛「西门子PLC与NPN（源型）和PNP（漏型）传感器的接线说明」(2015)；PLC 实训指导书",
+      "equipment": [
+        "NPN传感器",
+        "PNP传感器",
+        "传感器型号标签"
+      ],
+      "fault_symptom": "NPN/PNP混淆导致输入信号逻辑相反；PLC无法正确读取传感器状态",
+      "safety_requirement": "识别传感器类型后确认与PLC输入模式匹配；更换传感器时必须先断电",
+      "keywords": [
+        "NPN",
+        "PNP",
+        "类型识别",
+        "源型",
+        "漏型",
+        "传感器型号"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K016",
@@ -175,10 +542,34 @@
       "ability_node_id": "plc_input_common_terminal",
       "job_task": "确认输入模块接线基准",
       "content": "PLC 输入公共端是输入回路的共同参考点，决定输入点有效时电流如何流动；排查输入无响应时必须检查公共端。",
-      "common_errors": ["只查输入点不查公共端", "把公共端悬空", "公共端组别看错"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只查输入点不查公共端",
+        "把公共端悬空",
+        "公共端组别看错"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "西门子工业支持中心技术论坛「PLC输入类型源型/漏型与传感器选型匹配」(2010)；PLC 实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART/S7-1200)",
+        "传感器",
+        "端子排"
+      ],
+      "fault_symptom": "传感器有动作但PLC输入点无信号；COM接错导致输入回路不完整",
+      "safety_requirement": "接线前断电；确认公共端组划分和接线方式（源型/漏型）",
+      "keywords": [
+        "公共端",
+        "COM",
+        "输入回路",
+        "源型",
+        "漏型",
+        "接线"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K017",
@@ -186,10 +577,33 @@
       "ability_node_id": "plc_input_grouping",
       "job_task": "判断多个输入点是否属于同一公共端组",
       "content": "部分 PLC 输入按若干点共用一个公共端分组，跨组接线可能导致某些点有效、某些点无响应。",
-      "common_errors": ["以为所有输入共用一个 COM", "跨组借线", "端子排和 PLC 端子编号未对应"],
-      "related_questions": ["Q002"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "以为所有输入共用一个 COM",
+        "跨组借线",
+        "端子排和 PLC 端子编号未对应"
+      ],
+      "related_questions": [
+        "Q002"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；西门子 S7-200 SMART 系统手册",
+      "equipment": [
+        "PLC(S7-200 SMART/S7-1200)",
+        "传感器组",
+        "端子排"
+      ],
+      "fault_symptom": "不同公共端组混接导致部分输入点异常；同一组内传感器互相影响",
+      "safety_requirement": "接线前确认各组公共端的独立性和接线规范",
+      "keywords": [
+        "分组",
+        "公共端组",
+        "COM",
+        "独立组",
+        "混接"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K018",
@@ -197,10 +611,34 @@
       "ability_node_id": "plc_input_common_terminal",
       "job_task": "判断 PLC 输入模块适配 NPN 还是 PNP",
       "content": "不同 PLC 输入模块可能采用源型或漏型接法，现场应以模块手册和实训装置端子图为准，不能只按品牌经验判断。",
-      "common_errors": ["不同 PLC 型号套用同一接法", "未查模块手册", "公共端接反"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "不同 PLC 型号套用同一接法",
+        "未查模块手册",
+        "公共端接反"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "西门子工业支持中心技术论坛「PLC输入类型源型/漏型与传感器选型匹配」(2010)；PLC 实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART/S7-1200)",
+        "传感器",
+        "端子排"
+      ],
+      "fault_symptom": "传感器有动作但PLC输入点无信号；COM接错导致输入回路不完整",
+      "safety_requirement": "接线前断电；确认公共端组划分和接线方式（源型/漏型）",
+      "keywords": [
+        "公共端",
+        "COM",
+        "输入回路",
+        "源型",
+        "漏型",
+        "接线"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K019",
@@ -208,10 +646,33 @@
       "ability_node_id": "no_response_common_terminal_check",
       "job_task": "定位传感器动作但 PLC 输入无信号",
       "content": "公共端未接或端子松动时，输入回路无法闭合，即使传感器输出端变化，PLC 输入状态也可能不变。",
-      "common_errors": ["只压紧输入点线", "未检查 COM 端子", "未做轻拉线检查"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只压紧输入点线",
+        "未检查 COM 端子",
+        "未做轻拉线检查"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "西门子工业支持中心技术论坛；PLC 实训指导书",
+      "equipment": [
+        "PLC输入模块",
+        "公共端端子",
+        "万用表"
+      ],
+      "fault_symptom": "公共端断开或接错导致整组输入无响应",
+      "safety_requirement": "断电检查公共端接线；确认公共端组划分正确；不同组公共端不能混接",
+      "keywords": [
+        "公共端",
+        "COM",
+        "无响应",
+        "整组失效",
+        "接线检查"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K020",
@@ -219,10 +680,33 @@
       "ability_node_id": "no_response_common_terminal_check",
       "job_task": "判断 NPN/PNP 与公共端电位是否相反",
       "content": "公共端接到错误电位时，输入回路方向不匹配，典型表现是传感器动作灯亮、输出线有变化，但 PLC 输入点无响应。",
-      "common_errors": ["PNP 公共端接正侧", "NPN 公共端接负侧", "未对照输出类型复核"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "PNP 公共端接正侧",
+        "NPN 公共端接负侧",
+        "未对照输出类型复核"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "西门子工业支持中心技术论坛；PLC 实训指导书",
+      "equipment": [
+        "PLC输入模块",
+        "公共端端子",
+        "万用表"
+      ],
+      "fault_symptom": "公共端断开或接错导致整组输入无响应",
+      "safety_requirement": "断电检查公共端接线；确认公共端组划分正确；不同组公共端不能混接",
+      "keywords": [
+        "公共端",
+        "COM",
+        "无响应",
+        "整组失效",
+        "接线检查"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K021",
@@ -230,10 +714,33 @@
       "ability_node_id": "plc_io_address_mapping",
       "job_task": "建立传感器与 PLC 输入地址关系",
       "content": "PLC I/O 地址用于标识现场输入输出点，排查时要把传感器名称、端子号、输入地址和程序变量对应起来。",
-      "common_errors": ["地址写错一位", "输入输出地址混淆", "只记设备名称不记地址"],
-      "related_questions": ["Q002"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "地址写错一位",
+        "输入输出地址混淆",
+        "只记设备名称不记地址"
+      ],
+      "related_questions": [
+        "Q002"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第4章 PLC I/O 地址分配",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器",
+        "电气图纸"
+      ],
+      "fault_symptom": "程序中的地址与实际硬件地址不一致；输入信号无法被程序读取",
+      "safety_requirement": "核对地址时对照电气图纸和PLC系统块配置；改地址后重新下载程序需确认安全",
+      "keywords": [
+        "I/O地址",
+        "映射",
+        "通道",
+        "地址对应",
+        "系统块"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K022",
@@ -241,10 +748,33 @@
       "ability_node_id": "io_mapping_table_build",
       "job_task": "填写输入信号排查记录",
       "content": "I/O 映射表建议包含元件名称、传感器类型、线色、端子号、PLC 地址、程序变量、当前监控状态和备注。",
-      "common_errors": ["只填地址不填端子", "缺少传感器类型", "没有记录当前状态"],
-      "related_questions": ["Q002"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只填地址不填端子",
+        "缺少传感器类型",
+        "没有记录当前状态"
+      ],
+      "related_questions": [
+        "Q002"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第4章",
+      "equipment": [
+        "电气图纸",
+        "PLC系统块配置",
+        "I/O地址表"
+      ],
+      "fault_symptom": "I/O映射表与实际接线不符；地址记录错误导致后续排查困难",
+      "safety_requirement": "填写映射表时对照实物和图纸双重确认",
+      "keywords": [
+        "I/O表",
+        "映射表",
+        "地址记录",
+        "图纸",
+        "对照"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K023",
@@ -252,10 +782,33 @@
       "ability_node_id": "program_variable_lookup",
       "job_task": "确认程序读取的是正确输入点",
       "content": "现场输入点正常不代表程序使用正确，需检查程序变量是否绑定到该输入地址，避免程序看的是另一个点。",
-      "common_errors": ["变量名相似导致误判", "复制程序后地址未改", "把输出线圈当输入触点看"],
-      "related_questions": ["Q002"],
-      "related_tasks": ["T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "变量名相似导致误判",
+        "复制程序后地址未改",
+        "把输出线圈当输入触点看"
+      ],
+      "related_questions": [
+        "Q002"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第5章 PLC程序调试与监控",
+      "equipment": [
+        "PLC",
+        "编程电脑",
+        "编程软件(TIA Portal/STEP 7)"
+      ],
+      "fault_symptom": "输入灯亮但程序变量不变化；程序中找不到对应输入点",
+      "safety_requirement": "查找变量时参考程序符号表和交叉引用；不要随意修改变量映射",
+      "keywords": [
+        "变量",
+        "符号表",
+        "交叉引用",
+        "地址",
+        "程序查找"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K024",
@@ -263,10 +816,34 @@
       "ability_node_id": "no_response_address_mapping_check",
       "job_task": "排查输入监控正常但程序逻辑无动作",
       "content": "模块槽位、起始地址或程序符号表设置错误时，可能出现现场接 I0.1，程序却读取 I0.2 的情况。",
-      "common_errors": ["未确认模块起始地址", "符号表与实际接线不一致", "调试时只看注释"],
-      "related_questions": ["Q002"],
-      "related_tasks": ["T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "未确认模块起始地址",
+        "符号表与实际接线不一致",
+        "调试时只看注释"
+      ],
+      "related_questions": [
+        "Q002"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第4-5章",
+      "equipment": [
+        "PLC",
+        "编程电脑",
+        "电气图纸",
+        "I/O地址表"
+      ],
+      "fault_symptom": "传感器和接线正常但程序不响应；地址映射错误",
+      "safety_requirement": "对照图纸和系统块配置核对地址；修改地址后下载需教师确认",
+      "keywords": [
+        "地址映射",
+        "无响应",
+        "地址核对",
+        "系统块",
+        "I/O表"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K025",
@@ -274,10 +851,33 @@
       "ability_node_id": "plc_io_address_mapping",
       "job_task": "从端子排追踪到 PLC 输入地址",
       "content": "端子号是接线位置，PLC 地址是程序识别位置，两者需要通过图纸或映射表建立对应关系。",
-      "common_errors": ["把端子号当地址", "端子排跨接未记录", "维修后映射表未更新"],
-      "related_questions": ["Q002"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "把端子号当地址",
+        "端子排跨接未记录",
+        "维修后映射表未更新"
+      ],
+      "related_questions": [
+        "Q002"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第4章 PLC I/O 地址分配",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器",
+        "电气图纸"
+      ],
+      "fault_symptom": "程序中的地址与实际硬件地址不一致；输入信号无法被程序读取",
+      "safety_requirement": "核对地址时对照电气图纸和PLC系统块配置；改地址后重新下载程序需确认安全",
+      "keywords": [
+        "I/O地址",
+        "映射",
+        "通道",
+        "地址对应",
+        "系统块"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K026",
@@ -285,10 +885,33 @@
       "ability_node_id": "program_variable_lookup",
       "job_task": "理解 PLC 程序中输入条件的判断",
       "content": "PLC 梯形图中的常开触点表示该变量为真时逻辑导通，不等同于现场按钮或传感器实物一定是常开结构。",
-      "common_errors": ["把程序触点符号等同于传感器物理触点", "看到常开就认为现场断开", "忽略变量当前状态"],
-      "related_questions": ["Q002"],
-      "related_tasks": ["T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "把程序触点符号等同于传感器物理触点",
+        "看到常开就认为现场断开",
+        "忽略变量当前状态"
+      ],
+      "related_questions": [
+        "Q002"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第5章 PLC程序调试与监控",
+      "equipment": [
+        "PLC",
+        "编程电脑",
+        "编程软件(TIA Portal/STEP 7)"
+      ],
+      "fault_symptom": "输入灯亮但程序变量不变化；程序中找不到对应输入点",
+      "safety_requirement": "查找变量时参考程序符号表和交叉引用；不要随意修改变量映射",
+      "keywords": [
+        "变量",
+        "符号表",
+        "交叉引用",
+        "地址",
+        "程序查找"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K027",
@@ -296,10 +919,33 @@
       "ability_node_id": "program_variable_lookup",
       "job_task": "判断输入信号取反逻辑",
       "content": "PLC 梯形图中的常闭触点表示变量为假时逻辑导通，常用于停止、报警、互锁或反相判断。",
-      "common_errors": ["把常闭触点理解成接线必须常闭", "未看在线状态", "忽略取反逻辑"],
-      "related_questions": ["Q002"],
-      "related_tasks": ["T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "把常闭触点理解成接线必须常闭",
+        "未看在线状态",
+        "忽略取反逻辑"
+      ],
+      "related_questions": [
+        "Q002"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第5章 PLC程序调试与监控",
+      "equipment": [
+        "PLC",
+        "编程电脑",
+        "编程软件(TIA Portal/STEP 7)"
+      ],
+      "fault_symptom": "输入灯亮但程序变量不变化；程序中找不到对应输入点",
+      "safety_requirement": "查找变量时参考程序符号表和交叉引用；不要随意修改变量映射",
+      "keywords": [
+        "变量",
+        "符号表",
+        "交叉引用",
+        "地址",
+        "程序查找"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K028",
@@ -307,10 +953,33 @@
       "ability_node_id": "program_variable_lookup",
       "job_task": "解释输入信号为何没有驱动后续动作",
       "content": "输入点有效只是程序条件之一，后续动作还可能受模式、复位、互锁、报警和顺序步条件影响。",
-      "common_errors": ["输入灯亮就认为程序必定动作", "忽略自动/手动模式", "未查互锁条件"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "输入灯亮就认为程序必定动作",
+        "忽略自动/手动模式",
+        "未查互锁条件"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第5章 PLC程序调试与监控",
+      "equipment": [
+        "PLC",
+        "编程电脑",
+        "编程软件(TIA Portal/STEP 7)"
+      ],
+      "fault_symptom": "输入灯亮但程序变量不变化；程序中找不到对应输入点",
+      "safety_requirement": "查找变量时参考程序符号表和交叉引用；不要随意修改变量映射",
+      "keywords": [
+        "变量",
+        "符号表",
+        "交叉引用",
+        "地址",
+        "程序查找"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K029",
@@ -318,10 +987,33 @@
       "ability_node_id": "plc_input_monitoring",
       "job_task": "在线观察输入地址与程序变量状态",
       "content": "PLC 监控模式用于查看输入点、变量和触点状态，帮助判断现场信号是否进入程序；进入监控前需确认设备处于安全调试状态。",
-      "common_errors": ["监控时误操作输出", "未确认在线工程与设备一致", "只看程序不看现场"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "监控时误操作输出",
+        "未确认在线工程与设备一致",
+        "只看程序不看现场"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第5章",
+      "equipment": [
+        "PLC(S7-200 SMART/S7-1200)",
+        "编程电脑",
+        "编程电缆"
+      ],
+      "fault_symptom": "程序运行状态与预期不符；输入信号状态不确定",
+      "safety_requirement": "在线监控不影响设备安全，但强制输出功能需确认设备安全状态后再操作",
+      "keywords": [
+        "在线监控",
+        "状态表",
+        "变量表",
+        "输入点",
+        "强制"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K030",
@@ -329,10 +1021,32 @@
       "ability_node_id": "input_led_compare",
       "job_task": "判断输入模块和程序监控是否一致",
       "content": "输入模块指示灯亮而在线监控无变化时，应检查地址、工程连接、模块配置或监控对象是否正确。",
-      "common_errors": ["只相信软件监控", "未看模块 LED", "监控了错误地址"],
-      "related_questions": ["Q002"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只相信软件监控",
+        "未看模块 LED",
+        "监控了错误地址"
+      ],
+      "related_questions": [
+        "Q002"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "《机电设备故障诊断与维修》李万军主编，高等教育出版社，2025，项目五 PLC故障诊断与维修",
+      "equipment": [
+        "传感器",
+        "PLC输入模块"
+      ],
+      "fault_symptom": "无法区分故障在传感器侧、接线侧还是PLC侧",
+      "safety_requirement": "观察指示灯时保持安全距离；不要在设备运行时伸手探入运动区域",
+      "keywords": [
+        "三联状态",
+        "传感器灯",
+        "PLC灯",
+        "交叉检查",
+        "故障定位"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K031",
@@ -340,10 +1054,32 @@
       "ability_node_id": "input_led_compare",
       "job_task": "定位故障在传感器侧还是 PLC 输入侧",
       "content": "传感器动作灯亮但 PLC 输入灯不亮，优先检查输出线、公共端、输入模块端子和 NPN/PNP 匹配。",
-      "common_errors": ["直接修改程序", "只换传感器不查公共端", "未核对端子压接"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "直接修改程序",
+        "只换传感器不查公共端",
+        "未核对端子压接"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "《机电设备故障诊断与维修》李万军主编，高等教育出版社，2025，项目五 PLC故障诊断与维修",
+      "equipment": [
+        "传感器",
+        "PLC输入模块"
+      ],
+      "fault_symptom": "无法区分故障在传感器侧、接线侧还是PLC侧",
+      "safety_requirement": "观察指示灯时保持安全距离；不要在设备运行时伸手探入运动区域",
+      "keywords": [
+        "三联状态",
+        "传感器灯",
+        "PLC灯",
+        "交叉检查",
+        "故障定位"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K032",
@@ -351,10 +1087,33 @@
       "ability_node_id": "plc_input_monitoring",
       "job_task": "避免监控错误输入点",
       "content": "监控前先用 I/O 映射表确认输入地址，必要时让现场人员触发传感器，观察对应地址是否同步变化。",
-      "common_errors": ["监控相邻地址", "未让现场触发验证", "工程注释过期"],
-      "related_questions": ["Q002"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "监控相邻地址",
+        "未让现场触发验证",
+        "工程注释过期"
+      ],
+      "related_questions": [
+        "Q002"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第5章",
+      "equipment": [
+        "PLC(S7-200 SMART/S7-1200)",
+        "编程电脑",
+        "编程电缆"
+      ],
+      "fault_symptom": "程序运行状态与预期不符；输入信号状态不确定",
+      "safety_requirement": "在线监控不影响设备安全，但强制输出功能需确认设备安全状态后再操作",
+      "keywords": [
+        "在线监控",
+        "状态表",
+        "变量表",
+        "输入点",
+        "强制"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K033",
@@ -362,10 +1121,33 @@
       "ability_node_id": "plc_input_monitoring",
       "job_task": "在设备可动作条件下进行观察",
       "content": "在线监控时人员应远离夹点和运动机构，调试人员之间要明确口令，禁止在不确认状态下强制输出或启动设备。",
-      "common_errors": ["边看电脑边靠近机构", "未告知同组人员", "误点运行按钮"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "边看电脑边靠近机构",
+        "未告知同组人员",
+        "误点运行按钮"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第5章",
+      "equipment": [
+        "PLC(S7-200 SMART/S7-1200)",
+        "编程电脑",
+        "编程电缆"
+      ],
+      "fault_symptom": "程序运行状态与预期不符；输入信号状态不确定",
+      "safety_requirement": "在线监控不影响设备安全，但强制输出功能需确认设备安全状态后再操作",
+      "keywords": [
+        "在线监控",
+        "状态表",
+        "变量表",
+        "输入点",
+        "强制"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K034",
@@ -373,10 +1155,35 @@
       "ability_node_id": "input_no_response_fault_scope",
       "job_task": "建立无响应故障排查顺序",
       "content": "先确认 DC24V 和 0V，再确认传感器输出，再查输出线到输入点，再查公共端和地址映射，最后看程序条件。",
-      "common_errors": ["跳过电源直接改程序", "无顺序地换线", "只看单一证据"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "跳过电源直接改程序",
+        "无顺序地换线",
+        "只看单一证据"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "PLC 实训指导书；《机电设备故障诊断与维修》李万军主编，高等教育出版社，2025，项目五 PLC故障诊断",
+      "equipment": [
+        "传感器",
+        "PLC",
+        "万用表",
+        "24V电源",
+        "端子排"
+      ],
+      "fault_symptom": "输入无响应；传感器动作但PLC不识别；多个输入同时失效",
+      "safety_requirement": "先查供电和公共端；不要盲目更换传感器；从电气层→输入层→程序层逐层排查",
+      "keywords": [
+        "无响应",
+        "输入失效",
+        "故障范围",
+        "分层排查",
+        "故障定位"
+      ],
+      "difficulty": "advanced"
     },
     {
       "id": "K035",
@@ -384,10 +1191,34 @@
       "ability_node_id": "sensor_wiring_judgement",
       "job_task": "检查传感器黑线到 PLC 输入点路径",
       "content": "输出线松动、断线或接到错误输入点时，传感器本体可能正常动作，但目标 PLC 输入点不会变化。",
-      "common_errors": ["只压紧电源线", "未查端子排中转", "没有用映射表追线"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只压紧电源线",
+        "未查端子排中转",
+        "没有用映射表追线"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；AutomationDirect Sinking and Sourcing Sensor Wiring Basics",
+      "equipment": [
+        "传感器",
+        "PLC输入模块",
+        "万用表",
+        "端子起"
+      ],
+      "fault_symptom": "传感器动作灯亮但PLC输入灯不亮；输入信号异常",
+      "safety_requirement": "先断电检查接线和端子压接；通电测量时注意表笔不要短接",
+      "keywords": [
+        "输入灯",
+        "动作灯",
+        "接线判断",
+        "信号链路",
+        "排查"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K036",
@@ -395,10 +1226,33 @@
       "ability_node_id": "no_response_sensor_side_check",
       "job_task": "判断传感器是否真正输出有效信号",
       "content": "在教师确认安全后，可测量输出线对 0V 或 DC24V 的电压变化，结合 NPN/PNP 类型判断输出是否有效。",
-      "common_errors": ["测量参考点选错", "不知道 NPN/PNP 有效电压方向", "带电测量不做安全确认"],
-      "related_questions": ["Q001"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "测量参考点选错",
+        "不知道 NPN/PNP 有效电压方向",
+        "带电测量不做安全确认"
+      ],
+      "related_questions": [
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；传感器产品手册",
+      "equipment": [
+        "传感器",
+        "万用表",
+        "传感器接线端"
+      ],
+      "fault_symptom": "传感器本身故障或接线问题导致PLC输入无响应",
+      "safety_requirement": "先确认供电正常再查传感器；更换传感器前断电",
+      "keywords": [
+        "传感器侧",
+        "传感器故障",
+        "接线",
+        "信号输出",
+        "无响应"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K037",
@@ -406,10 +1260,33 @@
       "ability_node_id": "no_response_sensor_side_check",
       "job_task": "检查传感器是否稳定检测到工件",
       "content": "光电或接近传感器的检测距离、安装角度和目标材质会影响动作稳定性，信号闪烁会导致 PLC 输入不稳定。",
-      "common_errors": ["传感器装偏", "工件颜色或材质不匹配", "只调程序不调安装"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "传感器装偏",
+        "工件颜色或材质不匹配",
+        "只调程序不调安装"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；传感器产品手册",
+      "equipment": [
+        "传感器",
+        "万用表",
+        "传感器接线端"
+      ],
+      "fault_symptom": "传感器本身故障或接线问题导致PLC输入无响应",
+      "safety_requirement": "先确认供电正常再查传感器；更换传感器前断电",
+      "keywords": [
+        "传感器侧",
+        "传感器故障",
+        "接线",
+        "信号输出",
+        "无响应"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K038",
@@ -417,10 +1294,35 @@
       "ability_node_id": "input_no_response_fault_scope",
       "job_task": "检查 PLC 输入端硬件连接",
       "content": "端子松动、压线不牢或线芯未压入会造成输入无响应或间歇响应，排查时应在断电状态下检查端子紧固。",
-      "common_errors": ["通电拧端子", "只看外观不轻拉线", "未检查端子排中转"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T001"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "通电拧端子",
+        "只看外观不轻拉线",
+        "未检查端子排中转"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "PLC 实训指导书；《机电设备故障诊断与维修》李万军主编，高等教育出版社，2025，项目五 PLC故障诊断",
+      "equipment": [
+        "传感器",
+        "PLC",
+        "万用表",
+        "24V电源",
+        "端子排"
+      ],
+      "fault_symptom": "输入无响应；传感器动作但PLC不识别；多个输入同时失效",
+      "safety_requirement": "先查供电和公共端；不要盲目更换传感器；从电气层→输入层→程序层逐层排查",
+      "keywords": [
+        "无响应",
+        "输入失效",
+        "故障范围",
+        "分层排查",
+        "故障定位"
+      ],
+      "difficulty": "advanced"
     },
     {
       "id": "K039",
@@ -428,10 +1330,35 @@
       "ability_node_id": "input_no_response_fault_scope",
       "job_task": "区分接线故障和模块故障",
       "content": "只有在供电、传感器输出、公共端、端子和地址均确认后，才考虑输入点硬件损坏，并应由教师确认后处理。",
-      "common_errors": ["过早判断模块坏", "随意更换 PLC 模块", "未保留排查证据"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "过早判断模块坏",
+        "随意更换 PLC 模块",
+        "未保留排查证据"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "PLC 实训指导书；《机电设备故障诊断与维修》李万军主编，高等教育出版社，2025，项目五 PLC故障诊断",
+      "equipment": [
+        "传感器",
+        "PLC",
+        "万用表",
+        "24V电源",
+        "端子排"
+      ],
+      "fault_symptom": "输入无响应；传感器动作但PLC不识别；多个输入同时失效",
+      "safety_requirement": "先查供电和公共端；不要盲目更换传感器；从电气层→输入层→程序层逐层排查",
+      "keywords": [
+        "无响应",
+        "输入失效",
+        "故障范围",
+        "分层排查",
+        "故障定位"
+      ],
+      "difficulty": "advanced"
     },
     {
       "id": "K040",
@@ -439,10 +1366,34 @@
       "ability_node_id": "no_response_address_mapping_check",
       "job_task": "解释输入正常但动作不执行",
       "content": "程序可能通过模式、复位、互锁或报警条件屏蔽后续动作，不能把动作不执行直接等同于输入无信号。",
-      "common_errors": ["把执行机构不动归因于传感器", "未查报警条件", "未区分输入无响应和动作未输出"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "把执行机构不动归因于传感器",
+        "未查报警条件",
+        "未区分输入无响应和动作未输出"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第4-5章",
+      "equipment": [
+        "PLC",
+        "编程电脑",
+        "电气图纸",
+        "I/O地址表"
+      ],
+      "fault_symptom": "传感器和接线正常但程序不响应；地址映射错误",
+      "safety_requirement": "对照图纸和系统块配置核对地址；修改地址后下载需教师确认",
+      "keywords": [
+        "地址映射",
+        "无响应",
+        "地址核对",
+        "系统块",
+        "I/O表"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K041",
@@ -450,10 +1401,36 @@
       "ability_node_id": "input_no_response_fault_scope",
       "job_task": "区分气缸故障来自电气、程序还是气路",
       "content": "气缸不动作时按电气输入、程序输出、输出继电器或电磁阀、气源压力、节流阀和机械卡滞分层排查。",
-      "common_errors": ["只调气压不看输出", "只改程序不查气路", "忽略电磁阀线圈"],
-      "related_questions": ["Q004", "Q005"],
-      "related_tasks": ["T003"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只调气压不看输出",
+        "只改程序不查气路",
+        "忽略电磁阀线圈"
+      ],
+      "related_questions": [
+        "Q004",
+        "Q005"
+      ],
+      "related_tasks": [
+        "T003"
+      ],
+      "source": "PLC 实训指导书；《机电设备故障诊断与维修》李万军主编，高等教育出版社，2025，项目五 PLC故障诊断",
+      "equipment": [
+        "传感器",
+        "PLC",
+        "万用表",
+        "24V电源",
+        "端子排"
+      ],
+      "fault_symptom": "输入无响应；传感器动作但PLC不识别；多个输入同时失效",
+      "safety_requirement": "先查供电和公共端；不要盲目更换传感器；从电气层→输入层→程序层逐层排查",
+      "keywords": [
+        "无响应",
+        "输入失效",
+        "故障范围",
+        "分层排查",
+        "故障定位"
+      ],
+      "difficulty": "advanced"
     },
     {
       "id": "K042",
@@ -461,10 +1438,34 @@
       "ability_node_id": "program_variable_lookup",
       "job_task": "判断气缸动作是否被输入条件卡住",
       "content": "气缸输出通常受启动、到位、互锁、模式和安全条件影响，输入信号缺失会使程序不发出电磁阀动作指令。",
-      "common_errors": ["直接拆气缸", "未查前一工位到位信号", "把输入问题看成气路问题"],
-      "related_questions": ["Q004", "Q005"],
-      "related_tasks": ["T003"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "直接拆气缸",
+        "未查前一工位到位信号",
+        "把输入问题看成气路问题"
+      ],
+      "related_questions": [
+        "Q004",
+        "Q005"
+      ],
+      "related_tasks": [
+        "T003"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第5章 PLC程序调试与监控",
+      "equipment": [
+        "PLC",
+        "编程电脑",
+        "编程软件(TIA Portal/STEP 7)"
+      ],
+      "fault_symptom": "输入灯亮但程序变量不变化；程序中找不到对应输入点",
+      "safety_requirement": "查找变量时参考程序符号表和交叉引用；不要随意修改变量映射",
+      "keywords": [
+        "变量",
+        "符号表",
+        "交叉引用",
+        "地址",
+        "程序查找"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K043",
@@ -472,10 +1473,35 @@
       "ability_node_id": "no_response_address_mapping_check",
       "job_task": "检查程序是否已发出气缸动作命令",
       "content": "若输入条件成立但气缸不动作，应查看 PLC 输出点、电磁阀线圈电压和接线，确认程序输出是否到达执行元件。",
-      "common_errors": ["只看输入不看输出", "输出地址查错", "未测电磁阀线圈电压"],
-      "related_questions": ["Q004", "Q005"],
-      "related_tasks": ["T003"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只看输入不看输出",
+        "输出地址查错",
+        "未测电磁阀线圈电压"
+      ],
+      "related_questions": [
+        "Q004",
+        "Q005"
+      ],
+      "related_tasks": [
+        "T003"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第4-5章",
+      "equipment": [
+        "PLC",
+        "编程电脑",
+        "电气图纸",
+        "I/O地址表"
+      ],
+      "fault_symptom": "传感器和接线正常但程序不响应；地址映射错误",
+      "safety_requirement": "对照图纸和系统块配置核对地址；修改地址后下载需教师确认",
+      "keywords": [
+        "地址映射",
+        "无响应",
+        "地址核对",
+        "系统块",
+        "I/O表"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K044",
@@ -483,10 +1509,34 @@
       "ability_node_id": "no_response_power_path_check",
       "job_task": "排查气缸不动作或动作无力",
       "content": "气源压力不足、气源未开或过滤减压阀异常，会导致气缸不动作、动作慢或不到位；检查前确认运动区域安全。",
-      "common_errors": ["只查程序不看气压表", "气源阀未打开", "压力调节后未复测动作"],
-      "related_questions": ["Q004"],
-      "related_tasks": ["T003"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只查程序不看气压表",
+        "气源阀未打开",
+        "压力调节后未复测动作"
+      ],
+      "related_questions": [
+        "Q004"
+      ],
+      "related_tasks": [
+        "T003"
+      ],
+      "source": "PLC 实训指导书；《机电设备故障诊断与维修》李万军主编，高等教育出版社，2025，项目五",
+      "equipment": [
+        "万用表",
+        "24V电源",
+        "PLC电源模块",
+        "传感器供电端子"
+      ],
+      "fault_symptom": "传感器供电异常导致无响应；电源链路中断",
+      "safety_requirement": "逐级测量供电电压：电源输出→端子排→传感器端；断电后再接触端子",
+      "keywords": [
+        "电源链路",
+        "供电检查",
+        "逐级测量",
+        "无响应",
+        "电源"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K045",
@@ -494,10 +1544,34 @@
       "ability_node_id": "no_response_power_path_check",
       "job_task": "排查气缸动作慢或不到位",
       "content": "节流阀开度影响气缸运动速度，过小会导致动作慢，过大可能造成冲击；调节时要小幅调整并观察效果。",
-      "common_errors": ["一次调太大", "把速度慢当成程序延时", "未区分进气节流和排气节流"],
-      "related_questions": ["Q004"],
-      "related_tasks": ["T003"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "一次调太大",
+        "把速度慢当成程序延时",
+        "未区分进气节流和排气节流"
+      ],
+      "related_questions": [
+        "Q004"
+      ],
+      "related_tasks": [
+        "T003"
+      ],
+      "source": "PLC 实训指导书；《机电设备故障诊断与维修》李万军主编，高等教育出版社，2025，项目五",
+      "equipment": [
+        "万用表",
+        "24V电源",
+        "PLC电源模块",
+        "传感器供电端子"
+      ],
+      "fault_symptom": "传感器供电异常导致无响应；电源链路中断",
+      "safety_requirement": "逐级测量供电电压：电源输出→端子排→传感器端；断电后再接触端子",
+      "keywords": [
+        "电源链路",
+        "供电检查",
+        "逐级测量",
+        "无响应",
+        "电源"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K046",
@@ -505,10 +1579,36 @@
       "ability_node_id": "input_no_response_fault_scope",
       "job_task": "辅助区分气路和电气控制问题",
       "content": "在教师确认安全后，可使用电磁阀手动按钮辅助判断气路和气缸本体是否能动作；该操作不能替代电气和程序排查。",
-      "common_errors": ["未确认安全就手动动作", "把手动动作正常等同于程序正常", "忽略线圈故障"],
-      "related_questions": ["Q004", "Q005"],
-      "related_tasks": ["T003"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "未确认安全就手动动作",
+        "把手动动作正常等同于程序正常",
+        "忽略线圈故障"
+      ],
+      "related_questions": [
+        "Q004",
+        "Q005"
+      ],
+      "related_tasks": [
+        "T003"
+      ],
+      "source": "PLC 实训指导书；《机电设备故障诊断与维修》李万军主编，高等教育出版社，2025，项目五 PLC故障诊断",
+      "equipment": [
+        "传感器",
+        "PLC",
+        "万用表",
+        "24V电源",
+        "端子排"
+      ],
+      "fault_symptom": "输入无响应；传感器动作但PLC不识别；多个输入同时失效",
+      "safety_requirement": "先查供电和公共端；不要盲目更换传感器；从电气层→输入层→程序层逐层排查",
+      "keywords": [
+        "无响应",
+        "输入失效",
+        "故障范围",
+        "分层排查",
+        "故障定位"
+      ],
+      "difficulty": "advanced"
     },
     {
       "id": "K047",
@@ -516,10 +1616,34 @@
       "ability_node_id": "no_response_sensor_side_check",
       "job_task": "排查执行机构不到位引发的输入异常",
       "content": "气缸或机构卡滞会导致到位传感器不动作，进而让 PLC 输入条件缺失；排查时要同时看机械位置和传感器状态。",
-      "common_errors": ["只看传感器不看机构", "强行推动机构", "未断气或断电就处理卡滞"],
-      "related_questions": ["Q004", "Q005"],
-      "related_tasks": ["T003"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只看传感器不看机构",
+        "强行推动机构",
+        "未断气或断电就处理卡滞"
+      ],
+      "related_questions": [
+        "Q004",
+        "Q005"
+      ],
+      "related_tasks": [
+        "T003"
+      ],
+      "source": "PLC 实训指导书；传感器产品手册",
+      "equipment": [
+        "传感器",
+        "万用表",
+        "传感器接线端"
+      ],
+      "fault_symptom": "传感器本身故障或接线问题导致PLC输入无响应",
+      "safety_requirement": "先确认供电正常再查传感器；更换传感器前断电",
+      "keywords": [
+        "传感器侧",
+        "传感器故障",
+        "接线",
+        "信号输出",
+        "无响应"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K048",
@@ -527,10 +1651,32 @@
       "ability_node_id": "diagnosis_record_feedback",
       "job_task": "形成可复盘的诊断证据",
       "content": "记录故障现象、检查顺序、测量结果、输入状态、判断结论和处理建议，可用于学生反馈和教师视图汇总。",
-      "common_errors": ["只写“已修好”", "没有测量数据", "不记录排查顺序"],
-      "related_questions": ["Q005"],
-      "related_tasks": ["T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只写“已修好”",
+        "没有测量数据",
+        "不记录排查顺序"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "教育部《机电一体化技术专业教学标准（高等职业教育专科）》；项目反馈闭环设计",
+      "equipment": [
+        "实训记录表",
+        "排查工具"
+      ],
+      "fault_symptom": "排故完成后无记录或记录不完整；后续无法复盘",
+      "safety_requirement": "记录应包括未确认风险和下一步安全建议",
+      "keywords": [
+        "排故记录",
+        "交付物",
+        "反馈",
+        "复盘",
+        "证据"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K049",
@@ -538,10 +1684,32 @@
       "ability_node_id": "personalized_training_task_recommendation",
       "job_task": "根据诊断结果推荐下一步实训",
       "content": "安全薄弱推荐断电与测量流程练习，NPN/PNP 薄弱推荐传感器识别与接线验证，地址薄弱推荐 I/O 映射表训练，排故薄弱推荐无响应故障案例复盘。",
-      "common_errors": ["推荐任务过大", "只推荐看资料不推荐实操", "任务不对应薄弱点"],
-      "related_questions": ["Q001", "Q002", "Q005"],
-      "related_tasks": ["T001", "T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "推荐任务过大",
+        "只推荐看资料不推荐实操",
+        "任务不对应薄弱点"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q002",
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "source": "项目图谱更新机制；教育部专业教学标准",
+      "equipment": [],
+      "fault_symptom": "训练任务与学生薄弱点不匹配；培养方案不变",
+      "safety_requirement": "推荐训练任务时应包含安全操作步骤说明",
+      "keywords": [
+        "训练推荐",
+        "个性化",
+        "薄弱点",
+        "培养方案",
+        "学习路径"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K050",
@@ -549,10 +1717,34 @@
       "ability_node_id": "diagnosis_record_feedback",
       "job_task": "把诊断结果转化为学生反馈和教师建议",
       "content": "反馈应包含已掌握能力、薄弱能力、证据、常见错误和下一步任务；教师视图应汇总共性问题而不是替代教师最终评价。",
-      "common_errors": ["只给分不解释", "没有下一步任务", "把模型建议当最终评价"],
-      "related_questions": ["Q001", "Q002", "Q005"],
-      "related_tasks": ["T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只给分不解释",
+        "没有下一步任务",
+        "把模型建议当最终评价"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q002",
+        "Q005"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "教育部《机电一体化技术专业教学标准（高等职业教育专科）》；项目反馈闭环设计",
+      "equipment": [
+        "实训记录表",
+        "排查工具"
+      ],
+      "fault_symptom": "排故完成后无记录或记录不完整；后续无法复盘",
+      "safety_requirement": "记录应包括未确认风险和下一步安全建议",
+      "keywords": [
+        "排故记录",
+        "交付物",
+        "反馈",
+        "复盘",
+        "证据"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K051",
@@ -560,10 +1752,29 @@
       "ability_node_id": "role_task_understanding",
       "job_task": "理解自动化生产线装调与运维岗位边界",
       "content": "机电一体化技术专业面向机电设备和自动化生产线安装与调试、运行与维修、改造与升级等岗位群。本 MVP 选取其中“自动化生产线输入信号排查”作为职业新人可演示的最小闭环。",
-      "common_errors": ["把岗位能力图谱扩成完整课程体系", "只讲 PLC 编程不讲现场装调与运维", "忽略安装调试和故障处理交付物"],
-      "related_questions": ["Q020"],
-      "related_tasks": ["T005"],
-      "source": "教育部《机电一体化技术专业教学标准（高等职业教育专科）》https://www.moe.gov.cn/s78/A07/zcs_ztzl/2017_zt06/17zt06_bznr/bznr_zyjyzyjxbz/gdzyjy_zk/zk_zbzzdl/zbzzdl_zdhl/202502/P020250207525314104497.pdf"
+      "common_errors": [
+        "把岗位能力图谱扩成完整课程体系",
+        "只讲 PLC 编程不讲现场装调与运维",
+        "忽略安装调试和故障处理交付物"
+      ],
+      "related_questions": [
+        "Q020"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "教育部《机电一体化技术专业教学标准（高等职业教育专科）》https://www.moe.gov.cn/s78/A07/zcs_ztzl/2017_zt06/17zt06_bznr/bznr_zyjyzyjxbz/gdzyjy_zk/zk_zbzzdl/zbzzdl_zdhl/202502/P020250207525314104497.pdf",
+      "equipment": [],
+      "fault_symptom": "不清楚岗位工作边界和排故职责范围",
+      "safety_requirement": "任何岗位操作都必须在教师确认安全后进行",
+      "keywords": [
+        "岗位",
+        "能力图谱",
+        "工作任务",
+        "排故",
+        "运维"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K052",
@@ -571,10 +1782,32 @@
       "ability_node_id": "personalized_training_task_recommendation",
       "job_task": "把 PLC 技术、自动化生产线运行维护、机电设备故障诊断转成训练任务",
       "content": "机电一体化技术核心课程常包含 PLC 技术与应用、机电设备故障诊断与维修、自动化生产线运行与维护等内容。学生端培养方案应把课程内容落到安全检查、I/O 映射、输入监控和排故记录这些岗位动作。",
-      "common_errors": ["只按章节推资源", "训练任务脱离岗位现象", "没有把课程知识转成现场证据"],
-      "related_questions": ["Q019", "Q020"],
-      "related_tasks": ["T001", "T004", "T005"],
-      "source": "福建林业职业技术学院《机电一体化技术》专业介绍 https://www.fjlzy.com/znzzx2025/info/1008/1292.htm"
+      "common_errors": [
+        "只按章节推资源",
+        "训练任务脱离岗位现象",
+        "没有把课程知识转成现场证据"
+      ],
+      "related_questions": [
+        "Q019",
+        "Q020"
+      ],
+      "related_tasks": [
+        "T001",
+        "T004",
+        "T005"
+      ],
+      "source": "福建林业职业技术学院《机电一体化技术》专业介绍 https://www.fjlzy.com/znzzx2025/info/1008/1292.htm",
+      "equipment": [],
+      "fault_symptom": "训练任务与学生薄弱点不匹配；培养方案不变",
+      "safety_requirement": "推荐训练任务时应包含安全操作步骤说明",
+      "keywords": [
+        "训练推荐",
+        "个性化",
+        "薄弱点",
+        "培养方案",
+        "学习路径"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K053",
@@ -582,10 +1815,36 @@
       "ability_node_id": "plc_input_common_terminal",
       "job_task": "判断传感器输出类型与 PLC 输入模块是否匹配",
       "content": "NPN 传感器常被描述为 sinking 输出，PNP 传感器常被描述为 sourcing 输出；接入 PLC 时要让传感器输出与输入模块的电流路径互补，公共端电位必须按模块说明确认。",
-      "common_errors": ["以为 NPN 必然接任意 PLC 输入", "把 sinking/sourcing 名称机械对应而不看公共端", "忽略模块手册"],
-      "related_questions": ["Q010", "Q011", "Q014"],
-      "related_tasks": ["T002"],
-      "source": "AutomationDirect Sinking and Sourcing Sensor Wiring Basics https://www.automationdirect.com/videos/video?videoToPlay=GnJ9LXUbpwU"
+      "common_errors": [
+        "以为 NPN 必然接任意 PLC 输入",
+        "把 sinking/sourcing 名称机械对应而不看公共端",
+        "忽略模块手册"
+      ],
+      "related_questions": [
+        "Q010",
+        "Q011",
+        "Q014"
+      ],
+      "related_tasks": [
+        "T002"
+      ],
+      "source": "AutomationDirect Sinking and Sourcing Sensor Wiring Basics https://www.automationdirect.com/videos/video?videoToPlay=GnJ9LXUbpwU",
+      "equipment": [
+        "PLC(S7-200 SMART/S7-1200)",
+        "传感器",
+        "端子排"
+      ],
+      "fault_symptom": "传感器有动作但PLC输入点无信号；COM接错导致输入回路不完整",
+      "safety_requirement": "接线前断电；确认公共端组划分和接线方式（源型/漏型）",
+      "keywords": [
+        "公共端",
+        "COM",
+        "输入回路",
+        "源型",
+        "漏型",
+        "接线"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K054",
@@ -593,10 +1852,38 @@
       "ability_node_id": "sensor_output_logic",
       "job_task": "用通俗方式解释 PNP 输出方向",
       "content": "PNP 可用“switched positive”帮助记忆：有效时输出端提供正电位给负载或 PLC 输入。现场判断仍要回到说明书、模块公共端和实测证据。",
-      "common_errors": ["只背口诀不核对图纸", "把 PNP 和源型输入混为一谈", "不测输出端电压"],
-      "related_questions": ["Q001", "Q011"],
-      "related_tasks": ["T001", "T002"],
-      "source": "Balluff Blog: An easy way to remember PNP and NPN sensor wiring https://www.balluff.com/en-de/blog/an-easy-way-to-remember-pnp-and-npn-sensor-wiring"
+      "common_errors": [
+        "只背口诀不核对图纸",
+        "把 PNP 和源型输入混为一谈",
+        "不测输出端电压"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q011"
+      ],
+      "related_tasks": [
+        "T001",
+        "T002"
+      ],
+      "source": "Balluff Blog: An easy way to remember PNP and NPN sensor wiring https://www.balluff.com/en-de/blog/an-easy-way-to-remember-pnp-and-npn-sensor-wiring",
+      "equipment": [
+        "NPN传感器",
+        "PNP传感器",
+        "万用表",
+        "PLC输入模块"
+      ],
+      "fault_symptom": "NPN导通输出低电平(0V)，PNP导通输出高电平(24V)；逻辑判断错误导致排故方向错误",
+      "safety_requirement": "用万用表验证输出电平前先确认供电正常；表笔不要短路",
+      "keywords": [
+        "NPN",
+        "PNP",
+        "输出逻辑",
+        "高电平",
+        "低电平",
+        "导通",
+        "截止"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K055",
@@ -604,10 +1891,37 @@
       "ability_node_id": "sensor_output_logic",
       "job_task": "用通俗方式解释 NPN 输出方向",
       "content": "NPN 可用“switched negative”帮助记忆：有效时输出端给负载或 PLC 输入提供到负端的通路。判断输入是否有效时，需要结合公共端和电流回路。",
-      "common_errors": ["把 NPN 当成输出 DC24V", "只看传感器动作灯", "公共端接法不匹配"],
-      "related_questions": ["Q010"],
-      "related_tasks": ["T001", "T002"],
-      "source": "Balluff Blog: An easy way to remember PNP and NPN sensor wiring https://www.balluff.com/en-de/blog/an-easy-way-to-remember-pnp-and-npn-sensor-wiring"
+      "common_errors": [
+        "把 NPN 当成输出 DC24V",
+        "只看传感器动作灯",
+        "公共端接法不匹配"
+      ],
+      "related_questions": [
+        "Q010"
+      ],
+      "related_tasks": [
+        "T001",
+        "T002"
+      ],
+      "source": "Balluff Blog: An easy way to remember PNP and NPN sensor wiring https://www.balluff.com/en-de/blog/an-easy-way-to-remember-pnp-and-npn-sensor-wiring",
+      "equipment": [
+        "NPN传感器",
+        "PNP传感器",
+        "万用表",
+        "PLC输入模块"
+      ],
+      "fault_symptom": "NPN导通输出低电平(0V)，PNP导通输出高电平(24V)；逻辑判断错误导致排故方向错误",
+      "safety_requirement": "用万用表验证输出电平前先确认供电正常；表笔不要短路",
+      "keywords": [
+        "NPN",
+        "PNP",
+        "输出逻辑",
+        "高电平",
+        "低电平",
+        "导通",
+        "截止"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K056",
@@ -615,10 +1929,34 @@
       "ability_node_id": "input_led_compare",
       "job_task": "用传感器动作灯、PLC 输入灯、在线监控三者定位故障层级",
       "content": "排查输入信号时至少记录三联状态：传感器动作灯是否变化、PLC 输入模块 LED 是否变化、软件在线监控地址是否变化。三者不一致时，优先沿信号链路定位而不是直接改程序。",
-      "common_errors": ["只看一个灯就下结论", "没有记录在线监控地址", "程序和现场证据不对应"],
-      "related_questions": ["Q008", "Q012"],
-      "related_tasks": ["T001", "T005"],
-      "source": "项目规则沉淀 + RealPars PLC input troubleshooting concepts https://www.realpars.com/blog/sinking-and-sourcing-plc-inputs"
+      "common_errors": [
+        "只看一个灯就下结论",
+        "没有记录在线监控地址",
+        "程序和现场证据不对应"
+      ],
+      "related_questions": [
+        "Q008",
+        "Q012"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "source": "项目规则沉淀 + RealPars PLC input troubleshooting concepts https://www.realpars.com/blog/sinking-and-sourcing-plc-inputs",
+      "equipment": [
+        "传感器",
+        "PLC输入模块"
+      ],
+      "fault_symptom": "无法区分故障在传感器侧、接线侧还是PLC侧",
+      "safety_requirement": "观察指示灯时保持安全距离；不要在设备运行时伸手探入运动区域",
+      "keywords": [
+        "三联状态",
+        "传感器灯",
+        "PLC灯",
+        "交叉检查",
+        "故障定位"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K057",
@@ -626,10 +1964,34 @@
       "ability_node_id": "plc_io_address_mapping",
       "job_task": "从现场接线追踪到 PLC 程序变量",
       "content": "I/O 地址映射不仅要记录输入地址，还要记录端子位置、模块组别、工程注释和程序变量。输入 LED 亮但监控地址不变时，优先确认监控对象是否为实际接线点。",
-      "common_errors": ["端子号当成 PLC 地址", "模块起始地址看错", "工程注释过期仍照用"],
-      "related_questions": ["Q012", "Q016"],
-      "related_tasks": ["T004"],
-      "source": "江海职业技术学院《2025级机电一体化技术专业人才培养方案》https://www.jhu.cn/A01JDQCXY/uploadfile/2026011416530663784.pdf"
+      "common_errors": [
+        "端子号当成 PLC 地址",
+        "模块起始地址看错",
+        "工程注释过期仍照用"
+      ],
+      "related_questions": [
+        "Q012",
+        "Q016"
+      ],
+      "related_tasks": [
+        "T004"
+      ],
+      "source": "江海职业技术学院《2025级机电一体化技术专业人才培养方案》https://www.jhu.cn/A01JDQCXY/uploadfile/2026011416530663784.pdf",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器",
+        "电气图纸"
+      ],
+      "fault_symptom": "程序中的地址与实际硬件地址不一致；输入信号无法被程序读取",
+      "safety_requirement": "核对地址时对照电气图纸和PLC系统块配置；改地址后重新下载程序需确认安全",
+      "keywords": [
+        "I/O地址",
+        "映射",
+        "通道",
+        "地址对应",
+        "系统块"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K058",
@@ -637,10 +1999,35 @@
       "ability_node_id": "plc_input_monitoring",
       "job_task": "在生产线运行维护场景中监控输入信号并识别一般故障",
       "content": "自动化生产线运行维护要求能看懂控制系统状态，识别一般性故障并按证据处理。对职业新人而言，输入信号监控是连接现场元件、PLC 和程序逻辑的入门能力。",
-      "common_errors": ["只会做离线题不会看现场状态", "不了解运行维护的证据记录", "把一般故障都交给教师判断"],
-      "related_questions": ["Q012", "Q020"],
-      "related_tasks": ["T001", "T005"],
-      "source": "教育部《机电一体化技术专业教学标准（高等职业教育专科）》https://www.moe.gov.cn/s78/A07/zcs_ztzl/2017_zt06/17zt06_bznr/bznr_zyjyzyjxbz/gdzyjy_zk/zk_zbzzdl/zbzzdl_zdhl/202502/P020250207525314104497.pdf"
+      "common_errors": [
+        "只会做离线题不会看现场状态",
+        "不了解运行维护的证据记录",
+        "把一般故障都交给教师判断"
+      ],
+      "related_questions": [
+        "Q012",
+        "Q020"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "source": "教育部《机电一体化技术专业教学标准（高等职业教育专科）》https://www.moe.gov.cn/s78/A07/zcs_ztzl/2017_zt06/17zt06_bznr/bznr_zyjyzyjxbz/gdzyjy_zk/zk_zbzzdl/zbzzdl_zdhl/202502/P020250207525314104497.pdf",
+      "equipment": [
+        "PLC(S7-200 SMART/S7-1200)",
+        "编程电脑",
+        "编程电缆"
+      ],
+      "fault_symptom": "程序运行状态与预期不符；输入信号状态不确定",
+      "safety_requirement": "在线监控不影响设备安全，但强制输出功能需确认设备安全状态后再操作",
+      "keywords": [
+        "在线监控",
+        "状态表",
+        "变量表",
+        "输入点",
+        "强制"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K059",
@@ -648,10 +2035,37 @@
       "ability_node_id": "electrical_safety_check",
       "job_task": "通电、接线和在线监控前确认机械电气安全边界",
       "content": "机械电气安全相关标准强调电气设备、控制电路、保护和验证等要求。学生实训中应把断电、急停、气源、运动区域和教师确认作为接线/通电调试前置步骤。",
-      "common_errors": ["把停止按钮当断电隔离", "忽视运动机构夹点", "未确认设备可安全通电"],
-      "related_questions": ["Q006", "Q009"],
-      "related_tasks": ["T001"],
-      "source": "全国标准信息公共服务平台 GB/T 5226.1-2019 https://std.samr.gov.cn/gb/search/gbDetailed?id=8AA1F5D36E55A8DBE05397BE0A0AB19B"
+      "common_errors": [
+        "把停止按钮当断电隔离",
+        "忽视运动机构夹点",
+        "未确认设备可安全通电"
+      ],
+      "related_questions": [
+        "Q006",
+        "Q009"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "全国标准信息公共服务平台 GB/T 5226.1-2019 机械电气安全通用技术条件",
+      "equipment": [
+        "PLC控制柜",
+        "急停按钮",
+        "电源开关",
+        "气源阀门"
+      ],
+      "fault_symptom": "设备带电操作风险；急停未复位或误启动",
+      "safety_requirement": "接线拆线前必须切断控制电源；急停复位后需确认输出状态和气缸位置才能启动；通电前由教师检查现场安全",
+      "keywords": [
+        "安全",
+        "断电",
+        "急停",
+        "电源",
+        "气源",
+        "确认",
+        "安全操作"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K060",
@@ -659,10 +2073,37 @@
       "ability_node_id": "electrical_safety_check",
       "job_task": "在线监控或复位后防止设备误动作",
       "content": "急停复位只是解除急停状态，不代表设备已经满足安全启动条件。调试前还要确认输出状态、气缸位置、程序模式和同组人员站位。",
-      "common_errors": ["急停复位后直接启动", "未确认输出保持状态", "未通知同组人员"],
-      "related_questions": ["Q006", "Q009"],
-      "related_tasks": ["T001"],
-      "source": "项目安全规则 + GB/T 5226.1-2019 机械电气安全通用技术条件"
+      "common_errors": [
+        "急停复位后直接启动",
+        "未确认输出保持状态",
+        "未通知同组人员"
+      ],
+      "related_questions": [
+        "Q006",
+        "Q009"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "source": "项目安全规则；GB/T 5226.1-2019 机械电气安全通用技术条件",
+      "equipment": [
+        "PLC控制柜",
+        "急停按钮",
+        "电源开关",
+        "气源阀门"
+      ],
+      "fault_symptom": "设备带电操作风险；急停未复位或误启动",
+      "safety_requirement": "接线拆线前必须切断控制电源；急停复位后需确认输出状态和气缸位置才能启动；通电前由教师检查现场安全",
+      "keywords": [
+        "安全",
+        "断电",
+        "急停",
+        "电源",
+        "气源",
+        "确认",
+        "安全操作"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K061",
@@ -670,10 +2111,35 @@
       "ability_node_id": "program_variable_lookup",
       "job_task": "区分现场输入正常和程序条件未成立",
       "content": "PLC 输入 LED 亮说明输入模块可能已经收到信号，但程序不动作还可能由地址监控错误、变量引用错误、模式互锁、报警条件或输出侧故障导致。",
-      "common_errors": ["输入灯亮就认为程序必定动作", "只查传感器不查变量", "忽略模式和互锁"],
-      "related_questions": ["Q012", "Q015"],
-      "related_tasks": ["T004", "T005"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充 + 项目规则沉淀"
+      "common_errors": [
+        "输入灯亮就认为程序必定动作",
+        "只查传感器不查变量",
+        "忽略模式和互锁"
+      ],
+      "related_questions": [
+        "Q012",
+        "Q015"
+      ],
+      "related_tasks": [
+        "T004",
+        "T005"
+      ],
+      "source": "PLC 实训指导书；《自动化生产线安装与调试》吕景泉主编，中国铁道出版社，2017，第5章 PLC程序调试与监控",
+      "equipment": [
+        "PLC",
+        "编程电脑",
+        "编程软件(TIA Portal/STEP 7)"
+      ],
+      "fault_symptom": "输入灯亮但程序变量不变化；程序中找不到对应输入点",
+      "safety_requirement": "查找变量时参考程序符号表和交叉引用；不要随意修改变量映射",
+      "keywords": [
+        "变量",
+        "符号表",
+        "交叉引用",
+        "地址",
+        "程序查找"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K062",
@@ -681,10 +2147,37 @@
       "ability_node_id": "sensor_wiring_judgement",
       "job_task": "传感器动作灯亮但 PLC 输入灯不亮时定位硬件链路",
       "content": "传感器动作灯亮而 PLC 输入 LED 不亮时，优先检查输出线、端子压接、输入点、公共端组、NPN/PNP 匹配和输入模块供电，再考虑程序变量。",
-      "common_errors": ["一开始改程序", "只换传感器不查公共端", "忽略端子松动"],
-      "related_questions": ["Q008", "Q010", "Q011"],
-      "related_tasks": ["T001", "T002"],
-      "source": "AutomationDirect Sinking and Sourcing Sensor Wiring Basics https://www.automationdirect.com/videos/video?videoToPlay=GnJ9LXUbpwU"
+      "common_errors": [
+        "一开始改程序",
+        "只换传感器不查公共端",
+        "忽略端子松动"
+      ],
+      "related_questions": [
+        "Q008",
+        "Q010",
+        "Q011"
+      ],
+      "related_tasks": [
+        "T001",
+        "T002"
+      ],
+      "source": "AutomationDirect Sinking and Sourcing Sensor Wiring Basics；PLC 实训指导书",
+      "equipment": [
+        "传感器",
+        "PLC输入模块",
+        "万用表",
+        "端子起"
+      ],
+      "fault_symptom": "传感器动作灯亮但PLC输入灯不亮；输入信号异常",
+      "safety_requirement": "先断电检查接线和端子压接；通电测量时注意表笔不要短接",
+      "keywords": [
+        "输入灯",
+        "动作灯",
+        "接线判断",
+        "信号链路",
+        "排查"
+      ],
+      "difficulty": "medium"
     },
     {
       "id": "K063",
@@ -692,10 +2185,32 @@
       "ability_node_id": "diagnosis_record_feedback",
       "job_task": "形成师傅/教师可复盘的排故记录",
       "content": "职业新人完成一次排故后，应交付故障现象、三联状态、检查顺序、测量/观察证据、结论、未确认风险和下一步训练建议。",
-      "common_errors": ["只写修好了", "不记录测量点和状态", "没有未确认风险"],
-      "related_questions": ["Q019"],
-      "related_tasks": ["T005"],
-      "source": "教育部专业教学标准岗位能力要求 + 项目反馈闭环设计"
+      "common_errors": [
+        "只写修好了",
+        "不记录测量点和状态",
+        "没有未确认风险"
+      ],
+      "related_questions": [
+        "Q019"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "教育部《机电一体化技术专业教学标准（高等职业教育专科）》；项目反馈闭环设计",
+      "equipment": [
+        "实训记录表",
+        "排查工具"
+      ],
+      "fault_symptom": "排故完成后无记录或记录不完整；后续无法复盘",
+      "safety_requirement": "记录应包括未确认风险和下一步安全建议",
+      "keywords": [
+        "排故记录",
+        "交付物",
+        "反馈",
+        "复盘",
+        "证据"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K064",
@@ -703,10 +2218,29 @@
       "ability_node_id": "personalized_training_task_recommendation",
       "job_task": "把企业/行业/教师材料转成可解释岗位能力图谱",
       "content": "岗位能力图谱的节点权重应来自企业岗位描述、行业资料、课程标准和教师确认材料。未确认材料只能作为待确认建议，不能直接覆盖正式图谱。",
-      "common_errors": ["让 LLM 直接改岗位图谱", "没有采集时间和来源", "权重变化没有证据"],
-      "related_questions": ["Q020"],
-      "related_tasks": ["T005"],
-      "source": "项目图谱更新机制 + 教育部专业教学标准"
+      "common_errors": [
+        "让 LLM 直接改岗位图谱",
+        "没有采集时间和来源",
+        "权重变化没有证据"
+      ],
+      "related_questions": [
+        "Q020"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "项目图谱更新机制；教育部《机电一体化技术专业教学标准（高等职业教育专科）》",
+      "equipment": [],
+      "fault_symptom": "训练任务与学生薄弱点不匹配；培养方案不变",
+      "safety_requirement": "推荐训练任务时应包含安全操作步骤说明",
+      "keywords": [
+        "训练推荐",
+        "个性化",
+        "薄弱点",
+        "培养方案",
+        "学习路径"
+      ],
+      "difficulty": "basic"
     },
     {
       "id": "K065",
@@ -714,10 +2248,36 @@
       "ability_node_id": "input_no_response_fault_scope",
       "job_task": "按电气输入、程序输出、电磁阀和气路机械定位气缸不动作",
       "content": "气缸不动作应先确认输入条件，再看程序输出和 PLC 输出点，再查电磁阀线圈/手动按钮，最后查气源压力、节流阀和机械卡滞。",
-      "common_errors": ["只调气压", "只改程序", "未确认电磁阀是否得电"],
-      "related_questions": ["Q004", "Q018"],
-      "related_tasks": ["T003"],
-      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+      "common_errors": [
+        "只调气压",
+        "只改程序",
+        "未确认电磁阀是否得电"
+      ],
+      "related_questions": [
+        "Q004",
+        "Q018"
+      ],
+      "related_tasks": [
+        "T003"
+      ],
+      "source": "《自动化生产线的安装与调试》课程标准 晏华成，模块4「自动化生产线维护与故障排除」(8学时)；PLC 实训指导书",
+      "equipment": [
+        "传感器",
+        "PLC",
+        "万用表",
+        "24V电源",
+        "端子排"
+      ],
+      "fault_symptom": "输入无响应；传感器动作但PLC不识别；多个输入同时失效",
+      "safety_requirement": "先查供电和公共端；不要盲目更换传感器；从电气层→输入层→程序层逐层排查",
+      "keywords": [
+        "无响应",
+        "输入失效",
+        "故障范围",
+        "分层排查",
+        "故障定位"
+      ],
+      "difficulty": "advanced"
     },
     {
       "id": "K066",
@@ -725,10 +2285,1721 @@
       "ability_node_id": "role_task_understanding",
       "job_task": "从自由提问到能力图谱、训练任务和反馈复盘",
       "content": "学生端不应只让学生做题，而应允许先问现场问题，再给直接回答、证据追问、能力节点高亮、知识缺口、训练任务、讲题和反馈，持续更新个人能力图谱。",
-      "common_errors": ["把 AI 变成题库页面", "回答后不沉淀能力证据", "培养方案不随学习事件更新"],
-      "related_questions": ["Q019", "Q020"],
-      "related_tasks": ["T005"],
-      "source": "项目产品方案 + Inno Agent learner context pack 思路"
+      "common_errors": [
+        "把 AI 变成题库页面",
+        "回答后不沉淀能力证据",
+        "培养方案不随学习事件更新"
+      ],
+      "related_questions": [
+        "Q019",
+        "Q020"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "source": "项目产品方案设计；Inno Agent learner context pack 设计思路",
+      "equipment": [],
+      "fault_symptom": "不清楚岗位工作边界和排故职责范围",
+      "safety_requirement": "任何岗位操作都必须在教师确认安全后进行",
+      "keywords": [
+        "岗位",
+        "能力图谱",
+        "工作任务",
+        "排故",
+        "运维"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "K067",
+      "topic": "自动化生产线装调与运维岗位的工作内容包括安装、接线、调试、点检、维护、故障排查。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "生成自动化生产线装调与运维岗位能力图谱",
+      "content": "自动化生产线装调与运维岗位的工作内容包括安装、接线、调试、点检、维护、故障排查。",
+      "common_errors": [
+        "只知道课程名称，不知道课程对应岗位能力。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "机电一体化技术专业教学标准；校内自动化生产线实训任务书",
+      "equipment": [],
+      "fault_symptom": "自动化生产线装调与运维岗位通常包含哪些工作任务？",
+      "safety_requirement": "岗位认知类内容不涉及直接操作，但后续实训必须遵守设备安全规范。",
+      "keywords": [
+        "岗位",
+        "能力图谱",
+        "自动化生产线",
+        "运维",
+        "装调"
+      ],
+      "difficulty": "basic",
+      "_imported_from": "MECH-JOB-001"
+    },
+    {
+      "id": "K068",
+      "topic": "岗位能力可拆分为电气安全、图纸识读、传感器检测、PLC 控制、气动执行、电机驱动、设备点检、故障排查。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "根据学生问题生成相关能力链",
+      "content": "岗位能力可拆分为电气安全、图纸识读、传感器检测、PLC 控制、气动执行、电机驱动、设备点检、故障排查。",
+      "common_errors": [
+        "把所有问题都归结为 PLC，不会区分接线、传感器、程序和执行机构问题。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术实训指导书；传感器检测实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器",
+        "电机"
+      ],
+      "fault_symptom": "“传感器灯亮但 PLC 输入点无响应”主要涉及哪些能力模块？",
+      "safety_requirement": "涉及接线和通电检查时必须先断电确认。",
+      "keywords": [
+        "能力模块",
+        "传感器",
+        "PLC",
+        "I/O",
+        "故障排查"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-JOB-002"
+    },
+    {
+      "id": "K069",
+      "topic": "机电一体化课程与岗位能力存在映射：电工电子对应电气安全，传感器课程对应信号采集，PLC 课程对应控制逻辑，气动课程对应执行机构。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "课程能力覆盖分析",
+      "content": "机电一体化课程与岗位能力存在映射：电工电子对应电气安全，传感器课程对应信号采集，PLC 课程对应控制逻辑，气动课程对应执行机构。",
+      "common_errors": [
+        "学生按课程章节学习，但不知道为什么要学。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "机电一体化专业教学标准；PLC 课程标准",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器"
+      ],
+      "fault_symptom": "PLC 应用技术课程主要支撑哪些岗位能力？",
+      "safety_requirement": "无直接操作风险。",
+      "keywords": [
+        "课程映射",
+        "岗位能力",
+        "PLC",
+        "课程覆盖"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-JOB-003"
+    },
+    {
+      "id": "K070",
+      "topic": "学生输入的学习目标应被转换为能力模块和诊断路径。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "智能体意图识别测试",
+      "content": "学生输入的学习目标应被转换为能力模块和诊断路径。",
+      "common_errors": [
+        "用户说“这个不会”，系统无法判断问题类型。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "智能体开发流程；项目说明文档",
+      "equipment": [],
+      "fault_symptom": "学生说“PLC 输入没反应”，系统应追问哪些信息？",
+      "safety_requirement": "追问不得诱导学生带电操作。",
+      "keywords": [
+        "意图识别",
+        "追问",
+        "学生输入",
+        "学习目标"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-JOB-004"
+    },
+    {
+      "id": "K071",
+      "topic": "能力评价应覆盖知识理解、操作步骤、安全规范、故障定位和结果解释。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "生成实训评价指标",
+      "content": "能力评价应覆盖知识理解、操作步骤、安全规范、故障定位和结果解释。",
+      "common_errors": [
+        "只看最终结果，不评价过程和安全。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "校内自动化生产线综合实训评分表；PLC 实训指导书",
+      "equipment": [],
+      "fault_symptom": "评价“PLC 输入信号排查”能力应看哪些指标？",
+      "safety_requirement": "评价中安全项应作为否决或高权重项。",
+      "keywords": [
+        "评价指标",
+        "评分表",
+        "过程评价",
+        "安全"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-JOB-005"
+    },
+    {
+      "id": "K072",
+      "topic": "机电实训接线、拆线、检查线路前应先断电，并确认电源指示和设备状态。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "传感器接线前安全检查",
+      "content": "机电实训接线、拆线、检查线路前应先断电，并确认电源指示和设备状态。",
+      "common_errors": [
+        "未断电直接插拔传感器线，存在短路和触电风险。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "电工安全操作规程；校内实训室安全规范",
+      "equipment": [
+        "传感器",
+        "开关电源"
+      ],
+      "fault_symptom": "检查传感器接线前第一步应该做什么？",
+      "safety_requirement": "禁止带电插拔线路；教师确认后再上电。",
+      "keywords": [
+        "断电",
+        "安全",
+        "接线",
+        "验电"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SAFE-001"
+    },
+    {
+      "id": "K073",
+      "topic": "急停按钮用于紧急切断设备危险运动，安全回路异常会导致设备无法启动。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "自动化生产线上电前点检",
+      "content": "急停按钮用于紧急切断设备危险运动，安全回路异常会导致设备无法启动。",
+      "common_errors": [
+        "急停未复位却误以为 PLC 程序错误。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "实训室安全规范；自动化生产线实训指导书",
+      "equipment": [],
+      "fault_symptom": "设备无法启动时为什么要先检查急停按钮？",
+      "safety_requirement": "检查急停时不得绕过安全保护装置。",
+      "keywords": [
+        "急停",
+        "安全回路",
+        "上电",
+        "点检"
+      ],
+      "difficulty": "basic",
+      "_imported_from": "MECH-SAFE-002"
+    },
+    {
+      "id": "K074",
+      "topic": "万用表可用于测量电压、电阻、通断等，错误档位可能造成仪表损坏或安全风险。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "传感器电源与线路通断检查",
+      "content": "万用表可用于测量电压、电阻、通断等，错误档位可能造成仪表损坏或安全风险。",
+      "common_errors": [
+        "电压档、电阻档混用",
+        "带电测电阻。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "电工电子技术实训指导书",
+      "equipment": [
+        "万用表",
+        "传感器",
+        "开关电源"
+      ],
+      "fault_symptom": "判断线路通断时万用表应使用什么档位？是否允许带电测量？",
+      "safety_requirement": "测通断前断电；测电压时注意量程和表笔位置。",
+      "keywords": [
+        "万用表",
+        "通断",
+        "电压",
+        "电阻",
+        "安全"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SAFE-003"
+    },
+    {
+      "id": "K075",
+      "topic": "接线图用于表示端子、导线编号、器件连接关系，是排查接线错误的重要依据。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "根据接线图排查 PLC 输入点无响应",
+      "content": "接线图用于表示端子、导线编号、器件连接关系，是排查接线错误的重要依据。",
+      "common_errors": [
+        "只看实物线色，不看端子编号和 I/O 地址。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "电气识图课程标准；PLC 接线实训任务书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "电气图纸",
+        "端子排"
+      ],
+      "fault_symptom": "接线图中应重点查找哪些信息来判断传感器接入是否正确？",
+      "safety_requirement": "查图后实操仍需断电确认。",
+      "keywords": [
+        "接线图",
+        "端子",
+        "信号线",
+        "公共端",
+        "I/O"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SAFE-004"
+    },
+    {
+      "id": "K076",
+      "topic": "常开触点未动作时断开、动作时闭合；常闭触点未动作时闭合、动作时断开。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "PLC 输入逻辑判断",
+      "content": "常开触点未动作时断开、动作时闭合；常闭触点未动作时闭合、动作时断开。",
+      "common_errors": [
+        "把常闭触点逻辑理解反，导致程序误判。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "电工电子技术；PLC 应用技术教材/实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)"
+      ],
+      "fault_symptom": "常闭触点在未动作时是什么状态？",
+      "safety_requirement": "无直接操作风险；接线前仍需断电。",
+      "keywords": [
+        "常开",
+        "常闭",
+        "触点",
+        "PLC逻辑"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SAFE-005"
+    },
+    {
+      "id": "K077",
+      "topic": "直流传感器通常需要正确连接 DC24V 正负极，极性错误可能导致传感器不工作甚至损坏。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "传感器供电检查",
+      "content": "直流传感器通常需要正确连接 DC24V 正负极，极性错误可能导致传感器不工作甚至损坏。",
+      "common_errors": [
+        "把 24V 和 0V 接反",
+        "未检查电源是否存在。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "传感器检测技术实训指导书；电气安全规范",
+      "equipment": [
+        "传感器"
+      ],
+      "fault_symptom": "传感器指示灯不亮，首先应检查哪些供电信息？",
+      "safety_requirement": "测量电压时选择合适量程，避免短接。",
+      "keywords": [
+        "DC24V",
+        "0V",
+        "电源",
+        "极性",
+        "传感器"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SAFE-006"
+    },
+    {
+      "id": "K078",
+      "topic": "线号和端子编号用于定位接线位置，是排查线路错接、漏接的重要依据。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "自动化生产线线路核对",
+      "content": "线号和端子编号用于定位接线位置，是排查线路错接、漏接的重要依据。",
+      "common_errors": [
+        "只凭线颜色判断连接，忽略线号。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "电气装调实训指导书",
+      "equipment": [
+        "端子排"
+      ],
+      "fault_symptom": "为什么故障排查时不能只看线颜色？",
+      "safety_requirement": "查线前断电，避免拉扯线缆导致松脱。",
+      "keywords": [
+        "端子",
+        "线号",
+        "接线",
+        "排故"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-SAFE-007"
+    },
+    {
+      "id": "K079",
+      "topic": "上电前应检查接线、急停、气源、运动范围、工具遗留和人员位置。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "自动化生产线开机点检",
+      "content": "上电前应检查接线、急停、气源、运动范围、工具遗留和人员位置。",
+      "common_errors": [
+        "接线未确认就上电，设备突然动作。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "校内自动化生产线实训指导书；实训室安全规范",
+      "equipment": [
+        "气源"
+      ],
+      "fault_symptom": "自动化生产线上电前至少检查哪几项？",
+      "safety_requirement": "未完成点检不得上电；运动区域不得站人。",
+      "keywords": [
+        "上电前检查",
+        "点检",
+        "安全",
+        "自动化生产线"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SAFE-008"
+    },
+    {
+      "id": "K080",
+      "topic": "NPN/PNP 是常见直流三线传感器输出类型，影响 PLC 输入公共端接法和信号有效电平。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "传感器类型识别",
+      "content": "NPN/PNP 是常见直流三线传感器输出类型，影响 PLC 输入公共端接法和信号有效电平。",
+      "common_errors": [
+        "看到三线传感器不会判断输出类型。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "传感器检测技术实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器"
+      ],
+      "fault_symptom": "NPN 与 PNP 传感器的区别主要体现在哪里？",
+      "safety_requirement": "识别类型不涉及带电操作；接线前必须断电。",
+      "keywords": [
+        "NPN",
+        "PNP",
+        "传感器",
+        "输出类型"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SEN-001"
+    },
+    {
+      "id": "K081",
+      "topic": "三线制传感器通常包含电源正、电源负和信号输出线。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "三线制传感器接入 PLC",
+      "content": "三线制传感器通常包含电源正、电源负和信号输出线。",
+      "common_errors": [
+        "把信号线接到电源端或公共端。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "传感器检测技术实训指导书；具体传感器说明书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器",
+        "开关电源"
+      ],
+      "fault_symptom": "常见三线制传感器的三根线通常分别是什么功能？",
+      "safety_requirement": "线色只作参考，必须核对说明书；接线前断电。",
+      "keywords": [
+        "三线制",
+        "棕蓝黑",
+        "信号线",
+        "传感器接线"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SEN-002"
+    },
+    {
+      "id": "K082",
+      "topic": "传感器输出类型需要与 PLC 输入模块公共端接法匹配，否则可能出现传感器动作但输入点无响应。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "PLC 输入点无响应排查",
+      "content": "传感器输出类型需要与 PLC 输入模块公共端接法匹配，否则可能出现传感器动作但输入点无响应。",
+      "common_errors": [
+        "只检查传感器灯，不检查 PLC 公共端。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术实训指导书；PLC 输入模块说明书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器"
+      ],
+      "fault_symptom": "传感器指示灯亮但 PLC 输入点无响应，为什么要检查公共端？",
+      "safety_requirement": "接线修改前断电；不同 PLC 型号以手册为准。",
+      "keywords": [
+        "公共端",
+        "PLC输入",
+        "NPN",
+        "PNP",
+        "无响应"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SEN-003"
+    },
+    {
+      "id": "K083",
+      "topic": "传感器指示灯只能说明传感器检测到目标或输出状态变化，不能单独证明 PLC 已接收到信号。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "传感器动作但 PLC 无输入",
+      "content": "传感器指示灯只能说明传感器检测到目标或输出状态变化，不能单独证明 PLC 已接收到信号。",
+      "common_errors": [
+        "误以为传感器灯亮就代表 PLC 程序一定收到信号。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "传感器检测技术；PLC 应用技术实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器"
+      ],
+      "fault_symptom": "传感器灯亮是否一定表示 PLC 输入点有效？为什么？",
+      "safety_requirement": "观察设备状态时注意运动机构，避免靠近危险区域。",
+      "keywords": [
+        "指示灯",
+        "PLC监控",
+        "输入点",
+        "传感器状态"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SEN-004"
+    },
+    {
+      "id": "K084",
+      "topic": "接近开关用于检测金属或特定目标是否到位，常用于气缸到位、工件检测等场景。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "气缸到位信号检测",
+      "content": "接近开关用于检测金属或特定目标是否到位，常用于气缸到位、工件检测等场景。",
+      "common_errors": [
+        "传感器距离过远导致信号不稳定。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "传感器检测技术实训指导书",
+      "equipment": [
+        "气缸"
+      ],
+      "fault_symptom": "接近开关检测不稳定可能与哪些因素有关？",
+      "safety_requirement": "调整位置前确保机构停止；避免夹伤。",
+      "keywords": [
+        "接近开关",
+        "检测距离",
+        "到位信号"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-SEN-005"
+    },
+    {
+      "id": "K085",
+      "topic": "光电传感器用于检测物体有无、颜色/距离等，受安装角度、反光面、遮挡和环境光影响。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "工件有无检测",
+      "content": "光电传感器用于检测物体有无、颜色/距离等，受安装角度、反光面、遮挡和环境光影响。",
+      "common_errors": [
+        "未考虑反光和遮挡，导致误动作。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "传感器检测技术实训指导书",
+      "equipment": [
+        "传感器"
+      ],
+      "fault_symptom": "光电传感器误检测可能有哪些原因？",
+      "safety_requirement": "调试时避免进入设备运动范围。",
+      "keywords": [
+        "光电传感器",
+        "误检",
+        "漏检",
+        "灵敏度"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-SEN-006"
+    },
+    {
+      "id": "K086",
+      "topic": "限位开关用于检测机构位置极限或到位状态，是设备联锁和保护的重要输入。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "机构到位检测与保护",
+      "content": "限位开关用于检测机构位置极限或到位状态，是设备联锁和保护的重要输入。",
+      "common_errors": [
+        "限位触点接反导致动作逻辑相反。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "电气控制实训指导书；传感器实训指导书",
+      "equipment": [
+        "限位开关"
+      ],
+      "fault_symptom": "限位开关在自动化设备中有什么作用？",
+      "safety_requirement": "测试限位时不得让机构超限运动。",
+      "keywords": [
+        "限位开关",
+        "到位",
+        "联锁",
+        "常开常闭"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-SEN-007"
+    },
+    {
+      "id": "K087",
+      "topic": "传感器信号排查应沿着“检测目标—传感器—接线—PLC 输入点—程序逻辑—执行输出”分析。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "输入信号无响应故障排查",
+      "content": "传感器信号排查应沿着“检测目标—传感器—接线—PLC 输入点—程序逻辑—执行输出”分析。",
+      "common_errors": [
+        "无顺序地反复改线和改程序。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "自动化生产线综合实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器"
+      ],
+      "fault_symptom": "排查 PLC 输入信号无响应时，推荐的检查顺序是什么？",
+      "safety_requirement": "断电检查线路；上电观察时保持安全距离。",
+      "keywords": [
+        "信号流向",
+        "故障排查",
+        "传感器",
+        "PLC输入"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SEN-008"
+    },
+    {
+      "id": "K088",
+      "topic": "传感器相关故障可分为供电故障、接线故障、安装位置故障、型号不匹配、传感器本体损坏和 PLC 侧问题。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "传感器异常分类诊断",
+      "content": "传感器相关故障可分为供电故障、接线故障、安装位置故障、型号不匹配、传感器本体损坏和 PLC 侧问题。",
+      "common_errors": [
+        "所有问题都归咎为传感器坏了。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "传感器检测技术实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器"
+      ],
+      "fault_symptom": "传感器无信号时可能有哪些类别原因？",
+      "safety_requirement": "排查前先断电；不随意短接信号端。",
+      "keywords": [
+        "传感器故障",
+        "分类",
+        "供电",
+        "接线",
+        "安装"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-SEN-009"
+    },
+    {
+      "id": "K089",
+      "topic": "信号抖动、干扰或接触不良会导致 PLC 输入状态不稳定。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "传感器输入信号不稳定排查",
+      "content": "信号抖动、干扰或接触不良会导致 PLC 输入状态不稳定。",
+      "common_errors": [
+        "把抖动误认为程序错误。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术实训指导书；传感器实训案例",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器"
+      ],
+      "fault_symptom": "PLC 输入点时有时无可能有哪些原因？",
+      "safety_requirement": "检查接线前断电，避免误触运动部件。",
+      "keywords": [
+        "输入抖动",
+        "干扰",
+        "信号不稳定",
+        "接触不良"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-SEN-010"
+    },
+    {
+      "id": "K090",
+      "topic": "PLC 输入输出地址用于把外部端子与程序变量对应起来。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "PLC 输入点地址核对",
+      "content": "PLC 输入输出地址用于把外部端子与程序变量对应起来。",
+      "common_errors": [
+        "程序使用 X1，但实际传感器接在 X0。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术实训指导书；自动化生产线任务书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "端子排"
+      ],
+      "fault_symptom": "为什么 PLC 输入排查必须核对 I/O 地址表？",
+      "safety_requirement": "核对和改线前断电。",
+      "keywords": [
+        "I/O地址",
+        "PLC输入",
+        "地址表",
+        "X0",
+        "X1"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-PLC-001"
+    },
+    {
+      "id": "K091",
+      "topic": "PLC 监控模式可观察输入点状态变化，是判断外部信号是否进入 PLC 的关键方法。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "观察传感器动作时输入点是否变化",
+      "content": "PLC 监控模式可观察输入点状态变化，是判断外部信号是否进入 PLC 的关键方法。",
+      "common_errors": [
+        "只看程序运行结果，不看输入监控。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器",
+        "编程电脑"
+      ],
+      "fault_symptom": "传感器动作后如何判断 PLC 是否收到输入信号？",
+      "safety_requirement": "上电监控时不得触碰裸露端子。",
+      "keywords": [
+        "PLC监控",
+        "输入点",
+        "状态观察",
+        "调试"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-PLC-002"
+    },
+    {
+      "id": "K092",
+      "topic": "PLC 输出点控制继电器、电磁阀、指示灯、电机驱动等执行元件。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "电磁阀无动作排查",
+      "content": "PLC 输出点控制继电器、电磁阀、指示灯、电机驱动等执行元件。",
+      "common_errors": [
+        "输出点未亮却先拆执行机构。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术；气动实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "电机",
+        "电磁阀",
+        "继电器"
+      ],
+      "fault_symptom": "气缸不动作时为什么要检查 PLC 输出点？",
+      "safety_requirement": "检查电磁阀前关闭气源或确保机构安全。",
+      "keywords": [
+        "PLC输出",
+        "电磁阀",
+        "气缸",
+        "执行机构"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PLC-003"
+    },
+    {
+      "id": "K093",
+      "topic": "启停控制通常包含启动、停止、自锁、互锁等基本逻辑。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "电机或生产线启停控制实训",
+      "content": "启停控制通常包含启动、停止、自锁、互锁等基本逻辑。",
+      "common_errors": [
+        "自锁触点遗漏导致松开按钮后设备停止。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术教材/实训指导书",
+      "equipment": [
+        "电机"
+      ],
+      "fault_symptom": "自锁回路的作用是什么？",
+      "safety_requirement": "调试启停时确认设备运动范围安全。",
+      "keywords": [
+        "启停",
+        "自锁",
+        "停止",
+        "PLC程序"
+      ],
+      "difficulty": "basic",
+      "_imported_from": "MECH-PLC-004"
+    },
+    {
+      "id": "K094",
+      "topic": "互锁用于防止两个相互冲突的动作同时发生，如气缸伸出和缩回、电机正反转。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "气缸伸缩互锁或电机正反转控制",
+      "content": "互锁用于防止两个相互冲突的动作同时发生，如气缸伸出和缩回、电机正反转。",
+      "common_errors": [
+        "正反转输出同时有效，存在设备风险。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术；气动与液压实训指导书",
+      "equipment": [
+        "气缸",
+        "电机"
+      ],
+      "fault_symptom": "为什么气缸伸出和缩回应加入互锁？",
+      "safety_requirement": "调试前先低速/单步，确认气路安全。",
+      "keywords": [
+        "互锁",
+        "气缸",
+        "正反转",
+        "安全控制"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PLC-005"
+    },
+    {
+      "id": "K095",
+      "topic": "PLC 定时器用于延时启动、延时停止、节拍控制等。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "延时控制实训",
+      "content": "PLC 定时器用于延时启动、延时停止、节拍控制等。",
+      "common_errors": [
+        "定时器条件复位不清楚，导致动作不稳定。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)"
+      ],
+      "fault_symptom": "自动化生产线中定时器常用于哪些场景？",
+      "safety_requirement": "调试节拍动作时注意执行机构运动。",
+      "keywords": [
+        "定时器",
+        "延时",
+        "节拍",
+        "PLC"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PLC-006"
+    },
+    {
+      "id": "K096",
+      "topic": "PLC 计数器用于记录工件数量、动作次数、循环次数等。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "工件计数实训",
+      "content": "PLC 计数器用于记录工件数量、动作次数、循环次数等。",
+      "common_errors": [
+        "传感器抖动导致重复计数。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术；传感器检测实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)"
+      ],
+      "fault_symptom": "工件计数不准确可能有哪些原因？",
+      "safety_requirement": "观察运动工件时保持距离。",
+      "keywords": [
+        "计数器",
+        "工件计数",
+        "传感器抖动"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PLC-007"
+    },
+    {
+      "id": "K097",
+      "topic": "PLC 程序修改后需要正确下载、切换运行状态并确认当前程序版本。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "PLC 程序调试",
+      "content": "PLC 程序修改后需要正确下载、切换运行状态并确认当前程序版本。",
+      "common_errors": [
+        "修改程序后未下载，仍运行旧程序。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术实训指导书；PLC 软件说明",
+      "equipment": [
+        "PLC(S7-200 SMART)"
+      ],
+      "fault_symptom": "程序修改后设备现象不变，可能有哪些软件侧原因？",
+      "safety_requirement": "下载前确认设备处于安全状态。",
+      "keywords": [
+        "程序下载",
+        "RUN",
+        "STOP",
+        "旧程序",
+        "调试"
+      ],
+      "difficulty": "basic",
+      "_imported_from": "MECH-PLC-008"
+    },
+    {
+      "id": "K098",
+      "topic": "故障定位要区分外部信号未进入 PLC、PLC 程序未满足条件、输出执行机构故障三类。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "PLC 综合故障排查",
+      "content": "故障定位要区分外部信号未进入 PLC、PLC 程序未满足条件、输出执行机构故障三类。",
+      "common_errors": [
+        "未分层定位，盲目改程序或换硬件。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术；自动化生产线综合实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)"
+      ],
+      "fault_symptom": "如何区分外部接线故障和 PLC 程序逻辑故障？",
+      "safety_requirement": "上电排查时避免接触端子和运动机构。",
+      "keywords": [
+        "故障层级",
+        "输入",
+        "程序",
+        "输出",
+        "排查"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-PLC-009"
+    },
+    {
+      "id": "K099",
+      "topic": "边沿触发用于捕捉信号由 0 到 1 或由 1 到 0 的瞬间，避免持续信号重复触发。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "工件通过传感器计数",
+      "content": "边沿触发用于捕捉信号由 0 到 1 或由 1 到 0 的瞬间，避免持续信号重复触发。",
+      "common_errors": [
+        "持续信号导致重复触发。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "PLC 应用技术实训指导书",
+      "equipment": [
+        "传感器"
+      ],
+      "fault_symptom": "什么时候需要使用上升沿触发？",
+      "safety_requirement": "无特殊安全风险，调试设备动作时需注意。",
+      "keywords": [
+        "边沿触发",
+        "上升沿",
+        "计数",
+        "重复触发"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PLC-010"
+    },
+    {
+      "id": "K100",
+      "topic": "PLC 程序可根据输入异常、超时或状态冲突生成报警提示。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "气缸超时未到位报警",
+      "content": "PLC 程序可根据输入异常、超时或状态冲突生成报警提示。",
+      "common_errors": [
+        "设备不动作但无报警，学生不知道从何查起。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "自动化生产线实训指导书；PLC 应用技术",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "气缸"
+      ],
+      "fault_symptom": "如何判断气缸动作超时故障？",
+      "safety_requirement": "报警不等于允许继续运行，应停止排查。",
+      "keywords": [
+        "报警",
+        "超时",
+        "到位信号",
+        "故障提示"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PLC-011"
+    },
+    {
+      "id": "K101",
+      "topic": "调试应记录现象、检查步骤、判断依据和处理结果，便于复盘和评价。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "PLC 输入无响应故障排查记录",
+      "content": "调试应记录现象、检查步骤、判断依据和处理结果，便于复盘和评价。",
+      "common_errors": [
+        "排查过程无记录，无法证明能力达标。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "校内实训报告模板；综合实训评分表",
+      "equipment": [
+        "PLC(S7-200 SMART)"
+      ],
+      "fault_symptom": "故障排查记录至少应包含哪些内容？",
+      "safety_requirement": "记录不替代安全操作；实操仍需教师确认。",
+      "keywords": [
+        "调试记录",
+        "实训报告",
+        "排查记录",
+        "评价"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-PLC-012"
+    },
+    {
+      "id": "K102",
+      "topic": "气动系统动作前应检查气源压力、气管连接、调压阀和气源处理元件。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "气缸不动作排查",
+      "content": "气动系统动作前应检查气源压力、气管连接、调压阀和气源处理元件。",
+      "common_errors": [
+        "只查 PLC 程序，不查气源压力。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "气动与液压技术实训指导书",
+      "equipment": [
+        "气源",
+        "气缸"
+      ],
+      "fault_symptom": "气缸不动作时为什么要检查气源压力？",
+      "safety_requirement": "排气和调整前注意气缸可能突然动作。",
+      "keywords": [
+        "气源",
+        "气压",
+        "气缸不动作",
+        "调压阀"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PNE-001"
+    },
+    {
+      "id": "K103",
+      "topic": "PLC 输出控制电磁阀线圈，电磁阀切换气路以驱动气缸动作。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "PLC 控制气缸伸缩",
+      "content": "PLC 输出控制电磁阀线圈，电磁阀切换气路以驱动气缸动作。",
+      "common_errors": [
+        "输出点亮但不检查电磁阀线圈和气路。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "气动与液压实训指导书；PLC 综合实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "气缸",
+        "电磁阀"
+      ],
+      "fault_symptom": "PLC 输出点亮但气缸不动作，可能有哪些原因？",
+      "safety_requirement": "调试时远离气缸运动范围。",
+      "keywords": [
+        "电磁阀",
+        "PLC输出",
+        "气缸",
+        "气路"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PNE-002"
+    },
+    {
+      "id": "K104",
+      "topic": "气缸伸出/缩回到位通常由磁性开关或限位开关反馈给 PLC。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "气缸到位信号异常排查",
+      "content": "气缸伸出/缩回到位通常由磁性开关或限位开关反馈给 PLC。",
+      "common_errors": [
+        "气缸已到位但 PLC 未收到到位信号。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "气动与液压实训指导书；传感器检测实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "气缸",
+        "限位开关"
+      ],
+      "fault_symptom": "气缸到位但程序不进入下一步，可能与哪些信号有关？",
+      "safety_requirement": "调整磁性开关时避免夹伤和误动作。",
+      "keywords": [
+        "气缸到位",
+        "磁性开关",
+        "PLC输入",
+        "下一步条件"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PNE-003"
+    },
+    {
+      "id": "K105",
+      "topic": "气动回路图表示气源、阀、气缸和节流元件之间的连接与动作逻辑。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "气缸动作方向异常排查",
+      "content": "气动回路图表示气源、阀、气缸和节流元件之间的连接与动作逻辑。",
+      "common_errors": [
+        "气管接反导致动作方向相反。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "气动与液压技术实训指导书",
+      "equipment": [
+        "气源",
+        "气缸"
+      ],
+      "fault_symptom": "气缸动作方向与预期相反，可能是什么原因？",
+      "safety_requirement": "改气路前关闭气源并排气。",
+      "keywords": [
+        "气动回路",
+        "气管接反",
+        "动作方向"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PNE-004"
+    },
+    {
+      "id": "K106",
+      "topic": "节流阀可调节气缸速度，速度过快或过慢会影响动作稳定性和安全。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "气缸速度调整实训",
+      "content": "节流阀可调节气缸速度，速度过快或过慢会影响动作稳定性和安全。",
+      "common_errors": [
+        "速度过快导致冲击，过慢导致节拍异常。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "气动与液压技术实训指导书",
+      "equipment": [
+        "气缸"
+      ],
+      "fault_symptom": "气缸动作过快应如何处理？",
+      "safety_requirement": "调整时避免手靠近气缸运动区域。",
+      "keywords": [
+        "节流阀",
+        "调速",
+        "气缸速度",
+        "冲击"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PNE-005"
+    },
+    {
+      "id": "K107",
+      "topic": "自动化生产线中多个气缸或执行机构需要按传感器反馈和程序条件顺序动作。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "多执行机构顺序动作实训",
+      "content": "自动化生产线中多个气缸或执行机构需要按传感器反馈和程序条件顺序动作。",
+      "common_errors": [
+        "未等待到位信号就执行下一步。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "自动化生产线综合实训指导书",
+      "equipment": [
+        "传感器",
+        "气缸"
+      ],
+      "fault_symptom": "为什么顺序动作需要到位信号确认？",
+      "safety_requirement": "调试顺序动作时采用低速/单步方式。",
+      "keywords": [
+        "顺序控制",
+        "到位信号",
+        "气缸联动"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PNE-006"
+    },
+    {
+      "id": "K108",
+      "topic": "气动故障包括漏气、压力不足、阀不换向、气缸卡滞、到位信号异常等。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "气动系统综合排故",
+      "content": "气动故障包括漏气、压力不足、阀不换向、气缸卡滞、到位信号异常等。",
+      "common_errors": [
+        "只看 PLC，不检查气动元件。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "气动与液压技术实训指导书",
+      "equipment": [
+        "气缸"
+      ],
+      "fault_symptom": "气缸动作无力可能有哪些原因？",
+      "safety_requirement": "排查漏气和卡滞前关闭气源并泄压。",
+      "keywords": [
+        "漏气",
+        "压力不足",
+        "气缸卡滞",
+        "气动故障"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PNE-007"
+    },
+    {
+      "id": "K109",
+      "topic": "气动动作由 PLC 输出、继电器/电磁阀、气源和气缸共同决定，需要电气与气路联合排查。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "自动化生产线气动单元联调",
+      "content": "气动动作由 PLC 输出、继电器/电磁阀、气源和气缸共同决定，需要电气与气路联合排查。",
+      "common_errors": [
+        "把电气问题和气动问题混为一谈。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "自动化生产线综合实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "气源",
+        "气缸",
+        "电磁阀",
+        "继电器"
+      ],
+      "fault_symptom": "气缸不动作时推荐的分层排查顺序是什么？",
+      "safety_requirement": "涉及气缸运动时保持安全距离，必要时断气泄压。",
+      "keywords": [
+        "电气气动联调",
+        "气缸不动作",
+        "分层排查"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-PNE-008"
+    },
+    {
+      "id": "K110",
+      "topic": "步进电机按脉冲数和方向信号运行，适合开环定位控制。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "步进电机正反转控制",
+      "content": "步进电机按脉冲数和方向信号运行，适合开环定位控制。",
+      "common_errors": [
+        "只接电源不接脉冲/方向信号。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "步进电机控制实训指导书；驱动器说明书",
+      "equipment": [
+        "电机"
+      ],
+      "fault_symptom": "步进电机运行通常需要哪些控制信号？",
+      "safety_requirement": "驱动器接线前断电，确认电压等级。",
+      "keywords": [
+        "步进电机",
+        "脉冲",
+        "方向",
+        "使能"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-MOT-001"
+    },
+    {
+      "id": "K111",
+      "topic": "伺服系统包含伺服驱动器、伺服电机、编码器反馈和控制信号。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "伺服电机使能与报警检查",
+      "content": "伺服系统包含伺服驱动器、伺服电机、编码器反馈和控制信号。",
+      "common_errors": [
+        "伺服报警未处理就反复运行程序。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "伺服驱动技术实训指导书；驱动器手册",
+      "equipment": [
+        "伺服驱动器",
+        "电机",
+        "驱动器"
+      ],
+      "fault_symptom": "伺服电机不运行时应检查哪些状态？",
+      "safety_requirement": "伺服系统上电前确认负载和运动范围安全。",
+      "keywords": [
+        "伺服",
+        "报警",
+        "使能",
+        "运动控制"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-MOT-002"
+    },
+    {
+      "id": "K112",
+      "topic": "电机正反转控制必须设置电气或程序互锁，防止短路或机械冲击。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "电机正反转控制实训",
+      "content": "电机正反转控制必须设置电气或程序互锁，防止短路或机械冲击。",
+      "common_errors": [
+        "正反转接触器同时吸合。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "电气控制技术实训指导书",
+      "equipment": [
+        "电机"
+      ],
+      "fault_symptom": "电机正反转为什么必须互锁？",
+      "safety_requirement": "调试前确认电机固定和运动方向安全。",
+      "keywords": [
+        "电机正反转",
+        "互锁",
+        "接触器",
+        "安全"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-MOT-003"
+    },
+    {
+      "id": "K113",
+      "topic": "运动轴或机构应设置限位保护，防止超程。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "运动机构限位调试",
+      "content": "运动轴或机构应设置限位保护，防止超程。",
+      "common_errors": [
+        "限位失效导致机构撞限。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "电机驱动与运动控制实训指导书",
+      "equipment": [
+        "限位开关"
+      ],
+      "fault_symptom": "运动机构为什么需要限位开关？",
+      "safety_requirement": "限位测试必须低速，人员远离运动范围。",
+      "keywords": [
+        "限位保护",
+        "超程",
+        "运动轴",
+        "安全"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-MOT-004"
+    },
+    {
+      "id": "K114",
+      "topic": "驱动器参数如细分、速度、加速度、电流限制等影响运动效果。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "步进/伺服参数检查",
+      "content": "驱动器参数如细分、速度、加速度、电流限制等影响运动效果。",
+      "common_errors": [
+        "参数设置错误导致抖动、丢步或运动方向错误。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "驱动器说明书；运动控制实训指导书",
+      "equipment": [
+        "伺服驱动器",
+        "驱动器"
+      ],
+      "fault_symptom": "电机运行抖动可能与哪些参数有关？",
+      "safety_requirement": "调整参数前了解设备限制，不盲目提高速度。",
+      "keywords": [
+        "驱动器参数",
+        "加速度",
+        "速度",
+        "抖动"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-MOT-005"
+    },
+    {
+      "id": "K115",
+      "topic": "运动方向由接线、方向信号、参数和机械结构共同决定。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "电机方向错误排查",
+      "content": "运动方向由接线、方向信号、参数和机械结构共同决定。",
+      "common_errors": [
+        "直接调换线路而不确认控制逻辑。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "电机驱动与运动控制实训指导书",
+      "equipment": [
+        "电机"
+      ],
+      "fault_symptom": "电机方向与预期相反可能有哪些原因？",
+      "safety_requirement": "调试方向时低速短行程运行。",
+      "keywords": [
+        "方向信号",
+        "电机反转",
+        "相序",
+        "参数"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-MOT-006"
+    },
+    {
+      "id": "K116",
+      "topic": "运动故障可分为无使能、无脉冲、报警、参数错误、机械卡滞、限位保护等。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "电机不转或报警排查",
+      "content": "运动故障可分为无使能、无脉冲、报警、参数错误、机械卡滞、限位保护等。",
+      "common_errors": [
+        "只改程序，不看驱动器状态。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "运动控制实训指导书；驱动器手册",
+      "equipment": [
+        "电机",
+        "限位开关"
+      ],
+      "fault_symptom": "电机不转时推荐先检查什么？",
+      "safety_requirement": "确认运动范围和急停可用。",
+      "keywords": [
+        "电机不转",
+        "驱动报警",
+        "使能",
+        "故障分类"
+      ],
+      "difficulty": "advanced",
+      "_imported_from": "MECH-MOT-007"
+    },
+    {
+      "id": "K117",
+      "topic": "设备点检包括电源、气源、安全装置、传感器、执行机构、线缆、润滑和报警状态。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "自动化生产线日常点检",
+      "content": "设备点检包括电源、气源、安全装置、传感器、执行机构、线缆、润滑和报警状态。",
+      "common_errors": [
+        "未点检直接运行设备。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "校内自动化生产线点检表；设备实训指导书",
+      "equipment": [
+        "传感器",
+        "开关电源",
+        "气源"
+      ],
+      "fault_symptom": "自动化生产线日常点检应包含哪些项目？",
+      "safety_requirement": "点检中发现异常不得强行运行。",
+      "keywords": [
+        "点检",
+        "日常维护",
+        "自动化生产线",
+        "安全"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-MAINT-001"
+    },
+    {
+      "id": "K118",
+      "topic": "故障排查应遵循安全确认、现象记录、分层判断、逐项验证、恢复测试和记录复盘。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "PLC 输入无响应/气缸不动作综合排查",
+      "content": "故障排查应遵循安全确认、现象记录、分层判断、逐项验证、恢复测试和记录复盘。",
+      "common_errors": [
+        "看到故障后直接改程序或换元件。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "自动化生产线综合实训指导书",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "气缸"
+      ],
+      "fault_symptom": "机电设备故障排查的一般步骤是什么？",
+      "safety_requirement": "排查前先确认急停和断电/断气需求。",
+      "keywords": [
+        "故障排查",
+        "分层判断",
+        "流程",
+        "复测"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-MAINT-002"
+    },
+    {
+      "id": "K119",
+      "topic": "准确描述故障现象是排查的起点，应包含设备状态、动作条件、异常表现和发生时机。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "故障描述训练",
+      "content": "准确描述故障现象是排查的起点，应包含设备状态、动作条件、异常表现和发生时机。",
+      "common_errors": [
+        "只说“不动了”，缺少信息。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "综合实训报告模板",
+      "equipment": [],
+      "fault_symptom": "描述“PLC 输入无响应”故障时应补充哪些信息？",
+      "safety_requirement": "描述阶段不涉及操作，后续排查需安全确认。",
+      "keywords": [
+        "故障描述",
+        "现象记录",
+        "输入无响应"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-MAINT-003"
+    },
+    {
+      "id": "K120",
+      "topic": "综合故障应按电源/气源、传感器输入、PLC 程序、输出执行、机械结构分层排查。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "传感器到气缸动作链路排查",
+      "content": "综合故障应按电源/气源、传感器输入、PLC 程序、输出执行、机械结构分层排查。",
+      "common_errors": [
+        "输入、程序、输出、执行机构混在一起判断。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "综合实训故障案例库",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "传感器",
+        "开关电源",
+        "气源",
+        "气缸"
+      ],
+      "fault_symptom": "气缸不动作应如何分层排查？",
+      "safety_requirement": "涉及气动动作时保持安全距离。",
+      "keywords": [
+        "分层排查",
+        "排查树",
+        "气缸",
+        "PLC"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-MAINT-004"
+    },
+    {
+      "id": "K121",
+      "topic": "学生常见错误包括未断电、未核对公共端、未看 PLC 监控、地址不一致、未检查气源、未记录过程。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "学生薄弱点诊断",
+      "content": "学生常见错误包括未断电、未核对公共端、未看 PLC 监控、地址不一致、未检查气源、未记录过程。",
+      "common_errors": [
+        "只给答案，不分析能力缺口。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "校内实训常见问题记录；项目用户测试反馈",
+      "equipment": [
+        "PLC(S7-200 SMART)",
+        "气源",
+        "编程电脑"
+      ],
+      "fault_symptom": "学生不会看 PLC 监控，反映出哪类薄弱能力？",
+      "safety_requirement": "涉及实操错误时必须提醒教师确认。",
+      "keywords": [
+        "常见错误",
+        "薄弱点",
+        "能力诊断",
+        "学习路径"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-MAINT-005"
+    },
+    {
+      "id": "K122",
+      "topic": "训练任务应从薄弱能力出发，按由易到难顺序推荐。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "个性化学习路径生成",
+      "content": "训练任务应从薄弱能力出发，按由易到难顺序推荐。",
+      "common_errors": [
+        "所有学生推荐同一路径。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "项目说明文档；智能体开发流程",
+      "equipment": [],
+      "fault_symptom": "如果学生薄弱点是 NPN/PNP 和 PLC 监控，应推荐什么训练顺序？",
+      "safety_requirement": "推荐实训任务时附带安全注意事项。",
+      "keywords": [
+        "学习路径",
+        "训练任务",
+        "个性化",
+        "薄弱点"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-MAINT-006"
+    },
+    {
+      "id": "K123",
+      "topic": "智能体涉及接线、上电、气动、电机等操作时必须输出安全提示。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "输出安全提示模板",
+      "content": "智能体涉及接线、上电、气动、电机等操作时必须输出安全提示。",
+      "common_errors": [
+        "只给操作步骤，不提醒断电和教师确认。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "实训室安全规范；项目合规要求",
+      "equipment": [
+        "电机"
+      ],
+      "fault_symptom": "涉及传感器接线的回答必须包含哪些安全提示？",
+      "safety_requirement": "AI 输出不能替代教师现场指导。",
+      "keywords": [
+        "安全提示",
+        "断电",
+        "教师确认",
+        "AI合规"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-MAINT-007"
+    },
+    {
+      "id": "K124",
+      "topic": "专业输出应标注来源依据，避免大模型幻觉和无依据建议。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "知识库答案溯源",
+      "content": "专业输出应标注来源依据，避免大模型幻觉和无依据建议。",
+      "common_errors": [
+        "生成内容没有任何依据。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "课程标准；实训指导书；职业技能标准；教师访谈",
+      "equipment": [],
+      "fault_symptom": "为什么智能体回答应标注来源？",
+      "safety_requirement": "未找到依据时应提示教师确认。",
+      "keywords": [
+        "来源依据",
+        "证据链",
+        "知识库",
+        "RAG"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-MAINT-008"
+    },
+    {
+      "id": "K125",
+      "topic": "用户反馈可用于调整下一步学习建议，但 MVP 阶段可先用规则记录和推荐，不做复杂画像系统。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "反馈闭环测试",
+      "content": "用户反馈可用于调整下一步学习建议，但 MVP 阶段可先用规则记录和推荐，不做复杂画像系统。",
+      "common_errors": [
+        "系统一次回答后不再根据反馈调整。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "智能体开发流程；项目 MVP 闭环设计",
+      "equipment": [],
+      "fault_symptom": "学生反馈“接线图会了但 PLC 监控不会”，下一步应推荐什么？",
+      "safety_requirement": "反馈不代表可独立实操，危险操作仍需教师确认。",
+      "keywords": [
+        "反馈更新",
+        "能力画像",
+        "下一步建议"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-MAINT-009"
+    },
+    {
+      "id": "K126",
+      "topic": "教师可查看学生常见薄弱点、对应知识点和建议实训任务，用于调整教学重点。",
+      "ability_node_id": "input_no_response_fault_scope",
+      "job_task": "教师查看能力模块与常见错误",
+      "content": "教师可查看学生常见薄弱点、对应知识点和建议实训任务，用于调整教学重点。",
+      "common_errors": [
+        "教师只能看到单个回答，看不到共性问题。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "校内实训安排；教师访谈记录",
+      "equipment": [],
+      "fault_symptom": "如果多名学生都不会 PLC 输入监控，教师应如何调整实训？",
+      "safety_requirement": "教师端建议不直接涉及操作，但实训安排须符合安全规范。",
+      "keywords": [
+        "教师端",
+        "薄弱点汇总",
+        "教学调整",
+        "实训重点"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-MAINT-010"
+    },
+    {
+      "id": "K127",
+      "topic": "知识库条目应包含岗位、能力模块、能力单元、知识点、技能点、任务、错误、诊断题、评价标准、安全提示、来源依据。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "知识库结构化整理",
+      "content": "知识库条目应包含岗位、能力模块、能力单元、知识点、技能点、任务、错误、诊断题、评价标准、安全提示、来源依据。",
+      "common_errors": [
+        "直接上传长文档，检索结果不稳定。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "智能体开发流程；项目知识库规范",
+      "equipment": [],
+      "fault_symptom": "为什么知识库不宜只上传整篇长文档？",
+      "safety_requirement": "无直接安全风险。",
+      "keywords": [
+        "知识库结构",
+        "字段",
+        "结构化",
+        "RAG"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-KB-001"
+    },
+    {
+      "id": "K128",
+      "topic": "用户问题模糊时，智能体应先追问具体对象、现象、已学内容和安全状态。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "追问确认模块",
+      "content": "用户问题模糊时，智能体应先追问具体对象、现象、已学内容和安全状态。",
+      "common_errors": [
+        "用户说“不会接”时直接给步骤。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "智能体开发流程；实训安全规范",
+      "equipment": [],
+      "fault_symptom": "用户说“这个传感器怎么接”，应先追问什么？",
+      "safety_requirement": "追问中必须提醒先断电，不鼓励盲目实操。",
+      "keywords": [
+        "追问规则",
+        "模糊问题",
+        "意图识别",
+        "安全"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-KB-002"
+    },
+    {
+      "id": "K129",
+      "topic": "智能体输出应固定为能力图谱、诊断结果、推荐路径、训练任务、安全提示、依据来源。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "输出模板测试",
+      "content": "智能体输出应固定为能力图谱、诊断结果、推荐路径、训练任务、安全提示、依据来源。",
+      "common_errors": [
+        "每次回答格式不同，不利于演示和评分。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "智能体开发流程；项目说明文档",
+      "equipment": [],
+      "fault_symptom": "为什么要固定输出模板？",
+      "safety_requirement": "涉及实训操作模板必须包含安全栏。",
+      "keywords": [
+        "输出模板",
+        "诊断报告",
+        "能力图谱",
+        "学习路径"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-KB-003"
+    },
+    {
+      "id": "K130",
+      "topic": "测试脚本应覆盖典型学生输入、模糊提问、诊断答题、反馈更新和教师端使用。",
+      "ability_node_id": "role_task_understanding",
+      "job_task": "智能体测试",
+      "content": "测试脚本应覆盖典型学生输入、模糊提问、诊断答题、反馈更新和教师端使用。",
+      "common_errors": [
+        "只凭演示感觉判断效果。"
+      ],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "智能体开发流程；项目测试计划",
+      "equipment": [],
+      "fault_symptom": "一个合格测试脚本应包含哪些内容？",
+      "safety_requirement": "测试涉及实操建议时检查是否有安全提醒。",
+      "keywords": [
+        "测试脚本",
+        "测试用例",
+        "验收标准",
+        "反馈"
+      ],
+      "difficulty": "medium",
+      "_imported_from": "MECH-KB-004"
     }
   ]
 }
