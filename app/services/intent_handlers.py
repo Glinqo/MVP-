@@ -447,24 +447,47 @@ def handle_knowledge_qa(payload, intent_result):
             f"[{item.get('id')}] {item.get('topic', '')}\n{item.get('content', '')}\n来源: {item.get('source', '')}"
             for item in knowledge_items[:4]
         )
-        system = (
-            "你是机电一体化岗位培训 AI。请基于以下知识库内容回答学生的问题。"
-            "回答要准确、简洁、有依据。"
-            "涉及接线、通电、设备操作时，先提醒安全。"
+        sources_text = "\n".join(
+            f"- {item.get('source', '')}" for item in knowledge_items[:4] if item.get('source')
         )
-        user = f"学生问题：{message}\n\n可参考的知识库内容：\n{knowledge_text}"
-    else:
-        # 检索为空时，让 LLM 用自身知识自由回答，开头注明知识库暂无相关条目
         system = (
-            "你是机电一体化岗位培训 AI。"
-            "当前知识库中没有直接匹配的内容，但你可以用自己的专业知识回答学生的问题。"
-            "回答要准确、简洁、有依据。"
-            "涉及接线、通电、设备操作时，必须优先提醒安全规范。"
+            "你是机电一体化岗位培训 AI，专门为高职机电专业学生提供知识答疑。\n\n"
+            "**【核心规则】**\n"
+            "1. 必须严格基于以下「可参考的知识库内容」回答学生的问题。\n"
+            "2. 不得引入知识库以外的专业判断、技术参数或操作步骤。\n"
+            "3. 如果你的知识与知识库内容冲突，以知识库为准。\n"
+            "4. 涉及接线、通电、设备操作时，必须先提醒安全注意事项。\n"
+            "5. 回答末尾必须附上「参考来源」区块，列出本条回答依据的知识来源。\n\n"
+            "回答格式要求：\n"
+            "- 回答要准确、简洁，像实训师傅在带教\n"
+            "- 结尾附参考来源，格式为：\n"
+            "  > 参考来源：\n"
+            "  > - 来源1\n"
+            "  > - 来源2"
         )
         user = (
             f"学生问题：{message}\n\n"
-            "注意：知识库中暂未检索到相关内容，请基于你的专业知识直接回答。"
-            "在回答开头用一句话简要说明「知识库暂无相关条目，以下为通用知识参考」。"
+            f"可参考的知识库内容：\n{knowledge_text}\n\n"
+            f"可用来源列表：\n{sources_text}\n\n"
+            "请基于以上内容生成回答，并在末尾附上参考来源。"
+        )
+    else:
+        # 检索为空时，拒绝编造，只给学习建议
+        system = (
+            "你是机电一体化岗位培训 AI。\n\n"
+            "**【核心规则】**\n"
+            "知识库中暂未收录该问题的相关内容。你必须明确告知学生这一情况。\n"
+            "不得自行编造任何具体的技术参数、操作步骤或专业判断。\n"
+            "你只能提供：\n"
+            "1. 通用的学习方法建议（如何查阅教材、如何向实训教师请教）\n"
+            "2. 建议学生换个方式描述问题，以便更精准地检索\n"
+            "3. 相关的基础概念引导（不涉及具体参数或步骤）\n"
+            "不得做任何具体技术解答。"
+        )
+        user = (
+            f"学生问题：{message}\n\n"
+            "注意：知识库中暂未检索到相关内容。请在回答开头明确说明「知识库暂未收录该问题」，"
+            "然后仅提供学习建议和相关概念引导，不要做具体技术解答。"
         )
 
     answer, error = _llm_answer(system, user)
@@ -644,3 +667,132 @@ def handle_learning_path(payload, intent_result):
     ]
     result["next_questions"] = result["suggested_questions"]
     return result
+
+
+# ── 流式回答处理器（SSE）─────────────────────────────────────────
+
+def handle_knowledge_qa_stream(payload, intent_result):
+    """流式版知识问答：先返回 meta 字典，再返回一个逐 chunk 输出答案的生成器。
+
+    用法:
+        meta, generator = handle_knowledge_qa_stream(payload, intent_result)
+        # 先发送 meta（包含 knowledge_refs / safety_notice / evidence_used）
+        # 再遍历 generator 获取 LLM 流式文本块
+    """
+    from .llm_client import chat_completion_stream
+
+    message = payload.get("message") or payload.get("user_input") or ""
+    result = _base_result(payload, intent_result)
+
+    if _is_meta_question(message):
+        answer = _build_knowledge_overview()
+        result["answer"] = answer
+        result["reasoning_steps"] = ["检测到元问题，返回知识库内容概览"]
+        result["fallback_used"] = True
+        return result, _empty_generator()
+
+    knowledge_items = search_knowledge(message, limit=5)
+    result["knowledge_refs"] = knowledge_items
+    result["evidence_used"] = [
+        {
+            "label": f"知识匹配: {item.get('id', '')} {item.get('topic', '')}",
+            "value": item.get("content", "")[:120],
+            "source": item.get("source", ""),
+        }
+        for item in knowledge_items[:4]
+    ]
+    result["reasoning_steps"] = [
+        f"在知识库中检索到 {len(knowledge_items)} 条相关内容",
+    ]
+    result["suggested_questions"] = [
+        f"能再详细讲讲「{item.get('topic', '')}」吗？"
+        for item in knowledge_items[:3] if item.get("topic")
+    ] or ["这个知识点对应什么岗位能力？"]
+    result["next_questions"] = result["suggested_questions"]
+
+    if knowledge_items:
+        knowledge_text = "\n\n".join(
+            f"[{item.get('id')}] {item.get('topic', '')}\n{item.get('content', '')}\n来源: {item.get('source', '')}"
+            for item in knowledge_items[:4]
+        )
+        sources_text = "\n".join(
+            f"- {item.get('source', '')}" for item in knowledge_items[:4] if item.get('source')
+        )
+        system = (
+            "你是机电一体化岗位培训 AI，专门为高职机电专业学生提供知识答疑。\n\n"
+            "**【核心规则】**\n"
+            "1. 必须严格基于以下「可参考的知识库内容」回答学生的问题。\n"
+            "2. 不得引入知识库以外的专业判断、技术参数或操作步骤。\n"
+            "3. 如果你的知识与知识库内容冲突，以知识库为准。\n"
+            "4. 涉及接线、通电、设备操作时，必须先提醒安全注意事项。\n"
+            "5. 回答末尾必须附上「参考来源」区块，列出本条回答依据的知识来源。\n\n"
+            "回答格式要求：\n"
+            "- 回答要准确、简洁，像实训师傅在带教\n"
+            "- 结尾附参考来源，格式为：\n"
+            "  > 参考来源：\n"
+            "  > - 来源1\n"
+            "  > - 来源2"
+        )
+        user = (
+            f"学生问题：{message}\n\n"
+            f"可参考的知识库内容：\n{knowledge_text}\n\n"
+            f"可用来源列表：\n{sources_text}\n\n"
+            "请基于以上内容生成回答，并在末尾附上参考来源。"
+        )
+    else:
+        system = (
+            "你是机电一体化岗位培训 AI。\n\n"
+            "**【核心规则】**\n"
+            "知识库中暂未收录该问题的相关内容。你必须明确告知学生这一情况。\n"
+            "不得自行编造任何具体的技术参数、操作步骤或专业判断。\n"
+            "你只能提供：\n"
+            "1. 通用的学习方法建议\n"
+            "2. 建议学生换个方式描述问题\n"
+            "3. 相关的基础概念引导\n"
+            "不得做任何具体技术解答。"
+        )
+        user = (
+            f"学生问题：{message}\n\n"
+            "注意：知识库中暂未检索到相关内容。请在回答开头明确说明「知识库暂未收录该问题」，"
+            "然后仅提供学习建议和相关概念引导，不要做具体技术解答。"
+        )
+
+    if not is_configured():
+        result["llm_error"] = "LLM 未配置"
+        result["fallback_used"] = True
+        if knowledge_items:
+            top = knowledge_items[0]
+            result["answer"] = (
+                f"关于「{message}」，知识库中最相关的内容是：\n\n"
+                f"**{top.get('topic', '')}**\n{top.get('content', '')}\n\n"
+                f"来源：{top.get('source', '')}"
+            )
+        else:
+            result["answer"] = f"抱歉，知识库中暂时没有找到关于「{message}」的相关内容。"
+        return result, _empty_generator()
+
+    def _stream_gen():
+        """内部生成器：逐 chunk 产生 LLM 文本。"""
+        full_answer = ""
+        try:
+            for chunk in chat_completion_stream(
+                [{"role": "system", "content": system}, {"role": "user", "content": user}],
+                temperature=0.3,
+                timeout=90,
+            ):
+                full_answer += chunk
+                yield chunk
+        except LLMError:
+            yield "\n\n[回答生成中断，请重试]"
+        result["answer"] = full_answer
+        result["fallback_used"] = False
+
+    result["fallback_used"] = False
+    return result, _stream_gen()
+
+
+def _empty_generator():
+    """空生成器：用于非 LLM 流式场景。"""
+    if False:
+        yield
+
