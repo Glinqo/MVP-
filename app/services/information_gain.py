@@ -1,4 +1,4 @@
-﻿"""
+"""
 Information gain calculation for diagnostic action selection.
 
 Computes entropy and expected entropy reduction from candidate actions

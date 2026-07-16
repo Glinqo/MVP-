@@ -1,4 +1,4 @@
-﻿"""
+"""
 Test 2: Action classification and diagnostic event generation.
 
 Validates:

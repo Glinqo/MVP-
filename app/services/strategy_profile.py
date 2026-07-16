@@ -1,4 +1,4 @@
-﻿"""
+"""
 Student troubleshooting strategy profile.
 
 Analyzes recurring patterns in student diagnostic traces to build a

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Diagnostic events engine for troubleshooting scenarios.
 
 Upgrades scenario steps from simple "correct/incorrect" to structured diagnostic

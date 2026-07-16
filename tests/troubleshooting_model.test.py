@@ -1,4 +1,4 @@
-﻿"""
+"""
 Test 1: Data integrity of troubleshooting models.
 
 Validates:

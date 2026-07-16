@@ -1,4 +1,4 @@
-﻿"""
+"""
 Test 10: Hypothesis engine.
 
 Validates:

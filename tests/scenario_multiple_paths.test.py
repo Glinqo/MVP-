@@ -1,4 +1,4 @@
-﻿"""
+"""
 Test 5: Multiple paths through scenarios.
 
 Validates:

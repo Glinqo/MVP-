@@ -1,4 +1,4 @@
-﻿"""
+"""
 Five-dimensional process metrics for diagnostic sessions.
 
 Metrics (all 0.0 - 1.0):

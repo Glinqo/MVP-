@@ -1,4 +1,4 @@
-﻿"""
+"""
 Hypothesis management engine for troubleshooting scenarios.
 
 Manages hypothesis lifecycle: initialization, evidence-based update,

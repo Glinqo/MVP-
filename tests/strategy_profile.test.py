@@ -1,4 +1,4 @@
-﻿"""
+"""
 Test 8: Strategy profile.
 
 Validates:

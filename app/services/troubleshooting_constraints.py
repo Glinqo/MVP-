@@ -1,4 +1,4 @@
-﻿"""
+"""
 Constraint checking for troubleshooting scenarios.
 
 All constraint functions are deterministic (no LLM). They check:

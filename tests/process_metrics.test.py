@@ -1,4 +1,4 @@
-﻿"""
+"""
 Test 7: Process metrics calculation.
 
 Validates all 5 process metrics produce reasonable values.

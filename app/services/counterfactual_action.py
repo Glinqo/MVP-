@@ -1,4 +1,4 @@
-﻿"""
+"""
 Counterfactual action selection engine.
 
 Ranks candidate diagnostic actions by utility:

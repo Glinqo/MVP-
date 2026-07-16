@@ -1,4 +1,4 @@
-﻿"""
+"""
 Behavior graph tracer for troubleshooting scenarios.
 
 Core concepts borrowed from CTAT behavior graph:

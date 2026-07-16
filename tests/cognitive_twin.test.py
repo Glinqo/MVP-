@@ -1,4 +1,4 @@
-﻿"""
+"""
 Test 9: Cognitive digital twin.
 
 Validates:

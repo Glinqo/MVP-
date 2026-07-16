@@ -1,4 +1,4 @@
-﻿"""
+"""
 Test 11: Information gain calculation.
 
 Validates:

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Lightweight conformance checking engine.
 
 Aligns student diagnostic traces against expert behavior model strategies.

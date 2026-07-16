@@ -1,4 +1,4 @@
-﻿"""
+"""
 Test 6: Conformance engine alignment.
 
 Validates:

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Cognitive digital twin for student troubleshooting.
 
 Combines knowledge/procedure mastery, process metrics, strategy profile,

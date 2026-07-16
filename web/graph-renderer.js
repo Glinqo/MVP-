@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ForceGraph - D3 Force-Directed Knowledge Graph
  * Clean mesh/netlike distribution, no border constraints, natural color clustering
  */

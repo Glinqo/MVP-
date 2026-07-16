@@ -1,4 +1,4 @@
-﻿"""
+"""
 Test 4: Scaffolding engine hint levels.
 
 Validates:

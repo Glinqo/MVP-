@@ -1,4 +1,4 @@
-﻿"""
+"""
 Scaffolding engine: determines hint level and generates hints based on
 student performance deviations.
 

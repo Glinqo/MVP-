@@ -1,4 +1,4 @@
-﻿"""
+"""
 Test 12: Counterfactual action selection.
 
 Validates:

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Diagnostic trace standardization.
 
 Converts raw session events into a normalized diagnostic trace suitable
