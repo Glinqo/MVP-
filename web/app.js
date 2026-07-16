@@ -1786,7 +1786,7 @@ async function boot() {
     const jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
     const [start, quiz, jobGraph, studentBootstrap] = await Promise.all([
       api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId, job_role: jobId }) }),
-      api("/api/quiz"),
+      api(`/api/quiz?job_role=${encodeURIComponent(jobId)}`),
       api(`/api/graph/job?job_role=${encodeURIComponent(jobId)}`),
       api(`/api/student/bootstrap?session_id=${encodeURIComponent(state.sessionId)}`),
     ]);

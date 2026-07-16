@@ -11,6 +11,16 @@ def read_json(relative_path):
 
 
 @lru_cache(maxsize=1)
+def _job_questions():
+    """Load all job-specific question sets."""
+    path = ROOT / "diagnosis/diagnostic_questions_v2.json"
+    if path.is_file():
+        return json.loads(path.read_text(encoding="utf-8")).get("job_question_sets", {})
+    return {}
+    return json.loads((ROOT / relative_path).read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
 def load_data():
     ability_data = read_json("knowledge/ability_nodes.json")
     job_profiles_data = read_json("knowledge/job_profiles.json")
@@ -63,7 +73,15 @@ def primary_job_profile():
     return profiles[0] if profiles else {}
 
 
-def public_questions():
+def public_questions(job_role=None):
+    # Try job-specific questions first
+    job_sets = _job_questions()
+    if job_role and job_role in job_sets:
+        return job_sets[job_role]
+    # Fall back to default questions
+    if job_sets:
+        first_key = next(iter(job_sets))
+        return job_sets[first_key]
     questions = []
     for question in load_data()["questions_data"].get("questions", []):
         questions.append(

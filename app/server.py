@@ -87,7 +87,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json({"status": "ok", "app": "mechatronics-agent-mvp", "version": "0.1.0"})
 
         if path == "/api/quiz":
-            return self.send_json({"questions": public_questions()})
+            query = parse_qs(parsed.query)
+            job_role = query.get("job_role", [None])[0]
+            return self.send_json({"questions": public_questions(job_role)})
 
         if path == "/api/job-profile":
             return self.send_json({"profile": primary_job_profile()})
