@@ -1445,11 +1445,19 @@ async function sendChat(message) {
   addMessage("user", text);
   $("sendChat").disabled = true;
   $("sendChat").textContent = "发送中";
+
+  // 先尝试流式（仅知识类问题）
+  const isKnowledgeLike = /[?？]|是什么|什么是|怎么|如何|为什么|区别|步骤|方法|含义|原理|NPN|PNP|PLC|传感器|接线|排查|安全|万用表|气缸|电磁阀/.test(text);
+  if (isKnowledgeLike && await tryStreamChat(text)) {
+    $("sendChat").disabled = false;
+    $("sendChat").textContent = "发送";
+    return;
+  }
+
+  // 普通模式（或流式降级后）
+  addMessage("assistant", "思考中...", {});
   try {
-    const history = state.messages
-      .filter((item) => item.role === "user" || item.role === "assistant")
-      .slice(-8)
-      .map((item) => ({ role: item.role, content: item.content }));
+    const history = _buildHistory();
     const data = await api("/api/chat/message", {
       method: "POST",
       body: JSON.stringify({
@@ -1461,13 +1469,205 @@ async function sendChat(message) {
         context: collectContext()
       })
     });
-    applyChatResult(data);
+    // 替换占位消息
+    _replaceLastAssistant(data.answer || "", data);
+    // 用 applyChatResult 的副作用但不触发 addMessage
+    _applyChatSideEffects(data);
   } catch (error) {
-    addMessage("assistant", `请求失败：${error.message}`);
+    _replaceLastAssistantContent(`请求失败：${error.message}`);
   } finally {
     $("sendChat").disabled = false;
     $("sendChat").textContent = "发送";
   }
+}
+
+
+// ── 流式对话核心 ──────────────────────────────────────────────
+
+async function tryStreamChat(text) {
+  // 添加占位消息（如果流式失败会在 sendChat 中处理）
+  const placeholderIdx = state.messages.length;
+  addMessage("assistant", "", { streaming: true });
+
+  const history = _buildHistory();
+
+  let aborter;
+  try {
+    aborter = new AbortController();
+    const timeoutId = setTimeout(() => aborter.abort(), 120000);
+
+    const response = await fetch("/api/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        message: text,
+        history,
+        context: collectContext()
+      }),
+      signal: aborter.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      _popPlaceholder(placeholderIdx);
+      return false;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let fullText = "";
+    let gotDone = false;
+    let lastRender = 0;
+
+    while (true) {
+      let result;
+      try {
+        result = await reader.read();
+      } catch (e) {
+        break; // 连接中断
+      }
+      const { done, value } = result;
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      let currentEvent = "";
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("event: ")) {
+          currentEvent = trimmed.slice(7).trim();
+        } else if (trimmed.startsWith("data: ") && currentEvent) {
+          try {
+            const data = JSON.parse(trimmed.slice(6));
+
+            if (currentEvent === "error") {
+              if (data.code === "not_streamable") {
+                _popPlaceholder(placeholderIdx);
+                return false; // 通知外层降级
+              }
+              throw new Error(data.error || "stream error");
+            }
+
+            if (currentEvent === "meta") {
+              _updateLastMsgMeta({ ...data, streaming: false });
+              if (fullText === "") _updateLastMsgContent("");
+              renderSuggestedQuestions(data.suggested_questions || []);
+              renderToolSuggestions(data.tool_suggestions || []);
+              renderKnowledge(data.knowledge_refs || []);
+            }
+
+            if (currentEvent === "chunk") {
+              fullText += data.text || "";
+              const now = Date.now();
+              if (now - lastRender > 50) { // 节流：最多 20fps
+                _updateLastMsgContent(fullText);
+                lastRender = now;
+              }
+            }
+
+            if (currentEvent === "done") {
+              fullText = data.full_answer || data.answer || fullText;
+              _updateLastMsgContent(fullText);
+              gotDone = true;
+            }
+          } catch (e) {
+            if (e.message && (e.message.includes("not_streamable") || e.message.includes("stream error"))) {
+              _popPlaceholder(placeholderIdx);
+              return false;
+            }
+            // 忽略 JSON 解析错误
+          }
+          currentEvent = "";
+        }
+      }
+    }
+
+    // 确保最终内容已渲染
+    if (fullText) _updateLastMsgContent(fullText);
+    renderMessages();
+    persistSession();
+    loadGraphUpdates();
+    loadStudentDashboard();
+    return gotDone;
+
+  } catch (error) {
+    console.warn("Stream failed:", error);
+    _popPlaceholder(placeholderIdx);
+    return false;
+  }
+}
+
+
+// ── 消息操作辅助 ──────────────────────────────────────────────
+
+function _buildHistory() {
+  return state.messages
+    .filter((item) => item.role === "user" || item.role === "assistant")
+    .slice(-8)
+    .map((item) => ({ role: item.role, content: item.content }));
+}
+
+function _popPlaceholder(idx) {
+  // 安全移除占位消息
+  if (state.messages.length > idx) {
+    const msg = state.messages[state.messages.length - 1];
+    if (msg && msg.role === "assistant" && msg.meta && msg.meta.streaming) {
+      state.messages.pop();
+    }
+  }
+  renderMessages();
+}
+
+function _updateLastMsgContent(text) {
+  const msg = state.messages[state.messages.length - 1];
+  if (msg && msg.role === "assistant") msg.content = text;
+  renderMessages();
+  persistSession();
+}
+
+function _updateLastMsgMeta(metaObj) {
+  const msg = state.messages[state.messages.length - 1];
+  if (msg && msg.role === "assistant") msg.meta = { ...msg.meta, ...metaObj };
+  renderMessages();
+}
+
+function _replaceLastAssistant(text, data) {
+  const msg = state.messages[state.messages.length - 1];
+  if (msg && msg.role === "assistant") {
+    msg.content = text;
+    msg.meta = {
+      safety_notice: data.safety_notice,
+      fallback_used: data.fallback_used,
+      evidence_used: data.evidence_used || [],
+      reasoning_steps: data.reasoning_steps || [],
+      knowledge_refs: data.knowledge_refs || []
+    };
+  }
+  renderMessages();
+  persistSession();
+}
+
+function _replaceLastAssistantContent(text) {
+  const msg = state.messages[state.messages.length - 1];
+  if (msg && msg.role === "assistant") msg.content = text;
+  renderMessages();
+}
+
+function _applyChatSideEffects(data) {
+  // applyChatResult 的副作用（不含 addMessage）
+  state.lastChat = data;
+  state.learnerContext = data.learner_context || state.learnerContext;
+  renderSuggestedQuestions(data.suggested_questions || []);
+  renderToolSuggestions(data.tool_suggestions || []);
+  if (data.student_graph) renderGraph(data.student_graph, "student");
+  loadGraphUpdates();
+  loadStudentDashboard();
+  renderKnowledge(data.knowledge_refs || []);
+  renderTasks(data.remediation_cards || []);
 }
 
 async function submitDiagnosis() {

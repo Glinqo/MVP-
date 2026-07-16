@@ -29,6 +29,9 @@ if str(ROOT) not in sys.path:
 from app.services.data_loader import primary_job_profile, public_questions  # noqa: E402
 from app.services.assist import assist  # noqa: E402
 from app.services.chat import chat_message, chat_start  # noqa: E402
+from app.services.intent import classify_intent  # noqa: E402
+from app.services.intent_handlers import handle_knowledge_qa_stream, handle_knowledge_qa  # noqa: E402
+from app.services.llm_client import is_configured  # noqa: E402
 from app.services.explanation import explain  # noqa: E402
 from app.services.feedback import append_session_event, save_feedback, teacher_summary  # noqa: E402
 from app.services.graph import build_ability_graph, build_job_ability_graph, build_student_ability_graph  # noqa: E402
@@ -73,6 +76,113 @@ class MVPHandler(BaseHTTPRequestHandler):
 
     def send_error_json(self, status, message):
         self.send_json({"error": message}, status=status)
+
+    def _send_sse(self, event_type, data_str):
+        """发送一条 SSE 事件，强制刷新到客户端。"""
+        payload = f"event: {event_type}\ndata: {data_str}\n\n".encode("utf-8")
+        self.wfile.write(payload)
+        self.wfile.flush()
+
+    def _handle_chat_stream(self, payload):
+        """SSE 流式对话端点 —— 仅处理 knowledge_qa 意图。
+
+        非 knowledge_qa 意图直接返回 error 事件，前端收到后自动降级到普通接口。
+        """
+        message = payload.get("message") or payload.get("user_input") or ""
+        history = payload.get("history", [])[-8:]
+        context = payload.get("context", {}) or {}
+
+        # Step 1: 意图识别（快速）
+        intent_result = classify_intent(message, history=history, context=context)
+        intent = intent_result.get("intent", "diagnosis")
+
+        # Step 2: 设置 SSE 响应头
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("X-Accel-Buffering", "no")       # 禁用 nginx 缓冲
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+
+        # Step 3: 非 knowledge_qa 意图 → 通知前端降级
+        if intent != "knowledge_qa":
+            self._send_sse("error", json.dumps({
+                "code": "not_streamable",
+                "intent": intent,
+            }, ensure_ascii=False))
+            return
+
+        # Step 4: knowledge_qa → 检索 + 流式 LLM
+        try:
+            meta, stream_gen = handle_knowledge_qa_stream(payload, intent_result)
+
+            # 先发送 meta（检索结果、安全提醒等）
+            meta_json = json.dumps(self._meta_for_sse(meta), ensure_ascii=False)
+            self._send_sse("meta", meta_json)
+
+            # 逐 token 流式发送 LLM 回答
+            full_text = ""
+            for chunk in stream_gen:
+                full_text += chunk
+                self._send_sse("chunk", json.dumps({"text": chunk}, ensure_ascii=False))
+
+            # 发送完成事件
+            done_data = json.dumps({
+                "full_answer": full_text,
+                "answer": full_text,
+            }, ensure_ascii=False)
+            self._send_sse("done", done_data)
+
+            # 记录会话事件
+            session_id = payload.get("session_id")
+            if session_id:
+                try:
+                    from app.services.feedback import append_session_event
+                    append_session_event(
+                        session_id,
+                        {
+                            "event_type": "chat_message",
+                            "intent": intent,
+                            "intent_source": intent_result.get("source"),
+                            "answer": full_text[:200],
+                        },
+                    )
+                except Exception:
+                    pass
+
+        except Exception as exc:
+            import traceback
+            traceback.print_exc()
+            try:
+                self._send_sse("error", json.dumps({
+                    "code": "llm_error",
+                    "error": str(exc),
+                }, ensure_ascii=False))
+            except Exception:
+                pass  # 连接可能已断开
+
+    @staticmethod
+    def _meta_for_sse(result):
+        """提取 meta 字典中需要即时展示的字段。"""
+        return {
+            "knowledge_refs": [
+                {
+                    "id": r.get("id"),
+                    "topic": r.get("topic"),
+                    "source": r.get("source"),
+                }
+                for r in (result.get("knowledge_refs") or [])[:5]
+            ],
+            "safety_notice": result.get("safety_notice", ""),
+            "evidence_used": result.get("evidence_used", [])[:3],
+            "reasoning_steps": result.get("reasoning_steps", [])[:3],
+            "suggested_questions": result.get("suggested_questions", [])[:3],
+            "next_questions": result.get("next_questions", [])[:3],
+            "highlighted_abilities": result.get("highlighted_abilities", [])[:4],
+            "tool_suggestions": result.get("tool_suggestions", [])[:4],
+            "fallback_used": result.get("fallback_used", False),
+            "intent": result.get("intent", ""),
+        }
 
     def read_json_body(self):
         length = int(self.headers.get("Content-Length", "0") or 0)
@@ -176,6 +286,8 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(chat_start(payload))
             if path == "/api/chat/message":
                 return self.send_json(chat_message(payload))
+            if path == "/api/chat/stream":
+                return self._handle_chat_stream(payload)
             if path == "/api/student/bootstrap":
                 return self.send_json(student_bootstrap(payload.get("session_id")))
             if path == "/api/quiz/personalized":
