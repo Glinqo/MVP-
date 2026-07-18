@@ -733,6 +733,2178 @@
       "created_at": "2026-07-15T05:48:37.736349+00:00",
       "session_id": "demo-1784094340662",
       "event_id": "20260715T054837736349+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:13.788375+00:00",
+      "session_id": "test-conformance-A",
+      "event_id": "20260717T225213788375+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:13.808740+00:00",
+      "session_id": "test-conformance-A",
+      "event_id": "20260717T225213808740+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? VERIFY_TRIPLE_STATE / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:13.839797+00:00",
+      "session_id": "test-conformance-A",
+      "event_id": "20260717T225213839797+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:13.860189+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260717T225213860189+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_io_address_mapping",
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_io_address_mapping",
+          "name": "PLC地址映射"
+        },
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "premature",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? MODIFY_PROGRAM_PREMATURE / premature",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:13.891039+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260717T225213891039+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsupported_hypothesis",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REPLACE_MODULE_NO_EVIDENCE / unsupported_hypothesis",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:13.911562+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260717T225213911562+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:13.932150+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260717T225213932150+0000"
+    },
+    {
+      "event_type": "scenario_started",
+      "ability_ids": [
+        "electrical_safety_check",
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal",
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        },
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线诊断"
+        },
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        },
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": null,
+      "note": "传感器灯亮但 PLC 输入灯不亮",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:16.932628+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T225216932628+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "correct",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S1 / 选择 A",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:16.948063+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T225216948063+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "incorrect",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S1 / 选择 B",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:16.962527+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T225216962527+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:16.973102+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T225216973102+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.001143+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T225217001143+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_io_address_mapping",
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_io_address_mapping",
+          "name": "PLC地址映射"
+        },
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "premature",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? MODIFY_PROGRAM_PREMATURE / premature",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.027893+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T225217027893+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.129928+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217129928+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.156379+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217156379+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? VERIFY_TRIPLE_STATE / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.181078+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217181078+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.219270+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217219270+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "sensor_wiring_judgement"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线诊断"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "valid",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_WIRING / valid",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.249104+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217249104+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.277344+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217277344+0000"
+    },
+    {
+      "event_type": "scenario_started",
+      "ability_ids": [
+        "electrical_safety_check",
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal",
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        },
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线诊断"
+        },
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        },
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": null,
+      "note": "传感器灯亮但 PLC 输入灯不亮",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.306891+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217306891+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "correct",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S1 / 选择 A",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.327629+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217327629+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.353548+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217353548+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.384886+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217384886+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.417527+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217417527+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.450059+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T225217450059+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.547585+00:00",
+      "session_id": "test-strategy-profile",
+      "event_id": "20260717T225217547585+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_io_address_mapping",
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_io_address_mapping",
+          "name": "PLC地址映射"
+        },
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "premature",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? MODIFY_PROGRAM_PREMATURE / premature",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.576257+00:00",
+      "session_id": "test-strategy-profile",
+      "event_id": "20260717T225217576257+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.599250+00:00",
+      "session_id": "test-strategy-profile",
+      "event_id": "20260717T225217599250+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.628406+00:00",
+      "session_id": "test-strategy-profile-2",
+      "event_id": "20260717T225217628406+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.650444+00:00",
+      "session_id": "test-strategy-profile-2",
+      "event_id": "20260717T225217650444+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? VERIFY_TRIPLE_STATE / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T22:52:17.675231+00:00",
+      "session_id": "test-strategy-profile-2",
+      "event_id": "20260717T225217675231+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:37:59.670278+00:00",
+      "session_id": "test-conformance-A",
+      "event_id": "20260717T233759670278+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:37:59.696736+00:00",
+      "session_id": "test-conformance-A",
+      "event_id": "20260717T233759696736+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? VERIFY_TRIPLE_STATE / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:37:59.720148+00:00",
+      "session_id": "test-conformance-A",
+      "event_id": "20260717T233759720148+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:37:59.746855+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260717T233759746855+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_io_address_mapping",
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_io_address_mapping",
+          "name": "PLC地址映射"
+        },
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "premature",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? MODIFY_PROGRAM_PREMATURE / premature",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:37:59.772372+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260717T233759772372+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsupported_hypothesis",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REPLACE_MODULE_NO_EVIDENCE / unsupported_hypothesis",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:37:59.792708+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260717T233759792708+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:37:59.821720+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260717T233759821720+0000"
+    },
+    {
+      "event_type": "scenario_started",
+      "ability_ids": [
+        "electrical_safety_check",
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal",
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        },
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线诊断"
+        },
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        },
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": null,
+      "note": "传感器灯亮但 PLC 输入灯不亮",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.657033+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T233802657033+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "correct",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S1 / 选择 A",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.675203+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T233802675203+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "incorrect",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S1 / 选择 B",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.687020+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T233802687020+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.706857+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T233802706857+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.728251+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T233802728251+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_io_address_mapping",
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_io_address_mapping",
+          "name": "PLC地址映射"
+        },
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "premature",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? MODIFY_PROGRAM_PREMATURE / premature",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.758780+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260717T233802758780+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.861160+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233802861160+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.881290+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233802881290+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? VERIFY_TRIPLE_STATE / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.902039+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233802902039+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.931040+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233802931040+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "sensor_wiring_judgement"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线诊断"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "valid",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_WIRING / valid",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.951600+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233802951600+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:02.982218+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233802982218+0000"
+    },
+    {
+      "event_type": "scenario_started",
+      "ability_ids": [
+        "electrical_safety_check",
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal",
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        },
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线诊断"
+        },
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        },
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": null,
+      "note": "传感器灯亮但 PLC 输入灯不亮",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.003534+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233803003534+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "correct",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S1 / 选择 A",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.031285+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233803031285+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.052740+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233803052740+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.081873+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233803081873+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.114905+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233803114905+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.142996+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260717T233803142996+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.242223+00:00",
+      "session_id": "test-strategy-profile",
+      "event_id": "20260717T233803242223+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_io_address_mapping",
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_io_address_mapping",
+          "name": "PLC地址映射"
+        },
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "premature",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? MODIFY_PROGRAM_PREMATURE / premature",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.272521+00:00",
+      "session_id": "test-strategy-profile",
+      "event_id": "20260717T233803272521+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.299693+00:00",
+      "session_id": "test-strategy-profile",
+      "event_id": "20260717T233803299693+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.326083+00:00",
+      "session_id": "test-strategy-profile-2",
+      "event_id": "20260717T233803326083+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.357018+00:00",
+      "session_id": "test-strategy-profile-2",
+      "event_id": "20260717T233803357018+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? VERIFY_TRIPLE_STATE / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-17T23:38:03.377034+00:00",
+      "session_id": "test-strategy-profile-2",
+      "event_id": "20260717T233803377034+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K006",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看电源端子与输入公共端区别讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-18T09:19:10.819915+00:00",
+      "session_id": "demo-1783784235684",
+      "event_id": "20260718T091910819915+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "input_led_compare"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "input_led_compare",
+          "name": "信号灯对比判断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K031",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看传感器灯与 PLC 输入灯对比讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-18T09:19:39.029850+00:00",
+      "session_id": "demo-1783784235684",
+      "event_id": "20260718T091939029850+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:35.683299+00:00",
+      "session_id": "test-conformance-A",
+      "event_id": "20260718T092235683299+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:35.711720+00:00",
+      "session_id": "test-conformance-A",
+      "event_id": "20260718T092235711720+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? VERIFY_TRIPLE_STATE / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:35.747137+00:00",
+      "session_id": "test-conformance-A",
+      "event_id": "20260718T092235747137+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:35.776922+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260718T092235776922+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_io_address_mapping",
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_io_address_mapping",
+          "name": "PLC地址映射"
+        },
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "premature",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? MODIFY_PROGRAM_PREMATURE / premature",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:35.803390+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260718T092235803390+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsupported_hypothesis",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REPLACE_MODULE_NO_EVIDENCE / unsupported_hypothesis",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:35.833890+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260718T092235833890+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:35.870234+00:00",
+      "session_id": "test-conformance-B",
+      "event_id": "20260718T092235870234+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:36.064355+00:00",
+      "session_id": "test-strategy-profile",
+      "event_id": "20260718T092236064355+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_io_address_mapping",
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_io_address_mapping",
+          "name": "PLC地址映射"
+        },
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "premature",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? MODIFY_PROGRAM_PREMATURE / premature",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:36.093579+00:00",
+      "session_id": "test-strategy-profile",
+      "event_id": "20260718T092236093579+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:36.128805+00:00",
+      "session_id": "test-strategy-profile",
+      "event_id": "20260718T092236128805+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:36.169523+00:00",
+      "session_id": "test-strategy-profile-2",
+      "event_id": "20260718T092236169523+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:36.199518+00:00",
+      "session_id": "test-strategy-profile-2",
+      "event_id": "20260718T092236199518+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? VERIFY_TRIPLE_STATE / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:36.230216+00:00",
+      "session_id": "test-strategy-profile-2",
+      "event_id": "20260718T092236230216+0000"
+    },
+    {
+      "event_type": "scenario_started",
+      "ability_ids": [
+        "electrical_safety_check",
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal",
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        },
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线诊断"
+        },
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        },
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": null,
+      "note": "传感器灯亮但 PLC 输入灯不亮",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:44.984312+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260718T092244984312+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "correct",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S1 / 选择 A",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.003304+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260718T092245003304+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "incorrect",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S1 / 选择 B",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.021652+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260718T092245021652+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.044455+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260718T092245044455+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.079019+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260718T092245079019+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "plc_io_address_mapping",
+        "input_no_response_fault_scope"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_io_address_mapping",
+          "name": "PLC地址映射"
+        },
+        {
+          "id": "input_no_response_fault_scope",
+          "name": "故障定位分析"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "premature",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? MODIFY_PROGRAM_PREMATURE / premature",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.113478+00:00",
+      "session_id": "test-diagnostic-events",
+      "event_id": "20260718T092245113478+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.222634+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245222634+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.264941+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245264941+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? VERIFY_TRIPLE_STATE / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.296827+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245296827+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.332214+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245332214+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "sensor_wiring_judgement"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线诊断"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "valid",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_WIRING / valid",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.370097+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245370097+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.406110+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245406110+0000"
+    },
+    {
+      "event_type": "scenario_started",
+      "ability_ids": [
+        "electrical_safety_check",
+        "sensor_wiring_judgement",
+        "plc_input_common_terminal",
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        },
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线诊断"
+        },
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        },
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": null,
+      "note": "传感器灯亮但 PLC 输入灯不亮",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.446898+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245446898+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "correct",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / S1 / 选择 A",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.477997+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245477997+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.511518+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245511518+0000"
+    },
+    {
+      "event_type": "scenario_step_mistake",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "unsafe",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? REWIRE_WITHOUT_SAFETY / unsafe",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.554983+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245554983+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "electrical_safety_check"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "electrical_safety_check",
+          "name": "电气安全规范"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_SAFETY / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.596829+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245596829+0000"
+    },
+    {
+      "event_type": "scenario_step_completed",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": null,
+      "knowledge_id": null,
+      "task_id": null,
+      "outcome": "optimal",
+      "note": "传感器灯亮但 PLC 输入灯不亮 / ?? CHECK_COMMON_TERMINAL / optimal",
+      "source": "project_curated",
+      "created_at": "2026-07-18T09:22:45.642978+00:00",
+      "session_id": "test-multi-path",
+      "event_id": "20260718T092245642978+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_common_terminal"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_common_terminal",
+          "name": "PLC输入公共端"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K006",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看电源端子与输入公共端区别讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-18T09:29:49.195810+00:00",
+      "session_id": "demo-1783784235684",
+      "event_id": "20260718T092949195810+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "sensor_wiring_judgement"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "sensor_wiring_judgement",
+          "name": "传感器接线诊断"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K014",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看输出类型与公共端匹配讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-18T09:30:01.029552+00:00",
+      "session_id": "demo-1783784235684",
+      "event_id": "20260718T093001029552+0000"
     }
   ]
 }

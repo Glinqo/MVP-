@@ -14,6 +14,8 @@ if str(ROOT) not in sys.path:
 from app.services.data_loader import primary_job_profile, public_questions  # noqa: E402
 from app.services.assist import assist  # noqa: E402
 from app.services.chat import chat_message, chat_start  # noqa: E402
+from app.services.conversation_runner import run_conversation_turn  # noqa: E402
+from app.services.conversation_events import error_event  # noqa: E402
 from app.services.explanation import explain  # noqa: E402
 from app.services.feedback import append_session_event, save_feedback, teacher_summary  # noqa: E402
 from app.services.graph import build_ability_graph, build_job_ability_graph, build_student_ability_graph, build_student_job_gap  # noqa: E402
@@ -93,6 +95,32 @@ class MVPHandler(BaseHTTPRequestHandler):
 
     def log_message(self, format, *args):
         sys.stderr.write("%s - - [%s] %s\n" % (self.address_string(), self.log_date_time_string(), format % args))
+
+    def _handle_chat_stream(self, payload):
+        """SSE streaming endpoint for all chat messages."""
+        session_id = (payload or {}).get("session_id")
+        message = (payload or {}).get("message", "")
+        ui_context_delta = (payload or {}).get("ui_context_delta", {})
+
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "keep-alive")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+
+        try:
+            for event in run_conversation_turn(session_id, message, ui_context_delta):
+                if hasattr(event, "to_sse"):
+                    sse_text = event.to_sse()
+                else:
+                    sse_text = str(event)
+                self.wfile.write(sse_text.encode("utf-8"))
+                self.wfile.flush()
+        except Exception as exc:
+            err = error_event("internal_error", str(exc), recoverable=False)
+            self.wfile.write(err.to_sse().encode("utf-8"))
+            self.wfile.flush()
 
     def send_json(self, data, status=200):
         body = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
@@ -302,6 +330,8 @@ class MVPHandler(BaseHTTPRequestHandler):
             payload = self.read_json_body()
             if path == "/api/chat/start":
                 return self.send_json(chat_start(payload))
+            if path == "/api/chat/stream":
+                return self._handle_chat_stream(payload)
             if path == "/api/chat/message":
                 return self.send_json(chat_message(payload))
             if path == "/api/student/bootstrap":

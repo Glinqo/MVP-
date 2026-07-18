@@ -340,5 +340,3 @@ class ForceGraph {
         this.svg?.remove();
     }
 }
-
-

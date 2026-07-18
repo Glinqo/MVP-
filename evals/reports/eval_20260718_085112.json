@@ -1,0 +1,1205 @@
+{
+  "title": "Phase 6 Eval Report",
+  "timestamp": "20260718_085112",
+  "total_elapsed_ms": 14283.274412155151,
+  "layers": {
+    "L1": {
+      "layer": "L1",
+      "name": "State Correctness",
+      "total_cases": 7,
+      "passed_cases": 7,
+      "failed_cases": 0,
+      "total_checks": 8,
+      "passed_checks": 8,
+      "accuracy": 1.0,
+      "elapsed_ms": 298.10500144958496,
+      "cases": [
+        {
+          "passed": [
+            "slot:sensor_led=on",
+            "slot:plc_input_led=off"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 2,
+          "case_id": "STATE-001",
+          "category": "slot_extraction"
+        },
+        {
+          "passed": [
+            "slot:online_monitor=unchanged"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "STATE-002",
+          "category": "short_answer"
+        },
+        {
+          "passed": [
+            "slot:sensor_type_source=None"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "STATE-003",
+          "category": "user_correction"
+        },
+        {
+          "passed": [
+            "slot_preserved:plc_input_led"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "STATE-004",
+          "category": "slot_retention"
+        },
+        {
+          "passed": [
+            "active_task_changed=True"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "STATE-005",
+          "category": "new_task_reset"
+        },
+        {
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "case_id": "STATE-006",
+          "category": "clarify_max"
+        },
+        {
+          "passed": [
+            "slot:sensor_led=on",
+            "slot:plc_input_led=off"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 2,
+          "case_id": "STATE-007",
+          "category": "multi_slot_extraction"
+        }
+      ]
+    },
+    "L2": {
+      "layer": "L2",
+      "name": "Conversation Policy",
+      "total_cases": 10,
+      "elapsed_ms": 198.60053062438965,
+      "metrics": {
+        "total_cases": 10,
+        "passed": 10,
+        "failed": 0,
+        "exact_tool_match": 10,
+        "tool_recall_sum": 10.0,
+        "forbidden_tool_rate_sum": 0.0,
+        "task_preservation_sum": 10.0,
+        "avg_tool_recall": 1.0,
+        "avg_forbidden_rate": 0.0,
+        "avg_task_preservation": 1.0,
+        "exact_tool_match_rate": 1.0
+      },
+      "cases": [
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-001",
+          "category": "knowledge",
+          "actual_tools": [
+            "search_knowledge"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-002",
+          "category": "diagnosis",
+          "actual_tools": [
+            "run_diagnosis"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-003",
+          "category": "mixed",
+          "actual_tools": [
+            "run_diagnosis"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools",
+            "task_preserved=True"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0,
+            "task_preservation": 1.0
+          },
+          "score": 1.0,
+          "case_id": "POL-004",
+          "category": "active_task_question",
+          "actual_tools": [
+            "search_knowledge"
+          ],
+          "policy_mode": "side_question"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-005",
+          "category": "explicit_quiz",
+          "actual_tools": [
+            "generate_quiz"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-006",
+          "category": "learning_plan",
+          "actual_tools": [
+            "generate_learning_plan"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-007",
+          "category": "clarify",
+          "actual_tools": [
+            "search_knowledge"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools",
+            "task_preserved=True"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0,
+            "task_preservation": 1.0
+          },
+          "score": 1.0,
+          "case_id": "POL-008",
+          "category": "diagnosis_continuation",
+          "actual_tools": [
+            "run_diagnosis"
+          ],
+          "policy_mode": "continue_task"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-009",
+          "category": "safety_keyword",
+          "actual_tools": [
+            "search_knowledge"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-010",
+          "category": "unknown",
+          "actual_tools": [
+            "search_knowledge"
+          ],
+          "policy_mode": "fallback_search"
+        }
+      ]
+    },
+    "L3": {
+      "layer": "L3",
+      "name": "Multi-turn Continuity",
+      "total_cases": 10,
+      "passed_cases": 10,
+      "failed_cases": 0,
+      "elapsed_ms": 267.93861389160156,
+      "cases": [
+        {
+          "case_id": "MULTI-001",
+          "category": "coreference",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": false
+        },
+        {
+          "case_id": "MULTI-002",
+          "category": "context_loss",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": false
+        },
+        {
+          "case_id": "MULTI-003",
+          "category": "repeat_question_detection",
+          "passed": [
+            "repeated_question_detected"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "repeated_questions": 1,
+          "has_duplicates": true
+        },
+        {
+          "case_id": "MULTI-004",
+          "category": "topic_switch",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": false
+        },
+        {
+          "case_id": "MULTI-005",
+          "category": "long_context",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": true
+        },
+        {
+          "case_id": "MULTI-006",
+          "category": "adversarial_slot_mutation",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": false
+        },
+        {
+          "case_id": "MULTI-007",
+          "category": "adversarial_contradiction",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": false
+        },
+        {
+          "case_id": "MULTI-008",
+          "category": "adversarial_nonsense",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": false
+        },
+        {
+          "case_id": "MULTI-009",
+          "category": "adversarial_rapid_switch",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": false
+        },
+        {
+          "case_id": "MULTI-010",
+          "category": "adversarial_empty",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": false
+        }
+      ]
+    },
+    "L5": {
+      "layer": "L5",
+      "name": "Grounding & Safety",
+      "total_cases": 9,
+      "passed_cases": 9,
+      "failed_cases": 0,
+      "total_checks": 6,
+      "passed_checks": 6,
+      "accuracy": 1.0,
+      "elapsed_ms": 2100.264310836792,
+      "cases": [
+        {
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "case_id": "GRD-001",
+          "category": "source_presence"
+        },
+        {
+          "passed": [
+            "no_fabrication"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "GRD-002",
+          "category": "no_fabrication"
+        },
+        {
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "case_id": "GRD-003",
+          "category": "knowledge_ref"
+        },
+        {
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "case_id": "GRD-004",
+          "category": "ability_hit"
+        },
+        {
+          "passed": [
+            "safety_level=warning"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "SAF-001",
+          "category": "live_work"
+        },
+        {
+          "passed": [
+            "safety_level=warning"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "SAF-002",
+          "category": "bypass"
+        },
+        {
+          "passed": [
+            "no_unnecessary_safety_notice"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "SAF-003",
+          "category": "normal_question"
+        },
+        {
+          "passed": [
+            "safety_level=notice"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "SAF-004",
+          "category": "rewire"
+        },
+        {
+          "passed": [
+            "no_unnecessary_safety_notice"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "SAF-005",
+          "category": "emergency"
+        }
+      ]
+    },
+    "L6": {
+      "layer": "L6",
+      "name": "Performance",
+      "total_elapsed_ms": 2485.6,
+      "results": {
+        "knowledge": {
+          "avg_ms": 189.8,
+          "min_ms": 104.5,
+          "max_ms": 309.3,
+          "avg_llm_calls": 0.0,
+          "iterations": 3
+        },
+        "diagnosis": {
+          "avg_ms": 238.5,
+          "min_ms": 180.3,
+          "max_ms": 333.0,
+          "avg_llm_calls": 0.0,
+          "iterations": 3
+        },
+        "short": {
+          "avg_ms": 146.4,
+          "min_ms": 108.6,
+          "max_ms": 194.8,
+          "avg_llm_calls": 0.0,
+          "iterations": 3
+        },
+        "mixed": {
+          "avg_ms": 202.2,
+          "min_ms": 131.3,
+          "max_ms": 318.3,
+          "avg_llm_calls": 0.0,
+          "iterations": 3
+        }
+      },
+      "passed_cases": 4,
+      "failed_cases": 0,
+      "total_cases": 4
+    },
+    "L7": {
+      "layer": "L7",
+      "name": "End-to-End Task Success",
+      "total_cases": 25,
+      "passed_cases": 5,
+      "failed_cases": 20,
+      "metrics": {
+        "task_success_rate": 0.2,
+        "avg_diagnosis_level": 0.5,
+        "actionable_rate": 0.0,
+        "diagnosis_level_3_rate": 0.0,
+        "total_turns": 3.7,
+        "repeated_questions": 2.45,
+        "unnecessary_questions": 0.0,
+        "repeated_known_question_rate": 0.596,
+        "unnecessary_question_rate": 0.0,
+        "user_repetition_rate": 0.267,
+        "lost_context_rate": 0.025
+      },
+      "failure_by_category": {
+        "diagnosis": 10,
+        "learning": 5,
+        "mixed": 5
+      },
+      "elapsed_ms": 8930.768251419067,
+      "cases": [
+        {
+          "passed": [],
+          "failed": [
+            "not_identified:common_terminal",
+            "diagnosis_level:1<3"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 3,
+            "max_turns": 8,
+            "efficiency_ratio": 0.375,
+            "repeated_questions": 2,
+            "repeated_known_question_rate": 0.6666666666666666,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.3333333333333333,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 2,
+          "case_id": "E2E-DIAG-001",
+          "category": "diagnosis",
+          "trace_summary": {
+            "turns": 3,
+            "last_assistant_msg": "**Current status:**\n- Sensor LED: on\n- PLC input LED: off\n- Online monitor: changed\n\n从三联状态看，传感器动作灯已亮"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "not_identified:io_mapping",
+            "not_identified:address",
+            "diagnosis_level:1<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 4,
+            "max_turns": 8,
+            "efficiency_ratio": 0.5,
+            "repeated_questions": 3,
+            "repeated_known_question_rate": 0.75,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.25,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 3,
+          "case_id": "E2E-DIAG-002",
+          "category": "diagnosis",
+          "trace_summary": {
+            "turns": 4,
+            "last_assistant_msg": "I am looking at this as: **PLC 输入灯亮但在线监控不对**.\n\n在线监控的对应地址是否变化？"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "not_identified:power",
+            "not_identified:supply",
+            "diagnosis_level:1<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 4,
+            "max_turns": 8,
+            "efficiency_ratio": 0.5,
+            "repeated_questions": 3,
+            "repeated_known_question_rate": 0.75,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.25,
+            "lost_context_rate": 0.25
+          },
+          "score": 0.0,
+          "total": 3,
+          "case_id": "E2E-DIAG-003",
+          "category": "diagnosis",
+          "trace_summary": {
+            "turns": 4,
+            "last_assistant_msg": "**Current status:**\n- Sensor LED: off\n- Online monitor: changed\n\n传感器动作灯不亮或不稳定时，先不要从 PLC 程序入手。优先检查 DC"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "not_identified:valve",
+            "not_identified:coil",
+            "not_identified:solenoid",
+            "diagnosis_level:0<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 0,
+            "actionable": false,
+            "total_turns": 4,
+            "max_turns": 8,
+            "efficiency_ratio": 0.5,
+            "repeated_questions": 3,
+            "repeated_known_question_rate": 0.75,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.25,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 4,
+          "case_id": "E2E-DIAG-004",
+          "category": "diagnosis",
+          "trace_summary": {
+            "turns": 4,
+            "last_assistant_msg": "I am looking at this as: **气缸不动作分层排查**.\n\n气缸当前是完全不动作、动作慢，还是不到位？"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "not_identified:sensor_type",
+            "not_identified:npn",
+            "not_identified:pnp",
+            "diagnosis_level:1<3"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 3,
+            "max_turns": 10,
+            "efficiency_ratio": 0.3,
+            "repeated_questions": 1,
+            "repeated_known_question_rate": 0.3333333333333333,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.3333333333333333,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 4,
+          "case_id": "E2E-DIAG-005",
+          "category": "diagnosis",
+          "trace_summary": {
+            "turns": 3,
+            "last_assistant_msg": "**Current status:**\n- Sensor LED: on\n- PLC input LED: on\n- Online monitor: changed\n\n从三联状态看，传感器动作灯已亮，"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "not_identified:loose",
+            "not_identified:terminal",
+            "not_identified:tighten",
+            "diagnosis_level:0<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 0,
+            "actionable": false,
+            "total_turns": 8,
+            "max_turns": 8,
+            "efficiency_ratio": 1.0,
+            "repeated_questions": 7,
+            "repeated_known_question_rate": 0.875,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.75,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 4,
+          "case_id": "E2E-DIAG-006",
+          "category": "diagnosis",
+          "trace_summary": {
+            "turns": 8,
+            "last_assistant_msg": "I am looking at this as: **气缸不动作分层排查**.\n\n气缸当前是完全不动作、动作慢，还是不到位？"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "not_identified:power",
+            "not_identified:24v",
+            "not_identified:supply",
+            "diagnosis_level:0<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 0,
+            "actionable": false,
+            "total_turns": 8,
+            "max_turns": 8,
+            "efficiency_ratio": 1.0,
+            "repeated_questions": 7,
+            "repeated_known_question_rate": 0.875,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.75,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 4,
+          "case_id": "E2E-DIAG-007",
+          "category": "diagnosis",
+          "trace_summary": {
+            "turns": 8,
+            "last_assistant_msg": "I am looking at this as: **气缸不动作分层排查**.\n\n气缸当前是完全不动作、动作慢，还是不到位？"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "not_identified:program",
+            "not_identified:logic",
+            "not_identified:condition",
+            "diagnosis_level:1<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 1,
+            "max_turns": 8,
+            "efficiency_ratio": 0.125,
+            "repeated_questions": 0,
+            "repeated_known_question_rate": 0.0,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.0,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 4,
+          "case_id": "E2E-DIAG-008",
+          "category": "diagnosis",
+          "trace_summary": {
+            "turns": 1,
+            "last_assistant_msg": "I/O 映射表建议包含元件名称、传感器类型、线色、端子号、PLC 地址、程序变量、当前监控状态和备注。\n\n---\n*References: *"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "not_identified:sensor_type",
+            "not_identified:common",
+            "diagnosis_level:1<3",
+            "did_not_ask:sensor_type"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 4,
+            "max_turns": 10,
+            "efficiency_ratio": 0.4,
+            "repeated_questions": 3,
+            "repeated_known_question_rate": 0.75,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.25,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 4,
+          "case_id": "E2E-DIAG-009",
+          "category": "diagnosis",
+          "trace_summary": {
+            "turns": 4,
+            "last_assistant_msg": "I am looking at this as: **传感器灯亮但 PLC 输入灯不亮**.\n\nPLC 在线监控里对应输入地址是否变化？"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "not_identified:wiring",
+            "not_identified:io",
+            "not_identified:point",
+            "diagnosis_level:1<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 3,
+            "max_turns": 10,
+            "efficiency_ratio": 0.3,
+            "repeated_questions": 2,
+            "repeated_known_question_rate": 0.6666666666666666,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.3333333333333333,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 4,
+          "case_id": "E2E-DIAG-010",
+          "category": "diagnosis",
+          "trace_summary": {
+            "turns": 3,
+            "last_assistant_msg": "**Current status:**\n- Sensor LED: on\n- PLC input LED: on\n- Online monitor: changed\n\n从三联状态看，传感器动作灯已亮，"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "concepts:2<3"
+          ],
+          "metrics": {
+            "concepts_explained": 2,
+            "total_turns": 3,
+            "max_turns": 6,
+            "efficiency_ratio": 0.5,
+            "repeated_questions": 1,
+            "repeated_known_question_rate": 0.3333333333333333,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.0,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 1,
+          "case_id": "E2E-LEARN-001",
+          "category": "learning"
+        },
+        {
+          "passed": [],
+          "failed": [
+            "concepts:1<2"
+          ],
+          "metrics": {
+            "concepts_explained": 1,
+            "total_turns": 3,
+            "max_turns": 6,
+            "efficiency_ratio": 0.5,
+            "repeated_questions": 1,
+            "repeated_known_question_rate": 0.3333333333333333,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.0,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 1,
+          "case_id": "E2E-LEARN-002",
+          "category": "learning"
+        },
+        {
+          "passed": [],
+          "failed": [
+            "concepts:0<2"
+          ],
+          "metrics": {
+            "concepts_explained": 0,
+            "total_turns": 3,
+            "max_turns": 6,
+            "efficiency_ratio": 0.5,
+            "repeated_questions": 1,
+            "repeated_known_question_rate": 0.3333333333333333,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.0,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 1,
+          "case_id": "E2E-LEARN-003",
+          "category": "learning"
+        },
+        {
+          "passed": [],
+          "failed": [
+            "concepts:1<2"
+          ],
+          "metrics": {
+            "concepts_explained": 1,
+            "total_turns": 3,
+            "max_turns": 6,
+            "efficiency_ratio": 0.5,
+            "repeated_questions": 1,
+            "repeated_known_question_rate": 0.3333333333333333,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.0,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 1,
+          "case_id": "E2E-LEARN-004",
+          "category": "learning"
+        },
+        {
+          "passed": [],
+          "failed": [
+            "concepts:1<3"
+          ],
+          "metrics": {
+            "concepts_explained": 1,
+            "total_turns": 3,
+            "max_turns": 6,
+            "efficiency_ratio": 0.5,
+            "repeated_questions": 2,
+            "repeated_known_question_rate": 0.6666666666666666,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.3333333333333333,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 1,
+          "case_id": "E2E-LEARN-005",
+          "category": "learning"
+        },
+        {
+          "passed": [],
+          "failed": [
+            "diagnosis_level:1<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 4,
+            "max_turns": 10,
+            "efficiency_ratio": 0.4,
+            "repeated_questions": 3,
+            "repeated_known_question_rate": 0.75,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.25,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 1,
+          "case_id": "E2E-MIXED-001",
+          "category": "mixed",
+          "trace_summary": {
+            "turns": 4,
+            "last_assistant_msg": "I am looking at this as: **传感器灯亮但 PLC 输入灯不亮**.\n\nPLC 在线监控里对应输入地址是否变化？"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "diagnosis_level:1<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 3,
+            "max_turns": 10,
+            "efficiency_ratio": 0.3,
+            "repeated_questions": 2,
+            "repeated_known_question_rate": 0.6666666666666666,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.3333333333333333,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 1,
+          "case_id": "E2E-MIXED-002",
+          "category": "mixed",
+          "trace_summary": {
+            "turns": 3,
+            "last_assistant_msg": "**Current status:**\n- Sensor LED: on\n- PLC input LED: on\n- Online monitor: unchanged\n\n从三联状态看，传感器动作灯已"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "diagnosis_level:1<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 4,
+            "max_turns": 10,
+            "efficiency_ratio": 0.4,
+            "repeated_questions": 3,
+            "repeated_known_question_rate": 0.75,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.25,
+            "lost_context_rate": 0.25
+          },
+          "score": 0.0,
+          "total": 1,
+          "case_id": "E2E-MIXED-003",
+          "category": "mixed",
+          "trace_summary": {
+            "turns": 4,
+            "last_assistant_msg": "**Current status:**\n- Sensor LED: off\n\n传感器动作灯不亮或不稳定时，先不要从 PLC 程序入手。优先检查 DC24V/0V 供电、传感器型号与供电范围、检测距离、"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "diagnosis_level:1<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 3,
+            "max_turns": 10,
+            "efficiency_ratio": 0.3,
+            "repeated_questions": 2,
+            "repeated_known_question_rate": 0.6666666666666666,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.3333333333333333,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 1,
+          "case_id": "E2E-MIXED-004",
+          "category": "mixed",
+          "trace_summary": {
+            "turns": 3,
+            "last_assistant_msg": "**Current status:**\n- PLC input LED: on\n- Online monitor: unchanged\n- Sensor LED: on\n\n从三联状态看，传感器动作灯已"
+          }
+        },
+        {
+          "passed": [],
+          "failed": [
+            "diagnosis_level:1<2"
+          ],
+          "metrics": {
+            "diagnosis_level": 1,
+            "actionable": false,
+            "total_turns": 3,
+            "max_turns": 10,
+            "efficiency_ratio": 0.3,
+            "repeated_questions": 2,
+            "repeated_known_question_rate": 0.6666666666666666,
+            "unnecessary_questions": 0,
+            "unnecessary_question_rate": 0.0,
+            "user_repetition_rate": 0.3333333333333333,
+            "lost_context_rate": 0.0
+          },
+          "score": 0.0,
+          "total": 1,
+          "case_id": "E2E-MIXED-005",
+          "category": "mixed",
+          "trace_summary": {
+            "turns": 3,
+            "last_assistant_msg": "**Current status:**\n- Sensor LED: on\n- PLC input LED: on\n- Online monitor: changed\n\n从三联状态看，传感器动作灯已亮，"
+          }
+        },
+        {
+          "passed": [
+            "task_resumed"
+          ],
+          "failed": [],
+          "metrics": {},
+          "total": 1,
+          "score": 1.0,
+          "case_id": "E2E-INT-001",
+          "category": "interruption",
+          "trace_summary": {
+            "turns": 3,
+            "last_msg": "**Current status:**\n- Sensor LED: on\n- PLC input LED: off\n- Online monitor: changed\n\n从三联状态看，传感器动作灯已亮"
+          }
+        },
+        {
+          "passed": [
+            "task_switch_handled"
+          ],
+          "failed": [],
+          "metrics": {},
+          "total": 1,
+          "score": 1.0,
+          "case_id": "E2E-INT-002",
+          "category": "interruption",
+          "trace_summary": {
+            "turns": 3,
+            "last_msg": "I am looking at this as: **传感器灯亮但 PLC 输入灯不亮**.\n\n对应 PLC 输入模块指示灯是否亮？"
+          }
+        },
+        {
+          "passed": [
+            "correction_accepted"
+          ],
+          "failed": [],
+          "metrics": {},
+          "total": 1,
+          "score": 1.0,
+          "case_id": "E2E-INT-003",
+          "category": "interruption",
+          "trace_summary": {
+            "turns": 3,
+            "last_msg": "**Current status:**\n- PLC input LED: off\n- Sensor LED: off\n\n传感器动作灯不亮或不稳定时，先不要从 PLC 程序入手。优先检查 DC24V/0"
+          }
+        },
+        {
+          "passed": [
+            "summary_given"
+          ],
+          "failed": [],
+          "metrics": {},
+          "total": 1,
+          "score": 1.0,
+          "case_id": "E2E-INT-004",
+          "category": "interruption",
+          "trace_summary": {
+            "turns": 3,
+            "last_msg": "I am looking at this as: **传感器灯亮但 PLC 输入灯不亮**.\n\n对应 PLC 输入模块指示灯是否亮？"
+          }
+        },
+        {
+          "passed": [
+            "old_task_cleared"
+          ],
+          "failed": [],
+          "metrics": {},
+          "total": 1,
+          "score": 1.0,
+          "case_id": "E2E-INT-005",
+          "category": "interruption",
+          "trace_summary": {
+            "turns": 2,
+            "last_msg": "I am looking at this as: **传感器灯亮但 PLC 输入灯不亮**.\n\nPLC 在线监控里对应输入地址是否变化？"
+          }
+        }
+      ]
+    }
+  },
+  "hard_gates": {
+    "passed": true,
+    "failures": []
+  },
+  "summary": {
+    "total_cases": 65,
+    "total_passed": 35,
+    "total_failed": 20
+  }
+}
