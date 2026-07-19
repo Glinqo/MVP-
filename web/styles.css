@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Mechatronics Training AI - Unified Dark Theme
  * Design language derived from landing overlay:
  *   - Gradient backgrounds with radial glows
@@ -300,6 +300,47 @@ button:active{transform:translateY(0)}
   background:var(--glass); color:var(--text-secondary); font-size:12px; padding:4px 8px;
 }
 .node-evidence{margin:8px 0;padding-left:18px;color:var(--text-secondary);line-height:1.5}
+.mastery-bars{
+  display:grid;gap:10px;margin:10px 0 14px;
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:rgba(255,255,255,0.025); padding:12px;
+}
+.mastery-bar-row{display:grid;gap:6px}
+.mastery-bar-label{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:var(--text-secondary)}
+.mastery-bar-label strong{color:var(--text);font-size:13px}
+.mastery-bar-track{
+  height:8px;border-radius:999px;overflow:hidden;
+  background:rgba(148,163,184,0.16);border:1px solid rgba(255,255,255,0.06);
+}
+.mastery-bar-track i{
+  display:block;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,var(--primary-light),var(--accent-blue));
+  box-shadow:0 0 16px rgba(20,184,166,0.32);
+}
+.process-metrics,.strategy-tags{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 14px}
+.process-metrics span,.strategy-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  border:1px solid var(--line);border-radius:999px;
+  background:var(--glass);color:var(--text-secondary);
+  font-size:12px;line-height:1;padding:7px 10px;
+}
+.strategy-tag.ok{border-color:rgba(34,197,94,0.32);background:rgba(34,197,94,0.08);color:#86efac}
+.strategy-tag.warn{border-color:rgba(251,191,36,0.32);background:rgba(251,191,36,0.08);color:#fde68a}
+.evidence-timeline{
+  display:grid;gap:8px;margin:8px 0 0;padding:0;list-style:none;
+  counter-reset:evidence-step;
+}
+.evidence-timeline li{
+  position:relative;border:1px solid var(--line);border-radius:var(--radius-sm);
+  background:rgba(255,255,255,0.025);padding:10px 12px 10px 36px;line-height:1.55;
+}
+.evidence-timeline li::before{
+  counter-increment:evidence-step;content:counter(evidence-step);
+  position:absolute;left:10px;top:12px;width:17px;height:17px;border-radius:999px;
+  display:grid;place-items:center;font-size:10px;font-weight:700;
+  color:var(--primary-light);border:1px solid rgba(20,184,166,0.35);
+  background:rgba(15,118,110,0.12);
+}
 .proposal-box{
   border:1px solid var(--line); border-radius:var(--radius);
   background:rgba(255,255,255,0.02); margin-bottom:16px; padding:14px;
@@ -776,3 +817,150 @@ button:active{transform:translateY(0)}
 .kbci-actions button:hover{background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.4)}
 
 #workspaceKnowledge .kb-card-inline{max-width:100%!important}
+
+/* ===================================================================
+   Phase 5: Response Experience Optimization
+   =================================================================== */
+
+/* ---- Safety notices ---- */
+.safety-notice {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.safety-notice::before {
+  content: '⚠';  /* warning sign */
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.safety-notice.level-notice {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  color: #bae6fd;
+}
+.safety-notice.level-warning {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  color: #fde68a;
+}
+.safety-notice.level-critical {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fecaca;
+}
+
+/* ---- Cards section (foldable references) ---- */
+.cards-section {
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.card-refs {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.card-refs summary {
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #94a3b8;
+  cursor: pointer;
+  user-select: none;
+}
+.card-refs summary:hover {
+  color: #e2e8f0;
+}
+.card-refs-body {
+  padding: 8px 12px 10px;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+.card-refs-body .ref-item {
+  padding: 3px 0;
+}
+.card-refs-body .ref-item + .ref-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+.card-refs-body .ref-label {
+  font-weight: 500;
+  color: #38bdf8;
+  font-size: 0.75rem;
+}
+
+/* ---- Suggested questions ---- */
+.suggested-questions {
+  margin: 10px 0 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.suggested-questions .sq-label {
+  font-size: 0.72rem;
+  color: #64748b;
+  width: 100%;
+  margin-bottom: 2px;
+}
+.suggested-questions button {
+  font-size: 0.76rem;
+  padding: 5px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(56, 189, 248, 0.06);
+  color: #7dd3fc;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1.4;
+}
+.suggested-questions button:hover {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #bae6fd;
+}
+
+/* ---- Debug section (hidden from users) ---- */
+.debug-only {
+  display: none;
+}
+
+/* ---- Markdown answer block ---- */
+.msg-answer {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: #e2e8f0;
+}
+.msg-answer p {
+  margin: 0 0 8px;
+}
+.msg-answer p:last-child {
+  margin-bottom: 0;
+}
+.msg-answer strong {
+  color: #f1f5f9;
+}
+.msg-answer code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-family: 'Consolas', 'Monaco', monospace;
+  color: #fbbf24;
+}
+.msg-answer ul, .msg-answer ol {
+  margin: 4px 0 8px;
+  padding-left: 18px;
+}
+.msg-answer li {
+  margin-bottom: 2px;
+}
+

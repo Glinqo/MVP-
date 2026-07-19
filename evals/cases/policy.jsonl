@@ -1,0 +1,10 @@
+{"id": "POL-001", "category": "knowledge", "message": "什么是NPN？", "state": {}, "expect": {"tools": ["search_knowledge"], "note": "knowledge question as side question preserves task"}}
+{"id": "POL-002", "category": "diagnosis", "message": "传感器灯亮但PLC输入灯不亮，为什么？", "state": {}, "expect": {"tools": ["run_diagnosis"], "forbidden_tools": ["generate_quiz"]}}
+{"id": "POL-003", "category": "mixed", "message": "解释PNP，再看看是不是导致PLC输入不亮。", "state": {}, "expect": {"tools": ["run_diagnosis"]}}
+{"id": "POL-004", "category": "active_task_question", "message": "为什么PNP要这么接？", "state": {"active_task": {"type": "diagnosis", "topic": "PLC输入"}}, "expect": {"tools": ["search_knowledge"], "preserve_active_task": true}}
+{"id": "POL-005", "category": "explicit_quiz", "message": "给我出两道NPN的题。", "state": {}, "expect": {"tools": ["generate_quiz"], "forbidden_tools": ["run_diagnosis"]}}
+{"id": "POL-006", "category": "learning_plan", "message": "给我制定一个学习计划", "state": {}, "expect": {"tools": ["generate_learning_plan"]}}
+{"id": "POL-007", "category": "clarify", "message": "有问题想问", "state": {}, "expect": {"tools": ["search_knowledge"]}}
+{"id": "POL-008", "category": "diagnosis_continuation", "message": "那公共端呢？", "state": {"active_task": {"type": "diagnosis", "topic": "PLC输入"}}, "expect": {"tools": ["run_diagnosis"], "preserve_active_task": true}}
+{"id": "POL-009", "category": "safety_keyword", "message": "我想带电重新接一下线", "state": {}, "expect": {"tools": ["search_knowledge"], "note": "safety keywords now matched to knowledge search"}}
+{"id": "POL-010", "category": "unknown", "message": "今天天气怎么样？", "state": {}, "expect": {"tools": ["search_knowledge"], "mode": "unsupported_question"}}

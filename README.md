@@ -1,138 +1,232 @@
-# Mechatronics Agent MVP
+# MVP — 机电一体化智能排故训练系统
 
-## Job Intelligence Updater
+面向职业教育的**岗位能力图谱 + 排故认知孪生**系统。学生端支持从"提问/排故 → 画像更新 → 证据解释 → 下一步推荐 → 岗位差距"的完整闭环。
 
-The repo includes a lightweight job intelligence updater for the job ability graph. See [docs/job_intelligence_update.md](docs/job_intelligence_update.md).
+## 快速开始
 
-Dry run:
+### 环境要求
 
-```powershell
-python .\mechatronics-agent-mvp\scripts\job_intelligence_update.py --dry-run
-```
+- Python 3.11+
+- 无外部数据库依赖（JSON 文件 + SQLite 内置存储）
 
-Install a daily Windows scheduled task:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\mechatronics-agent-mvp\scripts\install_daily_job_intelligence_update.ps1 -Time "07:30"
-```
-
-The updater only reads explicitly configured public/local sources, generates pending graph proposals, and requires teacher confirmation before formal job graph changes.
-
-面向职业教育机电一体化职业新人培训的轻量智能体 MVP 仓库。
-
-这个仓库不做大系统，当前以自研轻量 Web/API Demo 为主，同时保留星辰 Agent 的可选导出材料。核心沉淀四类内容：
-
-- 可被本地 Demo 和可选平台复用的提示词与节点配置
-- 机电一体化岗位画像、能力节点、知识点、资源和训练任务
-- 20 道可确定性评分诊断题、评分规则、示例答案和最小评分代码/API
-- 提交、演示和师生反馈文档
-
-## 快速了解产品
-
-如果只是想快速看清楚这个产品做什么、亮点在哪里、如何演示，先读：
-
-- [产品功能与亮点说明](docs/product_overview.md)
-- [学生端增强路线与借鉴方案](docs/student_side_enhancement_strategy.md)
-- [产品范围](docs/product_scope.md)
-- [演示脚本](docs/demo_script.md)
-
-当前产品的核心亮点是：以问答式 AI 作为第一入口，学生先描述真实实训问题，系统再把问题映射到岗位能力图谱、个人能力图谱、知识缺口和补救训练；诊断题只作为可选验证，不再是学习入口。
-
-## MVP 闭环
-
-1. 系统读取目标岗位画像：自动化生产线装调与运维技术员。
-2. 职业新人在聊天主屏自由提问和追问，不强制先做题。
-3. Agent 先回答问题；涉及设备调试时先给安全提醒。
-4. Agent 引导学生补充传感器灯、PLC 输入灯、在线监控等关键现场证据。
-5. 岗位能力图谱以 SVG 图形展示企业/行业需求，学生个人能力图谱根据问答、自测、讲题、反馈和任务事件动态更新。
-6. 当前问题图谱和知识卡片同步高亮该问题暴露的缺口。
-7. 系统推荐今日训练单、7 天补强计划和一节课实训任务；诊断题作为全屏工作台中的可选自测保留，并可按学生薄弱点从知识库生成个性化练习题和培养方案。
-8. 教师/师傅视图汇总薄弱点和下一次带教建议。
-
-## 目录
-
-```text
-docs/        产品范围、框架调研、流程蓝图、提交清单、演示脚本
-app/         标准库 HTTP API 与领域服务
-web/         静态学生诊断页面
-data/        本地演示会话反馈
-prompts/     工作流各节点提示词
-knowledge/   岗位画像、能力节点、66 个知识点、资源、训练任务、常见错误
-knowledge/imports/  新导入的星辰知识库扩展源
-diagnosis/   诊断题、评分规则、示例答案
-xingchen/    可选平台导入说明和评分代码模块历史资产
-tests/       最小评分测试与样例输入输出
-.agents/     给 Codex/智能体使用的本地技能说明
-```
-
-## 快速验证
-
-在仓库父目录运行评分测试：
+### 安装
 
 ```powershell
-node .\mechatronics-agent-mvp\tests\scoring.test.js
+git clone https://github.com/Glinqo/MVP-.git
+cd MVP-
 ```
 
-预期输出：
+无需 `pip install`，项目使用 Python 标准库。
 
-```text
-scoring.test.js passed
-```
-
-如果本机 PATH 没有 `node`，使用 Codex 工作区依赖中的 Node 运行。
-
-运行 API 冒烟测试：
+### 启动
 
 ```powershell
-python .\mechatronics-agent-mvp\tests\api_smoke.test.py
+python app/server.py --port 8765
 ```
 
-预期输出：
+打开浏览器访问 `http://127.0.0.1:8765`
 
-```text
-api_smoke.test.py passed
-```
-
-## 本地运行
-
-启动本地 MVP：
+### 运行测试
 
 ```powershell
-python .\mechatronics-agent-mvp\app\server.py --port 8765
+python -m compileall -q app scripts tests
+python tests/troubleshooting_model.test.py
+python tests/model_tracer.test.py
+python tests/conformance_engine.test.py
+python tests/counterfactual_action.test.py
+python tests/cognitive_twin.test.py
+python tests/learning_event_normalizer.test.py
+python tests/ability_state_engine.test.py
+python tests/next_action_recommender.test.py
+python tests/student_mastery_profile.test.py
+python tests/api_smoke.test.py
 ```
 
-浏览器打开：
+---
 
-```text
-http://127.0.0.1:8765
+## 架构概览
+
+```
+web/                          前端 (D3.js 力导向图 + 交互界面)
+app/
+├── server.py                  HTTP 服务器 (52 个 API 路由)
+└── services/                  44 个服务模块
+    ├── graph.py               岗位/学生能力图谱构建
+    ├── graph_update_engine.py 图谱更新引擎 (事件驱动)
+    ├── ability_state_engine.py 能力状态机 (四维分 + 不确定性 + 状态判定)
+    ├── cognitive_twin.py      认知孪生 (聚合四维画像)
+    ├── student_mastery_profile.py 学生掌握度画像
+    ├── scenario.py            排故场景 (选择题 + 自由排故双模式)
+    ├── model_tracer.py        行为图追踪 (最优路径/偏差检测)
+    ├── conformance_engine.py  过程一致性评估 (5 维指标)
+    ├── counterfactual_action.py 反事实动作选择 (效用公式)
+    ├── hypothesis_engine.py   故障假设管理 (集合消除 + 置信度排序)
+    ├── information_gain.py    信息增益计算 (熵 + 期望熵减)
+    ├── strategy_profile.py    排故策略画像 (偏差标签 + 持久化追踪)
+    ├── scenario_composer.py   动态场景组合 (variants + difficulty + seed)
+    ├── coverage_matrix.py     能力覆盖矩阵
+    ├── transfer_engine.py     迁移评分引擎
+    ├── uncertainty_selector.py 不确定性驱动训练选择
+    ├── learning_event_normalizer.py 学习事件标准化 (9 种类型)
+    ├── learning_event_store.py 标准事件存储 + 查询
+    ├── next_action_recommender.py 下一步行动推荐
+    ├── device_state_handler.py 设备状态录入 → 能力映射
+    ├── data_store.py          统一数据存储层
+    ├── feedback.py            反馈 + session 管理
+    ├── chat.py                对话引擎
+    ├── explanation.py         讲题引擎
+    ├── quiz.py                自测题
+    ├── personalized_plan.py   个性化训练计划
+    ├── recommendation.py      诊断推荐
+    ├── matching.py            学生-岗位匹配
+    ├── learner_context.py     学生上下文
+    ├── student_dashboard.py   学生仪表盘
+    └── ...                    更多模块
+
+knowledge/                    知识库 (JSON, 只读)
+├── ability_nodes.json        25 个能力节点 (前置关系 + 维度映射)
+├── troubleshooting_models.json 4 个排故场景模型 (含 9 个 variants)
+├── troubleshooting_scenarios.json 排故场景描述
+├── diagnostic_action_policy.json 诊断动作策略配置
+├── job_skill_lexicon.json    技能词典
+├── job_profiles.json         岗位配置
+└── ...
+
+scripts/pipeline/             数据采集管线
+├── crawler_framework.py      爬虫基类
+├── sqlite_store.py           SQLite 证据存储
+└── ...
+
+tests/                        25 个测试文件 (~4400 行)
 ```
 
-页面支持问答式排故辅导、岗位能力图谱、学生个人能力图谱、当前问题图谱、20 道预设评分题、个性化练习题、今日训练单、7 天补强计划、薄弱点推荐、实训任务推荐、反馈保存和教师摘要。右侧边栏是功能入口，点击后进入全屏工作台查看或操作；图谱节点会打开证据详情，题目讲解按钮会记录学习事件并可快速回到聊天追问。
+### 数据流
 
-## 可选大模型配置
-
-聊天接口支持 OpenAI-compatible Chat Completions。没有配置时会自动使用规则兜底回答。
-
-```powershell
-$env:LLM_API_KEY="your_api_key"
-$env:LLM_BASE_URL="https://api.openai.com/v1"
-$env:LLM_MODEL="gpt-4o-mini"
-python .\mechatronics-agent-mvp\app\server.py --port 8765
+```
+学生行为 (聊天/自测/排故/反馈)
+    → 标准化学习事件 (Phase 1)
+    → 能力画像计算 (Phase 2: 四维分 + 认知综合分 + 不确定性)
+    → 证据链查询 (Phase 3)
+    → 排故过程诊断 (Phase 4: 过程一致性 + 策略画像)
+    → 下一步推荐 (Phase 5: 优先级排序)
+    → 岗位差距 (Phase 6)
+    → 设备状态证据 (Phase 7)
 ```
 
-评分仍由 `diagnosis/scoring_rules.json` 和确定性代码完成，大模型只用于回答、解释和引导追问。
+### 存储层
 
-## 使用方式
+```
+data/sessions/        Session JSON 文件 (学生行为事件)
+data/evidence/        证据事件 + 版本快照
+scripts/pipeline/     SQLite (evidence_events, proposals, snapshots, audit_log)
+knowledge/            只读知识库 JSON
+```
 
-- 先阅读 `docs/product_scope.md` 明确 MVP 边界。
-- 阅读 `docs/optimized_mvp_spec.md` 查看优化后的岗位新人培训 MVP 规格。
-- 阅读 `docs/mechatronics_professional_group_research.md` 了解机电一体化专业群、岗位群和课程群。
-- 先阅读 `docs/related_project_frameworks.md` 确认自研框架取舍。
-- 参考 `docs/student_training_llm_landscape.md` 了解现有学生培训类大模型的功能、优缺点和差异化机会。
-- 再阅读 `docs/product_innovation_architecture.md` 确认核心创新功能和系统架构。
-- 将 `prompts/*.md` 作为本地 LLM 调用或后续平台节点的提示词资产。
-- 将 `xingchen/code_module_scoring.js` 或 Python 版作为评分服务的确定性规则核心。
-- 将 `knowledge/knowledge_50.json` 作为轻量主知识库（当前 66 条，文件名保留历史命名），将 `knowledge/imports/机电一体化智能体_知识库导入版_V1.json` 作为扩展知识库。
-- 将 `knowledge/industry_demand_snapshots.json` 作为岗位能力图谱的企业/行业需求样例数据，后续可定期人工更新。
-- 将 `data/graph_update_events.json`、`data/job_graph_update_proposals.json`、`data/job_graph_confirmed_snapshots.json` 作为自更新图谱的本地运行时证据和确认记录。
-- 使用 `tests/sample_inputs.json` 和 `tests/expected_outputs.json` 做本地自测。
+所有 JSON 读写收敛到 `app/services/data_store.py`，其他模块通过它访问持久化存储。
+
+---
+
+## API 清单
+
+### 图谱相关
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/graph` | 当前能力图谱 |
+| GET | `/api/graph/job` | 岗位能力图谱 |
+| GET | `/api/graph/student` | 学生个人能力图谱 (25 节点含四维分) |
+| GET | `/api/graph/gap` | 学生 vs 岗位差距图 |
+| GET | `/api/graph/updates` | 图谱更新时间线 |
+| GET | `/api/graph/job/versions` | 岗位图谱版本列表 |
+| GET | `/api/graph/job/versions/diff` | 版本差异对比 |
+| POST | `/api/graph/student/event` | 写入学生图谱事件 |
+| POST | `/api/graph/job/proposals` | 生成岗位图谱更新建议 |
+| POST | `/api/graph/job/proposals/confirm` | 确认建议 (生成快照) |
+| POST | `/api/graph/job/versions/rollback` | 回滚图谱版本 |
+| POST | `/api/graph/job/ingest` | 导入 JD 文本 |
+
+### 学生能力
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/student/bootstrap` | 学生初始化 |
+| GET | `/api/student/dashboard` | 学生仪表盘 |
+| GET | `/api/student/ability-state` | 能力状态 (四维 + 不确定性 + 推荐) |
+| GET | `/api/student/ability-evidence` | 能力证据链 (含评分影响) |
+| GET | `/api/student/cognitive-twin` | 认知孪生 |
+| GET | `/api/student/diagnostic-traces` | 诊断轨迹 |
+| GET | `/api/student/strategy-profile` | 排故策略画像 |
+| GET | `/api/student/transfer-profile` | 迁移评分 |
+| GET | `/api/student/coverage-matrix` | 能力覆盖矩阵 |
+| GET | `/api/student/job-match` | 学生-岗位匹配 |
+| GET | `/api/student/job-gap` | 岗位差距视图 |
+| GET | `/api/student/next-actions` | 下一步行动推荐 |
+| GET | `/api/student/next-training-scenario` | 下一训练场景推荐 |
+| POST | `/api/student/device-state` | 录入设备状态 |
+
+### 学习事件 (Phase 1)
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/student/events` | 查询标准化事件 (支持按 type/ability/scenario 过滤) |
+| GET | `/api/student/events/timeline` | 事件时间线 + 统计 |
+| POST | `/api/student/events` | 写入标准化事件 |
+
+### 排故场景
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/scenarios` | 场景列表 |
+| POST | `/api/scenario/start` | 开始排故场景 (支持 variant_id/difficulty/seed) |
+| POST | `/api/scenario/step` | 提交选择题步骤 |
+| POST | `/api/scenario/action` | 提交自由排故动作 (含过程诊断) |
+| GET | `/api/scenario/next-action` | 反事实动作分析 |
+
+### 对话 & 诊断
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/chat/start` | 开始对话 |
+| POST | `/api/chat/message` | 发送消息 |
+| POST | `/api/explain` | 讲题 |
+| POST | `/api/assist` | 辅助诊断 |
+| POST | `/api/quiz/personalized` | 个性化自测 |
+| POST | `/api/score` | 评分 |
+| POST | `/api/diagnose` | 诊断推荐 |
+| POST | `/api/feedback` | 提交反馈 |
+
+### 系统
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/health` | 健康检查 |
+| GET | `/api/sessions` | 所有会话列表 |
+| GET | `/api/knowledge/search` | 知识库搜索 |
+| GET | `/api/teacher/summary` | 教师视图汇总 |
+| GET | `/api/job-profile` | 岗位信息 |
+
+---
+
+## 核心设计原则
+
+1. **确定性优先** — 全部算法使用规则+权重+配置驱动，不依赖 LLM 自由生成专业事实。同一输入必然产生同一输出。
+
+2. **证据驱动** — 每条图谱更新必须可溯源于具体证据事件（来源 URL + 时间戳 + 提取方法 + 置信度）。
+
+3. **教师确认铁律** — LLM 和爬虫只能生成"待确认建议"，不能直接修改正式能力图谱。正式更新必须经过教师确认 + 版本快照 + 可回滚。
+
+4. **安全约束优先于信息价值** — 危险操作在策略配置中显式标记并阻止，安全评分门槛不达标时限制高级场景。
+
+5. **无重型依赖** — Python 标准库 + D3.js。不需要 Neo4j、Kafka、PostgreSQL、Redis。
+
+---
+
+## 分支说明
+
+| 分支 | 内容 |
+|------|------|
+| `main` | 稳定版本 |
+| `qian` | 学生端开发主线 (Phase 1-7 全部功能 + 排故认知孪生) |
+| `feature/job-ability-graph` | 岗位图谱数据管线 |
+| `backend/job-graph-upgrade` | 后端升级 (SQLite + LLM) |
+| `test` | 岗位扩展 + 诊断题库 v2 |

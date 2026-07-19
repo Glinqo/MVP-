@@ -17,6 +17,7 @@ from .graph_update_engine import (
     personal_graph_state,
 
 )
+from .student_mastery_profile import augment_student_nodes
 
 
 
@@ -986,7 +987,21 @@ def build_student_ability_graph(session_id=None, job_role=None):
                 evidence_events=metrics["evidence_events"],
 
                 next_best_action=next_best_action(ability_id, status),
+<<<<<<< HEAD
 
+=======
+                knowledge_mastery=None,
+                procedure_mastery=None,
+                transfer_score=None,
+                safety_score=None,
+                cognitive_mastery_score=None,
+                uncertainty=None,
+                process_metrics=None,
+                strategy_tags=None,
+                safety_gate=None,
+                recommended_intervention=None,
+                why_next=None,
+>>>>>>> origin/Qian
             )
 
         )
@@ -1032,6 +1047,7 @@ def build_student_ability_graph(session_id=None, job_role=None):
 
 
     append_status_classes(lines, nodes)
+    mastery_profile = augment_student_nodes(engine_state["record"].get("session_id"), nodes)
 
 
 
@@ -1044,7 +1060,11 @@ def build_student_ability_graph(session_id=None, job_role=None):
         "session_id": engine_state["record"].get("session_id"),
 
         "event_count": len(engine_state["record"].get("events", [])),
-
+        "mastery_profile": {
+            "trace_count": mastery_profile.get("trace_count", 0),
+            "aggregated_process_metrics": mastery_profile.get("aggregated_process_metrics", {}),
+            "source": mastery_profile.get("source"),
+        },
         "update_log": [
 
             event
@@ -1063,5 +1083,63 @@ def build_student_ability_graph(session_id=None, job_role=None):
 
         "edges": edges,
 
+    }
+
+
+def build_student_job_gap(session_id=None, limit=5):
+    """Compare job demand against the student's personal ability graph."""
+    student_graph = build_student_ability_graph(session_id)
+    demand, demand_sources = industry_demand_index()
+    student_by_id = {node.get("id"): node for node in student_graph.get("nodes", [])}
+    ability_ids = set(demand.keys()) | set(student_by_id.keys())
+    max_weight = max([item.get("weight", 0) for item in demand.values()] or [1]) or 1
+
+    gaps = []
+    for ability_id in ability_ids:
+        if ability_id not in load_data()["ability_by_id"]:
+            continue
+        node = student_by_id.get(ability_id, {})
+        demand_item = demand.get(ability_id, {})
+        demand_weight = float_or_zero(demand_item.get("weight", 0))
+        demand_norm = demand_weight / max_weight if max_weight else 0
+        mastery = float_or_zero(node.get("cognitive_mastery_score", node.get("mastery_score", 30)))
+        confidence = float_or_zero(node.get("confidence", 0.2))
+        uncertainty = float_or_zero(node.get("uncertainty", max(0.0, 1 - confidence)))
+        safety_gap = 1.0 if float_or_zero(node.get("safety_score", 85)) < 60 else 0.0
+        gap_score = demand_norm * 0.35 + (100 - mastery) / 100 * 0.35 + uncertainty * 0.2 + safety_gap * 0.1
+        if demand_weight <= 0 and mastery >= 70 and uncertainty < 0.4:
+            continue
+        reason_parts = []
+        if demand_weight:
+            reason_parts.append("岗位需求权重高" if demand_norm >= 0.6 else "岗位需求已覆盖")
+        if mastery < 55:
+            reason_parts.append("个人掌握度偏低")
+        if uncertainty >= 0.5:
+            reason_parts.append("证据不足或不确定性高")
+        if safety_gap:
+            reason_parts.append("安全合规需要复核")
+        gaps.append({
+            "ability_id": ability_id,
+            "ability_name": ability_label(ability_id),
+            "job_demand_weight": round(demand_weight, 2),
+            "student_mastery": int(round(mastery)),
+            "confidence": confidence,
+            "uncertainty": uncertainty,
+            "gap_score": round(gap_score, 3),
+            "status": node.get("status", "unknown"),
+            "reason": " + ".join(reason_parts) or "岗位能力证据仍需补充",
+            "next_best_action": node.get("next_best_action") or next_best_action(ability_id, node.get("status", "unknown")),
+            "demand_evidence": (demand_item.get("evidence") or [])[:3],
+            "demand_sources": (demand_item.get("sources") or [])[:3],
+        })
+
+    gaps.sort(key=lambda item: (-item["gap_score"], -item["job_demand_weight"], item["student_mastery"]))
+    return {
+        "session_id": student_graph.get("session_id"),
+        "graph_type": "student_job_gap",
+        "top_gaps": gaps[:limit],
+        "gap_count": len(gaps),
+        "demand_source_count": len(demand_sources),
+        "source": "job_ability_graph + student_cognitive_mastery_profile",
     }
 

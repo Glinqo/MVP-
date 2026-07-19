@@ -14,9 +14,11 @@ if str(ROOT) not in sys.path:
 from app.services.data_loader import primary_job_profile, public_questions  # noqa: E402
 from app.services.assist import assist  # noqa: E402
 from app.services.chat import chat_message, chat_start  # noqa: E402
+from app.services.conversation_runner import run_conversation_turn  # noqa: E402
+from app.services.conversation_events import error_event  # noqa: E402
 from app.services.explanation import explain  # noqa: E402
 from app.services.feedback import append_session_event, save_feedback, teacher_summary  # noqa: E402
-from app.services.graph import build_ability_graph, build_job_ability_graph, build_student_ability_graph  # noqa: E402
+from app.services.graph import build_ability_graph, build_job_ability_graph, build_student_ability_graph, build_student_job_gap  # noqa: E402
 from app.services.graph_update_engine import (  # noqa: E402
     confirm_job_graph_proposals,
     confirm_sqlite_job_graph_proposal,
@@ -30,16 +32,62 @@ from app.services.personalized_plan import personalized_plan  # noqa: E402
 from app.services.quiz import personalized_quiz  # noqa: E402
 from app.services.recommendation import diagnose  # noqa: E402
 from app.services.retrieval import search_knowledge  # noqa: E402
-from app.services.scenario import list_scenarios, start_scenario, step_scenario  # noqa: E402
+from app.services.scenario import action_scenario, list_scenarios, start_scenario, step_scenario  # noqa: E402
+from app.services.diagnostic_trace import build_diagnostic_trace  # noqa: E402
+from app.services.conformance_engine import check_conformance  # noqa: E402
+from app.services.process_metrics import compute_all_metrics  # noqa: E402
+from app.services.strategy_profile import build_cumulative_strategy_profile  # noqa: E402
+from app.services.cognitive_twin import build_cognitive_twin  # noqa: E402
+from app.services.counterfactual_action import analyze_next_action  # noqa: E402
+from app.services.model_tracer import model_for_scenario, state_flags_from_runtime  # noqa: E402
 from app.services.scoring import score_answers  # noqa: E402
 from app.services.student_dashboard import build_student_dashboard  # noqa: E402
 
 from scripts.pipeline.evidence_store import list_snapshots, get_snapshot, version_diff, version_rollback
 from scripts.pipeline.job_data_importer import ingest_job_text
 from app.services.matching import compute_match
+from app.services.learning_event_store import get_events, get_event_timeline, get_ability_events, append_normalized_event, list_sessions  # noqa: E402
+from app.services.ability_state_engine import compute_ability_state  # noqa: E402
+from app.services.next_action_recommender import recommend_next_actions  # noqa: E402
+from app.services.device_state_handler import record_device_state  # noqa: E402
+
 
 
 WEB_DIR = ROOT / "web"
+
+
+def _compute_job_gap(session_id):
+    from app.services.ability_state_engine import compute_ability_state as _cs
+    from app.services.graph import build_job_ability_graph as _bjg
+    state = _cs(session_id)
+    abilities = state.get("abilities", {})
+    job_graph = _bjg()
+    job_nodes = {n["id"]: n for n in job_graph.get("nodes", [])}
+    gaps = []
+    for aid, astate in abilities.items():
+        job_node = job_nodes.get(aid, {})
+        demand_weight = job_node.get("demand_weight", 0)
+        importance = min(100, demand_weight * 40) if demand_weight > 0 else 30
+        student_mastery = astate.get("cognitive_mastery_score", 50)
+        gap = max(0, importance - student_mastery) / 100.0
+        if demand_weight > 0:
+            gaps.append({
+                "ability_id": aid,
+                "ability_name": astate.get("ability_name", aid),
+                "job_importance": round(importance / 100.0, 2),
+                "student_mastery": student_mastery,
+                "gap_score": round(gap, 3),
+                "reason": "岗位要求高，当前掌握偏低。",
+                "next_action": astate.get("recommended_action", {}).get("title", ""),
+            })
+    gaps.sort(key=lambda g: -g["gap_score"])
+    return {
+        "target_role": job_graph.get("role", "自动化生产线装调与运维技术员"),
+        "top_gaps": gaps[:5],
+        "total_gaps": len(gaps),
+        "session_id": session_id,
+    }
+
 
 
 class MVPHandler(BaseHTTPRequestHandler):
@@ -47,6 +95,32 @@ class MVPHandler(BaseHTTPRequestHandler):
 
     def log_message(self, format, *args):
         sys.stderr.write("%s - - [%s] %s\n" % (self.address_string(), self.log_date_time_string(), format % args))
+
+    def _handle_chat_stream(self, payload):
+        """SSE streaming endpoint for all chat messages."""
+        session_id = (payload or {}).get("session_id")
+        message = (payload or {}).get("message", "")
+        ui_context_delta = (payload or {}).get("ui_context_delta", {})
+
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "keep-alive")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+
+        try:
+            for event in run_conversation_turn(session_id, message, ui_context_delta):
+                if hasattr(event, "to_sse"):
+                    sse_text = event.to_sse()
+                else:
+                    sse_text = str(event)
+                self.wfile.write(sse_text.encode("utf-8"))
+                self.wfile.flush()
+        except Exception as exc:
+            err = error_event("internal_error", str(exc), recoverable=False)
+            self.wfile.write(err.to_sse().encode("utf-8"))
+            self.wfile.flush()
 
     def send_json(self, data, status=200):
         body = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
@@ -82,6 +156,7 @@ class MVPHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
+        query_params = parse_qs(parsed.query)
 
         if path == "/api/health":
             return self.send_json({"status": "ok", "app": "mechatronics-agent-mvp", "version": "0.1.0"})
@@ -116,6 +191,12 @@ class MVPHandler(BaseHTTPRequestHandler):
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(build_student_ability_graph(session_id))
 
+        if path == "/api/graph/gap":
+            query = parse_qs(parsed.query)
+            session_id = query.get("session_id", [None])[0]
+            limit = int(query.get("limit", [5])[0])
+            return self.send_json(build_student_job_gap(session_id, limit=limit))
+
         if path == "/api/student/bootstrap":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(student_bootstrap(session_id))
@@ -143,6 +224,88 @@ class MVPHandler(BaseHTTPRequestHandler):
             from scripts.pipeline.evidence_store import get_pending_proposals
             return self.send_json({"proposals": get_pending_proposals(job_role)})
 
+        if path == "/api/student/diagnostic-traces":
+            session_id = parse_qs(parsed.query).get("session_id", [None])[0]
+            if not session_id:
+                return self.send_error_json(400, "session_id is required")
+            return self.send_json(build_diagnostic_trace(session_id, parse_qs(parsed.query).get("scenario_id", [""])[0]))
+
+        if path == "/api/student/strategy-profile":
+            session_id = parse_qs(parsed.query).get("session_id", [None])[0]
+            if not session_id:
+                return self.send_error_json(400, "session_id is required")
+            return self.send_json(build_cumulative_strategy_profile(session_id))
+
+        if path == "/api/student/events":
+            session_id = query_params.get("session_id", ["default"])[0]
+            event_type = query_params.get("event_type", [None])[0]
+            ability_id = query_params.get("ability_id", [None])[0]
+            scenario_id = query_params.get("scenario_id", [None])[0]
+            category = query_params.get("category", [None])[0]
+            limit = int(query_params.get("limit", ["100"])[0])
+            offset = int(query_params.get("offset", ["0"])[0])
+            return self.send_json(get_events(
+                session_id, event_type=event_type, ability_id=ability_id,
+                scenario_id=scenario_id, category=category,
+                limit=limit, offset=offset
+            ))
+
+        if path == "/api/student/events/timeline":
+            session_id = query_params.get("session_id", ["default"])[0]
+            return self.send_json(get_event_timeline(session_id))
+
+        if path == "/api/student/ability-evidence":
+            session_id = query_params.get("session_id", ["default"])[0]
+            ability_id = query_params.get("ability_id", [None])[0]
+            if not ability_id:
+                return self.send_error_json(400, "ability_id is required")
+            return self.send_json(get_ability_events(session_id, ability_id))
+
+        if path == "/api/sessions":
+            return self.send_json(list_sessions())
+
+        if path == "/api/student/ability-state":
+            session_id = query_params.get("session_id", ["default"])[0]
+            ability_id = query_params.get("ability_id", [None])[0]
+            return self.send_json(compute_ability_state(session_id, ability_id))
+
+        if path == "/api/student/next-actions":
+            session_id = query_params.get("session_id", ["default"])[0]
+            count = int(query_params.get("count", ["5"])[0])
+            return self.send_json(recommend_next_actions(session_id, count))
+
+        if path == "/api/student/job-gap":
+            session_id = query_params.get("session_id", ["default"])[0]
+            return self.send_json(_compute_job_gap(session_id))
+
+        if path == "/api/scenario/next-action":
+            query = parse_qs(parsed.query)
+            session_id = query.get("session_id", [None])[0]
+            scenario_id = query.get("scenario_id", [None])[0]
+            if not scenario_id:
+                return self.send_error_json(400, "scenario_id is required")
+            model = model_for_scenario(scenario_id)
+            if not model:
+                return self.send_error_json(404, f"no model for {scenario_id}")
+            # Get current state from action_scenario session if available
+            from app.services.scenario import _session_state
+            sess = _session_state(session_id or "default")
+            current_state = sess.get("current_state", {"state_id": "STATE_INITIAL"})
+            state_id = current_state.get("state_id", "STATE_INITIAL")
+            action_history = sess.get("action_history", [])
+            state_flags = state_flags_from_runtime(model, current_state)
+            result = analyze_next_action(
+                model, state_flags, action_history
+            )
+            result["current_state_id"] = state_id
+            return self.send_json(result)
+
+        if path == "/api/student/cognitive-twin":
+            session_id = parse_qs(parsed.query).get("session_id", [None])[0]
+            if not session_id:
+                return self.send_error_json(400, "session_id is required")
+            return self.send_json(build_cognitive_twin(session_id))
+
         if path == "/api/scenarios":
             return self.send_json(list_scenarios())
 
@@ -169,6 +332,8 @@ class MVPHandler(BaseHTTPRequestHandler):
             payload = self.read_json_body()
             if path == "/api/chat/start":
                 return self.send_json(chat_start(payload))
+            if path == "/api/chat/stream":
+                return self._handle_chat_stream(payload)
             if path == "/api/chat/message":
                 return self.send_json(chat_message(payload))
             if path == "/api/student/bootstrap":
@@ -183,6 +348,11 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(start_scenario(payload))
             if path == "/api/scenario/step":
                 return self.send_json(step_scenario(payload))
+            if path == "/api/scenario/action":
+                return self.send_json(action_scenario(payload))
+            if path == "/api/student/device-state":
+                return self.send_json(record_device_state(payload))
+
             if path == "/api/graph/student/event":
                 event_result = record_student_graph_event(payload)
                 return self.send_json({**event_result, "student_graph": build_student_ability_graph(payload.get("session_id"))})

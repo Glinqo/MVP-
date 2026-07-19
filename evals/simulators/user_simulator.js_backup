@@ -1,0 +1,66 @@
+# -*- coding: utf-8 -*-
+import re
+import hashlib
+
+_SLOT_ANSWER_TEMPLATES = {
+    "sensor_led": {
+        "on": ["亮", "传感器灯亮的", "灯亮"],
+        "off": ["不亮", "没亮", "灯不亮"],
+        "flicker": ["闪", "一会儿亮一会儿不亮"],
+    },
+    "plc_input_led": {
+        "on": ["亮", "PLC灯亮", "输入灯亮"],
+        "off": ["不亮", "PLC灯不亮", "没亮"],
+        "flicker": ["闪", "跟着闪"],
+    },
+    "online_monitor": {
+        "changed": ["有变化", "变了", "监控有变化"],
+        "no_change": ["没变化", "不变", "监控没反应"],
+    },
+    "cylinder_action": {
+        "none": ["不动", "完全不动", "气缸不动"],
+    },
+    "air_supply": {
+        "normal": ["正常", "气源没问题"],
+    },
+}
+
+_UNKNOWN_ANSWERS = ["不知道", "没看", "不清楚", "不确定", "没注意"]
+
+_SLOT_QUESTION_PATTERNS = {
+    "sensor_led": ["传感器.*灯", "动作灯", "sensor.*led", "灯.*状态"],
+    "plc_input_led": ["plc.*灯", "输入灯", "input.*led", "plc.*指示"],
+    "online_monitor": ["在线监控", "monitor", "监控.*变", "编程软件"],
+    "sensor_type": ["传感器.*类型", "npn.*pnp", "pnp.*npn", "型号"],
+    "common_terminal": ["公共端", "com", "接法"],
+    "power_supply": ["电源", "24v", "电压", "dc"],
+    "cylinder_action": ["气缸", "cylinder", "动作"],
+    "air_supply": ["气源", "air"],
+    "io_mapping": ["地址", "映射", "io", "点"],
+    "valve_coil": ["电磁阀", "线圈", "valve", "coil"],
+    "wiring": ["接线", "wire"],
+    "wiring_color": ["颜色", "color"],
+    "wiring_loose": ["松动", "loose", "端子"],
+    "dc24v_power": ["dc24v", "24v电源", "开关电源"],
+    "program_logic": ["程序", "program", "逻辑", "logic", "条件"],
+};
+
+function _detect_asked_slot(system_message) {
+    const msg = String(system_message || "").toLowerCase();
+    for (const [slot, patterns] of Object.entries(_SLOT_QUESTION_PATTERNS)) {
+        for (const pat of patterns) {
+            try {
+                if (new RegExp(pat, "i").test(msg)) return slot;
+            } catch(e) {}
+        }
+    }
+    return null;
+}
+
+function _is_asking_question(system_message) {
+    const msg = String(system_message || "");
+    if (msg.includes("?") || msg.includes("？")) return true;
+    const asking = ["是什么", "告诉我", "知道吗", "请问", "能告诉", "你知道", "怎么回事", "请描述", "现在状态"];
+    const lower = msg.toLowerCase();
+    return asking.some(a => lower.includes(a));
+}

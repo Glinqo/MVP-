@@ -83,15 +83,8 @@ def _load_clarify_prompt():
 
 
 def _count_clarify_rounds(session_id):
-    """Count how many clarification events exist in the current session."""
-    if not session_id:
-        return 0
-    record = load_session_record(session_id)
-    return sum(
-        1 for event in record.get("events", [])
-        if event.get("event_type") in {"clarify", "chat_message"}
-        and event.get("intent") == "clarify"
-    )
+    """Count clarification rounds from the active task (Phase 2: task-level)."""
+    return get_clarify_turns(session_id)
 
 
 def _known_slots_from_context(context, assist_result):
@@ -321,10 +314,11 @@ def handle_clarify(payload, intent_result):
         return handle_knowledge_qa(payload, intent_result)
 
     # Count previous rounds + 1 for this round
-    clarify_round = _count_clarify_rounds(session_id) + 1
+    # Phase 2: increment task-level clarify counter; round = new count
+    clarify_round = increment_clarify_turn(session_id)
 
     # After max rounds, give best-effort diagnosis
-    if clarify_round >= MAX_CLARIFY_ROUNDS:
+    if clarify_round > TASK_MAX_CLARIFY_TURNS:
         return _best_effort_from_clarify(message, assist_result, context, payload, intent_result)
 
     # Generate questions (LLM or static fallback)

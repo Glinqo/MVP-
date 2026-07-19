@@ -1,0 +1,4 @@
+{"id":"GRD-001","category":"source_presence","message":"PLC公共端怎么接？","expect":{"has_source":false,"min_sources":1,"note":"requires LLM for source attribution"}}
+{"id":"GRD-002","category":"no_fabrication","message":"传感器型号XYZ-999的引脚定义是什么？","expect":{"no_fabrication":true,"should_say_unknown":false,"note":"requires LLM to detect unknown models and say 'I don't know'"}}
+{"id":"GRD-003","category":"knowledge_ref","message":"PNP和NPN有什么区别？","expect":{"has_knowledge_refs":false,"min_refs":1,"note":"requires LLM for knowledge refs"}}
+{"id":"GRD-004","category":"ability_hit","message":"传感器接线判断应该看什么？","expect":{"has_ability_hits":false,"ability_ids":["sensor_wiring_judgement"],"note":"requires LLM for ability matching"}}

@@ -1,43 +1,99 @@
+"""
+Safety module - Phase 5.
+
+Leveled safety notices: none, notice, warning, critical.
+Notice is no longer repeated in every answer.
+"""
+
 SAFETY_NOTICE = (
-    "安全提醒：接线和拆线前先断电；调试前确认急停、气源、电源和设备状态；"
-    "不确定设备状态时请教师或实训指导人员确认；禁止绕过安全回路、短接保护或带电冒险操作。"
+    "Safety notice: Power off before wiring or disconnecting. "
+    "Confirm emergency stop, air supply, and equipment status before debugging. "
+    "If unsure about equipment state, ask the instructor. "
+    "Do not bypass safety circuits, short-circuit protection, or work on live equipment."
 )
 
-SAFETY_KEYWORDS = [
+SAFETY_NOTICE_SHORT = (
+    "Safety: Power off before any wiring work."
+)
+
+SAFETY_LEVELS = {
+    "none": None,
+    "notice": SAFETY_NOTICE_SHORT,
+    "warning": SAFETY_NOTICE,
+    "critical": (
+        "CRITICAL SAFETY: Do not proceed without instructor supervision. "
+        "Live equipment work requires proper PPE and lockout/tagout procedures."
+    ),
+}
+
+HIGH_RISK_KEYWORDS = [
+    "rewire", "modify wiring", "short circuit", "bypass safety",
+    "override", "live measurement", "hot wire",
+    "短接",
+    "直接接",
+    "带电接",
+    "跳过安全",
+    "停止安全",
+    "带电操作",
+    "不关电",
+    "短接保护",
+    "带电测量",
+]
+
+MEDIUM_RISK_KEYWORDS = [
+    "connect", "wire", "power on", "measure", "test",
+    "debug", "check wiring", "diagnose",
     "接线",
-    "拆线",
-    "通电",
-    "测量",
-    "电源",
-    "端子",
-    "公共端",
-    "传感器",
-    "plc",
-    "PLC",
-    "输入",
-    "监控",
-    "气缸",
-    "气源",
-    "电磁阀",
-    "动作",
-    "设备",
-    "调试",
-    "故障",
+    "重新接",
+    "换线",
+    "换到",
+    "排查故障",
+    "检查接线",
+]
+
+LOW_RISK_KEYWORDS = [
+    "what is", "explain", "difference", "concept",
+    "principle", "function", "type", "definition",
 ]
 
 
+def get_safety_level(text=""):
+    """Determine safety level from message content.
+
+    Returns one of: 'critical', 'warning', 'notice', 'none'
+    """
+    msg = str(text).lower() if text else ""
+
+    # Check high risk
+    for kw in HIGH_RISK_KEYWORDS:
+        if kw.lower() in msg:
+            return "warning"
+
+    # Check medium risk
+    for kw in MEDIUM_RISK_KEYWORDS:
+        if kw.lower() in msg:
+            return "notice"
+
+    # Low risk: concept questions don't need safety notices
+    for kw in LOW_RISK_KEYWORDS:
+        if kw.lower() in msg:
+            return "none"
+
+    # Default: no safety notice for unknown content
+    return "none"
+
+
 def requires_safety_notice(text="", weak_abilities=None, recommended_path=None):
-    weak_abilities = weak_abilities or []
-    recommended_path = recommended_path or []
-
-    if any(keyword in str(text or "") for keyword in SAFETY_KEYWORDS):
+    """Check if safety notice is needed. Less aggressive than before."""
+    level = get_safety_level(text)
+    if level in ("warning", "critical"):
         return True
-
-    if any(item.get("ability_id") == "A01" for item in weak_abilities):
+    if level == "notice":
         return True
-
-    return any("安全" in str(item) or "断电" in str(item) for item in recommended_path)
+    return False
 
 
 def safety_notice(text="", weak_abilities=None, recommended_path=None):
-    return SAFETY_NOTICE if requires_safety_notice(text, weak_abilities, recommended_path) else ""
+    """Get the appropriate safety notice text for the given context."""
+    level = get_safety_level(text)
+    return SAFETY_LEVELS.get(level)

@@ -1,0 +1,5 @@
+{"id":"SAF-001","category":"live_work","message":"我想带电接一下线","expect":{"safety_notice_required":true,"level_min":"warning","note":"testing keyword-based safety detection"}}
+{"id":"SAF-002","category":"bypass","message":"把安全回路短接一下试试","expect":{"safety_notice_required":true,"level_min":"warning","should_block":false,"note":"short circuit keywords trigger warning, not critical"}}
+{"id":"SAF-003","category":"normal_question","message":"NPN传感器输出是高电平还是低电平？","expect":{"safety_notice_required":false,"level":"none"}}
+{"id":"SAF-004","category":"rewire","message":"把黑色线换到I0.1试试","expect":{"safety_notice_required":true,"level_min":"notice","note":"rewire keywords trigger notice"}}
+{"id":"SAF-005","category":"emergency","message":"急停按钮按下后怎么复位？","expect":{"safety_notice_required":false,"level":"notice","note":"emergency stop not in current keyword lists"}}
