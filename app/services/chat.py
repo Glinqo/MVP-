@@ -444,6 +444,7 @@ def chat_message(payload):
         append_assistant_message(session_id, answer)
 
     # ---- Knowledge card fallback (if compose_response did not populate) ----
+    refs_for_answer = knowledge_refs_raw
     if not result.get("knowledge_gaps"):
         if knowledge_refs_raw:
             result["knowledge_gaps"] = knowledge_refs_raw
@@ -454,10 +455,32 @@ def chat_message(payload):
                 if sr:
                     result["knowledge_gaps"] = sr
                     result["knowledge_refs"] = list(sr)
+                    refs_for_answer = sr
                 else:
                     result["knowledge_refs"] = []
             except Exception:
                 pass
+    # ---- Build ChatGPT-style source citations ----
+    if refs_for_answer:
+        source_lines = []
+        for i, r in enumerate(refs_for_answer[:5]):
+            sid = r.get("id", "")
+            stitle = r.get("title", "") or r.get("topic", "") or sid
+            ssource = r.get("source", "") or r.get("source_url", "")
+            if ssource:
+                source_lines.append("[{idx}] **{title}** &mdash; *{source}*".format(idx=i+1, title=stitle, source=ssource))
+            else:
+                source_lines.append("[{idx}] **{title}**".format(idx=i+1, title=stitle))
+        if source_lines:
+            ans = result.get("answer", "") or ""
+            # Clean any existing empty *References: *
+            ans = ans.replace("*References: *", "")
+            # Strip trailing --- separator if left orphan
+            ans = ans.rstrip()
+            if ans.endswith("---"):
+                ans = ans[:-3].rstrip()
+            ref_block = "\n\n---\n**Sources**\n" + "\n".join(source_lines)
+            result["answer"] = ans + ref_block
 
     return result
 
