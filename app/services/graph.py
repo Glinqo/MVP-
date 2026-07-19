@@ -987,9 +987,6 @@ def build_student_ability_graph(session_id=None, job_role=None):
                 evidence_events=metrics["evidence_events"],
 
                 next_best_action=next_best_action(ability_id, status),
-<<<<<<< HEAD
-
-=======
                 knowledge_mastery=None,
                 procedure_mastery=None,
                 transfer_score=None,
@@ -1001,7 +998,6 @@ def build_student_ability_graph(session_id=None, job_role=None):
                 safety_gate=None,
                 recommended_intervention=None,
                 why_next=None,
->>>>>>> origin/Qian
             )
 
         )
