@@ -10,6 +10,14 @@ def tokenize(text):
     chinese_chunks = re.findall(r"[\u4e00-\u9fff]{2,}", raw)
     tokens = ascii_tokens + chinese_chunks
 
+    # Extract bigrams and trigrams from longer Chinese chunks for better matching
+    for chunk in chinese_chunks:
+        if len(chunk) > 2:
+            for i in range(len(chunk) - 1):
+                tokens.append(chunk[i:i+2])  # bigram: 2-char substrings
+            for i in range(len(chunk) - 2):
+                tokens.append(chunk[i:i+3])  # trigram: 3-char substrings
+
     domain_terms = [
         "传感器",
         "动作灯",
@@ -76,7 +84,7 @@ def matched_terms_for_item(item, tokens):
     return matched
 
 
-def search_knowledge(query, limit=5):
+def search_knowledge(query, limit=5, job_role=None):
     data = load_data()
     tokens = tokenize(query)
     scored = []
@@ -89,7 +97,8 @@ def search_knowledge(query, limit=5):
         if score > 0:
             matched_terms = matched_terms_for_item(text, tokens)
             chain_bonus = 1 if item.get("ability_node_id") in {ability.get("id") for ability in data["abilities"]} else 0
-            scored.append((score + chain_bonus, item, matched_terms, ability))
+            role_bonus = 3 if job_role and item.get("job_role") == job_role else 0
+            scored.append((score + chain_bonus + role_bonus, item, matched_terms, ability))
 
     scored.sort(key=lambda pair: (-pair[0], pair[1].get("id", "")))
     return [

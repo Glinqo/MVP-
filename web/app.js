@@ -1109,17 +1109,23 @@ async function batchConfirmJobProposals() {
 }
 
 function renderKnowledge(items) {
-  $("knowledgeRefs").innerHTML = items?.length ? `
-    <ul class="item-list">
-      ${items.map((item) => `
-        <li>
-          <strong>${escapeHtml(item.id)} ${escapeHtml(item.topic)}</strong>
-          <div>${escapeHtml(item.content)}</div>
-          <div class="muted">source: ${escapeHtml(item.source)}</div>
-        </li>
-      `).join("")}
-    </ul>
-  ` : '<p class="muted">暂无</p>';
+  if (!items || !items.length) {
+    $("knowledgeRefs").innerHTML = '<p class="muted">暂无</p>';
+    return;
+  }
+  $("knowledgeRefs").innerHTML = items.slice(0, 6).map(item => `
+    <div class="kb-card-inline" data-kb-id="${escapeHtml(item.id || "")}" onclick="this.classList.toggle('expanded')">
+      <div class="kbci-head">
+        <span class="kbci-id">${escapeHtml(item.id || "")}</span>
+        <span class="kbci-topic">${escapeHtml(item.topic || item.id || "")}</span>
+        <span class="kbci-source">${escapeHtml(item.source || "")}</span>
+      </div>
+      <div class="kbci-content">${escapeHtml((item.content || "").substring(0, 200))}${(item.content || "").length > 200 ? '...' : ''}</div>
+      <div class="kbci-actions">
+        <button type="button" data-ask="${escapeHtml('请详细讲解「' + (item.topic || item.id) + '」这个知识点')}" data-knowledge-id="${escapeHtml(item.id || "")}">追问</button>
+      </div>
+    </div>
+  `).join("");
 }
 
 function renderTasks(items) {
@@ -1693,7 +1699,12 @@ function applyChatResult(data) {
   renderToolSuggestions(data.tool_suggestions || []);
   if (data.student_graph) renderGraph(data.student_graph, "student");
   loadGraphUpdates();
-  renderKnowledge(data.knowledge_gaps || []);
+  // Use knowledge_refs as fallback when knowledge_gaps is empty
+  const gaps = data.knowledge_gaps || [];
+  const refs = data.knowledge_refs || [];
+  const mergedKnowledge = gaps.length ? gaps : refs;
+  state.knowledgeGaps = mergedKnowledge;
+  renderKnowledge(mergedKnowledge);
   renderTasks(data.remediation_cards || []);
 }
 
@@ -1715,6 +1726,7 @@ async function sendChat(message) {
         session_id: state.sessionId,
         message: text,
         learner_role: "职业新人",
+        job_role: state.jobProfile?.id,
         target_job_profile_id: state.jobProfile?.id,
         history,
         context: collectContext()
@@ -1746,7 +1758,7 @@ async function submitDiagnosis() {
     if (data.student_graph) renderGraph(data.student_graph, "student");
     await loadGraphUpdates();
     await loadStudentDashboard();
-    renderKnowledge(data.knowledge_refs || []);
+    renderKnowledge((state.knowledgeGaps && state.knowledgeGaps.length) ? state.knowledgeGaps : (data.knowledge_refs || []));
     renderTasks(data.task_recommendations || []);
   } catch (error) {
     alert(error.message);

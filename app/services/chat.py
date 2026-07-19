@@ -33,14 +33,19 @@ TOOLS = [
 ]
 
 
-def welcome_questions():
-    return [
-        "传感器动作灯亮但 PLC 没输入，应该先查哪里？",
-        "我怎么判断 NPN/PNP 和 PLC 公共端是否匹配？",
-        "PLC 输入灯亮但在线监控不变，可能是什么问题？",
-        "我适合先补哪几个岗位能力？",
+def welcome_questions(job_role=None):
+    from .retrieval import search_knowledge
+    from .data_loader import job_profile_by_id, primary_job_profile
+    profile = job_profile_by_id(job_role) if job_role else primary_job_profile()
+    job_name = profile.get("role_name", "当前岗位")
+    abilities = profile.get("core_abilities", [])[:3]
+    questions = [
+        f"{job_name}岗位的核心安全规范有哪些？",
+        "我该如何理解本岗位的技术图纸和工艺文件？",
     ]
-
+    if abilities:
+        questions.append(f"{job_name}岗位中{abilities[0]}需要掌握哪些知识？")
+    return questions[:3]
 
 def chat_start(payload=None):
     payload = payload or {}
@@ -59,7 +64,7 @@ def chat_start(payload=None):
             f"当前重点训练任务是：{focus_task}。你可以直接描述问题；"
             "如果涉及接线、通电监控或设备动作，我会先提醒安全，再帮你定位能力和知识缺口。"
         ),
-        "suggested_questions": welcome_questions(),
+        "suggested_questions": welcome_questions(job_role),
         "tool_suggestions": TOOLS,
         "llm_configured": is_configured(),
     }
@@ -120,17 +125,16 @@ def fallback_answer(assist_result):
     return f"{assist_result.get('direct_answer', '')} 先检查：{checks}"
 
 
-def suggested_questions_from_assist(assist_result):
+def suggested_questions_from_assist(assist_result, job_role=None):
     if assist_result.get("status") == "need_clarification":
         return [item.get("question") for item in assist_result.get("clarifying_questions", []) if item.get("question")][:3]
-
     ability_questions = []
     for ability in assist_result.get("highlighted_abilities", [])[:3]:
         name = ability.get("name") or ability.get("id")
         ability_questions.append(f"我该怎么补上“{name}”？")
     base = [
-        "这个问题最可能出在接线、公共端还是程序地址？",
-        "我下一步实训应该做哪一个任务？",
+        "这个问题最可能出在哪里？",
+        "我下一步实训应该做哪个任务？",
     ]
     return (ability_questions + base)[:4]
 
@@ -219,10 +223,10 @@ def reasoning_steps_from_assist(assist_result):
     return steps[:5]
 
 
-def knowledge_refs_from_assist(message, assist_result):
+def knowledge_refs_from_assist(message, assist_result, job_role=None):
     refs = list(assist_result.get("knowledge_gaps", []) or [])
     seen = {item.get("id") for item in refs}
-    for item in search_knowledge(message, limit=4):
+    for item in search_knowledge(message, limit=4, job_role=job_role):
         if item.get("id") not in seen:
             refs.append(item)
             seen.add(item.get("id"))
@@ -234,7 +238,8 @@ def chat_message(payload):
     message = payload.get("message") or payload.get("user_input") or ""
     context = payload.get("context", {}) or {}
     session_id = payload.get("session_id")
-    profile = primary_job_profile()
+    job_role = payload.get("job_role")
+    profile = job_profile_by_id(job_role) if job_role else primary_job_profile()
     learner_context = learner_context_pack(session_id)
 
     # ── intent classification ──────────────────────────────────
@@ -258,7 +263,7 @@ def chat_message(payload):
     assist_result = assist({"user_input": message, "context": context})
     evidence_used = evidence_used_from_assist(assist_result, context)
     reasoning_steps = reasoning_steps_from_assist(assist_result)
-    knowledge_refs = knowledge_refs_from_assist(message, assist_result)
+    knowledge_refs = knowledge_refs_from_assist(message, assist_result, job_role=payload.get("job_role"))
     next_questions = suggested_questions_from_assist(assist_result)
 
     fallback_used = True

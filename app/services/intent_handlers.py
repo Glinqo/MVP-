@@ -274,10 +274,17 @@ def _best_effort_from_clarify(message, assist_result, context, payload, intent_r
         {"id": "scenario", "label": "进入排故角色扮演"},
         {"id": "quiz", "label": "做自测验证"},
     ]
-    result["suggested_questions"] = [
-        "我先去确认一下，然后再来问你",
-        "能在排故角色扮演中练这个问题吗？",
-    ]
+    # Job-relevant follow-up questions based on knowledge results
+    knowledge_items = search_knowledge(message, limit=3)
+    result["knowledge_refs"] = knowledge_items
+    if knowledge_items:
+        topics = [item.get("topic", "") for item in knowledge_items[:2] if item.get("topic")]
+        result["suggested_questions"] = [
+            f"能再详细讲讲{topics[0]}吗？" if topics else "这个知识点对应什么岗位能力？",
+            "在实际设备上如何验证这个知识点？",
+        ]
+    else:
+        result["suggested_questions"] = ["你可以换个关键词试试", "请描述一下具体设备场景"]
     result["next_questions"] = result["suggested_questions"]
     result["fallback_used"] = not is_configured()
     return result
@@ -335,6 +342,9 @@ def handle_clarify(payload, intent_result):
     result["answer"] = answer
     result["safety_notice"] = safety or assist_result.get("safety_notice", "")
     result["fallback_used"] = fallback
+    # Search knowledge for inline cards
+    job_role = payload.get("job_role") or (payload.get("ui_context_delta") or {}).get("mcp_job_id", "")
+    result["knowledge_refs"] = search_knowledge(message, limit=4, job_role=job_role or None)
     result["reasoning_steps"] = [
         f"匹配现象：{pattern_title}",
         f"追问生成：{'LLM 动态生成' if not fallback else '规则模板'}",
@@ -364,7 +374,8 @@ def handle_knowledge_qa(payload, intent_result):
     """
     message = payload.get("message") or payload.get("user_input") or ""
     result = _base_result(payload, intent_result)
-    knowledge_items = search_knowledge(message, limit=5)
+    job_role = payload.get("job_role") or (payload.get("ui_context_delta") or {}).get("mcp_job_id", "")
+    knowledge_items = search_knowledge(message, limit=5, job_role=job_role or None)
 
     result["knowledge_refs"] = knowledge_items
 
@@ -405,6 +416,12 @@ def handle_knowledge_qa(payload, intent_result):
     answer, error = _llm_answer(system, user)
     if answer:
         result["fallback_used"] = False
+        # Append knowledge references at end of answer
+        if knowledge_items:
+            ref_lines = ["\\n\\n---\\n**参考知识卡片：**"]
+            for item in knowledge_items[:4]:
+                ref_lines.append(f"\n- [{item.get('id', '')}] {item.get('topic', '')}: {item.get('content', '')[:80]}...")
+            answer += "".join(ref_lines)
         result["answer"] = answer
     else:
         result["llm_error"] = error
