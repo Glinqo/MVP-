@@ -1,8 +1,9 @@
 from .data_loader import load_data, primary_job_profile
 from .graph import build_student_ability_graph
-from .graph_update_engine import normalize_ability_id
+from .graph_update_engine import normalize_ability_id, record_student_graph_event
 from .learner_context import learner_context_pack
 from .safety import safety_notice
+from .llm_client import chat_completion, is_configured, LLMError
 
 
 PRIORITY_STATUS = {"weak": 0, "improving": 1, "recommended_next": 2, "touched": 3, "unknown": 4, "mastered": 5}
@@ -88,7 +89,7 @@ def checkpoint_questions(ability_id, limit=2):
     return questions[:limit]
 
 
-def plan_stage(ability_node, index):
+def plan_stage(ability_node, index, learning_goal="????", is_retest_failed=False):
     ability_id = ability_node.get("id")
     ability = load_data()["ability_by_id"].get(ability_id, {})
     knowledge_items = knowledge_for_ability(ability_id)
@@ -260,10 +261,25 @@ def personalized_plan(payload=None):
     payload = payload or {}
     session_id = payload.get("session_id")
     plan_mode = payload.get("plan_mode", "staged")
+    time_budget = int(payload.get("time_budget") or 0)
+    learning_goal = payload.get("learning_goal", "????")
+    is_retest_failed = payload.get("is_retest_failed", False)
     requested_ability_id = payload.get("ability_id")
     graph = build_student_ability_graph(session_id)
     context_pack = learner_context_pack(graph.get("session_id"))
     nodes = graph.get("nodes", [])
+    
+    # Calculate progress and badges
+    total_nodes = len(nodes)
+    mastered_nodes = [n for n in nodes if n.get("status") == "mastered"]
+    progress_percentage = int((len(mastered_nodes) / total_nodes * 100)) if total_nodes > 0 else 0
+    
+    earned_badges = []
+    if any(n.get("id") == "electrical_safety_check" and n.get("status") == "mastered" for n in nodes):
+        earned_badges.append({"id": "badge_safety", "name": "?????", "icon": "???"})
+    if progress_percentage >= 50:
+        earned_badges.append({"id": "badge_halfway", "name": "?????", "icon": "??"})
+    
     sorted_nodes = sorted(
         nodes,
         key=lambda node: (
@@ -277,13 +293,26 @@ def personalized_plan(payload=None):
     if not priority_nodes:
         priority_nodes = sorted_nodes[:3]
 
-    stages = [plan_stage(node, index + 1) for index, node in enumerate(priority_nodes[:5])]
+    stages = [plan_stage(node, index + 1, learning_goal, is_retest_failed) for index, node in enumerate(priority_nodes[:5])]
+        # Apply time budget trimming
+    if time_budget == 10:
+        stages = [trim_stage_for_budget(stages[0], 10)] if stages else []
+        today_sheet = build_today_training_sheet(stages, context_pack) if stages else None
+        seven_day_plan = []
+    elif time_budget == 30:
+        stages = [trim_stage_for_budget(stages[i], 30) for i in range(min(2, len(stages)))]
+        today_sheet = build_today_training_sheet(stages, context_pack) if stages else None
+        seven_day_plan = []
+    else:
+        today_sheet = build_today_training_sheet(stages, context_pack)
+        seven_day_plan = build_seven_day_plan(stages)
     weak_names = [stage["ability_name"] for stage in stages[:3]]
-    today_sheet = build_today_training_sheet(stages, context_pack)
-    seven_day_plan = build_seven_day_plan(stages)
     return {
         "session_id": graph.get("session_id"),
         "plan_mode": plan_mode,
+        "learning_goal": learning_goal,
+        "progress_percentage": progress_percentage,
+        "earned_badges": earned_badges,
         "job_profile": primary_job_profile(),
         "learner_context": context_pack,
         "student_summary": (
@@ -307,4 +336,90 @@ def personalized_plan(payload=None):
         "safety_notice": safety_notice("接线 调试 PLC 传感器"),
         "next_review": "完成推荐实训任务后，重新做预设自测，并把不会的题目用于追问讲解。",
         "source": "student_graph + knowledge_50 + resources + training_tasks",
+    }
+
+def trim_stage_for_budget(stage, budget):
+    if budget == 10:
+        trimmed = dict(stage)
+        trimmed["knowledge_cards"] = (stage.get("knowledge_cards") or [])[:2]
+        trimmed["video_resources"] = (stage.get("video_resources") or [])[:1]
+        trimmed["practice_tasks"] = []
+        trimmed["checkpoint_questions"] = []
+        trimmed["text_explanation"] = (stage.get("text_explanation") or "")[:100]
+        return trimmed
+    if budget == 30:
+        trimmed = dict(stage)
+        trimmed["knowledge_cards"] = (stage.get("knowledge_cards") or [])[:3]
+        trimmed["video_resources"] = (stage.get("video_resources") or [])[:2]
+        trimmed["practice_tasks"] = (stage.get("practice_tasks") or [])[:1]
+        trimmed["checkpoint_questions"] = (stage.get("checkpoint_questions") or [])[:1]
+        return trimmed
+    return stage
+
+def evaluate_task_feedback(payload):
+    """
+    智能评估实训任务反馈，形成任务闭环
+    payload示例: {"session_id": "...", "task_id": "T001", "student_feedback": "我量了24V端子只有1.2V"}
+    """
+    session_id = payload.get("session_id")
+    task_id = payload.get("task_id")
+    student_feedback = payload.get("student_feedback", "")
+    
+    task = load_data()["task_by_id"].get(task_id, {})
+    if not task:
+        return {"status": "error", "message": "未找到对应实训任务"}
+        
+    deliverable_standard = task.get("deliverable", "")
+    ability_ids = task.get("node_ids", []) + task.get("ability_ids", [])
+    
+    evaluation_result = "任务已记录，但当前未配置大模型，无法智能评估。"
+    is_passed = False
+    
+    if is_configured():
+        system_prompt = (
+           "你是专业的机电 AI 实训评估系统。学生刚刚提交了实训任务的操作反馈。"
+            "请对照【任务交付标准】，严谨地判断学生的操作是否达标或方向是否正确。"
+            "严格输出JSON格式：{\"is_passed\": true/false, \"feedback_text\": \"客观专业的评估与指导建议\"}"
+        )
+        user_prompt = (
+            f"任务交付标准：{deliverable_standard}\n"
+            f"学生实际反馈：{student_feedback}\n"
+        )
+        
+        try:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ]
+            llm_reply = chat_completion(messages, temperature=0.2)
+            
+            # 清理 Markdown 代码块包裹并解析 JSON
+            text = llm_reply.strip()
+            if text.startswith("```json"): text = text[7:]
+            elif text.startswith("```"): text = text[3:]
+            if text.endswith("```"): text = text[:-3]
+            
+            result = json.loads(text.strip())
+            is_passed = result.get("is_passed", False)
+            evaluation_result = result.get("feedback_text", "已完成评估。")
+        except Exception:
+            evaluation_result = f"评估解析出错，记录已保存。参考标准：{deliverable_standard}"
+    
+    # 联动：将评估结果直接写入学生能力图谱事件
+    if session_id and ability_ids:
+        record_student_graph_event({
+            "session_id": session_id,
+            "event_type": "task_completed" if is_passed else "learning_event",
+            "ability_ids": ability_ids,
+            "outcome": "passed" if is_passed else "needs_improvement",
+            "note": f"任务 {task_id} 反馈评估: {evaluation_result}",
+            "source": "llm_task_evaluation"
+        })
+        
+    return {
+        "task_id": task_id,
+        "student_feedback": student_feedback,
+        "is_passed": is_passed,
+        "evaluation_result": evaluation_result,
+        "updated_abilities": ability_ids
     }

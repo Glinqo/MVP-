@@ -28,7 +28,7 @@ from app.services.graph_update_engine import (  # noqa: E402
     record_student_graph_event,
 )
 from app.services.learner_context import student_bootstrap  # noqa: E402
-from app.services.personalized_plan import personalized_plan  # noqa: E402
+from app.services.personalized_plan import personalized_plan, evaluate_task_feedback  # noqa: E402
 from app.services.quiz import personalized_quiz  # noqa: E402
 from app.services.recommendation import diagnose  # noqa: E402
 from app.services.retrieval import search_knowledge  # noqa: E402
@@ -330,6 +330,15 @@ class MVPHandler(BaseHTTPRequestHandler):
         path = parsed.path
         try:
             payload = self.read_json_body()
+            if path.startswith("/api/conversation/") and path != "/api/conversations":
+                sid = path[len("/api/conversation/"):]
+                from .conversation_state import load_conversation_state
+                conv = load_conversation_state(sid)
+                msgs = conv.get("messages", [])
+                return self.send_json({"session_id": sid, "messages": msgs})
+            if path == "/api/conversations":
+                from .conversation_state import list_conversation_sessions
+                return self.send_json(list_conversation_sessions())
             if path == "/api/chat/start":
                 return self.send_json(chat_start(payload))
             if path == "/api/chat/stream":
@@ -348,6 +357,8 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(personalized_quiz(payload))
             if path == "/api/plan/personalized":
                 return self.send_json(personalized_plan(payload))
+            if path == "/api/plan/task_feedback":
+                return self.send_json(evaluate_task_feedback(payload))
             if path == "/api/explain":
                 return self.send_json(explain(payload))
             if path == "/api/scenario/start":
