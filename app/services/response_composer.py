@@ -56,20 +56,20 @@ def _get_tool_data(tool_results, tool_name):
 # Main compose function
 # ---------------------------------------------------------------------------
 
-def compose_response(message, tool_results, conversation_state=None, active_task=None):
+def compose_response(message, tool_results, conversation_state=None, active_task=None, knowledge_refs=None):
     """Compose a unified response with proper structure."""
     results_list = [r.to_dict() if hasattr(r, "to_dict") else r for r in tool_results]
     mode = _detect_response_mode(message, tool_results, active_task)
 
     # ---- Build main answer by mode ----
     if mode == "knowledge_explanation":
-        answer = _compose_knowledge(message, results_list)
+        answer = _compose_knowledge(message, results_list, knowledge_refs=knowledge_refs)
     elif mode == "diagnosis_progress":
         answer = _compose_diagnosis(message, results_list, active_task)
     elif mode == "clarification":
         answer = _compose_clarification(message, results_list, active_task)
     elif mode == "mixed_knowledge_diagnosis":
-        answer = _compose_mixed(message, results_list, active_task)
+        answer = _compose_mixed(message, results_list, active_task, knowledge_refs=knowledge_refs)
     elif mode == "quiz_generation":
         answer = _compose_quiz(results_list)
     elif mode == "learning_plan":
@@ -107,10 +107,18 @@ def compose_response(message, tool_results, conversation_state=None, active_task
 # Mode-specific composers
 # ---------------------------------------------------------------------------
 
-def _compose_knowledge(message, results_list):
+def _compose_knowledge(message, results_list, knowledge_refs=None):
     """knowledge_explanation: conclusion first, then explanation."""
     data = _get_kn_data(results_list)
-    items = data.get("items", [])
+    items = data.get("items", []) or []
+    # Merge in external knowledge refs
+    if knowledge_refs:
+        seen = {i.get("id") or i.get("title") for i in items}
+        for kr in knowledge_refs:
+            kid = kr.get("id") or kr.get("title")
+            if kid and kid not in seen:
+                items.append(kr)
+                seen.add(kid)
 
     if not items:
         return _compose_rag_miss(message)
@@ -132,9 +140,10 @@ def _compose_knowledge(message, results_list):
     lines.append("")
 
     if len(items) > 1:
-        lines.append("---")
-        lines.append("*References: %s*" % ", ".join(
-            item.get("title", "") for item in items[1:4] if item.get("title")))
+        ref_titles = [item.get("title", "") for item in items[1:4] if item.get("title")]
+        if ref_titles:
+            lines.append("---")
+            lines.append("*References: %s*" % ", ".join(ref_titles))
 
     return "\n".join(lines)
 
@@ -199,7 +208,7 @@ def _compose_clarification(message, results_list, active_task):
     return "\n".join(lines)
 
 
-def _compose_mixed(message, results_list, active_task):
+def _compose_mixed(message, results_list, active_task, knowledge_refs=None):
     """mixed_knowledge_diagnosis: answer knowledge, then relate to current task."""
     kn_data = _get_kn_data(results_list)
     dx_data = _get_tool_data_s(results_list, "run_diagnosis")

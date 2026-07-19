@@ -376,8 +376,15 @@ def chat_message(payload):
         result = execute_tool(tool_name, **tool_args)
         tool_results.append(result)
 
+    # ---- Search knowledge BEFORE composing response ----
+    knowledge_refs_raw = None
+    try:
+        knowledge_refs_raw = search_knowledge(message, limit=5, job_role=payload.get("job_role"))
+    except Exception:
+        pass
+
     # ---- Compose response ----
-    composed = compose_response(message, tool_results, active_task=active_task)
+    composed = compose_response(message, tool_results, active_task=active_task, knowledge_refs=knowledge_refs_raw)
     answer = composed.get("answer", "") if composed else fallback_answer({"status": "ok"})
 
     # ---- Build result ----
@@ -435,6 +442,22 @@ def chat_message(payload):
 
     if session_id:
         append_assistant_message(session_id, answer)
+
+    # ---- Knowledge card fallback (if compose_response did not populate) ----
+    if not result.get("knowledge_gaps"):
+        if knowledge_refs_raw:
+            result["knowledge_gaps"] = knowledge_refs_raw
+            result["knowledge_refs"] = list(knowledge_refs_raw)
+        else:
+            try:
+                sr = search_knowledge(message, limit=5, job_role=payload.get("job_role"))
+                if sr:
+                    result["knowledge_gaps"] = sr
+                    result["knowledge_refs"] = list(sr)
+                else:
+                    result["knowledge_refs"] = []
+            except Exception:
+                pass
 
     return result
 

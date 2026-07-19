@@ -335,7 +335,13 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/chat/stream":
                 return self._handle_chat_stream(payload)
             if path == "/api/chat/message":
-                return self.send_json(chat_message(payload))
+                result = chat_message(payload)
+                if not result.get("knowledge_gaps"):
+                    kg = search_knowledge(payload.get("message",""), limit=5, job_role=payload.get("job_role"))
+                    if kg:
+                        result["knowledge_gaps"] = kg
+                        result["knowledge_refs"] = list(kg)
+                return self.send_json(result)
             if path == "/api/student/bootstrap":
                 return self.send_json(student_bootstrap(payload.get("session_id")))
             if path == "/api/quiz/personalized":
