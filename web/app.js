@@ -301,9 +301,9 @@ function renderKnowledgeCards(refs) {
       <div class="kbci-head">
         <span class="kbci-id">${escapeHtml(item.id || "")}</span>
         <span class="kbci-topic">${escapeHtml(item.topic || item.id || "")}</span>
-        <span class="kbci-source">${escapeHtml(item.source || "")}</span>
       </div>
       <div class="kbci-content">${escapeHtml(item.content || "").replaceAll("\n", "<br>")}</div>
+      <div class="kbci-source">${escapeHtml(item.source || "")}</div>
       <div class="kbci-tags">${(item.tags || []).slice(0, 3).map(t => `<span class="kbci-tag">${escapeHtml(t)}</span>`).join("")}</div>
       <div class="kbci-actions">
         <button type="button" data-ask="${escapeHtml(`请详细讲解「${item.topic || item.id}」这个知识点`)}" data-knowledge-id="${escapeHtml(item.id || "")}">追问</button>
@@ -1203,9 +1203,9 @@ function renderKnowledge(items) {
       <div class="kbci-head">
         <span class="kbci-id">${escapeHtml(item.id || "")}</span>
         <span class="kbci-topic">${escapeHtml(item.topic || item.id || "")}</span>
-        <span class="kbci-source">${escapeHtml(item.source || "")}</span>
       </div>
       <div class="kbci-content">${escapeHtml((item.content || "").substring(0, 200))}${(item.content || "").length > 200 ? '...' : ''}</div>
+      <div class="kbci-source">${escapeHtml(item.source || "")}</div>
       <div class="kbci-actions">
         <button type="button" data-ask="${escapeHtml('请详细讲解「' + (item.topic || item.id) + '」这个知识点')}" data-knowledge-id="${escapeHtml(item.id || "")}">追问</button>
       </div>
@@ -1770,7 +1770,7 @@ function renderScore(data) {
   `;
 }
 
-function applyChatResult(data) {
+async function applyChatResult(data) {
   state.lastChat = data;
   state.learnerContext = data.learner_context || state.learnerContext;
   addMessage("assistant", data.answer || "", {
@@ -1783,7 +1783,7 @@ function applyChatResult(data) {
   renderSuggestedQuestions(data.suggested_questions || []);
   renderToolSuggestions(data.tool_suggestions || []);
   if (data.student_graph) renderGraph(data.student_graph, "student");
-  loadGraphUpdates();
+  await loadGraphUpdates();
   // Use knowledge_refs as fallback when knowledge_gaps is empty
   const gaps = data.knowledge_gaps || [];
   const refs = data.knowledge_refs || [];

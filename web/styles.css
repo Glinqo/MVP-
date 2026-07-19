@@ -131,6 +131,7 @@ body::before {
 .message-body{
   border:1px solid var(--line); border-radius:var(--radius);
   background:rgba(255,255,255,0.03); line-height:1.7; padding:14px 16px; color:var(--text);
+  overflow-wrap:break-word; overflow:hidden; min-width:0;
 }
 .message.user .message-body{border-color:rgba(20,184,166,0.2);background:rgba(15,118,110,0.06)}
 .message-meta{margin-top:8px;color:var(--muted);font-size:12px}
@@ -806,9 +807,9 @@ button:active{transform:translateY(0)}
 
 /* Knowledge card inline sub-styles */
 .kbci-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:6px}
-.kbci-id{font-size:11px;color:var(--primary-light);font-weight:700;background:rgba(56,189,248,0.2);padding:2px 6px;border-radius:4px}
-.kbci-topic{font-weight:700;font-size:13px;color:var(--text);flex:1;min-width:0}
-.kbci-source{font-size:11px;color:var(--muted);white-space:nowrap}
+.kbci-id{font-size:11px;color:var(--primary-light);font-weight:700;background:rgba(56,189,248,0.2);padding:2px 6px;border-radius:4px;flex-shrink:0;white-space:nowrap}
+.kbci-topic{font-weight:700;font-size:13px;color:var(--text);flex:1;min-width:0;white-space:normal;word-break:keep-all;overflow-wrap:break-word}
+.kbci-source{font-size:11px;color:var(--muted);margin-top:4px;padding-top:4px;border-top:1px solid var(--line)}
 .kbci-content{font-size:13px;line-height:1.6;color:var(--text-secondary);margin-bottom:6px;max-height:100px;overflow-y:auto;word-break:break-word;overflow-wrap:break-word}
 .kbci-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
 .kbci-tag{font-size:10px;color:var(--muted);background:var(--glass);padding:2px 6px;border-radius:4px;border:1px solid var(--line)}
