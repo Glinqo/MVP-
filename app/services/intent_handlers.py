@@ -308,6 +308,18 @@ def handle_clarify(payload, intent_result):
 
     assist_result = assist({"user_input": message, "context": context})
 
+    # If knowledge search finds matches and message looks like a knowledge question, answer directly
+    knowledge_items = search_knowledge(message, limit=5, job_role=payload.get("job_role") or None)
+    if knowledge_items and not any(kw in message for kw in ["帮我看看", "怎么回事", "出问题了", "故障"]):
+        # Route to knowledge QA instead of clarifying
+        return handle_knowledge_qa(payload, intent_result)
+
+    # If knowledge search finds matches and message looks like a knowledge question, answer directly
+    knowledge_items = search_knowledge(message, limit=5, job_role=payload.get("job_role") or None)
+    if knowledge_items and not any(kw in message for kw in ["帮我看看", "怎么回事", "出问题了", "故障"]):
+        # Route to knowledge QA instead of clarifying
+        return handle_knowledge_qa(payload, intent_result)
+
     # Count previous rounds + 1 for this round
     clarify_round = _count_clarify_rounds(session_id) + 1
 
