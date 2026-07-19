@@ -16,6 +16,7 @@ from .intent_handlers import (
 from .learner_context import format_context_for_prompt, learner_context_pack
 from .llm_client import LLMError, chat_completion, is_configured
 from .retrieval import search_knowledge
+from .conversation_engine import format_citations, RAGCitation, _finalize_message
 from .safety import safety_notice
 from .conversation_state import (
     get_conversation_context,
@@ -66,6 +67,7 @@ TOOLS = [
 
 def welcome_questions(job_role=None):
     from .retrieval import search_knowledge
+    from .conversation_engine import format_citations, RAGCitation, _finalize_message
     from .data_loader import job_profile_by_id, primary_job_profile
     profile = job_profile_by_id(job_role) if job_role else primary_job_profile()
     job_name = profile.get("role_name", "当前岗位")
@@ -443,7 +445,7 @@ def chat_message(payload):
     if session_id:
         append_assistant_message(session_id, answer)
 
-    # ---- Knowledge card fallback (if compose_response did not populate) ----
+    # ---- RAG citation fallback (conversation engine v7) ----
     refs_for_answer = knowledge_refs_raw
     if not result.get("knowledge_gaps"):
         if knowledge_refs_raw:
@@ -460,27 +462,7 @@ def chat_message(payload):
                     result["knowledge_refs"] = []
             except Exception:
                 pass
-    # ---- Build ChatGPT-style source citations ----
-    if refs_for_answer:
-        source_lines = []
-        for i, r in enumerate(refs_for_answer[:5]):
-            sid = r.get("id", "")
-            stitle = r.get("title", "") or r.get("topic", "") or sid
-            ssource = r.get("source", "") or r.get("source_url", "")
-            if ssource:
-                source_lines.append("[{idx}] **{title}** &mdash; *{source}*".format(idx=i+1, title=stitle, source=ssource))
-            else:
-                source_lines.append("[{idx}] **{title}**".format(idx=i+1, title=stitle))
-        if source_lines:
-            ans = result.get("answer", "") or ""
-            # Clean any existing empty *References: *
-            ans = ans.replace("*References: *", "")
-            # Strip trailing --- separator if left orphan
-            ans = ans.rstrip()
-            if ans.endswith("---"):
-                ans = ans[:-3].rstrip()
-            ref_block = "\n\n---\n**Sources**\n" + "\n".join(source_lines)
-            result["answer"] = ans + ref_block
+    _finalize_message(result, refs_for_answer)
 
     return result
 
