@@ -12,6 +12,10 @@ web/pnpm-lock.yaml
 .codex-audit/
 demo_test.py
 
+# Runtime session & memory data
+data/sessions.db
+data/memory/
+
 # Runtime evidence data
 data/evidence/
 data/raw_jobs/
