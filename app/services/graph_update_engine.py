@@ -1,5 +1,6 @@
 import json
 import re
+import threading
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 
@@ -16,23 +17,28 @@ WEAK_EVENTS = {"scenario_step_mistake"}
 MASTERED_EVENTS = {"task_completed"}
 SAFETY_REVIEW_ABILITIES = {"electrical_safety_check", "power_isolation_confirmation", "multimeter_voltage_measurement"}
 
+# ── global lock for runtime JSON files ─────────────────────────────
+_global_runtime_lock = threading.Lock()
+
 
 def now_iso():
     return datetime.now(timezone.utc).isoformat()
 
 
 def read_runtime_json(path, default):
-    if not path.exists():
-        return default
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return default
+    with _global_runtime_lock:
+        if not path.exists():
+            return default
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return default
 
 
 def write_runtime_json(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    with _global_runtime_lock:
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     return data
 
 
@@ -160,6 +166,129 @@ def add_bucket_event(bucket, event, reason):
 
 
 def personal_graph_state(session_id, core_chain):
+    """Return the personal ability graph for a session.
+
+    Uses incremental cache (session_store.ability_state_cache) when available;
+    falls back to full event-scan on cache miss or for sessions with complex
+    events (feedback / score) that mutate multiple counters at once.
+    """
+    # Try cache-first path
+    try:
+        from .session_store import load_ability_cache
+
+        cached = load_ability_cache(safe_session_id(session_id))
+        if cached:
+            buckets, recommended_names = _buckets_from_cache_and_events(
+                session_id, core_chain, cached
+            )
+        else:
+            buckets, recommended_names = _full_event_scan(session_id, core_chain)
+            # Persist cache for next time
+            _save_buckets_to_cache(session_id, buckets)
+    except Exception:
+        buckets, recommended_names = _full_event_scan(session_id, core_chain)
+
+    # ── post-processing: recommended_ids (same as original) ──────────
+    record = load_session_record(session_id)
+    recommended_names.extend(record.get("recommended_path", []))
+    recommended_ids = _compute_recommended_ids(buckets, recommended_names, core_chain)
+
+    for ability_id in recommended_ids:
+        if ability_id in load_data()["ability_by_id"]:
+            buckets[ability_id]["recommended"] += 1
+            if not buckets[ability_id]["reasons"]:
+                buckets[ability_id]["reasons"].append("推荐下一步训练")
+
+    return {"record": record, "buckets": buckets, "recommended_ids": recommended_ids}
+
+
+def _buckets_from_cache_and_events(session_id, core_chain, cached):
+    """Build buckets from cached counters + iterate events for reason details only."""
+    from collections import defaultdict
+
+    buckets = defaultdict(ability_event_bucket)
+    recommended_names = []
+    record = load_session_record(session_id)
+
+    # Fill counters from cache
+    for ability_id, counters in cached.items():
+        b = buckets[ability_id]
+        b["chat"] = counters.get("chat_count", 0)
+        b["weak"] = counters.get("weak_count", 0)
+        b["improving"] = counters.get("improving_count", 0)
+        b["mastered"] = counters.get("mastered_count", 0)
+        b["recommended"] = counters.get("recommended_count", 0)
+        b["last_updated_at"] = counters.get("last_updated_at")
+
+    # Still iterate events for reason details and complex events that
+    # might modify counters beyond simple increment
+    for event in record.get("events", []):
+        event_type = event.get("event_type")
+
+        if event_type == "chat_message":
+            recommended_names.extend(event.get("recommended_path", []))
+            ability_ids = event_ability_ids(event) or extract_ability_ids(event.get("highlighted_abilities", []))
+            for ability_id in ability_ids:
+                add_bucket_event(buckets[ability_id], event, "问答命中该能力")
+            continue
+
+        if event_type in {"score", "diagnosis"}:
+            weak_ids = extract_ability_ids(event.get("weak_abilities", []))
+            for ability_id in weak_ids:
+                add_bucket_event(buckets[ability_id], event, "确定性评分显示薄弱")
+            if event.get("score_result", {}).get("score") == 100:
+                for ability_id in core_chain:
+                    add_bucket_event(buckets[ability_id], event, "预设自测满分")
+            recommended_names.extend(event.get("recommended_path", []))
+            continue
+
+        if event_type == "feedback":
+            add_reason = (
+                "学生反馈已掌握"
+                if event.get("feedback") == "已掌握"
+                else f"学生反馈{event.get('feedback', '')}"
+            )
+            ability_ids = event_ability_ids(event)
+            for ability_id in ability_ids:
+                add_bucket_event(buckets[ability_id], event, add_reason)
+            recommended_names.extend(event.get("recommended_path", []))
+            continue
+
+        if event_type in IMPROVING_EVENTS:
+            for ability_id in event_ability_ids(event):
+                add_bucket_event(buckets[ability_id], event, "讲题/练习产生改进证据")
+            continue
+
+        if event_type in WEAK_EVENTS:
+            for ability_id in event_ability_ids(event):
+                add_bucket_event(buckets[ability_id], event, "排故角色扮演选择错误，提示该能力需补强")
+            continue
+
+        if event_type in MASTERED_EVENTS:
+            msg = (
+                "任务完成产生掌握证据"
+                if event.get("outcome") in {None, "", "passed", "completed"}
+                else "任务完成但仍需复核"
+            )
+            for ability_id in event_ability_ids(event):
+                add_bucket_event(buckets[ability_id], event, msg)
+
+    # Handle record-level weak_abilities and feedback (post-processing)
+    for ability_id in extract_ability_ids(record.get("weak_abilities", [])):
+        if ability_id not in buckets:
+            buckets[ability_id] = ability_event_bucket()
+    if record.get("feedback") == "已掌握":
+        for ability_id in extract_ability_ids(record.get("weak_abilities", [])):
+            pass  # already handled via cached counters
+    elif record.get("feedback") in {"仍不会", "需要更基础讲解"}:
+        for ability_id in extract_ability_ids(record.get("weak_abilities", [])):
+            pass
+
+    return buckets, recommended_names
+
+
+def _full_event_scan(session_id, core_chain):
+    """Original full-scan logic, extracted for reuse."""
     record = load_session_record(session_id)
     buckets = defaultdict(ability_event_bucket)
     recommended_names = []
@@ -234,6 +363,11 @@ def personal_graph_state(session_id, core_chain):
             buckets[ability_id]["weak"] += 1
     recommended_names.extend(record.get("recommended_path", []))
 
+    return buckets, recommended_names
+
+
+def _compute_recommended_ids(buckets, recommended_names, core_chain):
+    """Compute which ability IDs should be marked as recommended_next."""
     recommended_ids = set(ability_ids_from_names(recommended_names))
     if any(bucket["weak"] for bucket in buckets.values()):
         for ability_id, bucket in list(buckets.items()):
@@ -248,14 +382,42 @@ def personal_graph_state(session_id, core_chain):
             last_index = max(core_chain.index(item) for item in touched_chain)
             if last_index + 1 < len(core_chain):
                 recommended_ids.add(core_chain[last_index + 1])
+    return recommended_ids
 
-    for ability_id in recommended_ids:
-        if ability_id in load_data()["ability_by_id"]:
-            buckets[ability_id]["recommended"] += 1
-            if not buckets[ability_id]["reasons"]:
-                buckets[ability_id]["reasons"].append("推荐下一步训练")
 
-    return {"record": record, "buckets": buckets, "recommended_ids": recommended_ids}
+def _save_buckets_to_cache(session_id, buckets):
+    """Persist computed bucket counters to SQLite cache."""
+    try:
+        from .session_store import rebuild_ability_cache
+
+        rebuild_ability_cache(session_id, {
+            aid: {
+                "chat": b["chat"],
+                "weak": b["weak"],
+                "improving": b["improving"],
+                "mastered": b["mastered"],
+                "recommended": b["recommended"],
+                "last_event_id": (b.get("events") or [{}])[-1].get("event_id", "") if b.get("events") else "",
+                "last_updated_at": b.get("last_updated_at", ""),
+            }
+            for aid, b in buckets.items()
+        })
+    except Exception:
+        pass  # cache write failure is non-critical
+
+
+def rebuild_cache(session_id):
+    """Force a full recompute and cache write for a session."""
+    from .data_loader import primary_job_profile
+
+    profile = primary_job_profile()
+    core_chain = [
+        item.get("ability_internal_id", item.get("id", ""))
+        for item in profile.get("core_ability_chain", [])
+    ]
+    buckets, _ = _full_event_scan(session_id, core_chain)
+    _save_buckets_to_cache(session_id, buckets)
+    return {"rebuilt": True, "session_id": safe_session_id(session_id), "ability_count": len(buckets)}
 
 
 def compute_node_metrics(ability_id, bucket):

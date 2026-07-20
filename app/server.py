@@ -41,6 +41,7 @@ from app.services.graph_update_engine import (  # noqa: E402
     graph_update_timeline,
     record_student_graph_event,
 )
+from app.services.conversation_memory import record_session_end  # noqa: E402
 from app.services.learner_context import student_bootstrap  # noqa: E402
 from app.services.personalized_plan import personalized_plan  # noqa: E402
 from app.services.quiz import personalized_quiz  # noqa: E402
@@ -388,6 +389,11 @@ class MVPHandler(BaseHTTPRequestHandler):
         except Exception as exc:  # pragma: no cover - defensive boundary for demo server
             return self.send_error_json(500, str(exc))
 
+
+            if path == "/api/session/end":
+                session_id = payload.get("session_id")
+                user_id = payload.get("user_id")
+                return self.send_json(record_session_end(session_id, user_id))
 
             if path == "/api/graph/job/versions/rollback":
                 return self.send_json(version_rollback(payload.get("version"), payload.get("job_role")))

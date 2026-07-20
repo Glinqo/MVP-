@@ -11,6 +11,7 @@ import logging
 from pathlib import Path
 
 from .assist import assist
+from .conversation_memory import ConversationMemory
 from .data_loader import load_data, primary_job_profile
 from .feedback import load_session_record
 from .graph import build_ability_graph, build_student_ability_graph

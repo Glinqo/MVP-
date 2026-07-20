@@ -1,6 +1,8 @@
 import json
+import logging
 
 from .assist import assist
+from .conversation_memory import ConversationMemory
 from .data_loader import primary_job_profile
 from .feedback import append_session_event
 from .graph import build_student_ability_graph
@@ -17,6 +19,8 @@ from .learner_context import format_context_for_prompt, learner_context_pack
 from .llm_client import LLMError, chat_completion, is_configured
 from .retrieval import search_knowledge
 from .safety import safety_notice
+
+logger = logging.getLogger(__name__)
 
 
 TOOLS = [
@@ -49,14 +53,30 @@ def chat_start(payload=None):
     learner_stage = profile.get("learner_stage", "职业新人")
     focus_task = profile.get("mvp_focus_task", "传感器 NPN/PNP 接线与 PLC 输入信号排查")
     context_pack = learner_context_pack(payload.get("session_id"))
+
+    user_id = payload.get("user_id")
+    cross_mem = {}
+    welcome_extra = ""
+    if user_id:
+        try:
+            from .conversation_memory import UserMemoryManager
+            umm = UserMemoryManager(user_id)
+            cross_mem = umm.get_cross_session_context()
+            if umm.session_count > 0:
+                welcome_extra = " 欢迎回来！这是你的第 {} 次会话。".format(umm.session_count + 1)
+        except Exception:
+            pass
+
     return {
         "session_id": context_pack.get("session_id"),
         "job_profile": profile,
         "learner_context": context_pack,
+        "cross_session_memory": cross_mem,
         "welcome": (
             f"你好，我会按“{role_name} / {learner_stage}”的岗位要求来回答。"
             f"当前重点训练任务是：{focus_task}。你可以直接描述问题；"
             "如果涉及接线、通电监控或设备动作，我会先提醒安全，再帮你定位能力和知识缺口。"
+            + welcome_extra
         ),
         "suggested_questions": welcome_questions(),
         "tool_suggestions": TOOLS,
@@ -68,8 +88,8 @@ def compact_for_prompt(items, limit=6):
     return items[:limit] if isinstance(items, list) else []
 
 
-def build_system_prompt(profile):
-    return (
+def build_system_prompt(profile, memory=None, cross_session=None):
+    parts = [
         "你是面向职业新人的机电一体化岗位培训 AI。"
         "你服务的默认岗位是自动化生产线装调与运维技术员，场景聚焦传感器 NPN/PNP 接线与 PLC 输入信号排查。"
         "你的目标不是简单回答问题，而是帮助学生完成问题诊断、"
@@ -79,9 +99,24 @@ def build_system_prompt(profile):
         "不要指导绕过安全回路、短接保护或带电冒险操作。"
         "专业结论优先依据给定知识条目、能力节点和问题模式；不要编造来源、设备型号或教材页码。"
         "你可以解释评分结果，但不得自由评分，也不得覆盖规则评分。"
-        "回答末尾用简短列表给出 2 到 4 个更有价值的追问建议。"
-        f"\n岗位画像：{json.dumps(profile, ensure_ascii=False)}"
-    )
+        "回答末尾用简短列表给出 2 到 4 个更有价值的追问建议。",
+    ]
+    if memory:
+        summary = memory.get("summary", "")
+        key_facts = memory.get("key_facts", [])
+        if summary:
+            parts.append(f"先前对话摘要：{summary}")
+        if key_facts:
+            parts.append("已确认的关键事实：\n" + "\n".join(f"- {f}" for f in key_facts))
+    if cross_session:
+        prev = cross_session.get("previous_session_summary", "")
+        long_facts = cross_session.get("long_term_facts", [])
+        if prev:
+            parts.append(prev)
+        if long_facts:
+            parts.append("学生长期学习记录：\n" + "\n".join(f"- {f}" for f in long_facts))
+    parts.append(f"岗位画像：{json.dumps(profile, ensure_ascii=False)}")
+    return "\n".join(parts)
 
 
 def build_user_prompt(message, assist_result, learner_context=None):
@@ -299,18 +334,37 @@ def chat_message(payload):
 
     if is_configured() and not clarify_handled:
         history = payload.get("history", [])[-8:]
-        messages = [{"role": "system", "content": build_system_prompt(profile)}]
-        for item in history:
+        memory = ConversationMemory(session_id) if session_id else None
+        mem_ctx = memory.get_active_context(history) if memory else {"summary": "", "key_facts": [], "active_messages": []}
+
+        user_id = payload.get("user_id")
+        cross_session_ctx = {}
+        if user_id:
+            try:
+                from .conversation_memory import UserMemoryManager
+                umm = UserMemoryManager(user_id)
+                cross_session_ctx = umm.get_cross_session_context()
+            except Exception:
+                pass
+
+        messages = [{"role": "system", "content": build_system_prompt(profile, memory=mem_ctx, cross_session=cross_session_ctx)}]
+        for item in mem_ctx.get("active_messages", history):
             role = item.get("role")
-            content = item.get("content")
-            if role in {"user", "assistant"} and content:
-                messages.append({"role": role, "content": str(content)})
+            item_content = item.get("content")
+            if role in {"user", "assistant"} and item_content:
+                messages.append({"role": role, "content": str(item_content)})
         messages.append({"role": "user", "content": build_user_prompt(message, assist_result, learner_context)})
         try:
             answer = chat_completion(messages)
             fallback_used = False
         except LLMError as exc:
             llm_error = str(exc)
+
+        if memory and len(history) > 6:
+            try:
+                memory.summarize_async(history)
+            except Exception:
+                pass
 
     notice = assist_result.get("safety_notice") or safety_notice(message)
     result = {

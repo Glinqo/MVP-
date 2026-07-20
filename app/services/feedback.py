@@ -1,6 +1,7 @@
 import json
 import re
-from collections import Counter
+import threading
+from collections import Counter, OrderedDict
 from datetime import datetime, timezone
 
 from .data_loader import ROOT
@@ -8,6 +9,28 @@ from .data_loader import ROOT
 
 SESSIONS_DIR = ROOT / "data" / "sessions"
 ALLOWED_FEEDBACK = {"已掌握", "仍不会", "需要更基础讲解"}
+
+# ── per-session file locks (read-modify-write protection) ──────────
+_session_locks: dict[str, threading.Lock] = {}
+_locks_dict_lock = threading.Lock()
+_MAX_LOCKS = 100
+
+
+def _get_session_lock(session_id: str) -> threading.Lock:
+    safe_id = safe_session_id(session_id)
+    with _locks_dict_lock:
+        if safe_id not in _session_locks:
+            _prune_locks_locked()
+            _session_locks[safe_id] = threading.Lock()
+        return _session_locks[safe_id]
+
+
+def _prune_locks_locked():
+    """Remove oldest locks when the dictionary grows too large.
+    Must be called while holding _locks_dict_lock."""
+    while len(_session_locks) > _MAX_LOCKS:
+        oldest = next(iter(_session_locks))
+        del _session_locks[oldest]
 
 
 def now_id():
@@ -53,14 +76,67 @@ def write_session_record(record):
 
 
 def append_session_event(session_id, event):
-    record = load_session_record(session_id)
-    event = dict(event or {})
-    event.setdefault("event_type", "unknown")
-    event["event_id"] = now_id()
-    event["created_at"] = datetime.now(timezone.utc).isoformat()
-    record.setdefault("events", []).append(event)
-    write_session_record(record)
+    lock = _get_session_lock(session_id)
+    with lock:
+        record = load_session_record(session_id)
+        event = dict(event or {})
+        event.setdefault("event_type", "unknown")
+        event["event_id"] = now_id()
+        event["created_at"] = datetime.now(timezone.utc).isoformat()
+        record.setdefault("events", []).append(event)
+        write_session_record(record)
+
+        # Best-effort SQLite dual-write
+        try:
+            from .session_store import insert_event, increment_ability_counters
+            sid = safe_session_id(session_id)
+            insert_event(sid, event)
+            _increment_ability_state_for_event(sid, event)
+        except Exception:
+            pass  # SQLite write is non-critical for JSON-led flow
+
     return {"saved": True, "session_id": record["session_id"], "event_type": event["event_type"]}
+
+
+def _increment_ability_state_for_event(session_id: str, event: dict):
+    """Increment ability-state cache counters for a single event.
+
+    Only handles simple event types; complex types (feedback, score with
+    cross-ability side-effects) are handled by cache invalidation in
+    graph_update_engine.
+    """
+    from .graph_update_engine import (
+        IMPROVING_EVENTS,
+        MASTERED_EVENTS,
+        WEAK_EVENTS,
+        event_ability_ids,
+    )
+    from .session_store import batch_increment_ability_counters
+
+    event_type = event.get("event_type", "")
+    ability_ids = event_ability_ids(event)
+
+    if not ability_ids:
+        return
+
+    if event_type == "chat_message":
+        increments = [(aid, "chat_count") for aid in ability_ids]
+    elif event_type in IMPROVING_EVENTS:
+        increments = [(aid, "improving_count") for aid in ability_ids]
+    elif event_type in WEAK_EVENTS:
+        increments = [(aid, "weak_count") for aid in ability_ids]
+    elif event_type in MASTERED_EVENTS:
+        outcome = event.get("outcome")
+        if outcome in {None, "", "passed", "completed"}:
+            increments = [(aid, "mastered_count") for aid in ability_ids]
+        else:
+            increments = [(aid, "improving_count") for aid in ability_ids]
+    else:
+        # Complex event types (feedback, score, diagnosis) — skip increment,
+        # rely on full recompute path in graph_update_engine.
+        return
+
+    batch_increment_ability_counters(session_id, increments, event_id=event.get("event_id", ""))
 
 
 def save_feedback(payload):
@@ -70,30 +146,32 @@ def save_feedback(payload):
         raise ValueError("feedback must be one of: 已掌握, 仍不会, 需要更基础讲解")
 
     session_id = safe_session_id(payload.get("session_id"))
-    record = load_session_record(session_id)
-    record = {
-        **record,
-        "session_id": session_id,
-        "feedback": feedback,
-        "user_input": payload.get("user_input", ""),
-        "score_result": payload.get("score_result", {}),
-        "weak_abilities": payload.get("weak_abilities", []),
-        "recommended_path": payload.get("recommended_path", []),
-    }
-    record.setdefault("events", []).append(
-        {
-            "event_id": now_id(),
-            "event_type": "feedback",
-            "created_at": datetime.now(timezone.utc).isoformat(),
+    lock = _get_session_lock(session_id)
+    with lock:
+        record = load_session_record(session_id)
+        record = {
+            **record,
+            "session_id": session_id,
             "feedback": feedback,
             "user_input": payload.get("user_input", ""),
             "score_result": payload.get("score_result", {}),
             "weak_abilities": payload.get("weak_abilities", []),
-            "highlighted_abilities": payload.get("highlighted_abilities", []),
             "recommended_path": payload.get("recommended_path", []),
         }
-    )
-    write_session_record(record)
+        record.setdefault("events", []).append(
+            {
+                "event_id": now_id(),
+                "event_type": "feedback",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "feedback": feedback,
+                "user_input": payload.get("user_input", ""),
+                "score_result": payload.get("score_result", {}),
+                "weak_abilities": payload.get("weak_abilities", []),
+                "highlighted_abilities": payload.get("highlighted_abilities", []),
+                "recommended_path": payload.get("recommended_path", []),
+            }
+        )
+        write_session_record(record)
     return {"saved": True, "session_id": session_id, "feedback": feedback}
 
 
