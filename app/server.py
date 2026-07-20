@@ -15,6 +15,7 @@ from app.services.data_loader import primary_job_profile, public_questions  # no
 from app.services.assist import assist  # noqa: E402
 from app.services.chat import chat_message, chat_start  # noqa: E402
 from app.services.conversation_runner import run_conversation_turn  # noqa: E402
+from app.services.conversation_state import list_conversation_sessions, load_conversation_state, rename_conversation, delete_conversation, update_activity, generate_session_title  # noqa: E402
 from app.services.conversation_events import error_event  # noqa: E402
 from app.services.explanation import explain  # noqa: E402
 from app.services.feedback import append_session_event, save_feedback, teacher_summary  # noqa: E402
@@ -323,12 +324,20 @@ class MVPHandler(BaseHTTPRequestHandler):
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(compute_match(session_id))
 
+        if path == "/api/conversations":
+            return self.send_json(list_conversation_sessions())
+        if path.startswith("/api/conversation/") and path != "/api/conversations":
+            sid = path[len("/api/conversation/"):]
+            conv = load_conversation_state(sid)
+            return self.send_json({"session_id": sid, "messages": conv.get("messages", []), "title": conv.get("metadata", {}).get("title", "")})
+
         return self.serve_static(path)
 
     def do_POST(self):
         parsed = urlparse(self.path)
         path = parsed.path
         try:
+            query_params = parse_qs(parsed.query)
             payload = self.read_json_body()
             if path.startswith("/api/conversation/") and path != "/api/conversations":
                 sid = path[len("/api/conversation/"):]
@@ -338,6 +347,22 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json({"session_id": sid, "messages": msgs})
             if path == "/api/conversations":
                 from .conversation_state import list_conversation_sessions
+                return self.send_json(list_conversation_sessions())
+            if path.startswith("/api/conversation/") and path != "/api/conversations":
+                sid = path[len("/api/conversation/"):]
+                action = query_params.get("action", [""])[0]
+                if action == "delete":
+                    return self.send_json(delete_conversation(sid))
+                if action == "rename":
+                    title = (payload.get("title") or "").strip()[:60]
+                    if not title:
+                        return self.send_error_json(400, "title required")
+                    return self.send_json(rename_conversation(sid, title))
+                if action == "title":
+                    return self.send_json({"title": generate_session_title(sid)})
+                conv = load_conversation_state(sid)
+                return self.send_json({"session_id": sid, "messages": conv.get("messages", []), "title": conv.get("metadata", {}).get("title", "")})
+            if path == "/api/conversations":
                 return self.send_json(list_conversation_sessions())
             if path == "/api/chat/start":
                 return self.send_json(chat_start(payload))

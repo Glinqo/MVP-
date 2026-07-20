@@ -52,6 +52,17 @@ function newSession() {
   location.reload();
 }
 
+function createNewChat() {
+  var newId = "demo-" + Date.now();
+  state.sessionId = newId;
+  state.messages = [];
+  persistSession();
+  renderMessages();
+  refreshSidebar();
+  // close sidebar on mobile
+  if (window.innerWidth <= 768) toggleSidebar();
+}
+
 const $_raw = (id) => document.getElementById(id);
 const $ = (id) => {
   const el = $_raw(id);
@@ -375,10 +386,18 @@ function collectContext() {
   };
 }
 
-function addMessage(role, content, meta = {}) {
-  state.messages.push({ role, content, meta });
+function addMessage(role, content, meta) {
+  if (meta === undefined) meta = {};
+  state.messages.push({ role: role, content: content, meta: meta });
   renderMessages();
   persistSession();
+  // Auto-title on first user message
+  if (role === "user" && state.messages.filter(function(m) { return m.role === "user"; }).length === 1) {
+    fetch("/api/conversation/" + encodeURIComponent(state.sessionId) + "?action=title", { method: "POST" }).catch(function(){});
+  }
+  // Update activity
+  fetch("/api/conversation/" + encodeURIComponent(state.sessionId) + "?action=title", { method: "POST" }).catch(function(){});
+  if (typeof refreshSidebar === "function") refreshSidebar();
 }
 
 function renderMessages() {
