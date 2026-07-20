@@ -92,7 +92,7 @@
             <p class="landing-subtitle">当前为你匹配以下岗位能力图谱</p>
           </div>
           <div class="landing-cards">
-            <button class="landing-card job-card-lg" onclick="selectJob('automation_line_commissioning_maintenance_newcomer')">
+            <button class="landing-card job-card-lg" onclick="selectJob('automation_line_commissioning_maintenance_newcomer',event)" data-job-name="自动化生产线装调与运维技术员">
               <div class="landing-card-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
@@ -114,7 +114,7 @@
               </div>
             </button>
 
-            <button class="landing-card job-card-lg" onclick="selectJob('mechanical_electrical_maintenance_worker')">
+            <button class="landing-card job-card-lg" onclick="selectJob('mechanical_electrical_maintenance_worker',event)" data-job-name="机电设备维修工">
               <div class="landing-card-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -137,7 +137,7 @@
             </button>
           </button>
 
-            <button class="landing-card job-card-lg" onclick="selectJob('automation_equipment_debugger')">
+            <button class="landing-card job-card-lg" onclick="selectJob('automation_equipment_debugger',event)" data-job-name="自动化设备调试员">
               <div class="landing-card-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>
@@ -154,7 +154,7 @@
               </div>
             </button>
 
-            <button class="landing-card job-card-lg" onclick="selectJob('industrial_robot_maintenance')">
+            <button class="landing-card job-card-lg" onclick="selectJob('industrial_robot_maintenance',event)" data-job-name="工业机器人系统运维员">
               <div class="landing-card-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="4" y="2" width="16" height="8" rx="1"/><rect x="2" y="12" width="20" height="10" rx="1"/><circle cx="8" cy="6" r="1"/><circle cx="16" cy="6" r="1"/><line x1="12" y1="10" x2="12" y2="12"/>
@@ -171,7 +171,7 @@
               </div>
             </button>
 
-            <button class="landing-card job-card-lg" onclick="selectJob('plc_electrical_control_technician')">
+            <button class="landing-card job-card-lg" onclick="selectJob('plc_electrical_control_technician',event)" data-job-name="PLC电气控制技术员">
               <div class="landing-card-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="3" width="20" height="6" rx="1"/><rect x="2" y="15" width="20" height="6" rx="1"/><line x1="6" y1="9" x2="6" y2="15"/><line x1="12" y1="9" x2="12" y2="15"/><line x1="18" y1="9" x2="18" y2="15"/>
@@ -188,7 +188,7 @@
               </div>
             </button>
 
-            <button class="landing-card job-card-lg" onclick="selectJob('sensor_industrial_network_debugger')">
+            <button class="landing-card job-card-lg" onclick="selectJob('sensor_industrial_network_debugger',event)" data-job-name="传感器与工业网络调试员">
               <div class="landing-card-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><line x1="12" y1="7" x2="12" y2="10"/><path d="M10 11 6 18"/><path d="M14 11 18 18"/>
@@ -205,7 +205,7 @@
               </div>
             </button>
 
-            <button class="landing-card job-card-lg" onclick="selectJob('servo_step_drive_debugger')">
+            <button class="landing-card job-card-lg" onclick="selectJob('servo_step_drive_debugger',event)" data-job-name="伺服/步进驱动调试员">
               <div class="landing-card-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="0" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="24"/><line x1="0" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="24" y2="12"/>
@@ -222,7 +222,7 @@
               </div>
             </button>
 
-            <button class="landing-card job-card-lg" onclick="selectJob('cnc_maintenance_worker')">
+            <button class="landing-card job-card-lg" onclick="selectJob('cnc_maintenance_worker',event)" data-job-name="数控设备维护员">
               <div class="landing-card-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 1v3"/><path d="M15 1v3"/><path d="M9 20v3"/><path d="M15 20v3"/><path d="M20 9h3"/><path d="M20 14h3"/><path d="M1 9h3"/><path d="M1 14h3"/>

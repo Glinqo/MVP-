@@ -323,7 +323,12 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/student/job-match":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(compute_match(session_id))
-
+        if path == "/api/training-plans":
+            job = query_params.get("job", [None])[0]
+            all_plans = _load_training_plans()
+            if job:
+                return self.send_json(all_plans.get(job, {}))
+            return self.send_json(all_plans)
         if path == "/api/conversations":
             return self.send_json(list_conversation_sessions())
         if path.startswith("/api/conversation/") and path != "/api/conversations":
