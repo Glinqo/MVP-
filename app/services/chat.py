@@ -80,8 +80,19 @@ def chat_start(payload=None):
     learner_stage = profile.get("learner_stage", "职业新人")
     focus_task = profile.get("mvp_focus_task", "传感器 NPN/PNP 接线与 PLC 输入信号排查")
     context_pack = learner_context_pack(payload.get("session_id"))
+    # Store job_role in conversation metadata so sidebar can filter by job
+    sid = context_pack.get("session_id")
+    if sid:
+        try:
+            from .conversation_state import save_conversation_state, load_conversation_state
+            cs = load_conversation_state(sid)
+            cs.setdefault("metadata", {})
+            cs["metadata"]["job_role"] = job_role or profile.get("role_name", "")
+            save_conversation_state(cs)
+        except Exception:
+            pass
     return {
-        "session_id": context_pack.get("session_id"),
+        "session_id": sid,
         "job_profile": profile,
         "learner_context": context_pack,
         "welcome": (

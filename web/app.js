@@ -26,7 +26,12 @@ const state = {
   },
   activeWorkspace: "graph",
   activeGraphView: "job",
-  sessionId: localStorage.getItem("mcp_session_id") || `demo-${Date.now()}`
+  sessionId: (function() {
+    var hash = location.hash.replace("#", "");
+    if (hash && hash.indexOf("session=") === 0) return hash.replace("session=", "");
+    var ls = localStorage.getItem("mcp_session_id");
+    return ls || "demo-" + Date.now();
+  })()
 };
 
 const DEFAULT_JOB_ROLE = "自动化生产线装调与运维技术员";
@@ -34,22 +39,49 @@ const DEFAULT_JOB_ROLE = "自动化生产线装调与运维技术员";
 // ── Persistence helpers ──────────────────────────────────────────
 function persistSession() {
   localStorage.setItem("mcp_session_id", state.sessionId);
+  location.hash = "#session=" + state.sessionId;
   try {
-    localStorage.setItem("mcp_messages", JSON.stringify(state.messages.slice(-40)));
+    localStorage.setItem("msg_" + state.sessionId, JSON.stringify(state.messages.slice(-40)));
   } catch (e) { /* quota exceeded, ignore */ }
 }
 
 function restoreMessages() {
   try {
-    const raw = localStorage.getItem("mcp_messages");
-    return raw ? JSON.parse(raw) : [];
+    var key = "msg_" + state.sessionId;
+    var raw = localStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
+    var oldRaw = localStorage.getItem("mcp_messages");
+    if (oldRaw) {
+      localStorage.removeItem("mcp_messages");
+      var arr = JSON.parse(oldRaw);
+      if (arr.length) localStorage.setItem(key, JSON.stringify(arr.slice(-40)));
+      return arr;
+    }
+    return [];
   } catch (e) { return []; }
 }
 
 function newSession() {
   localStorage.removeItem("mcp_session_id");
   localStorage.removeItem("mcp_messages");
+  // clean per-session message caches
+  var keys = Object.keys(localStorage);
+  keys.forEach(function(k) {
+    if (k.startsWith("msg_")) localStorage.removeItem(k);
+  });
   location.reload();
+}
+
+function createNewChat() {
+  var newId = "demo-" + Date.now();
+  state.sessionId = newId;
+  state.messages = [];
+  localStorage.removeItem("mcp_messages");
+  persistSession();
+  // clear in-server old messages by creating new session on next send
+  renderMessages();
+  refreshSidebar();
+  if (window.innerWidth <= 768) toggleSidebar();
 }
 
 const $_raw = (id) => document.getElementById(id);
@@ -301,9 +333,9 @@ function renderKnowledgeCards(refs) {
       <div class="kbci-head">
         <span class="kbci-id">${escapeHtml(item.id || "")}</span>
         <span class="kbci-topic">${escapeHtml(item.topic || item.id || "")}</span>
-        <span class="kbci-source">${escapeHtml(item.source || "")}</span>
       </div>
       <div class="kbci-content">${escapeHtml(item.content || "").replaceAll("\n", "<br>")}</div>
+      <div class="kbci-source">${escapeHtml(item.source || "")}</div>
       <div class="kbci-tags">${(item.tags || []).slice(0, 3).map(t => `<span class="kbci-tag">${escapeHtml(t)}</span>`).join("")}</div>
       <div class="kbci-actions">
         <button type="button" data-ask="${escapeHtml(`请详细讲解「${item.topic || item.id}」这个知识点`)}" data-knowledge-id="${escapeHtml(item.id || "")}">追问</button>
@@ -375,10 +407,18 @@ function collectContext() {
   };
 }
 
-function addMessage(role, content, meta = {}) {
-  state.messages.push({ role, content, meta });
+function addMessage(role, content, meta) {
+  if (meta === undefined) meta = {};
+  state.messages.push({ role: role, content: content, meta: meta });
   renderMessages();
   persistSession();
+  // Auto-title on first user message
+  if (role === "user" && state.messages.filter(function(m) { return m.role === "user"; }).length === 1) {
+    fetch("/api/conversation/" + encodeURIComponent(state.sessionId) + "?action=title", { method: "POST" }).catch(function(){});
+  }
+  // Update activity
+  fetch("/api/conversation/" + encodeURIComponent(state.sessionId) + "?action=title", { method: "POST" }).catch(function(){});
+  if (typeof refreshSidebar === "function") refreshSidebar();
 }
 
 function renderMessages() {
@@ -1194,17 +1234,23 @@ async function batchConfirmJobProposals() {
 }
 
 function renderKnowledge(items) {
-  $("knowledgeRefs").innerHTML = items?.length ? `
-    <ul class="item-list">
-      ${items.map((item) => `
-        <li>
-          <strong>${escapeHtml(item.id)} ${escapeHtml(item.topic)}</strong>
-          <div>${escapeHtml(item.content)}</div>
-          <div class="muted">source: ${escapeHtml(item.source)}</div>
-        </li>
-      `).join("")}
-    </ul>
-  ` : '<p class="muted">暂无</p>';
+  if (!items || !items.length) {
+    $("knowledgeRefs").innerHTML = '<p class="muted">暂无</p>';
+    return;
+  }
+  $("knowledgeRefs").innerHTML = items.slice(0, 6).map(item => `
+    <div class="kb-card-inline" data-kb-id="${escapeHtml(item.id || "")}" onclick="this.classList.toggle('expanded')">
+      <div class="kbci-head">
+        <span class="kbci-id">${escapeHtml(item.id || "")}</span>
+        <span class="kbci-topic">${escapeHtml(item.topic || item.id || "")}</span>
+      </div>
+      <div class="kbci-content">${escapeHtml((item.content || "").substring(0, 200))}${(item.content || "").length > 200 ? '...' : ''}</div>
+      <div class="kbci-source">${escapeHtml(item.source || "")}</div>
+      <div class="kbci-actions">
+        <button type="button" data-ask="${escapeHtml('请详细讲解「' + (item.topic || item.id) + '」这个知识点')}" data-knowledge-id="${escapeHtml(item.id || "")}">追问</button>
+      </div>
+    </div>
+  `).join("");
 }
 
 function renderTasks(items) {
@@ -1349,7 +1395,7 @@ function setWorkspacePanel(panel) {
     section.classList.toggle("active", section.id === `workspace${panel.charAt(0).toUpperCase()}${panel.slice(1)}`);
   });
   if (panel === "jobAdmin") loadJobAdmin();
-  if (panel === "plan") loadPersonalizedPlan();
+  if (panel === "plan") loadTrainingPlans("staged");
   if (panel === "scenario") loadScenarios();
 }
 
@@ -1702,6 +1748,101 @@ function planButtonText(planMode) {
   return "阶段方案";
 }
 
+
+// ---- Training Plans (from static JSON) ----
+async function fetchTrainingPlans(jobName) {
+  if (!jobName) jobName = state.jobName || '';
+  try {
+    var r = await fetch('/training-plans.json');
+    var allPlans = await r.json();
+    return allPlans[jobName] || {};
+  } catch (e) { console.error('fetchTrainingPlans', e); return {}; }
+}
+
+function renderTrainingPlanStages(planData) {
+  if (!planData || !planData.stages || !planData.stages.length) return '<div class="muted">暂无培养方案数据</div>';
+  var html = '<div class="plan-content">';
+  planData.stages.forEach(function(stage) {
+    html += '<div style="margin-bottom:16px;padding:14px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.06)">';
+    html += '<h4 style="margin:0 0 6px;color:#e2e8f0;font-size:0.95rem">' + escapeHtml(stage.name) + '</h4>';
+    html += '<p style="margin:0 0 6px;font-size:0.82rem;color:#94a3b8">' + escapeHtml(stage.goal) + '</p>';
+    if (stage.knowledge && stage.knowledge.length) {
+      html += '<div style="font-size:0.78rem;color:#38bdf8;margin-bottom:4px">知识点：' + escapeHtml(stage.knowledge.join('、')) + '</div>';
+    }
+    html += '<div style="font-size:0.76rem;color:#64748b">配套课程：' + escapeHtml(stage.courses || '') + '</div>';
+    html += '<div style="font-size:0.78rem;color:#a5b4fc;margin-top:8px;padding:8px;background:rgba(99,102,241,0.08);border-radius:4px">实训：' + escapeHtml(stage.tasks || '') + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderTrainingPlanToday(planData) {
+  if (!planData || !planData.seven_day || !planData.seven_day.length) return '<div class="muted">暂无今日训练任务</div>';
+  var todayTask = planData.seven_day[0];
+  var html = '<div style="padding:14px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-radius:8px">';
+  html += '<h4 style="margin:0 0 8px;color:#7dd3fc">今日实训任务</h4>';
+  html += '<p style="margin:0;font-size:0.9rem;color:#e2e8f0;line-height:1.7">' + escapeHtml(todayTask.replace(/|/g, ' → ')) + '</p>';
+  html += '</div>';
+  html += '<div style="margin-top:14px"><h4 style="color:#94a3b8;margin:0 0 8px">全部阶段实训任务</h4>';
+  if (planData.stages) {
+    planData.stages.forEach(function(stage, idx) {
+      html += '<div style="font-size:0.78rem;color:#cbd5e1;margin-bottom:6px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px">';
+      html += '<strong style="color:#38bdf8">' + (idx+1) + '. ' + escapeHtml((stage.name.split('：')[1] || stage.name)) + '：</strong>' + escapeHtml(stage.tasks || '');
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderTrainingPlan7Day(planData) {
+  if (!planData || !planData.seven_day || !planData.seven_day.length) return '<div class="muted">暂无7天训练计划</div>';
+  var html = '<div class="seven-day-plan">';
+  planData.seven_day.forEach(function(day) {
+    var parts = day.split('|');
+    var title = (parts[0] || day).trim();
+    var core = (parts[1] || '').trim();
+    var task = (parts[2] || '').trim();
+    html += '<div style="padding:10px 14px;margin-bottom:8px;background:rgba(255,255,255,0.04);border-left:3px solid rgba(99,102,241,0.4);border-radius:0 6px 6px 0">';
+    html += '<div style="font-weight:600;color:#e2e8f0;margin-bottom:4px;font-size:0.88rem">' + escapeHtml(title) + '</div>';
+    if (core) html += '<div style="font-size:0.78rem;color:#38bdf8">训练核心：' + escapeHtml(core) + '</div>';
+    if (task) html += '<div style="font-size:0.76rem;color:#64748b">实训：' + escapeHtml(task) + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderWorkspaceTasks(planData) {
+  var el = document.getElementById('taskRefs');
+  if (!el) return;
+  if (!planData || !planData.stages) { el.innerHTML = '<div class="muted">暂无实训任务</div>'; return; }
+  var html = '';
+  planData.stages.forEach(function(stage, idx) {
+    html += '<div style="padding:8px 10px;margin-bottom:6px;background:rgba(255,255,255,0.03);border-radius:6px;font-size:0.78rem;color:#cbd5e1;line-height:1.5">';
+    html += '<strong style="color:#38bdf8">' + (idx+1) + '. ' + escapeHtml((stage.name.split('：')[1] || stage.name)) + '：</strong>' + escapeHtml(stage.tasks || '');
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+async function loadTrainingPlans(planMode) {
+  var jobName = state.jobName || '';
+  if (!jobName) { document.getElementById('personalizedPlan').innerHTML = '<div class="muted">请先选择岗位</div>'; return; }
+  document.getElementById('personalizedPlan').innerHTML = '<div class="muted">加载中...</div>';
+  var planData = await fetchTrainingPlans(jobName);
+  if (planMode === 'staged') {
+    document.getElementById('personalizedPlan').innerHTML = renderTrainingPlanStages(planData);
+  } else if (planMode === 'today') {
+    document.getElementById('personalizedPlan').innerHTML = renderTrainingPlanToday(planData);
+    renderWorkspaceTasks(planData);
+  } else if (planMode === '7_day') {
+    document.getElementById('personalizedPlan').innerHTML = renderTrainingPlan7Day(planData);
+    renderWorkspaceTasks(planData);
+  }
+  renderWorkspaceTasks(planData);
+}
 async function loadPersonalizedPlan(planMode = "staged", abilityId = "") {
   const button = planButtonByMode(planMode);
   button.disabled = true;
@@ -1764,7 +1905,7 @@ function renderScore(data) {
   `;
 }
 
-function applyChatResult(data) {
+async function applyChatResult(data) {
   state.lastChat = data;
   state.learnerContext = data.learner_context || state.learnerContext;
   addMessage("assistant", data.answer || "", {
@@ -1777,8 +1918,13 @@ function applyChatResult(data) {
   renderSuggestedQuestions(data.suggested_questions || []);
   renderToolSuggestions(data.tool_suggestions || []);
   if (data.student_graph) renderGraph(data.student_graph, "student");
-  loadGraphUpdates();
-  renderKnowledge(data.knowledge_gaps || []);
+  await loadGraphUpdates();
+  // Use knowledge_refs as fallback when knowledge_gaps is empty
+  const gaps = data.knowledge_gaps || [];
+  const refs = data.knowledge_refs || [];
+  const mergedKnowledge = gaps.length ? gaps : refs;
+  state.knowledgeGaps = mergedKnowledge;
+  renderKnowledge(mergedKnowledge);
   renderTasks(data.remediation_cards || []);
 }
 
@@ -1800,6 +1946,7 @@ async function sendChat(message) {
         session_id: state.sessionId,
         message: text,
         learner_role: "职业新人",
+        job_role: state.jobProfile?.id,
         target_job_profile_id: state.jobProfile?.id,
         history,
         context: collectContext()
@@ -1831,7 +1978,7 @@ async function submitDiagnosis() {
     if (data.student_graph) renderGraph(data.student_graph, "student");
     await loadGraphUpdates();
     await loadStudentDashboard();
-    renderKnowledge(data.knowledge_refs || []);
+    renderKnowledge((state.knowledgeGaps && state.knowledgeGaps.length) ? state.knowledgeGaps : (data.knowledge_refs || []));
     renderTasks(data.task_recommendations || []);
   } catch (error) {
     alert(error.message);
@@ -1868,10 +2015,11 @@ async function boot() {
     const health = await api("/api/health");
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
     $("healthStatus").classList.add("ok");
+    const jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
     const [start, quiz, jobGraph, studentBootstrap] = await Promise.all([
-      api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId }) }),
-      api("/api/quiz"),
-      api("/api/graph/job"),
+      api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId, job_role: jobId }) }),
+      api(`/api/quiz?job_role=${encodeURIComponent(jobId)}`),
+      api(`/api/graph/job?job_role=${encodeURIComponent(jobId)}`),
       api(`/api/student/bootstrap?session_id=${encodeURIComponent(state.sessionId)}`),
     ]);
     state.learnerContext = studentBootstrap.learner_context || start.learner_context || null;
@@ -1879,13 +2027,31 @@ async function boot() {
     $("llmStatus").textContent = start.llm_configured ? "模型已配置" : "规则兜底";
     $("llmStatus").classList.toggle("ok", Boolean(start.llm_configured));
 
-    // Restore previous messages if available, otherwise show welcome
-    const saved = restoreMessages();
-    if (saved.length > 0) {
-      state.messages = saved;
-      renderMessages();
-    } else {
-      addMessage("assistant", start.welcome || "");
+    // Load messages from server for current session (server is source of truth)
+    try {
+      var serverConv = await api("/api/conversation/" + encodeURIComponent(state.sessionId));
+      if (serverConv.messages && serverConv.messages.length > 0) {
+        state.messages = serverConv.messages.map(function(m) {
+          return { role: m.role, content: m.content, meta: m.meta || {} };
+        });
+        renderMessages();
+      } else {
+        var saved2 = restoreMessages();
+        if (saved2.length > 0) {
+          state.messages = saved2;
+          renderMessages();
+        } else {
+          addMessage("assistant", start.welcome || "");
+        }
+      }
+    } catch(e2) {
+      var saved3 = restoreMessages();
+      if (saved3.length > 0) {
+        state.messages = saved3;
+        renderMessages();
+      } else {
+        addMessage("assistant", start.welcome || "");
+      }
     }
     renderSuggestedQuestions(start.suggested_questions || []);
     renderQuiz(quiz.questions);
@@ -1907,9 +2073,9 @@ $("chatForm").addEventListener("submit", (event) => {
 });
 $("submitDiagnosis").addEventListener("click", submitDiagnosis);
 $("loadPersonalizedQuiz").addEventListener("click", loadPersonalizedQuiz);
-$("loadPersonalizedPlan").addEventListener("click", () => loadPersonalizedPlan("staged"));
-$("loadTodayPlan").addEventListener("click", () => loadPersonalizedPlan("today"));
-$("loadSevenDayPlan").addEventListener("click", () => loadPersonalizedPlan("7_day"));
+$("loadPersonalizedPlan").addEventListener("click", () => loadTrainingPlans("staged"));
+$("loadTodayPlan").addEventListener("click", () => loadTrainingPlans("today"));
+$("loadSevenDayPlan").addEventListener("click", () => loadTrainingPlans("7_day"));
 $("refreshJobAdmin")?.addEventListener("click", loadJobAdmin);
 $("ingestJobMaterial")?.addEventListener("click", ingestJobAdminMaterial);
 $("collectJobSources")?.addEventListener("click", collectJobSources);
@@ -1971,8 +2137,17 @@ function backToIdentity() {
   document.getElementById("landingStepIdentity").classList.add("active");
 }
 
-function selectJob(jobId) {
+function selectJob(jobId, event) {
   localStorage.setItem("mcp_job_id", jobId);
+  if (event && event.currentTarget) {
+    var jobName = event.currentTarget.getAttribute("data-job-name");
+    if (jobName) state.jobName = jobName;
+  }
+  // Create a fresh session for the new job
+  state.sessionId = "demo-" + Date.now();
+  state.messages = [];
+  localStorage.removeItem("mcp_session_id");
+  localStorage.removeItem("mcp_messages");
   const overlay = document.getElementById("landingOverlay");
   overlay.classList.add("fade-out");
   setTimeout(function() {

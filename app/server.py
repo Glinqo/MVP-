@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import json
 import mimetypes
 import sys
@@ -15,6 +15,7 @@ from app.services.data_loader import primary_job_profile, public_questions  # no
 from app.services.assist import assist  # noqa: E402
 from app.services.chat import chat_message, chat_start  # noqa: E402
 from app.services.conversation_runner import run_conversation_turn  # noqa: E402
+from app.services.conversation_state import list_conversation_sessions, load_conversation_state, rename_conversation, delete_conversation, update_activity, generate_session_title  # noqa: E402
 from app.services.conversation_events import error_event  # noqa: E402
 from app.services.explanation import explain  # noqa: E402
 from app.services.feedback import append_session_event, save_feedback, teacher_summary  # noqa: E402
@@ -28,7 +29,7 @@ from app.services.graph_update_engine import (  # noqa: E402
     record_student_graph_event,
 )
 from app.services.learner_context import student_bootstrap  # noqa: E402
-from app.services.personalized_plan import personalized_plan  # noqa: E402
+from app.services.personalized_plan import personalized_plan, evaluate_task_feedback  # noqa: E402
 from app.services.quiz import personalized_quiz  # noqa: E402
 from app.services.recommendation import diagnose  # noqa: E402
 from app.services.retrieval import search_knowledge  # noqa: E402
@@ -162,7 +163,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json({"status": "ok", "app": "mechatronics-agent-mvp", "version": "0.1.0"})
 
         if path == "/api/quiz":
-            return self.send_json({"questions": public_questions()})
+            query = parse_qs(parsed.query)
+            job_role = query.get("job_role", [None])[0]
+            return self.send_json({"questions": public_questions(job_role)})
 
         if path == "/api/job-profile":
             return self.send_json({"profile": primary_job_profile()})
@@ -320,6 +323,19 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/student/job-match":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(compute_match(session_id))
+        if path == "/api/training-plans":
+            job = query_params.get("job", [None])[0]
+            all_plans = _load_training_plans()
+            if job:
+                return self.send_json(all_plans.get(job, {}))
+            return self.send_json(all_plans)
+        if path == "/api/conversations":
+            job_role = parse_qs(parsed.query).get("job_role", [None])[0]
+            return self.send_json(list_conversation_sessions(job_role=job_role))
+        if path.startswith("/api/conversation/") and path != "/api/conversations":
+            sid = path[len("/api/conversation/"):]
+            conv = load_conversation_state(sid)
+            return self.send_json({"session_id": sid, "messages": conv.get("messages", []), "title": conv.get("metadata", {}).get("title", "")})
 
         return self.serve_static(path)
 
@@ -327,19 +343,48 @@ class MVPHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
         try:
+            query_params = parse_qs(parsed.query)
             payload = self.read_json_body()
+            if path.startswith("/api/conversation/") and path != "/api/conversations":
+                sid = path[len("/api/conversation/"):]
+                action = query_params.get("action", [""])[0]
+
+                if action == "delete":
+                    return self.send_json(delete_conversation(sid))
+                if action == "rename":
+                    title = (payload.get("title") or "").strip()[:60]
+                    if not title:
+                        return self.send_error_json(400, "title required")
+                    return self.send_json(rename_conversation(sid, title))
+                if action == "title":
+                    return self.send_json({"title": generate_session_title(sid)})
+                conv = load_conversation_state(sid)
+                return self.send_json({"session_id": sid, "messages": conv.get("messages", []), "title": conv.get("metadata", {}).get("title", "")})
+
+                job_role = query_params.get("job_role", [None])[0]
+                return self.send_json(list_conversation_sessions(job_role=job_role))
+                job_role = query_params.get("job_role", [None])[0]
+                return self.send_json(list_conversation_sessions(job_role=job_role))
             if path == "/api/chat/start":
                 return self.send_json(chat_start(payload))
             if path == "/api/chat/stream":
                 return self._handle_chat_stream(payload)
             if path == "/api/chat/message":
-                return self.send_json(chat_message(payload))
+                result = chat_message(payload)
+                if not result.get("knowledge_gaps"):
+                    kg = search_knowledge(payload.get("message",""), limit=5, job_role=payload.get("job_role"))
+                    if kg:
+                        result["knowledge_gaps"] = kg
+                        result["knowledge_refs"] = list(kg)
+                return self.send_json(result)
             if path == "/api/student/bootstrap":
                 return self.send_json(student_bootstrap(payload.get("session_id")))
             if path == "/api/quiz/personalized":
                 return self.send_json(personalized_quiz(payload))
             if path == "/api/plan/personalized":
                 return self.send_json(personalized_plan(payload))
+            if path == "/api/plan/task_feedback":
+                return self.send_json(evaluate_task_feedback(payload))
             if path == "/api/explain":
                 return self.send_json(explain(payload))
             if path == "/api/scenario/start":

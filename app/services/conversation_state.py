@@ -1,4 +1,4 @@
-"""Unified server-side conversation state.
+﻿"""Unified server-side conversation state.
 
 The server is the single source of truth for conversation history.
 Frontend sends only session_id + message; backend manages all history.
@@ -9,7 +9,7 @@ State is stored inside the session JSON file under the "conversation" key.
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from .data_store import load_session, save_session, _safe_id
+from .data_store import load_session, save_session, _safe_id, SESSIONS_DIR
 
 
 def load_conversation_state(session_id):
@@ -145,3 +145,88 @@ def clear_active_task(session_id):
     state["active_task"] = None
     save_conversation_state(state)
     return state["active_task"]
+
+# ---- Conversation management ---
+
+def list_conversation_sessions(limit=20, job_role=None):
+    """List all sessions sorted by updated_at desc. Optionally filter by job_role."""
+    results = []
+    if not SESSIONS_DIR.exists():
+        return results
+    for fpath in sorted(SESSIONS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
+        try:
+            record = json.loads(fpath.read_text(encoding="utf-8"))
+            conv = record.get("conversation", {})
+            if not isinstance(conv, dict):
+                continue
+            # Filter by job_role if specified
+            if job_role:
+                meta_job = conv.get("metadata", {}).get("job_role", "")
+                if meta_job and meta_job != job_role:
+                    continue
+            sid = conv.get("session_id", fpath.stem)
+            msgs = conv.get("messages", [])
+            title = conv.get("metadata", {}).get("title", "")
+            if not title:
+                for m in msgs:
+                    if m.get("role") == "user":
+                        title = str(m.get("content", ""))[:40]
+                        break
+            if not title:
+                title = sid[:20]
+            results.append({
+                "session_id": sid,
+                "title": title,
+                "message_count": len(msgs),
+                "updated_at": conv.get("metadata", {}).get("updated_at", ""),
+                "job_role": conv.get("metadata", {}).get("job_role", ""),
+            })
+            if len(results) >= limit:
+                break
+        except Exception:
+            continue
+    return results
+
+
+def rename_conversation(session_id, title):
+    """Rename a conversation session."""
+    state = load_conversation_state(session_id)
+    state.setdefault("metadata", {})
+    state["metadata"]["title"] = title
+    state["metadata"]["updated_at"] = datetime.now(timezone.utc).isoformat()
+    save_conversation_state(state)
+    return {"session_id": session_id, "title": title}
+
+
+def delete_conversation(session_id):
+    """Delete a conversation session file."""
+    path = SESSIONS_DIR / f"{session_id}.json"
+    if path.exists():
+        path.unlink()
+        return {"deleted": True}
+    return {"deleted": False, "error": "Not found"}
+
+
+def update_activity(session_id):
+    """Touch the updated_at timestamp."""
+    state = load_conversation_state(session_id)
+    state.setdefault("metadata", {})
+    state["metadata"]["updated_at"] = datetime.now(timezone.utc).isoformat()
+    save_conversation_state(state)
+
+
+def generate_session_title(session_id):
+    """Auto-generate title from first user message if not already set."""
+    state = load_conversation_state(session_id)
+    metadata = state.get("metadata", {})
+    if metadata.get("title"):
+        return metadata["title"]
+    for m in state.get("messages", []):
+        if m.get("role") == "user":
+            title = str(m.get("content", ""))[:40].strip()
+            if title:
+                metadata["title"] = title
+                metadata["updated_at"] = datetime.now(timezone.utc).isoformat()
+                save_conversation_state(state)
+                return title
+    return session_id[:20]
