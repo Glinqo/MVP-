@@ -685,17 +685,16 @@ function renderGraphLegend(graph, targetId) {
       </div>
     </div>
     <div class="legend-block">
-      <strong>外环 = 节点状态</strong>
+      <strong>${targetId.includes("student") ? "外环 = 掌握度" : "外环 = 节点状态"}</strong>
       <div class="legend-items">
-        ${statusItems.map((item) => {
-          const color = graphColor(item.status);
-          const dashed = ["industry_hot", "industry", "recommended_next"].includes(item.status) ? " dashed" : "";
-          return `
-            <span class="legend-chip">
-              <i class="legend-ring${dashed}" style="border-color:${color.stroke}"></i>${escapeHtml(item.label)}
-            </span>
-          `;
-        }).join("")}
+        ${targetId.includes("student")
+          ? '<span class="legend-chip"><i class="legend-ring mastery-ring-legend" style="border-color:#22c55e"></i>绿色进度 = 掌握度</span>'
+          : statusItems.map((item) => {
+              const color = graphColor(item.status);
+              const dashed = ["industry_hot", "industry", "recommended_next"].includes(item.status) ? " dashed" : "";
+              return '<span class="legend-chip"><i class="legend-ring' + dashed + '" style="border-color:' + color.stroke + '"></i>' + escapeHtml(item.label) + '</span>';
+            }).join("")
+        }
       </div>
     </div>
     <div class="legend-block">

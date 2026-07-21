@@ -280,6 +280,7 @@ button:active{transform:translateY(0)}
 .legend-dot{width:12px;height:12px;border:2px solid #94a3b8;border-radius:999px}
 .legend-ring{width:14px;height:14px;border:2px solid #94a3b8;border-radius:999px;background:transparent}
 .legend-ring.dashed{border-style:dashed}
+.mastery-ring-legend{border-color:#22c55e!important}
 .legend-line{width:26px;height:0;border-top:2px solid #94a3b8}
 .legend-line.solid{border-color:#475569}
 .legend-line.dashed-line{border-color:#64748b;border-top-style:dashed}

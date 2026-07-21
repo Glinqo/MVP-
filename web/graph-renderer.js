@@ -230,6 +230,25 @@ class ForceGraph {
             .attr("stroke-dasharray", d => this._statusRing(d).dash)
             .attr("opacity", 0.55);
 
+        // Mastery progress ring - only for student graph, not job graph
+        if (!this.id.includes("job")) {
+            ngEnter.append("circle").attr("class", "node-mastery-ring")
+                .attr("r", d => d.radius + 6)
+                .attr("fill", "none")
+                .attr("stroke", "#22c55e")
+                .attr("stroke-width", 2.5)
+                .attr("stroke-linecap", "round")
+                .attr("transform", "rotate(-90)")
+                .attr("stroke-dasharray", d => {
+                    const r = d.radius + 6;
+                    const circ = 2 * Math.PI * r;
+                    const mastery = d.mastery_score !== undefined ? Number(d.mastery_score) : 30;
+                    const pct = Math.max(0, Math.min(mastery, 100)) / 100;
+                    return (circ * pct) + " " + circ;
+                })
+                .attr("opacity", 0.7);
+        }
+
         // Main node circle
         ngEnter.append("circle").attr("class", "node-circle")
             .attr("r", d => d.radius)
