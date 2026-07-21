@@ -1,4 +1,4 @@
-const state = {
+﻿const state = {
   questions: [],
   jobProfile: null,
   jobAdmin: {
@@ -50,17 +50,6 @@ function newSession() {
   localStorage.removeItem("mcp_session_id");
   localStorage.removeItem("mcp_messages");
   location.reload();
-}
-
-function createNewChat() {
-  var newId = "demo-" + Date.now();
-  state.sessionId = newId;
-  state.messages = [];
-  persistSession();
-  renderMessages();
-  refreshSidebar();
-  // close sidebar on mobile
-  if (window.innerWidth <= 768) toggleSidebar();
 }
 
 const $_raw = (id) => document.getElementById(id);
@@ -391,13 +380,7 @@ function addMessage(role, content, meta) {
   state.messages.push({ role: role, content: content, meta: meta });
   renderMessages();
   persistSession();
-  // Auto-title on first user message
-  if (role === "user" && state.messages.filter(function(m) { return m.role === "user"; }).length === 1) {
-    fetch("/api/conversation/" + encodeURIComponent(state.sessionId) + "?action=title", { method: "POST" }).catch(function(){});
-  }
-  // Update activity
-  fetch("/api/conversation/" + encodeURIComponent(state.sessionId) + "?action=title", { method: "POST" }).catch(function(){});
-  if (typeof refreshSidebar === "function") refreshSidebar();
+
 }
 
 function renderMessages() {
@@ -748,8 +731,6 @@ function renderGraphDiagram(graph, targetId) {
   state.graphRenderers[targetId].update(graph);
   return;
 
-
-
 }
 
 function renderDemandSources(graph) {
@@ -793,31 +774,6 @@ function renderGraphUpdateLog(updates) {
       `).join("")}
     </ul>
   ` : '<p class="muted">暂无更新日志</p>';
-}
-
-function renderMasteryBars(node) {
-  const dimensions = [
-    ["knowledge_mastery", "知识理解"],
-    ["procedure_mastery", "过程掌握"],
-    ["transfer_score", "迁移应用"],
-    ["safety_score", "安全合规"]
-  ];
-  if (!dimensions.some(([key]) => node[key] !== undefined && node[key] !== null)) return "";
-  return `
-    <h3>四维认知画像</h3>
-    <div class="mastery-bars">
-      ${dimensions.map(([key, label]) => {
-        const value = Number(node[key] ?? 0);
-        const width = Math.max(0, Math.min(100, value));
-        return `
-          <div class="mastery-bar-row">
-            <div class="mastery-bar-label"><span>${escapeHtml(label)}</span><strong>${escapeHtml(width)}</strong></div>
-            <div class="mastery-bar-track"><i style="width:${width}%"></i></div>
-          </div>
-        `;
-      }).join("")}
-    </div>
-  `;
 }
 
 function renderStrategyTags(node) {
@@ -902,7 +858,7 @@ function showGraphNodeDetail(node, graph) {
       <div class="metric"><strong>${escapeHtml(node.evidence_count ?? 0)}</strong><span>证据总数</span></div>
       <div class="metric"><strong>${escapeHtml(node.uncertainty ?? "-")}</strong><span>不确定性</span></div>
     </div>
-    ${renderMasteryBars(node)}
+
     ${renderProcessMetrics(node)}
     ${renderStrategyTags(node)}
     <h3>证据来源分布</h3>
@@ -1727,7 +1683,6 @@ function planButtonText(planMode) {
   return "阶段方案";
 }
 
-
 // ---- Training Plans (from static JSON) ----
 async function fetchTrainingPlans(jobName) {
   if (!jobName) jobName = state.jobName || '';
@@ -2073,7 +2028,6 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && $("nodeDetailDrawer").classList.contains("open")) closeNodeDetail();
   if (event.key === "Escape" && $("explainDrawer").classList.contains("open")) closeExplainDrawer();
 });
-
 
   // ForceGraph responsive resize
   window.addEventListener('resize', () => {

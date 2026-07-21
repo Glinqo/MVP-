@@ -817,6 +817,27 @@
       "created_at": "2026-07-19T04:45:39.469908+00:00",
       "session_id": "demo-1784436326664",
       "event_id": "20260719T044539469908+0000"
+    },
+    {
+      "event_type": "question_explained",
+      "ability_ids": [
+        "plc_input_monitoring"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_input_monitoring",
+          "name": "PLC信号监控"
+        }
+      ],
+      "question_id": "",
+      "knowledge_id": "K058",
+      "task_id": null,
+      "outcome": null,
+      "note": "学生查看自动化生产线运行维护能力讲解",
+      "source": "quiz_explain_button",
+      "created_at": "2026-07-21T02:18:08.151539+00:00",
+      "session_id": "demo-1784567153680",
+      "event_id": "20260721T021808151539+0000"
     }
   ]
 }
