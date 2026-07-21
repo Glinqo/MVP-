@@ -1715,7 +1715,7 @@ function renderTrainingPlanToday(planData) {
   var todayTask = planData.seven_day[0];
   var html = '<div style="padding:14px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-radius:8px">';
   html += '<h4 style="margin:0 0 8px;color:#7dd3fc">今日实训任务</h4>';
-  html += '<p style="margin:0;font-size:0.9rem;color:#e2e8f0;line-height:1.7">' + escapeHtml(todayTask.replace(/|/g, ' → ')) + '</p>';
+  html += '<p style="margin:0;font-size:0.9rem;color:#e2e8f0;line-height:1.7">' + escapeHtml(todayTask.replace(/\|/g, ' → ')) + '</p>';
   html += '</div>';
   html += '<div style="margin-top:14px"><h4 style="color:#94a3b8;margin:0 0 8px">全部阶段实训任务</h4>';
   if (planData.stages) {
