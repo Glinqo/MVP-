@@ -346,15 +346,6 @@ class MVPHandler(BaseHTTPRequestHandler):
             payload = self.read_json_body()
             if path.startswith("/api/conversation/") and path != "/api/conversations":
                 sid = path[len("/api/conversation/"):]
-                from .conversation_state import load_conversation_state
-                conv = load_conversation_state(sid)
-                msgs = conv.get("messages", [])
-                return self.send_json({"session_id": sid, "messages": msgs})
-            if path == "/api/conversations":
-                from .conversation_state import list_conversation_sessions
-                return self.send_json(list_conversation_sessions())
-            if path.startswith("/api/conversation/") and path != "/api/conversations":
-                sid = path[len("/api/conversation/"):]
                 action = query_params.get("action", [""])[0]
                 if action == "delete":
                     return self.send_json(delete_conversation(sid))
@@ -365,9 +356,31 @@ class MVPHandler(BaseHTTPRequestHandler):
                     return self.send_json(rename_conversation(sid, title))
                 if action == "title":
                     return self.send_json({"title": generate_session_title(sid)})
+                if action == "ai-title":
+                    conv = load_conversation_state(sid)
+                    msgs = conv.get("messages", [])
+                    user_msg = ""
+                    for m in msgs:
+                        if m.get("role") == "user":
+                            user_msg = str(m.get("content", ""))[:200]
+                            break
+                    if not user_msg:
+                        return self.send_json({"title": "", "error": "no user message"})
+                    title = user_msg[:20].strip()
+                    try:
+                        from app.services.llm_client import chat_completion, is_configured
+                        if is_configured():
+                            raw = chat_completion([
+                                {"role": "system", "content": "你是一个标题生成器。用5-8个字概括用户的问题主题，只输出标题，不要标点。"},
+                                {"role": "user", "content": user_msg}
+                            ], temperature=0.3, timeout=10)
+                            title = raw.strip()[:25] or user_msg[:20]
+                    except Exception:
+                        pass
+                    rename_conversation(sid, title)
+                    return self.send_json({"title": title})
                 conv = load_conversation_state(sid)
                 return self.send_json({"session_id": sid, "messages": conv.get("messages", []), "title": conv.get("metadata", {}).get("title", "")})
-            if path == "/api/conversations":
                 return self.send_json(list_conversation_sessions())
             if path == "/api/chat/start":
                 return self.send_json(chat_start(payload))

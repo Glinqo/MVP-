@@ -46,6 +46,16 @@ function restoreMessages() {
   } catch (e) { return []; }
 }
 
+function createNewChat() {
+  var newId = "demo-" + Date.now();
+  state.sessionId = newId;
+  state.messages = [];
+  localStorage.setItem("mcp_session_id", newId);
+  renderMessages();
+  if (typeof refreshSidebar === "function") refreshSidebar();
+  if (window.innerWidth <= 768 && typeof toggleSidebar === "function") toggleSidebar();
+}
+
 function newSession() {
   localStorage.removeItem("mcp_session_id");
   localStorage.removeItem("mcp_messages");
@@ -380,6 +390,11 @@ function addMessage(role, content, meta) {
   state.messages.push({ role: role, content: content, meta: meta });
   renderMessages();
   persistSession();
+  // AI title generation on first user message
+  if (role === "user" && state.messages.filter(function(m) { return m.role === "user"; }).length === 1) {
+    if (typeof generateAITitle === "function") setTimeout(function() { generateAITitle(state.sessionId); }, 800);
+  }
+  if (typeof refreshSidebar === "function") refreshSidebar();
 
 }
 
@@ -2062,7 +2077,7 @@ function selectJob(jobId, event) {
   setTimeout(function() {
     overlay.style.display = "none";
     document.body.style.overflow = "";
-    // Start the app if not already started
+    if (typeof refreshSidebar === "function") refreshSidebar();
     if (typeof boot === "function") boot();
   }, 400);
 }

@@ -14,6 +14,23 @@
   
 
 
+  <div id="historySidebar" class="history-sidebar">
+    <div class="sidebar-header">
+      <button id="sidebarNewChat" class="sidebar-new-btn" title="新建对话" onclick="createNewChat()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>新建</span>
+      </button>
+    </div>
+    <div id="historyList" class="history-list-scroll">
+      <div class="sidebar-empty">暂无历史对话</div>
+    </div>
+    <div class="sidebar-footer">
+      <span class="sidebar-hint">悬停展开侧边栏</span>
+    </div>
+  </div>
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+
     <div id="landingOverlay" class="landing-overlay">
       <div class="landing-bg"></div>
       <div class="landing-container">
@@ -535,5 +552,6 @@
 
     <script src="/graph-renderer.js"></script>
     <script src="/app.js"></script>
-    </body>
+      <script src="/history.js?v=20260722"></script>
+</body>
 </html>
