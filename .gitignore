@@ -12,6 +12,10 @@ web/pnpm-lock.yaml
 .codex-audit/
 demo_test.py
 
+# Runtime session & memory data
+data/sessions.db
+data/memory/
+
 # Runtime evidence data
 data/evidence/
 data/raw_jobs/
@@ -24,3 +28,12 @@ _phase*
 _builder*
  .tmp-playwright/
  web/.pnpm-store/
+
+
+# Runtime SQLite files
+data/*.db-shm
+data/*.db-wal
+
+# Temp debug artifacts
+_*.py
+debug_*.png

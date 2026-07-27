@@ -1,10 +1,25 @@
 import argparse
 import json
 import mimetypes
+import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+
+# 加载 .env 文件中的环境变量（必须在其他服务模块导入之前）
+_ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
+if _ENV_PATH.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(_ENV_PATH)
+    except ImportError:
+        # 手动解析 .env 作为 fallback
+        for _line in _ENV_PATH.read_text(encoding="utf-8").splitlines():
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _key, _, _val = _line.partition("=")
+                os.environ[_key.strip()] = _val.strip().strip('"').strip("'")
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,81 +29,33 @@ if str(ROOT) not in sys.path:
 from app.services.data_loader import primary_job_profile, public_questions  # noqa: E402
 from app.services.assist import assist  # noqa: E402
 from app.services.chat import chat_message, chat_start  # noqa: E402
-from app.services.conversation_runner import run_conversation_turn  # noqa: E402
-from app.services.conversation_state import list_conversation_sessions, load_conversation_state, rename_conversation, delete_conversation, update_activity, generate_session_title  # noqa: E402
-from app.services.conversation_events import error_event  # noqa: E402
+from app.services.intent import classify_intent  # noqa: E402
+from app.services.intent_handlers import handle_knowledge_qa_stream, handle_knowledge_qa  # noqa: E402
+from app.services.llm_client import is_configured  # noqa: E402
 from app.services.explanation import explain  # noqa: E402
 from app.services.feedback import append_session_event, save_feedback, teacher_summary  # noqa: E402
-from app.services.graph import build_ability_graph, build_job_ability_graph, build_student_ability_graph, build_student_job_gap  # noqa: E402
+from app.services.graph import build_ability_graph, build_job_ability_graph, build_student_ability_graph  # noqa: E402
 from app.services.graph_update_engine import (  # noqa: E402
     confirm_job_graph_proposals,
-    confirm_sqlite_job_graph_proposal,
-    confirm_sqlite_job_graph_proposals,
     generate_job_graph_proposals,
     graph_update_timeline,
     record_student_graph_event,
 )
+from app.services.conversation_memory import record_session_end  # noqa: E402
 from app.services.learner_context import student_bootstrap  # noqa: E402
-from app.services.personalized_plan import personalized_plan, evaluate_task_feedback  # noqa: E402
+from app.services.personalized_plan import personalized_plan  # noqa: E402
 from app.services.quiz import personalized_quiz  # noqa: E402
 from app.services.recommendation import diagnose  # noqa: E402
 from app.services.retrieval import search_knowledge  # noqa: E402
-from app.services.scenario import action_scenario, list_scenarios, start_scenario, step_scenario  # noqa: E402
-from app.services.diagnostic_trace import build_diagnostic_trace  # noqa: E402
-from app.services.conformance_engine import check_conformance  # noqa: E402
-from app.services.process_metrics import compute_all_metrics  # noqa: E402
-from app.services.strategy_profile import build_cumulative_strategy_profile  # noqa: E402
-from app.services.cognitive_twin import build_cognitive_twin  # noqa: E402
-from app.services.counterfactual_action import analyze_next_action  # noqa: E402
-from app.services.model_tracer import model_for_scenario, state_flags_from_runtime  # noqa: E402
+from app.services.scenario import list_scenarios, start_scenario, step_scenario  # noqa: E402
 from app.services.scoring import score_answers  # noqa: E402
 from app.services.student_dashboard import build_student_dashboard  # noqa: E402
 
 from scripts.pipeline.evidence_store import list_snapshots, get_snapshot, version_diff, version_rollback
-from scripts.pipeline.job_data_importer import ingest_job_text
 from app.services.matching import compute_match
-from app.services.learning_event_store import get_events, get_event_timeline, get_ability_events, append_normalized_event, list_sessions  # noqa: E402
-from app.services.ability_state_engine import compute_ability_state  # noqa: E402
-from app.services.next_action_recommender import recommend_next_actions  # noqa: E402
-from app.services.device_state_handler import record_device_state  # noqa: E402
-
 
 
 WEB_DIR = ROOT / "web"
-
-
-def _compute_job_gap(session_id):
-    from app.services.ability_state_engine import compute_ability_state as _cs
-    from app.services.graph import build_job_ability_graph as _bjg
-    state = _cs(session_id)
-    abilities = state.get("abilities", {})
-    job_graph = _bjg()
-    job_nodes = {n["id"]: n for n in job_graph.get("nodes", [])}
-    gaps = []
-    for aid, astate in abilities.items():
-        job_node = job_nodes.get(aid, {})
-        demand_weight = job_node.get("demand_weight", 0)
-        importance = min(100, demand_weight * 40) if demand_weight > 0 else 30
-        student_mastery = astate.get("cognitive_mastery_score", 50)
-        gap = max(0, importance - student_mastery) / 100.0
-        if demand_weight > 0:
-            gaps.append({
-                "ability_id": aid,
-                "ability_name": astate.get("ability_name", aid),
-                "job_importance": round(importance / 100.0, 2),
-                "student_mastery": student_mastery,
-                "gap_score": round(gap, 3),
-                "reason": "岗位要求高，当前掌握偏低。",
-                "next_action": astate.get("recommended_action", {}).get("title", ""),
-            })
-    gaps.sort(key=lambda g: -g["gap_score"])
-    return {
-        "target_role": job_graph.get("role", "自动化生产线装调与运维技术员"),
-        "top_gaps": gaps[:5],
-        "total_gaps": len(gaps),
-        "session_id": session_id,
-    }
-
 
 
 class MVPHandler(BaseHTTPRequestHandler):
@@ -96,32 +63,6 @@ class MVPHandler(BaseHTTPRequestHandler):
 
     def log_message(self, format, *args):
         sys.stderr.write("%s - - [%s] %s\n" % (self.address_string(), self.log_date_time_string(), format % args))
-
-    def _handle_chat_stream(self, payload):
-        """SSE streaming endpoint for all chat messages."""
-        session_id = (payload or {}).get("session_id")
-        message = (payload or {}).get("message", "")
-        ui_context_delta = (payload or {}).get("ui_context_delta", {})
-
-        self.send_response(200)
-        self.send_header("Content-Type", "text/event-stream")
-        self.send_header("Cache-Control", "no-cache")
-        self.send_header("Connection", "keep-alive")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.end_headers()
-
-        try:
-            for event in run_conversation_turn(session_id, message, ui_context_delta):
-                if hasattr(event, "to_sse"):
-                    sse_text = event.to_sse()
-                else:
-                    sse_text = str(event)
-                self.wfile.write(sse_text.encode("utf-8"))
-                self.wfile.flush()
-        except Exception as exc:
-            err = error_event("internal_error", str(exc), recoverable=False)
-            self.wfile.write(err.to_sse().encode("utf-8"))
-            self.wfile.flush()
 
     def send_json(self, data, status=200):
         body = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
@@ -136,6 +77,113 @@ class MVPHandler(BaseHTTPRequestHandler):
 
     def send_error_json(self, status, message):
         self.send_json({"error": message}, status=status)
+
+    def _send_sse(self, event_type, data_str):
+        """发送一条 SSE 事件，强制刷新到客户端。"""
+        payload = f"event: {event_type}\ndata: {data_str}\n\n".encode("utf-8")
+        self.wfile.write(payload)
+        self.wfile.flush()
+
+    def _handle_chat_stream(self, payload):
+        """SSE 流式对话端点 —— 仅处理 knowledge_qa 意图。
+
+        非 knowledge_qa 意图直接返回 error 事件，前端收到后自动降级到普通接口。
+        """
+        message = payload.get("message") or payload.get("user_input") or ""
+        history = payload.get("history", [])[-8:]
+        context = payload.get("context", {}) or {}
+
+        # Step 1: 意图识别（快速）
+        intent_result = classify_intent(message, history=history, context=context)
+        intent = intent_result.get("intent", "diagnosis")
+
+        # Step 2: 设置 SSE 响应头
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("X-Accel-Buffering", "no")       # 禁用 nginx 缓冲
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+
+        # Step 3: 非 knowledge_qa 意图 → 通知前端降级
+        if intent != "knowledge_qa":
+            self._send_sse("error", json.dumps({
+                "code": "not_streamable",
+                "intent": intent,
+            }, ensure_ascii=False))
+            return
+
+        # Step 4: knowledge_qa → 检索 + 流式 LLM
+        try:
+            meta, stream_gen = handle_knowledge_qa_stream(payload, intent_result)
+
+            # 先发送 meta（检索结果、安全提醒等）
+            meta_json = json.dumps(self._meta_for_sse(meta), ensure_ascii=False)
+            self._send_sse("meta", meta_json)
+
+            # 逐 token 流式发送 LLM 回答
+            full_text = ""
+            for chunk in stream_gen:
+                full_text += chunk
+                self._send_sse("chunk", json.dumps({"text": chunk}, ensure_ascii=False))
+
+            # 发送完成事件
+            done_data = json.dumps({
+                "full_answer": full_text,
+                "answer": full_text,
+            }, ensure_ascii=False)
+            self._send_sse("done", done_data)
+
+            # 记录会话事件
+            session_id = payload.get("session_id")
+            if session_id:
+                try:
+                    from app.services.feedback import append_session_event
+                    append_session_event(
+                        session_id,
+                        {
+                            "event_type": "chat_message",
+                            "intent": intent,
+                            "intent_source": intent_result.get("source"),
+                            "answer": full_text[:200],
+                        },
+                    )
+                except Exception:
+                    pass
+
+        except Exception as exc:
+            import traceback
+            traceback.print_exc()
+            try:
+                self._send_sse("error", json.dumps({
+                    "code": "llm_error",
+                    "error": str(exc),
+                }, ensure_ascii=False))
+            except Exception:
+                pass  # 连接可能已断开
+
+    @staticmethod
+    def _meta_for_sse(result):
+        """提取 meta 字典中需要即时展示的字段。"""
+        return {
+            "knowledge_refs": [
+                {
+                    "id": r.get("id"),
+                    "topic": r.get("topic"),
+                    "source": r.get("source"),
+                }
+                for r in (result.get("knowledge_refs") or [])[:5]
+            ],
+            "safety_notice": result.get("safety_notice", ""),
+            "evidence_used": result.get("evidence_used", [])[:3],
+            "reasoning_steps": result.get("reasoning_steps", [])[:3],
+            "suggested_questions": result.get("suggested_questions", [])[:3],
+            "next_questions": result.get("next_questions", [])[:3],
+            "highlighted_abilities": result.get("highlighted_abilities", [])[:4],
+            "tool_suggestions": result.get("tool_suggestions", [])[:4],
+            "fallback_used": result.get("fallback_used", False),
+            "intent": result.get("intent", ""),
+        }
 
     def read_json_body(self):
         length = int(self.headers.get("Content-Length", "0") or 0)
@@ -157,46 +205,22 @@ class MVPHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
-        query_params = parse_qs(parsed.query)
 
         if path == "/api/health":
             return self.send_json({"status": "ok", "app": "mechatronics-agent-mvp", "version": "0.1.0"})
 
         if path == "/api/quiz":
-            query = parse_qs(parsed.query)
-            job_role = query.get("job_role", [None])[0]
-            return self.send_json({"questions": public_questions(job_role)})
+            return self.send_json({"questions": public_questions()})
 
         if path == "/api/job-profile":
             return self.send_json({"profile": primary_job_profile()})
 
-        if path == "/api/job-data/documents":
-            query = parse_qs(parsed.query)
-            source_type = query.get("source_type", [None])[0]
-            limit = int(query.get("limit", [50])[0])
-            from scripts.pipeline.evidence_store import list_raw_documents
-            return self.send_json({"documents": list_raw_documents(source_type, limit)})
-
-        if path == "/api/job-data/posts":
-            query = parse_qs(parsed.query)
-            job_role = query.get("job_role", [None])[0]
-            limit = int(query.get("limit", [50])[0])
-            from scripts.pipeline.evidence_store import list_job_posts
-            return self.send_json({"posts": list_job_posts(job_role, limit)})
-
         if path == "/api/graph/job":
-            job_role = parse_qs(parsed.query).get("job_role", [None])[0]
-            return self.send_json(build_job_ability_graph(job_role))
+            return self.send_json(build_job_ability_graph())
 
         if path == "/api/graph/student":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(build_student_ability_graph(session_id))
-
-        if path == "/api/graph/gap":
-            query = parse_qs(parsed.query)
-            session_id = query.get("session_id", [None])[0]
-            limit = int(query.get("limit", [5])[0])
-            return self.send_json(build_student_job_gap(session_id, limit=limit))
 
         if path == "/api/student/bootstrap":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
@@ -225,87 +249,15 @@ class MVPHandler(BaseHTTPRequestHandler):
             from scripts.pipeline.evidence_store import get_pending_proposals
             return self.send_json({"proposals": get_pending_proposals(job_role)})
 
-        if path == "/api/student/diagnostic-traces":
-            session_id = parse_qs(parsed.query).get("session_id", [None])[0]
-            if not session_id:
-                return self.send_error_json(400, "session_id is required")
-            return self.send_json(build_diagnostic_trace(session_id, parse_qs(parsed.query).get("scenario_id", [""])[0]))
-
-        if path == "/api/student/strategy-profile":
-            session_id = parse_qs(parsed.query).get("session_id", [None])[0]
-            if not session_id:
-                return self.send_error_json(400, "session_id is required")
-            return self.send_json(build_cumulative_strategy_profile(session_id))
-
-        if path == "/api/student/events":
-            session_id = query_params.get("session_id", ["default"])[0]
-            event_type = query_params.get("event_type", [None])[0]
-            ability_id = query_params.get("ability_id", [None])[0]
-            scenario_id = query_params.get("scenario_id", [None])[0]
-            category = query_params.get("category", [None])[0]
-            limit = int(query_params.get("limit", ["100"])[0])
-            offset = int(query_params.get("offset", ["0"])[0])
-            return self.send_json(get_events(
-                session_id, event_type=event_type, ability_id=ability_id,
-                scenario_id=scenario_id, category=category,
-                limit=limit, offset=offset
-            ))
-
-        if path == "/api/student/events/timeline":
-            session_id = query_params.get("session_id", ["default"])[0]
-            return self.send_json(get_event_timeline(session_id))
-
-        if path == "/api/student/ability-evidence":
-            session_id = query_params.get("session_id", ["default"])[0]
-            ability_id = query_params.get("ability_id", [None])[0]
-            if not ability_id:
-                return self.send_error_json(400, "ability_id is required")
-            return self.send_json(get_ability_events(session_id, ability_id))
-
-        if path == "/api/sessions":
-            return self.send_json(list_sessions())
-
-        if path == "/api/student/ability-state":
-            session_id = query_params.get("session_id", ["default"])[0]
-            ability_id = query_params.get("ability_id", [None])[0]
-            return self.send_json(compute_ability_state(session_id, ability_id))
-
-        if path == "/api/student/next-actions":
-            session_id = query_params.get("session_id", ["default"])[0]
-            count = int(query_params.get("count", ["5"])[0])
-            return self.send_json(recommend_next_actions(session_id, count))
-
-        if path == "/api/student/job-gap":
-            session_id = query_params.get("session_id", ["default"])[0]
-            return self.send_json(_compute_job_gap(session_id))
-
-        if path == "/api/scenario/next-action":
-            query = parse_qs(parsed.query)
-            session_id = query.get("session_id", [None])[0]
-            scenario_id = query.get("scenario_id", [None])[0]
-            if not scenario_id:
-                return self.send_error_json(400, "scenario_id is required")
-            model = model_for_scenario(scenario_id)
-            if not model:
-                return self.send_error_json(404, f"no model for {scenario_id}")
-            # Get current state from action_scenario session if available
-            from app.services.scenario import _session_state
-            sess = _session_state(session_id or "default")
-            current_state = sess.get("current_state", {"state_id": "STATE_INITIAL"})
-            state_id = current_state.get("state_id", "STATE_INITIAL")
-            action_history = sess.get("action_history", [])
-            state_flags = state_flags_from_runtime(model, current_state)
-            result = analyze_next_action(
-                model, state_flags, action_history
-            )
-            result["current_state_id"] = state_id
+        if path == "/api/graph/job/proposals/confirm-sqlite":
+            from scripts.pipeline.evidence_store import confirm_proposal, reject_proposal
+            pid = payload.get("proposal_id", "")
+            action = payload.get("action", "confirm")
+            if action == "confirm":
+                result = confirm_proposal(pid, payload.get("confirmed_by", "teacher"))
+            else:
+                result = reject_proposal(pid)
             return self.send_json(result)
-
-        if path == "/api/student/cognitive-twin":
-            session_id = parse_qs(parsed.query).get("session_id", [None])[0]
-            if not session_id:
-                return self.send_error_json(400, "session_id is required")
-            return self.send_json(build_cognitive_twin(session_id))
 
         if path == "/api/scenarios":
             return self.send_json(list_scenarios())
@@ -323,18 +275,6 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/student/job-match":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(compute_match(session_id))
-        if path == "/api/training-plans":
-            job = query_params.get("job", [None])[0]
-            all_plans = _load_training_plans()
-            if job:
-                return self.send_json(all_plans.get(job, {}))
-            return self.send_json(all_plans)
-        if path == "/api/conversations":
-            return self.send_json(list_conversation_sessions())
-        if path.startswith("/api/conversation/") and path != "/api/conversations":
-            sid = path[len("/api/conversation/"):]
-            conv = load_conversation_state(sid)
-            return self.send_json({"session_id": sid, "messages": conv.get("messages", []), "title": conv.get("metadata", {}).get("title", "")})
 
         return self.serve_static(path)
 
@@ -342,131 +282,88 @@ class MVPHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
         try:
-            query_params = parse_qs(parsed.query)
             payload = self.read_json_body()
-            if path.startswith("/api/conversation/") and path != "/api/conversations":
-                sid = path[len("/api/conversation/"):]
-                action = query_params.get("action", [""])[0]
-                if action == "delete":
-                    return self.send_json(delete_conversation(sid))
-                if action == "rename":
-                    title = (payload.get("title") or "").strip()[:60]
-                    if not title:
-                        return self.send_error_json(400, "title required")
-                    return self.send_json(rename_conversation(sid, title))
-                if action == "title":
-                    return self.send_json({"title": generate_session_title(sid)})
-                if action == "ai-title":
-                    conv = load_conversation_state(sid)
-                    msgs = conv.get("messages", [])
-                    user_msg = ""
-                    for m in msgs:
-                        if m.get("role") == "user":
-                            user_msg = str(m.get("content", ""))[:200]
-                            break
-                    if not user_msg:
-                        return self.send_json({"title": "", "error": "no user message"})
-                    title = user_msg[:20].strip()
-                    try:
-                        from app.services.llm_client import chat_completion, is_configured
-                        if is_configured():
-                            raw = chat_completion([
-                                {"role": "system", "content": "你是一个标题生成器。用5-8个字概括用户的问题主题，只输出标题，不要标点。"},
-                                {"role": "user", "content": user_msg}
-                            ], temperature=0.3, timeout=10)
-                            title = raw.strip()[:25] or user_msg[:20]
-                    except Exception:
-                        pass
-                    rename_conversation(sid, title)
-                    return self.send_json({"title": title})
-                conv = load_conversation_state(sid)
-                return self.send_json({"session_id": sid, "messages": conv.get("messages", []), "title": conv.get("metadata", {}).get("title", "")})
-                return self.send_json(list_conversation_sessions())
             if path == "/api/chat/start":
                 return self.send_json(chat_start(payload))
+            if path == "/api/chat/message":
+                return self.send_json(chat_message(payload))
             if path == "/api/chat/stream":
                 return self._handle_chat_stream(payload)
-            if path == "/api/chat/message":
-                result = chat_message(payload)
-                if not result.get("knowledge_gaps"):
-                    kg = search_knowledge(payload.get("message",""), limit=5, job_role=payload.get("job_role"))
-                    if kg:
-                        result["knowledge_gaps"] = kg
-                        result["knowledge_refs"] = list(kg)
-                return self.send_json(result)
             if path == "/api/student/bootstrap":
                 return self.send_json(student_bootstrap(payload.get("session_id")))
             if path == "/api/quiz/personalized":
                 return self.send_json(personalized_quiz(payload))
             if path == "/api/plan/personalized":
                 return self.send_json(personalized_plan(payload))
-            if path == "/api/plan/task_feedback":
-                return self.send_json(evaluate_task_feedback(payload))
             if path == "/api/explain":
                 return self.send_json(explain(payload))
             if path == "/api/scenario/start":
                 return self.send_json(start_scenario(payload))
             if path == "/api/scenario/step":
                 return self.send_json(step_scenario(payload))
-            if path == "/api/scenario/action":
-                return self.send_json(action_scenario(payload))
-            if path == "/api/student/device-state":
-                return self.send_json(record_device_state(payload))
-
             if path == "/api/graph/student/event":
                 event_result = record_student_graph_event(payload)
                 return self.send_json({**event_result, "student_graph": build_student_ability_graph(payload.get("session_id"))})
             if path == "/api/graph/job/proposals":
                 return self.send_json(generate_job_graph_proposals(payload))
-            if path == "/api/job-data/collect":
-                from scripts.job_intelligence_update import DEFAULT_RUN_LOG, DEFAULT_SOURCES, run_update
 
-                def optional_int(value):
-                    if value in (None, ""):
-                        return None
-                    return int(value)
 
-                args = argparse.Namespace(
-                    sources=payload.get("sources", str(DEFAULT_SOURCES)),
-                    source_id=payload.get("source_id"),
-                    dry_run=bool(payload.get("dry_run", False)),
-                    max_sources=optional_int(payload.get("max_sources")),
-                    timeout=optional_int(payload.get("timeout")),
-                    max_bytes=optional_int(payload.get("max_bytes")),
-                    run_log=payload.get("run_log", str(DEFAULT_RUN_LOG)),
-                    store=payload.get("store", "sqlite"),
-                    use_llm=bool(payload.get("use_llm", False)),
-                    max_abilities=int(payload.get("max_abilities", 5) or 5),
-                )
-                return self.send_json(run_update(args))
             if path == "/api/graph/job/ingest":
-                text = (payload.get("text") or "").strip()
-                if not text:
-                    return self.send_error_json(400, "text is required")
+                text = payload.get("text", "")
                 source_type = payload.get("source_type", "teacher_material")
-                source_url = payload.get("source_url", "")
-                source = payload.get("source", "ingest_" + source_type)
-                use_llm = bool(payload.get("use_llm", False))
-                job_role = payload.get("job_role") or primary_job_profile().get("role_name", "自动化生产线装调与运维技术员")
-                max_abilities = int(payload.get("max_abilities", 5) or 5)
-                return self.send_json(ingest_job_text(
-                    text,
-                    job_role=job_role,
-                    source_type=source_type,
-                    source=source,
-                    source_url=source_url,
-                    use_llm=use_llm,
-                    max_abilities=max_abilities,
-                ))
-            if path == "/api/graph/job/proposals/confirm-sqlite":
-                return self.send_json(confirm_sqlite_job_graph_proposal(payload))
-            if path == "/api/graph/job/proposals/confirm-sqlite-batch":
-                return self.send_json(confirm_sqlite_job_graph_proposals(payload))
+                use_llm = payload.get("use_llm", False)
+                from scripts.pipeline.cleaner import extract_skill_spans, map_skills_to_abilities, load_ability_nodes
+                from scripts.pipeline.evidence_store import add_event, add_proposal, compute_proposal_score
+                from scripts.pipeline.sqlite_store import proposal_threshold as pt
+                nodes = load_ability_nodes()
+                if use_llm:
+                    from scripts.pipeline.llm_extractor import extract_with_both
+                    abilities = extract_with_both(text, nodes)
+                else:
+                    skills = extract_skill_spans(text)
+                    abilities = map_skills_to_abilities(skills, nodes)
+                events = []
+                for a in abilities[:5]:
+                    aid = str(a.get('ability_id', a.get('id', 'unknown')))
+                    conf = float(a.get("confidence", 0.5)) if isinstance(a.get("confidence"), (int, float)) else 0.5
+                    ev = add_event(
+                        job_role='??????????????',
+                        ability_id=aid,
+                        evidence_text=text[:300],
+                        source_type=source_type,
+                        extraction_method='llm_assisted' if use_llm else 'rule_lexicon_v1',
+                        confidence=conf
+                    )
+                    events.append({**ev, "ability": a})
+                proposals = []
+                for a in abilities[:5]:
+                    score = compute_proposal_score(source_type, 0.75, len(abilities), 1)
+                    threshold = pt(score)
+                    if threshold in ('auto_approve', 'pending'):
+                        aid = str(a.get("ability_id", a.get("id", "unknown")))
+                        pr = add_proposal(
+                            job_role='??????????????',
+                            ability_id=aid,
+                            action='strengthen',
+                            suggested_weight_delta=round(score * 0.15, 2),
+                            evidence=text[:200],
+                            source='ingest_' + source_type,
+                            proposal_score=score
+                        )
+                        pr["ability_name"] = a.get("name") or a.get("ability_name")
+                        pr["threshold"] = threshold
+                        proposals.append(pr)
+                return self.send_json({
+                    "text_analyzed": text[:100],
+                    "abilities_matched": abilities[:5],
+                    "events_created": events,
+                    "proposals_generated": proposals,
+                    "llm_used": use_llm,
+                    "method": "llm_extraction" if use_llm else "rule_lexicon",
+                })
             if path == "/api/graph/job/proposals/confirm":
                 result = confirm_job_graph_proposals(payload)
                 return self.send_json({**result, "job_graph": build_job_ability_graph()})
-            if path == "/api/graph/job/versions/rollback":
-                return self.send_json(version_rollback(payload.get("version"), payload.get("job_role")))
             if path == "/api/assist":
                 return self.send_json(assist(payload))
             if path == "/api/score":
@@ -491,6 +388,15 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_error_json(400, str(exc))
         except Exception as exc:  # pragma: no cover - defensive boundary for demo server
             return self.send_error_json(500, str(exc))
+
+
+            if path == "/api/session/end":
+                session_id = payload.get("session_id")
+                user_id = payload.get("user_id")
+                return self.send_json(record_session_end(session_id, user_id))
+
+            if path == "/api/graph/job/versions/rollback":
+                return self.send_json(version_rollback(payload.get("version"), payload.get("job_role")))
         return self.send_error_json(404, "API endpoint not found")
 
     def serve_static(self, request_path):

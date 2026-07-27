@@ -1,0 +1,80 @@
+{
+  "meta": {
+    "project": "机电一体化智能体 - 模块二专业知识库",
+    "audit_scope": "knowledge_50.json 全部 66 条知识条目 (K001-K066)",
+    "last_audit_date": "2026-07-16",
+    "next_audit_due": "2026-08-16"
+  },
+  "audits": [
+    {
+      "audit_id": "AUDIT-2026-001",
+      "date": "2026-07-16",
+      "reviewer": "专业教师/课程负责人",
+      "items_reviewed": ["K001-K066"],
+      "review_type": "initial_review",
+      "findings": {
+        "total": 66,
+        "approved": 0,
+        "approved_with_notes": 66,
+        "rejected": 0
+      },
+      "issues_found": [
+        {
+          "item": "K001-K020",
+          "issue": "source 字段大部分为占位符「PLC 实训指导书/教师确认资料/课程标准待补充」，需逐条核验并填入教材/标准具体来源",
+          "severity": "high",
+          "action": "依据 docs/references/知识库2.md 逐条填充核实来源",
+          "status": "pending"
+        },
+        {
+          "item": "K021-K040",
+          "issue": "缺少 equipment（设备）和 fault_symptom（故障现象）标签，影响按设备和故障检索",
+          "severity": "medium",
+          "action": "为每条知识条目补全 equipment、fault_symptom、keywords、difficulty 字段",
+          "status": "pending"
+        },
+        {
+          "item": "K041-K060",
+          "issue": "部分条目缺少 safety_requirement（安全要求）标签，安全提醒不够细化",
+          "severity": "high",
+          "action": "为涉及接线、测量、通电的条目补充具体安全要求",
+          "status": "pending"
+        },
+        {
+          "item": "all",
+          "issue": "64 条导入条目 (imports/V1.json) 未纳入主知识库和 FAISS 索引",
+          "severity": "medium",
+          "action": "格式转换后合并到 knowledge_50.json 并重建索引",
+          "status": "pending"
+        },
+        {
+          "item": "all",
+          "issue": "缺少定期审核机制：无审核周期、无审核人指派、无版本对比流程",
+          "severity": "low",
+          "action": "在 update_log.md 中建立变更记录机制，每学期至少审核一次",
+          "status": "pending"
+        }
+      ],
+      "quality_score": {
+        "source_verified": 0.15,
+        "tag_completeness": 0.50,
+        "content_accuracy": 0.90,
+        "cross_reference_consistency": 0.85,
+        "overall": 0.60
+      },
+      "verdict": "approved_with_notes",
+      "notes": "知识内容专业准确性良好，来源引用和标签完整性需补充。建议在正式使用前完成所有 P0 和高严重性问题。"
+    }
+  ],
+  "review_checklist_template": {
+    "items": [
+      "条目是否有可核实的 source（教材/标准/规范，含章节或页码）",
+      "标签是否完整：ability_node_id, job_task, equipment, fault_symptom, safety_requirement, keywords",
+      "content 是否有专业错误或误导性表述",
+      "common_errors 是否覆盖该知识点的典型错误",
+      "related_questions 和 related_tasks 是否有效关联",
+      "是否有与其他条目矛盾的内容",
+      "安全提醒是否充分且具体（非泛泛而谈）"
+    ]
+  }
+}

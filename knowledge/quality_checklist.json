@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "version": "1.0",
+    "last_checked": "2026-07-16",
+    "applicable_to": "knowledge_50.json 全部知识条目"
+  },
+  "check_categories": [
+    {
+      "id": "C01",
+      "name": "来源完整性",
+      "description": "每条知识条目是否有可核实的具体来源",
+      "check_items": [
+        {"id": "C01-1", "question": "source 字段是否包含具体教材名/标准号/规范名？", "weight": "critical"},
+        {"id": "C01-2", "question": "是否包含章节、页码或条款编号？", "weight": "high"},
+        {"id": "C01-3", "question": "来源是否可追溯和验证（非占位符）？", "weight": "critical"},
+        {"id": "C01-4", "question": "来源是否与 docs/references/知识库2.md 一致？", "weight": "medium"}
+      ]
+    },
+    {
+      "id": "C02",
+      "name": "标签完整性",
+      "description": "每条知识条目是否具备全部必要标签",
+      "check_items": [
+        {"id": "C02-1", "question": "是否有 ability_node_id（能力节点）？", "weight": "critical"},
+        {"id": "C02-2", "question": "是否有 job_task（岗位任务）？", "weight": "high"},
+        {"id": "C02-3", "question": "是否有 equipment（涉及设备）？", "weight": "medium"},
+        {"id": "C02-4", "question": "是否有 fault_symptom（故障现象）？", "weight": "medium"},
+        {"id": "C02-5", "question": "是否有 safety_requirement（安全要求）？", "weight": "high"},
+        {"id": "C02-6", "question": "是否有 keywords（检索关键词）？", "weight": "medium"},
+        {"id": "C02-7", "question": "是否有 difficulty（难度）？", "weight": "low"}
+      ]
+    },
+    {
+      "id": "C03",
+      "name": "内容准确性",
+      "description": "知识内容是否专业准确",
+      "check_items": [
+        {"id": "C03-1", "question": "content 是否有专业技术错误？", "weight": "critical"},
+        {"id": "C03-2", "question": "common_errors 是否覆盖该知识点的典型错误？", "weight": "high"},
+        {"id": "C03-3", "question": "操作步骤和参数是否与实际设备一致？", "weight": "critical"},
+        {"id": "C03-4", "question": "涉及 NPN/PNP/源型/漏型等概念时表述是否准确？", "weight": "critical"}
+      ]
+    },
+    {
+      "id": "C04",
+      "name": "一致性",
+      "description": "知识条目之间是否一致无矛盾",
+      "check_items": [
+        {"id": "C04-1", "question": "是否与其他条目的 content 矛盾？", "weight": "high"},
+        {"id": "C04-2", "question": "related_questions / related_tasks 关联是否有效存在？", "weight": "medium"},
+        {"id": "C04-3", "question": "ability_node_id 是否在 ability_nodes.json 中存在？", "weight": "high"},
+        {"id": "C04-4", "question": "同一能力节点下的多条知识是否互补而非重复？", "weight": "low"}
+      ]
+    },
+    {
+      "id": "C05",
+      "name": "安全合规",
+      "description": "安全提醒是否充分",
+      "check_items": [
+        {"id": "C05-1", "question": "涉及接线/拆线的条目是否有断电确认提醒？", "weight": "critical"},
+        {"id": "C05-2", "question": "涉及通电测量的条目是否有安全测量边界说明？", "weight": "critical"},
+        {"id": "C05-3", "question": "涉及设备操作的条目是否有急停/气源确认提醒？", "weight": "high"},
+        {"id": "C05-4", "question": "safety_requirement 是否具体而非泛泛而谈？", "weight": "medium"}
+      ]
+    }
+  ],
+  "scoring": {
+    "total_weight": 100,
+    "pass_threshold": 80,
+    "weights": {
+      "C01": 25,
+      "C02": 20,
+      "C03": 30,
+      "C04": 10,
+      "C05": 15
+    },
+    "interpretation": {
+      "90-100": "优秀：可直接用于教学",
+      "80-89": "良好：建议补充后使用",
+      "60-79": "待改进：需完成 P0 项后使用",
+      "below_60": "不合格：必须全面修订"
+    }
+  }
+}
