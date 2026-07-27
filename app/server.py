@@ -53,6 +53,7 @@ from app.services.student_dashboard import build_student_dashboard  # noqa: E402
 
 from scripts.pipeline.evidence_store import list_snapshots, get_snapshot, version_diff, version_rollback
 from app.services.matching import compute_match
+from app.services.conversation_state import list_conversation_sessions, load_conversation_state, rename_conversation, delete_conversation, generate_session_title  # noqa: E402
 
 
 WEB_DIR = ROOT / "web"
@@ -276,6 +277,15 @@ class MVPHandler(BaseHTTPRequestHandler):
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(compute_match(session_id))
 
+        if path == "/api/conversations":
+            return self.send_json(list_conversation_sessions())
+        if path.startswith("/api/conversation/") and path != "/api/conversations":
+            sid = path[len("/api/conversation/"):]
+            conv = load_conversation_state(sid)
+            if not conv:
+                return self.send_error_json(404, "conversation not found")
+            return self.send_json({"session_id": sid, "messages": conv.get("messages", []), "title": conv.get("metadata", {}).get("title", "")})
+
         return self.serve_static(path)
 
     def do_POST(self):
@@ -283,6 +293,40 @@ class MVPHandler(BaseHTTPRequestHandler):
         path = parsed.path
         try:
             payload = self.read_json_body()
+            if path.startswith("/api/conversation/") and path != "/api/conversations":
+                sid = path[len("/api/conversation/"):]
+                action = query_params.get("action", [""])[0]
+                if action == "delete":
+                    return self.send_json(delete_conversation(sid))
+                if action == "rename":
+                    title = (payload.get("title") or "").strip()[:60]
+                    if not title:
+                        return self.send_error_json(400, "title required")
+                    return self.send_json(rename_conversation(sid, title))
+                if action == "ai-title":
+                    conv = load_conversation_state(sid)
+                    msgs = conv.get("messages", [])
+                    user_msg = ""
+                    for m in msgs:
+                        if m.get("role") == "user":
+                            user_msg = str(m.get("content", ""))[:200]
+                            break
+                    if not user_msg:
+                        return self.send_json({"title": "", "error": "no user message"})
+                    from app.services.llm_client import chat_completion
+                    if is_configured():
+                        raw = chat_completion([
+                            {"role": "system", "content": "你是一个标题生成器。用5-8个字概括用户的问题主题，只输出标题，不要标点。"},
+                            {"role": "user", "content": user_msg}
+                        ], temperature=0.3, timeout=10)
+                        title = raw.strip()[:25] or user_msg[:20]
+                    else:
+                        title = user_msg[:20].strip()
+                    rename_conversation(sid, title)
+                    return self.send_json({"title": title})
+                if action == "title":
+                    return self.send_json({"title": generate_session_title(sid)})
+
             if path == "/api/chat/start":
                 return self.send_json(chat_start(payload))
             if path == "/api/chat/message":
