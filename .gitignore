@@ -28,3 +28,12 @@ _phase*
 _builder*
  .tmp-playwright/
  web/.pnpm-store/
+
+
+# Runtime SQLite files
+data/*.db-shm
+data/*.db-wal
+
+# Temp debug artifacts
+_*.py
+debug_*.png
