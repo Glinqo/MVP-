@@ -91,10 +91,6 @@ class ForceGraph {
         glow.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "blur");
         glow.append("feMerge").selectAll("feMergeNode").data(["blur","SourceGraphic"]).enter().append("feMergeNode").attr("in", d=>d);
 
-        // Arrow marker
-        defs.append("marker").attr("id", `arrow-${this.id}`).attr("viewBox", "0 -5 10 10").attr("refX", 32).attr("refY", 0)
-            .attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto")
-            .append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", "#334155");
 
         this.g = this.svg.append("g");
     }
@@ -193,7 +189,6 @@ class ForceGraph {
             .attr("fill", "none")
             .attr("stroke", "#1e293b")
             .attr("stroke-width", 1.5)
-            .attr("marker-end", `url(#arrow-${this.id})`);
         this.selEdges = linkEnter.merge(link);
 
         // NODE GROUPS
@@ -221,14 +216,16 @@ class ForceGraph {
             .attr("opacity", 0.08)
             .attr("filter", `url(#glow-${this.id})`);
 
-        // Status outer ring - thick, distinct color per status
-        ngEnter.append("circle").attr("class", "node-status-ring")
-            .attr("r", d => d.radius + 5)
-            .attr("fill", "none")
-            .attr("stroke", d => this._statusRing(d).color)
-            .attr("stroke-width", d => this._statusRing(d).width)
-            .attr("stroke-dasharray", d => this._statusRing(d).dash)
-            .attr("opacity", 0.55);
+        // Status outer ring - only for job graph
+        if (this.id.includes("job")) {
+            ngEnter.append("circle").attr("class", "node-status-ring")
+                .attr("r", d => d.radius + 5)
+                .attr("fill", "none")
+                .attr("stroke", d => this._statusRing(d).color)
+                .attr("stroke-width", d => this._statusRing(d).width)
+                .attr("stroke-dasharray", d => this._statusRing(d).dash)
+                .attr("opacity", 0.55);
+        }
 
         // Mastery progress ring - only for student graph, not job graph
         if (!this.id.includes("job")) {
@@ -236,7 +233,7 @@ class ForceGraph {
                 .attr("r", d => d.radius + 6)
                 .attr("fill", "none")
                 .attr("stroke", "#22c55e")
-                .attr("stroke-width", 2.5)
+                .attr("stroke-width", 4)
                 .attr("stroke-linecap", "round")
                 .attr("transform", "rotate(-90)")
                 .attr("stroke-dasharray", d => {
@@ -293,6 +290,18 @@ class ForceGraph {
 
 
         this.selNodes = ngEnter.merge(ng);
+
+        // Update mastery ring for ALL nodes (enter + update) so changed scores reflect
+        if (!this.id.includes("job")) {
+            this.selNodes.select(".node-mastery-ring")
+                .attr("stroke-dasharray", d => {
+                    const r = d.radius + 6;
+                    const circ = 2 * Math.PI * r;
+                    const mastery = d.mastery_score !== undefined ? Number(d.mastery_score) : 30;
+                    const pct = Math.max(0, Math.min(mastery, 100)) / 100;
+                    return (circ * pct) + " " + circ;
+                });
+        }
 
         // Click handler
         if (this.onNodeClick) {

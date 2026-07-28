@@ -1,4 +1,4 @@
-﻿const state = {
+const state = {
   questions: [],
   jobProfile: null,
   jobAdmin: {
@@ -873,14 +873,6 @@ function showGraphNodeDetail(node, graph) {
       <div class="metric"><strong>${escapeHtml(node.uncertainty ?? "-")}</strong><span>不确定性</span></div>
     </div>
 
-    ${renderProcessMetrics(node)}
-    ${renderStrategyTags(node)}
-    <h3>证据来源分布</h3>
-    ${node.source_types ? Object.entries(node.source_types).map(([src, cnt]) => `
-      <div style="display:flex;justify-content:space-between;padding:2px 0;font-size:13px">
-        <span>${escapeHtml(src)}</span><span>${escapeHtml(cnt)} 条</span>
-      </div>
-    `).join("") : '<p class="muted">暂无证据</p>'}
     <h3>最新证据</h3>
     ${node.latest_evidence && node.latest_evidence.length ? `
       <ul class="item-list">
@@ -892,8 +884,6 @@ function showGraphNodeDetail(node, graph) {
     <h3>下一步</h3>
     <p>${escapeHtml(node.next_best_action || "先查看讲解，再完成一个关联训练任务。")}</p>
     ${node.why_next ? `<p class="muted">推荐理由：${escapeHtml(node.why_next)}</p>` : ""}
-    <h3>版本历史</h3>
-    <div id="versionInfo_${escapeHtml(node.id)}" style="font-size:12px;color:#64748b">加载中...</div>
     <h3>证据时间线</h3>
     ${renderEvidenceTimeline(node, events)}
     <div class="question-actions">
@@ -908,13 +898,6 @@ function showGraphNodeDetail(node, graph) {
       loadPersonalizedPlan("today", button.dataset.planNode);
     });
   });
-  // Load version list for this node
-  fetch("/api/graph/job/versions").then(function(r) { return r.json(); }).then(function(data) {
-    var verDiv = document.getElementById("versionInfo_" + node.id);
-    if (verDiv && data.versions) {
-      verDiv.innerHTML = "共 " + data.versions.length + " 个版本，最新：" + (data.versions[0] ? data.versions[0].version : "-");
-    }
-  }).catch(function() {});
   $("nodeDetailDrawer").classList.add("open");
   $("nodeDetailDrawer").setAttribute("aria-hidden", "false");
 }
