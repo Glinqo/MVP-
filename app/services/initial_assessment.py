@@ -211,8 +211,6 @@ def submit_answer(
     qid: str,
     selected_key: str,
     job_role: str = None,
-    answers_so_far: List[Dict] = None,
-    force_complete: bool = False,
 ) -> Dict[str, Any]:
     """
     Submit an answer and return either the next question or the final result.
@@ -249,17 +247,14 @@ def submit_answer(
             "session_id": session_id,
         }
 
-    # Use stored answers as source of truth (fall back to client if needed)
-    stored_answers = list(session.get("answers", []))
-    client_answers = list(answers_so_far) if answers_so_far else []
-    # Merge: stored takes priority, but accept client answers if store is empty
-    answers = stored_answers if stored_answers else client_answers
+    # Use ONLY persisted answers as source of truth — never accept client answers_so_far
+    answers = list(session.get("answers", []))
 
     # Prevent duplicate submission for the same qid
     answered_qids = {a.get("qid", a.get("question_id", "")) for a in answers}
     if qid in answered_qids:
-        # Return current state without re-counting
-        if force_complete or len(answers) >= len(questions):
+        # Return current state without re-counting — force_complete is NOT supported
+        if len(answers) >= len(questions):
             return _finish_assessment(session_id, job_role, answers, questions)
         next_idx = len(answers)
         if next_idx >= len(questions):
@@ -286,10 +281,20 @@ def submit_answer(
                     "answered_at": time.time()}
     answers.append(answer_entry)
 
-    # Write per-question learning event
-    _write_answer_event(session_id, session, target_q, answer_entry)
+    # Write per-question learning event — MUST succeed before saving
+    event_ok = _write_answer_event(session_id, session, target_q, answer_entry)
+    if not event_ok:
+        # Rollback: do NOT save answer, do NOT increment count, do NOT advance
+        answers.pop()  # remove the answer we just appended
+        return {
+            "session_id": session_id,
+            "status": "error",
+            "error": "Failed to persist learning event for this answer. Please retry.",
+            "answered_count": len(answers),
+            "total_questions": len(questions),
+        }
 
-    # Update session state and persist (use stored answers as source of truth)
+    # Update session state and persist
     session["answers"] = answers
     session["state"] = "in_progress"
     try:
@@ -298,7 +303,7 @@ def submit_answer(
         logger.debug("Save state skipped (store unavailable)")
 
     current_index = len(answers)
-    if force_complete or current_index >= len(questions):
+    if current_index >= len(questions):
         session["completed"] = True
         session["state"] = "completed"
         return _finish_assessment(session_id, job_role, answers, questions)
@@ -441,6 +446,8 @@ def _finish_assessment(
         "total_questions": len(questions),
     }
 
+    # Persist result for SQLite storage (so plan route can read it)
+    session["result"] = result_data
     # Cache result for idempotency
     try:
         save_state(session)

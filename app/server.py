@@ -53,6 +53,10 @@ from app.services.next_action_recommender import recommend_next_actions  # noqa:
 from app.services.device_state_handler import record_device_state  # noqa: E402
 
 from app.services.initial_assessment import start_assessment as ia_start, submit_answer as ia_submit_answer, get_assessment_summary as ia_get_summary  # noqa: E402
+from app.services.action_planner import plan_initial_learning  # noqa: E402
+from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
+from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
+from app.services.transfer_engine import suggest_transfer_tasks  # noqa: E402
 
 
 WEB_DIR = ROOT / "web"
@@ -492,20 +496,52 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(ia_start(session_id, job_role))
 
             if path == "/api/student/assess/answer":
-
-                session_id = payload.get("session_id", "default")
+                session_id = payload.get("session_id", "")
+                if not session_id:
+                    return self.send_error_json(400, "session_id is required")
                 qid = payload.get("qid", "")
                 selected_key = payload.get("selected_key", "")
                 job_role = payload.get("job_role", None)
-                answers_so_far = payload.get("answers_so_far", None)
-                force_complete = payload.get("force_complete", False)
+                # answers_so_far and force_complete are IGNORED by the server
+                # Only SQLite persisted answers are used as source of truth
                 return self.send_json(ia_submit_answer(
-                    session_id, qid, selected_key, job_role, answers_so_far, force_complete
+                    session_id, qid, selected_key, job_role
                 ))
 
 
             if path == "/api/student/plan/from-assessment":
-                assessment_result = payload.get("assessment_result", {})
+                session_id = payload.get("session_id", "")
+                if not session_id:
+                    return self.send_error_json(400, "session_id is required")
+                job_role = payload.get("job_role", None)
+
+                # Read assessment state from SQLite only — NEVER from client-provided result
+                from app.services.assessment_store import load_state
+                stored = load_state(session_id, job_role)
+                if stored.get("state") != "completed":
+                    return self.send_error_json(409,
+                        "Assessment not yet completed. Finish all assessment questions first.")
+
+                # Build result from persisted storage only
+                answers = stored.get("answers", [])
+                assessment_result = stored.get("result")
+                if assessment_result:
+                    pass  # Use the stored result directly
+                else:
+                    # Fallback: build minimal result dict from stored answers
+                    assessment_result = {
+                        "session_id": session_id,
+                        "job_role": job_role,
+                        "answers": answers,
+                        "total_score": 0,
+                        "ability_scores": {},
+                        "weak_abilities": [],
+                        "strong_abilities": [],
+                        "dimension_scores": {},
+                        "recommendations": [],
+                        "next_steps": [],
+                    }
+
                 data = plan_initial_learning(assessment_result)
                 weak = assessment_result.get("weak_abilities", [])
                 data["scaffold_config"] = get_scaffold_config_for_assessment(
@@ -556,8 +592,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-from app.services.action_planner import plan_initial_learning  # noqa: E402
-from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
-from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
-from app.services.transfer_engine import suggest_transfer_tasks  # noqa: E402
 

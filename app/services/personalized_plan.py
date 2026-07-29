@@ -358,10 +358,11 @@ def evaluate_task_feedback(payload=None):
     event_id = f"task:{session_id}:{task_id}"
     events_written = 0
 
-    # Write learning event (no silent swallow)
+    # Write learning event with idempotency guard
     try:
         from app.services.learning_event_store import append_normalized_event
         event = {
+            "event_id": event_id,
             "event_type": "task_completed",
             "session_id": session_id,
             "ability_id": ability_id,
@@ -371,7 +372,20 @@ def evaluate_task_feedback(payload=None):
             "student_response": student_response[:200] if student_response else "",
             "expected_outcome": expected_outcome[:200] if expected_outcome else "",
         }
-        append_normalized_event(session_id, event)
+        result = append_normalized_event(session_id, event)
+        if result.get("duplicate"):
+            # Idempotent: already recorded, return existing result
+            return {
+                "saved": True,
+                "event_id": event_id,
+                "score": score,
+                "feedback": "Already recorded. " + " ".join(feedback_parts),
+                "ability_id": ability_id,
+                "task_id": task_id,
+                "duplicate": True,
+                "updated_abilities": [],
+                "next_actions": [],
+            }
         events_written = 1
     except Exception as e:
         logger = __import__("logging").getLogger(__name__)

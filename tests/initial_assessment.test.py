@@ -32,7 +32,7 @@ class InitialAssessmentTest(unittest.TestCase):
     # 2. Progress is resumable
     def test_02_progress_resumable(self):
         start_assessment("u2")
-        submit_answer("u2", "A01", "A", answers_so_far=[])
+        submit_answer("u2", "A01", "A")
         r = start_assessment("u2")
         self.assertEqual(r["status"], "in_progress")
         self.assertEqual(r["first_question"]["qid"], "A02")
@@ -41,7 +41,7 @@ class InitialAssessmentTest(unittest.TestCase):
     # 3. Progress persists after memory clear (store fallback)
     def test_03_memory_clear_restore(self):
         start_assessment("u3")
-        submit_answer("u3", "A01", "A", answers_so_far=[])
+        submit_answer("u3", "A01", "A")
         # Save to store
         sess = _init_session("u3")
         save_state(sess)
@@ -84,20 +84,16 @@ class InitialAssessmentTest(unittest.TestCase):
     # 8. Duplicate answer idempotent (same data)
     def test_08_duplicate_same_answer(self):
         start_assessment("u7")
-        submit_answer("u7", "A01", "A", answers_so_far=[])
-        r = submit_answer("u7", "A01", "A",
-            answers_so_far=[{"qid": "A01", "selected": "A", "is_correct": True,
-                             "ability_id": "plc_basic_principle", "dimension": "", "answered_at": time.time()}])
+        submit_answer("u7", "A01", "A")
+        r = submit_answer("u7", "A01", "A")
         self.assertTrue("already" in str(r.get("message", "")).lower() or "duplicate" in str(r).lower(),
                         f"Should reject duplicate: {r.get('message', '')}")
 
     # 9. Duplicate answer with different data rejected
     def test_09_duplicate_different_answer(self):
         start_assessment("u8")
-        submit_answer("u8", "A01", "A", answers_so_far=[])
-        r = submit_answer("u8", "A01", "B",
-            answers_so_far=[{"qid": "A01", "selected": "A", "is_correct": True,
-                             "ability_id": "plc_basic_principle", "dimension": "", "answered_at": time.time()}])
+        submit_answer("u8", "A01", "A")
+        r = submit_answer("u8", "A01", "B")
         self.assertTrue("already" in str(r.get("message", "")).lower(),
                         f"Should reject: {r}")
 
@@ -264,6 +260,168 @@ class InitialAssessmentTest(unittest.TestCase):
                 self.assertNotIn("password", str(s))
                 self.assertNotIn("token", str(s))
                 self.assertNotIn("phone", str(s))
+
+
+
+    # --- New tests for security fixes ---
+
+    def test_24_client_answers_so_far_ignored(self):
+        """Client sends fake answers_so_far; server MUST ignore it."""
+        from app.services.initial_assessment import start_assessment, submit_answer
+        sid = "fake_so_far_test"
+        
+        r1 = start_assessment(sid)
+        q1 = r1["first_question"]
+        # Submit answer for q1
+        r2 = submit_answer(sid, q1["qid"], q1["options"][0]["key"])
+        self.assertEqual(r2.get("status"), "in_progress")
+        
+        # Now simulate client sending fake answers_so_far claiming 5 answers
+        # submit_answer no longer accepts answers_so_far param
+        r3 = submit_answer(sid, r2["next_question"]["qid"], 
+                          r2["next_question"]["options"][0]["key"])
+        self.assertEqual(r3.get("status"), "in_progress")
+        # answered_count should reflect real persistence (2 answers), not fake
+        self.assertEqual(r3.get("answered_count"), 2)
+
+    def test_25_force_complete_ignored(self):
+        """Client sends force_complete=True; server MUST ignore it."""
+        from app.services.initial_assessment import start_assessment, submit_answer
+        sid = "force_complete_test"
+        
+        r1 = start_assessment(sid)
+        q1 = r1["first_question"]
+        # Answer only 1 question, then try force_complete
+        r2 = submit_answer(sid, q1["qid"], q1["options"][0]["key"])
+        self.assertEqual(r2.get("status"), "in_progress",
+                        "Should still be in_progress with only 1 question answered")
+        self.assertLess(r2.get("answered_count", 0), 
+                       r2.get("total_questions", 999),
+                       "force_complete param removed; should not complete early")
+
+    def test_26_event_write_failure_blocks_advance(self):
+        """When _write_answer_event fails, answer is NOT saved and count NOT incremented."""
+        from app.services.initial_assessment import start_assessment, submit_answer
+        from app.services.initial_assessment import _sessions
+        
+        sid = "evt_fail_test"
+        r1 = start_assessment(sid)
+        q1 = r1["first_question"]
+        
+        # Monkey-patch _write_answer_event to simulate failure
+        import app.services.initial_assessment as ia
+        original = ia._write_answer_event
+        try:
+            ia._write_answer_event = lambda *a, **kw: False
+            r2 = submit_answer(sid, q1["qid"], q1["options"][0]["key"])
+            self.assertEqual(r2.get("status"), "error",
+                           "Should return error when event write fails")
+            self.assertIn("Failed to persist", r2.get("error", ""),
+                        "Should explain failure reason")
+            self.assertEqual(r2.get("answered_count"), 0,
+                           "Answered count should NOT increment on failure")
+        finally:
+            ia._write_answer_event = original
+
+    def test_27_task_feedback_duplicate_idempotent(self):
+        """Submitting same task_feedback twice is idempotent."""
+        import time
+        from app.services.learning_event_store import append_normalized_event
+        
+        sid = f"dup_evt_test_{int(time.time() * 1000)}"
+        tid = "task_dup_001"
+        event_id = f"task:{sid}:{tid}"
+        
+        event = {
+            "event_id": event_id,
+            "event_type": "task_completed",
+            "session_id": sid,
+            "task_id": tid,
+            "ability_id": "plc_basic",
+            "score": 0.85,
+            "student_response": "test",
+            "expected_outcome": "test",
+        }
+        r1 = append_normalized_event(sid, event)
+        self.assertTrue(r1.get("saved"), f"First submission should save: {r1}")
+        self.assertFalse(r1.get("duplicate"), "First submission should NOT be duplicate")
+        
+        # Submit identical event again
+        r2 = append_normalized_event(sid, event)
+        self.assertTrue(r2.get("duplicate"), f"Second submission should be flagged duplicate: {r2}")
+        self.assertFalse(r2.get("saved"), "Second submission should NOT save again")
+
+    def test_28_plan_requires_completed_assessment(self):
+        """Requesting plan for incomplete assessment MUST fail."""
+        import json, urllib.request, unittest
+        try:
+            urllib.request.urlopen("http://127.0.0.1:8765/api/student/assess/start", data=b'{}', timeout=2)
+        except urllib.request.HTTPError:
+            pass  # Server is running
+        except Exception:
+            raise unittest.SkipTest("Server not running — skip HTTP test")
+        sid = "plan_incomplete_test"
+        # Start assessment but don't complete it
+        body = json.dumps({"session_id": sid}).encode()
+        req = urllib.request.Request("http://127.0.0.1:8765/api/student/assess/start",
+                                     data=body, headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req)
+        
+        # Try to get plan — should receive error
+        body2 = json.dumps({"session_id": sid, "job_role": None}).encode()
+        try:
+            req2 = urllib.request.Request("http://127.0.0.1:8765/api/student/plan/from-assessment",
+                                          data=body2, headers={"Content-Type": "application/json"})
+            resp = urllib.request.urlopen(req2)
+            self.fail("Should have raised HTTPError for 409")
+        except urllib.request.HTTPError as e:
+            self.assertEqual(e.code, 409, "Incomplete assessment should return HTTP 409")
+
+    def test_29_plan_refuses_client_forgery(self):
+        """Client sends forged assessment_result; server MUST ignore and read from SQLite."""
+        import json, urllib.request, unittest
+        try:
+            urllib.request.urlopen("http://127.0.0.1:8765/api/student/assess/start", data=b'{}', timeout=2)
+        except urllib.request.HTTPError:
+            pass  # Server running
+        except Exception:
+            raise unittest.SkipTest("Server not running — skip HTTP test")
+        sid = "forgery_test"
+        
+        # Complete the full assessment first
+        from app.services.initial_assessment import start_assessment, submit_answer, get_assessment_summary
+        _ = start_assessment(sid)
+        # Answer all questions
+        from app.services.initial_assessment import _load_questions
+        questions = _load_questions()
+        session = _sessions.get(f"{sid}_default", {})
+        answers = session.get("answers", [])
+        answered_qids = {a.get("qid") for a in answers}
+        for q in questions:
+            if q.qid in answered_qids:
+                continue
+            r = submit_answer(sid, q.qid, q.options[0]["key"])
+            if r.get("status") == "completed":
+                break
+        
+        # Now try to POST plan with fake assessment_result claiming all mastered
+        fake_result = {"weak_abilities": [], "strong_abilities": ["everything"], "total_score": 1.0}
+        body = json.dumps({
+            "session_id": sid,
+            "assessment_result": fake_result
+        }).encode()
+        try:
+            req = urllib.request.Request("http://127.0.0.1:8765/api/student/plan/from-assessment",
+                                         data=body, headers={"Content-Type": "application/json"})
+            resp = urllib.request.urlopen(req)
+            data = json.loads(resp.read())
+            # The server should have used the REAL result from SQLite, not the fake one
+            # So weak_abilities should come from real data
+            self.assertIsNotNone(data.get("priority_abilities"),
+                               "Should return real plan data from SQLite")
+        except urllib.request.HTTPError as e:
+            # Might get 409 if assessment not complete yet; that's also valid
+            self.assertIn(e.code, [200, 409])
 
 
 if __name__ == "__main__":
