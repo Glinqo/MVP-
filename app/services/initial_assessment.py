@@ -249,16 +249,21 @@ def submit_answer(
             "session_id": session_id,
         }
 
+    # Use stored answers as source of truth (fall back to client if needed)
+    stored_answers = list(session.get("answers", []))
+    client_answers = list(answers_so_far) if answers_so_far else []
+    # Merge: stored takes priority, but accept client answers if store is empty
+    answers = stored_answers if stored_answers else client_answers
+
     # Prevent duplicate submission for the same qid
-    answered_qids = {a["qid"] for a in session.get("answers", [])}
-    prev_answers = [a for a in session.get("answers", []) if a["qid"] == qid]
-    if prev_answers:
+    answered_qids = {a.get("qid", a.get("question_id", "")) for a in answers}
+    if qid in answered_qids:
         # Return current state without re-counting
-        if force_complete or len(answers_so_far or []) >= len(questions):
-            return _finish_assessment(session_id, job_role, list(answers_so_far or []), questions)
-        next_idx = len(answers_so_far or [])
+        if force_complete or len(answers) >= len(questions):
+            return _finish_assessment(session_id, job_role, answers, questions)
+        next_idx = len(answers)
         if next_idx >= len(questions):
-            return _finish_assessment(session_id, job_role, list(answers_so_far or []), questions)
+            return _finish_assessment(session_id, job_role, answers, questions)
         nq = questions[next_idx]
         return {
             "session_id": session_id,
@@ -271,11 +276,10 @@ def submit_answer(
             },
             "current_index": next_idx,
             "total_questions": len(questions),
-            "answered_count": len(answers_so_far or []),
+            "answered_count": len(answers),
         }
 
     # Record the answer
-    answers = list(answers_so_far) if answers_so_far else []
     answer_entry = {"qid": qid, "selected": selected_key, "correct": target_q.correct_key,
                     "is_correct": selected_key == target_q.correct_key,
                     "ability_id": target_q.ability_id, "dimension": target_q.dimension,
@@ -285,7 +289,7 @@ def submit_answer(
     # Write per-question learning event
     _write_answer_event(session_id, session, target_q, answer_entry)
 
-    # Update session state and persist
+    # Update session state and persist (use stored answers as source of truth)
     session["answers"] = answers
     session["state"] = "in_progress"
     try:

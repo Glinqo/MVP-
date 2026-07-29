@@ -117,6 +117,9 @@ def _infer_event_type(raw_event):
         "feedback": "feedback_submitted",
         "task_completed": "task_completed",
         "device_state_recorded": "device_state_recorded",
+        "initial_quiz_answered": "initial_quiz_answered",
+        "initial_assessment_completed": "initial_assessment_completed",
+        "initial_profile_submitted": "initial_profile_submitted",
     }
 
     if raw_type in type_map:
@@ -237,13 +240,13 @@ def _compute_evidence_weight(event_type, outcome, raw_event):
         base = 1.0
 
     # Event-type adjustments
-    if event_type == "diagnostic_action":
+    if event_type == "initial_quiz_answered":
+        return 0.6
+    elif event_type == "diagnostic_action":
         # Direct procedure evidence is strong
         base *= 1.0
     elif event_type == "quiz_answered":
         base *= 0.8
-    elif event_type == "initial_quiz_answered":
-        return 0.6
     elif event_type == "chat_question":
         base *= 0.6
 

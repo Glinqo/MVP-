@@ -39,23 +39,26 @@ def _ensure_table():
                 result_json TEXT,
                 created_at REAL NOT NULL,
                 updated_at REAL NOT NULL,
-                completed_at REAL
+                completed_at REAL,
+                UNIQUE(session_id, job_role, assessment_version)
             )
         """)
         conn.execute("CREATE INDEX IF NOT EXISTS idx_assess_session ON assessments(session_id, job_role)")
         conn.commit()
 
 
-def _make_key(session_id, job_role=None):
-    """Generate a unique storage key."""
+def _make_key(session_id, job_role=None, assessment_version="1.0.0"):
+    """Generate a unique storage key.
+    Keyed by session_id + job_role + assessment_version to allow
+    multiple assessment versions per session."""
     role = job_role or "default"
-    return f"{session_id}_{role}"
+    return f"{session_id}_{role}_{assessment_version}"
 
 
-def load_state(session_id, job_role=None):
+def load_state(session_id, job_role=None, assessment_version="1.0.0"):
     """Load assessment state from persistent storage."""
     _ensure_table()
-    key = _make_key(session_id, job_role)
+    key = _make_key(session_id, job_role, assessment_version)
     with _conn() as conn:
         row = conn.execute(
             "SELECT id, state, answers_json, result_json, created_at, updated_at, completed_at FROM assessments WHERE id = ?",
@@ -89,7 +92,11 @@ def load_state(session_id, job_role=None):
 def save_state(state):
     """Persist assessment state. Creates or updates."""
     _ensure_table()
-    key = state.get("id") or _make_key(state.get("session_id", ""), state.get("job_role"))
+    key = state.get("id") or _make_key(
+        state.get("session_id", ""),
+        state.get("job_role"),
+        state.get("assessment_version", "1.0.0")
+    )
     now = time.time()
     with _conn() as conn:
         conn.execute(

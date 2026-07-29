@@ -311,32 +311,35 @@ def personalized_plan(payload=None):
 
 
 def evaluate_task_feedback(payload=None):
-    """Evaluate task feedback from a student and return assessment update.
+    """Evaluate task feedback with validation and proper event writing.
 
     Args:
-        payload: dict with keys: session_id, ability_id, task_id,
-                 student_response, task_type, expected_outcome
+        payload: dict with session_id, task_id, ability_id, student_response, expected_outcome
 
     Returns:
-        dict with score, feedback, ability_update, events_written
+        dict with saved, event_id, score, feedback, updated_abilities, next_actions
     """
-    if not payload:
-        return {"error": "payload is required", "score": 0, "feedback": "No data provided"}
+    if not payload or not isinstance(payload, dict):
+        return {"saved": False, "error": "payload is required", "score": 0, "feedback": "No data"}
 
     session_id = payload.get("session_id", "")
-    ability_id = payload.get("ability_id", "")
     task_id = payload.get("task_id", "")
+    ability_id = payload.get("ability_id") or payload.get("ability_ids", [None])[0]
     student_response = payload.get("student_response", "")
     task_type = payload.get("task_type", "practice")
     expected_outcome = payload.get("expected_outcome", "")
 
+    # Validation
     if not session_id:
-        return {"error": "session_id is required", "score": 0, "feedback": "Missing session"}
+        return {"saved": False, "error": "session_id is required", "score": 0, "feedback": "Missing session_id"}
+    if not task_id:
+        return {"saved": False, "error": "task_id is required", "score": 0, "feedback": "Missing task_id"}
+    if not ability_id:
+        return {"saved": False, "error": "ability_id is required", "score": 0, "feedback": "Missing ability_id"}
 
-    # Rule-based scoring (no LLM)
+    # Rule-based scoring
     score = 0.5
     feedback_parts = []
-
     if student_response and expected_outcome:
         if student_response.strip().lower() == expected_outcome.strip().lower():
             score = 1.0
@@ -347,12 +350,15 @@ def evaluate_task_feedback(payload=None):
         else:
             score = 0.25
             feedback_parts.append("Response differs from expected outcome.")
+    elif expected_outcome:
+        feedback_parts.append("No student response to compare against expected outcome.")
+    else:
+        feedback_parts.append("No expected outcome provided; scored at default 0.5.")
 
-    if ability_id:
-        feedback_parts.append(f"Ability {ability_id} assessed at level {score:.0%}.")
-
-    # Write learning event
+    event_id = f"task:{session_id}:{task_id}"
     events_written = 0
+
+    # Write learning event (no silent swallow)
     try:
         from app.services.learning_event_store import append_normalized_event
         event = {
@@ -362,23 +368,35 @@ def evaluate_task_feedback(payload=None):
             "task_id": task_id,
             "task_type": task_type,
             "score": score,
-            "student_response": student_response[:200],
-            "expected_outcome": expected_outcome[:200],
+            "student_response": student_response[:200] if student_response else "",
+            "expected_outcome": expected_outcome[:200] if expected_outcome else "",
         }
         append_normalized_event(session_id, event)
         events_written = 1
-    except Exception:
-        pass
+    except Exception as e:
+        logger = __import__("logging").getLogger(__name__)
+        logger.warning("Failed to write task feedback event: %s", e)
+        return {
+            "saved": False,
+            "error": f"Event write failed: {e}",
+            "event_id": event_id,
+            "score": score,
+            "feedback": " ".join(feedback_parts),
+            "updated_abilities": [],
+            "next_actions": [],
+        }
 
     return {
+        "saved": True,
+        "event_id": event_id,
         "score": score,
         "feedback": " ".join(feedback_parts),
         "ability_id": ability_id,
         "task_id": task_id,
-        "events_written": events_written,
-        "ability_update": {
+        "updated_abilities": [{
             "ability_id": ability_id,
             "new_score": score,
             "confidence": 0.7,
-        } if ability_id else None,
+        }],
+        "next_actions": [],
     }

@@ -236,7 +236,9 @@ class InitialAssessmentTest(unittest.TestCase):
         from app.services.student_assessment_report import list_student_sessions
         try:
             r = list_student_sessions()
-            self.assertIsInstance(r, list)
+            self.assertIn("students", r)
+            self.assertIn("total", r)
+            self.assertIsInstance(r["students"], list)
         except NameError as e:
             self.fail(f"NameError in teacher interface: {e}")
 
@@ -253,8 +255,9 @@ class InitialAssessmentTest(unittest.TestCase):
         }
         save_state(state)
         from app.services.student_assessment_report import list_student_sessions
-        sessions = list_student_sessions()
-        self.assertIsInstance(sessions, list)
+        result = list_student_sessions()
+        self.assertIn("students", result)
+        sessions = result["students"]
         # Teacher view should not leak sensitive data
         for s in sessions:
             if s.get("session_id") == "u23":
