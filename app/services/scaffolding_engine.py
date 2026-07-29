@@ -242,3 +242,23 @@ def _find_strategy(model, strategy_id):
         if s["id"] == strategy_id:
             return s
     return None
+
+
+def adjust_scaffold_for_weakness(weak_abilities, base_hint_level=3):
+    """Lower scaffold level for weak dimensions. Stage 3.
+    Returns: dict mapping ability_id -> adjusted_hint_level (1=most guidance, 4=minimal)
+    """
+    adjusted = {}
+    for aid in weak_abilities:
+        adjusted[aid] = max(1, base_hint_level - 1)
+    return adjusted
+
+
+def get_scaffold_config_for_assessment(assessment_result, default_level=3):
+    """Get scaffold configuration based on assessment results."""
+    weak = assessment_result.get("weak_abilities", [])
+    return {
+        "default_level": default_level,
+        "weak_levels": adjust_scaffold_for_weakness(weak, default_level),
+        "weak_count": len(weak),
+    }

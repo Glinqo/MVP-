@@ -308,3 +308,8 @@ def personalized_plan(payload=None):
         "next_review": "完成推荐实训任务后，重新做预设自测，并把不会的题目用于追问讲解。",
         "source": "student_graph + knowledge_50 + resources + training_tasks",
     }
+
+
+def evaluate_task_feedback(payload):
+    """Stub for task feedback evaluation."""
+    return {"score": 0, "feedback": "Not yet implemented"}

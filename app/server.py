@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import json
 import mimetypes
 import sys
@@ -52,6 +52,7 @@ from app.services.ability_state_engine import compute_ability_state  # noqa: E40
 from app.services.next_action_recommender import recommend_next_actions  # noqa: E402
 from app.services.device_state_handler import record_device_state  # noqa: E402
 
+from app.services.initial_assessment import start_assessment as ia_start, submit_answer as ia_submit_answer, get_assessment_summary as ia_get_summary  # noqa: E402
 
 
 WEB_DIR = ROOT / "web"
@@ -265,6 +266,16 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/sessions":
             return self.send_json(list_sessions())
 
+        
+        if path == "/api/teacher/students/assessments":
+            return self.send_json(list_student_sessions())
+
+        if path == "/api/teacher/students/assessment":
+            query = parse_qs(parsed.query)
+            session_id = query.get("session_id", [None])[0]
+            if not session_id:
+                return self.send_error_json(400, "session_id is required")
+            return self.send_json(generate_individual_report(session_id))
         if path == "/api/student/ability-state":
             session_id = query_params.get("session_id", ["default"])[0]
             ability_id = query_params.get("ability_id", [None])[0]
@@ -278,6 +289,11 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/student/job-gap":
             session_id = query_params.get("session_id", ["default"])[0]
             return self.send_json(_compute_job_gap(session_id))
+
+        if path == "/api/student/assess/summary":
+            query = parse_qs(parsed.query)
+            session_id = query.get("session_id", ["default"])[0]
+            return self.send_json(ia_get_summary(session_id))
 
         if path == "/api/scenario/next-action":
             query = parse_qs(parsed.query)
@@ -468,6 +484,34 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(score_result)
             if path == "/api/diagnose":
                 return self.send_json(diagnose(payload))
+            if path == "/api/student/assess/start":
+                session_id = payload.get("session_id", "default")
+                job_role = payload.get("job_role", None)
+                return self.send_json(ia_start(session_id, job_role))
+
+            if path == "/api/student/assess/answer":
+
+                session_id = payload.get("session_id", "default")
+                qid = payload.get("qid", "")
+                selected_key = payload.get("selected_key", "")
+                job_role = payload.get("job_role", None)
+                answers_so_far = payload.get("answers_so_far", None)
+                force_complete = payload.get("force_complete", False)
+                return self.send_json(ia_submit_answer(
+                    session_id, qid, selected_key, job_role, answers_so_far, force_complete
+                ))
+
+
+            if path == "/api/student/plan/from-assessment":
+                assessment_result = payload.get("assessment_result", {})
+                data = plan_initial_learning(assessment_result)
+                weak = assessment_result.get("weak_abilities", [])
+                data["scaffold_config"] = get_scaffold_config_for_assessment(
+                    assessment_result, default_level=3
+                )
+                data["transfer_tasks"] = suggest_transfer_tasks(weak)
+                return self.send_json(data)
+
             if path == "/api/feedback":
                 return self.send_json(save_feedback(payload))
         except ValueError as exc:
@@ -510,3 +554,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+from app.services.action_planner import plan_initial_learning  # noqa: E402
+from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
+from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
+from app.services.transfer_engine import suggest_transfer_tasks  # noqa: E402
+
