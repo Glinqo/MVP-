@@ -105,10 +105,11 @@ function switchToChat(sessionId) {
 function deleteChat(event, sessionId) {
   event.stopPropagation();
   if (!confirm("确定删除这个对话？")) return;
-  fetch("/api/conversation/" + encodeURIComponent(sessionId) + "?action=delete", { method: "POST" }).then(function(r) { return r.json(); }).then(function() {
+  fetch("/api/conversation/" + encodeURIComponent(sessionId) + "?action=delete", { method: "POST" }).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data || !data.deleted) { throw new Error("服务器删除失败"); }
     if (sessionId === state.sessionId) { if(typeof createNewChat==='function')createNewChat(); else location.reload(); } else { refreshSidebar(); }
   }).catch(function(e) {
-    addMessage("assistant", "删除失败：" + e.message);
+    alert("删除失败: " + e.message);
   });
 }
 

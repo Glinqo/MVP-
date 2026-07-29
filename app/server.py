@@ -293,6 +293,7 @@ class MVPHandler(BaseHTTPRequestHandler):
         path = parsed.path
         try:
             payload = self.read_json_body()
+            query_params = parse_qs(parsed.query)
             if path.startswith("/api/conversation/") and path != "/api/conversations":
                 sid = path[len("/api/conversation/"):]
                 action = query_params.get("action", [""])[0]
