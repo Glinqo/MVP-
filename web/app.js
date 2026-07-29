@@ -433,6 +433,7 @@ function renderMessages() {
           ${extras}
           ${fallback}
         </div>
+        <button class="copy-btn" onclick="copyMsg(this)">复制</button>
       </article>
     `;
   }).join("");
@@ -440,6 +441,22 @@ function renderMessages() {
   $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
 }
 
+
+
+function copyMsg(btn) {
+  var body = btn.previousElementSibling;
+  if (!body || !body.classList.contains("message-body")) {
+    body = btn.parentElement.querySelector(".message-body");
+  }
+  if (!body) return;
+  var text = (body.textContent || "").trim();
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(function() {
+    btn.classList.add("copied");
+    btn.textContent = "✓";
+    setTimeout(function() { btn.classList.remove("copied"); btn.textContent = "复制"; }, 1200);
+  }).catch(function() {});
+}
 function renderJobProfile(profile) {
   state.jobProfile = profile;
   const tasks = (profile.core_job_tasks || []).slice(0, 4);
