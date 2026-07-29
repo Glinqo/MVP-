@@ -33,6 +33,7 @@ def _ensure_table():
                 id TEXT PRIMARY KEY,
                 session_id TEXT NOT NULL,
                 job_role TEXT NOT NULL DEFAULT 'default',
+                assessment_id TEXT NOT NULL DEFAULT '',
                 assessment_version TEXT NOT NULL DEFAULT '1.0.0',
                 state TEXT NOT NULL DEFAULT 'not_started',
                 answers_json TEXT NOT NULL DEFAULT '[]',
@@ -44,6 +45,11 @@ def _ensure_table():
             )
         """)
         conn.execute("CREATE INDEX IF NOT EXISTS idx_assess_session ON assessments(session_id, job_role)")
+        # Migration: add assessment_id column if missing
+        try:
+            conn.execute("ALTER TABLE assessments ADD COLUMN assessment_id TEXT NOT NULL DEFAULT ''")
+        except sqlite3.OperationalError:
+            pass  # column already exists
         conn.commit()
 
 
@@ -61,7 +67,7 @@ def load_state(session_id, job_role=None, assessment_version="1.0.0"):
     key = _make_key(session_id, job_role, assessment_version)
     with _conn() as conn:
         row = conn.execute(
-            "SELECT id, state, answers_json, result_json, created_at, updated_at, completed_at FROM assessments WHERE id = ?",
+            "SELECT id, state, assessment_id, answers_json, result_json, created_at, updated_at, completed_at FROM assessments WHERE id = ?",
             (key,)
         ).fetchone()
     if row is None:
@@ -76,16 +82,20 @@ def load_state(session_id, job_role=None, assessment_version="1.0.0"):
             "updated_at": time.time(),
             "completed_at": None,
         }
+    completed = row[1] == "completed"
     return {
         "id": row[0],
         "session_id": session_id,
         "job_role": job_role or "default",
+        "assessment_id": row[2] if len(row) > 7 else "",
+        "assessment_version": assessment_version,
         "state": row[1],
-        "answers": json.loads(row[2] or "[]"),
-        "result": json.loads(row[3]) if row[3] else None,
-        "created_at": row[4],
-        "updated_at": row[5],
-        "completed_at": row[6],
+        "completed": completed,
+        "answers": json.loads(row[3] if len(row) > 7 else row[2] or "[]"),
+        "result": json.loads(row[4] if len(row) > 7 else row[3]) if (row[4] if len(row) > 7 else row[3]) else None,
+        "created_at": row[5] if len(row) > 7 else row[4],
+        "updated_at": row[6] if len(row) > 7 else row[5],
+        "completed_at": row[7] if len(row) > 7 else row[6],
     }
 
 

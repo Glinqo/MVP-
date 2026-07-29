@@ -56,17 +56,20 @@ class InitialAssessmentTest(unittest.TestCase):
     def test_04_roles_isolated(self):
         _init_session("u4", "role_a")
         _init_session("u4", "role_b")
-        self.assertIn("u4_role_a", _sessions)
-        self.assertIn("u4_role_b", _sessions)
-        self.assertEqual(_sessions["u4_role_a"]["job_role"], "role_a")
-        self.assertEqual(_sessions["u4_role_b"]["job_role"], "role_b")
+        self.assertTrue(any(k.startswith("u4_role_a_") for k in _sessions), f"Keys: {list(_sessions.keys())}")
+        self.assertTrue(any(k.startswith("u4_role_b_") for k in _sessions))
+        # New key format includes assessment_version; find the right key
+        role_a_key = next(k for k in _sessions if k.startswith("u4_role_a_"))
+        self.assertEqual(_sessions[role_a_key]["job_role"], "role_a")
+        role_b_key = next(k for k in _sessions if k.startswith("u4_role_b_"))
+        self.assertEqual(_sessions[role_b_key]["job_role"], "role_b")
 
     # 5. Different sessions isolated
     def test_05_sessions_isolated(self):
         _init_session("u5a", None)
         _init_session("u5b", None)
-        self.assertIn("u5a_default", _sessions)
-        self.assertIn("u5b_default", _sessions)
+        self.assertTrue(any(k.startswith("u5a_default_") for k in _sessions))
+        self.assertTrue(any(k.startswith("u5b_default_") for k in _sessions))
         r1 = start_assessment("u5a")
         r2 = start_assessment("u5b")
         self.assertEqual(r1["first_question"]["qid"], r2["first_question"]["qid"])
@@ -268,7 +271,7 @@ class InitialAssessmentTest(unittest.TestCase):
     def test_24_client_answers_so_far_ignored(self):
         """Client sends fake answers_so_far; server MUST ignore it."""
         from app.services.initial_assessment import start_assessment, submit_answer
-        sid = "fake_so_far_test"
+        sid = f"fake_so_far_{int(time.time() * 10000)}"
         
         r1 = start_assessment(sid)
         q1 = r1["first_question"]
@@ -287,7 +290,7 @@ class InitialAssessmentTest(unittest.TestCase):
     def test_25_force_complete_ignored(self):
         """Client sends force_complete=True; server MUST ignore it."""
         from app.services.initial_assessment import start_assessment, submit_answer
-        sid = "force_complete_test"
+        sid = f"force_complete_{int(time.time() * 10000)}"
         
         r1 = start_assessment(sid)
         q1 = r1["first_question"]
@@ -304,7 +307,7 @@ class InitialAssessmentTest(unittest.TestCase):
         from app.services.initial_assessment import start_assessment, submit_answer
         from app.services.initial_assessment import _sessions
         
-        sid = "evt_fail_test"
+        sid = f"evt_fail_{int(time.time() * 10000)}"
         r1 = start_assessment(sid)
         q1 = r1["first_question"]
         

@@ -102,13 +102,13 @@ def _build_qid_map(questions: List[AssessmentQuestion]) -> Dict[str, AssessmentQ
     return {q.qid: q for q in questions}
 
 
-def _init_session(session_id: str, job_role: str = None) -> Dict[str, Any]:
+def _init_session(session_id: str, job_role: str = None, assessment_version: str = "1.0.0") -> Dict[str, Any]:
     """Initialize or retrieve a session's assessment state from persistent store.
     Falls back to memory cache if persistence is unavailable."""
-    key = f"{session_id}_{job_role or 'default'}"
+    key = f"{session_id}_{job_role or 'default'}_{assessment_version}"
     # Try persistent store first
     try:
-        stored = load_state(session_id, job_role)
+        stored = load_state(session_id, job_role, assessment_version)
         if stored and stored.get("state") != "not_started":
             _sessions[key] = stored
             return _sessions[key]
@@ -299,8 +299,17 @@ def submit_answer(
     session["state"] = "in_progress"
     try:
         save_state(session)
-    except Exception:
-        logger.debug("Save state skipped (store unavailable)")
+    except Exception as e:
+        # Rollback: save_state failure must not return success
+        answers.pop()  # undo the answer we just appended
+        session["answers"] = answers  # reset session answers
+        return {
+            "session_id": session_id,
+            "status": "error",
+            "error": f"Failed to persist assessment state: {e}",
+            "answered_count": len(answers),
+            "total_questions": len(questions),
+        }
 
     current_index = len(answers)
     if current_index >= len(questions):
@@ -446,13 +455,17 @@ def _finish_assessment(
         "total_questions": len(questions),
     }
 
-    # Persist result for SQLite storage (so plan route can read it)
+    # Persist full state for SQLite storage
+    session["state"] = "completed"
+    session["completed"] = True
     session["result"] = result_data
-    # Cache result for idempotency
+    session["completed_at"] = time.time()
+    # Persist to SQLite
     try:
         save_state(session)
-    except Exception:
-        logger.debug("Save state skipped (store unavailable)")
+    except Exception as e:
+        logger.error("Failed to save assessment completion state: %s", e)
+    # Cache result for idempotency (in-memory fallback)
     session["_result_cached"] = {
         "session_id": session_id,
         "status": "completed",
@@ -465,7 +478,7 @@ def _finish_assessment(
     return session["_result_cached"]
 
 
-def get_assessment_summary(session_id: str, job_role: str = None) -> Dict[str, Any]:
+def get_assessment_summary(session_id: str, job_role: str = None, assessment_version: str = "1.0.0") -> Dict[str, Any]:
     """Retrieve assessment state for a session, including progress and recommendations."""
     questions = _load_questions(job_role)
     session = _init_session(session_id, job_role)
@@ -490,13 +503,17 @@ def get_assessment_summary(session_id: str, job_role: str = None) -> Dict[str, A
         summary["message"] = f"Assessment in progress: {answered}/{len(questions)} questions answered."
     elif state == "completed":
         summary["message"] = "Assessment completed. Review results and begin personalized learning."
-        cached = session.get("_result_cached", {})
-        if cached:
+        # Read from persistent result (SQLite), fall back to memory cache
+        result_data = session.get("result")
+        if not result_data:
+            cached = session.get("_result_cached", {})
+            result_data = cached.get("result", {})
+        if result_data:
             summary["result_summary"] = {
-                "total_score": cached.get("result", {}).get("total_score"),
-                "weak_count": len(cached.get("result", {}).get("weak_abilities", [])),
-                "strong_count": len(cached.get("result", {}).get("strong_abilities", [])),
-                "safety_gaps": len(cached.get("result", {}).get("safety_critical_gaps", [])),
+                "total_score": result_data.get("total_score"),
+                "weak_count": len(result_data.get("weak_abilities", [])),
+                "strong_count": len(result_data.get("strong_abilities", [])),
+                "safety_gaps": len(result_data.get("safety_critical_gaps", [])),
             }
 
     return summary

@@ -296,8 +296,12 @@ class MVPHandler(BaseHTTPRequestHandler):
 
         if path == "/api/student/assess/summary":
             query = parse_qs(parsed.query)
-            session_id = query.get("session_id", ["default"])[0]
-            return self.send_json(ia_get_summary(session_id))
+            session_id = query.get("session_id", [None])[0]
+            if not session_id:
+                return self.send_error_json(400, "session_id is required")
+            job_role = query.get("job_role", [None])[0]
+            assessment_version = query.get("assessment_version", ["1.0.0"])[0]
+            return self.send_json(ia_get_summary(session_id, job_role, assessment_version))
 
         if path == "/api/scenario/next-action":
             query = parse_qs(parsed.query)
@@ -549,6 +553,22 @@ class MVPHandler(BaseHTTPRequestHandler):
                 )
                 data["transfer_tasks"] = suggest_transfer_tasks(weak)
                 return self.send_json(data)
+
+            if path == "/api/plan/task_feedback":
+                session_id = payload.get("session_id", "")
+                if not session_id:
+                    return self.send_error_json(400, "session_id is required")
+                task_id = payload.get("task_id", "")
+                if not task_id:
+                    return self.send_error_json(400, "task_id is required")
+                ability_id = payload.get("ability_id") or (payload.get("ability_ids", [None])[0] if payload.get("ability_ids") else None)
+                if not ability_id:
+                    return self.send_error_json(400, "ability_id or ability_ids is required")
+                result = evaluate_task_feedback(payload)
+                if not result.get("saved"):
+                    err = result.get("error", "Unknown error")
+                    return self.send_error_json(400 if "required" in err.lower() else 500, err)
+                return self.send_json(result)
 
             if path == "/api/feedback":
                 return self.send_json(save_feedback(payload))
