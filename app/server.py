@@ -485,7 +485,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/diagnose":
                 return self.send_json(diagnose(payload))
             if path == "/api/student/assess/start":
-                session_id = payload.get("session_id", "default")
+                session_id = payload.get("session_id", "")
+                if not session_id:
+                    return self.send_error_json(400, "session_id is required")
                 job_role = payload.get("job_role", None)
                 return self.send_json(ia_start(session_id, job_role))
 

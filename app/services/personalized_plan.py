@@ -310,6 +310,75 @@ def personalized_plan(payload=None):
     }
 
 
-def evaluate_task_feedback(payload):
-    """Stub for task feedback evaluation."""
-    return {"score": 0, "feedback": "Not yet implemented"}
+def evaluate_task_feedback(payload=None):
+    """Evaluate task feedback from a student and return assessment update.
+
+    Args:
+        payload: dict with keys: session_id, ability_id, task_id,
+                 student_response, task_type, expected_outcome
+
+    Returns:
+        dict with score, feedback, ability_update, events_written
+    """
+    if not payload:
+        return {"error": "payload is required", "score": 0, "feedback": "No data provided"}
+
+    session_id = payload.get("session_id", "")
+    ability_id = payload.get("ability_id", "")
+    task_id = payload.get("task_id", "")
+    student_response = payload.get("student_response", "")
+    task_type = payload.get("task_type", "practice")
+    expected_outcome = payload.get("expected_outcome", "")
+
+    if not session_id:
+        return {"error": "session_id is required", "score": 0, "feedback": "Missing session"}
+
+    # Rule-based scoring (no LLM)
+    score = 0.5
+    feedback_parts = []
+
+    if student_response and expected_outcome:
+        if student_response.strip().lower() == expected_outcome.strip().lower():
+            score = 1.0
+            feedback_parts.append("Response matches expected outcome.")
+        elif expected_outcome.strip().lower() in student_response.strip().lower():
+            score = 0.75
+            feedback_parts.append("Response partially matches expected outcome.")
+        else:
+            score = 0.25
+            feedback_parts.append("Response differs from expected outcome.")
+
+    if ability_id:
+        feedback_parts.append(f"Ability {ability_id} assessed at level {score:.0%}.")
+
+    # Write learning event
+    events_written = 0
+    try:
+        from app.services.learning_event_store import append_normalized_event
+        event = {
+            "event_type": "task_completed",
+            "session_id": session_id,
+            "ability_id": ability_id,
+            "task_id": task_id,
+            "task_type": task_type,
+            "score": score,
+            "student_response": student_response[:200],
+            "expected_outcome": expected_outcome[:200],
+        }
+        append_normalized_event(session_id, event)
+        events_written = 1
+    except Exception:
+        pass
+
+    return {
+        "score": score,
+        "feedback": " ".join(feedback_parts),
+        "ability_id": ability_id,
+        "task_id": task_id,
+        "events_written": events_written,
+        "ability_update": {
+            "ability_id": ability_id,
+            "new_score": score,
+            "confidence": 0.7,
+        } if ability_id else None,
+    }

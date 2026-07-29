@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 
 from app.services.ability_state_engine import compute_ability_state
 from app.services.learning_event_store import append_normalized_event
+from app.services.assessment_store import load_state, save_state, list_sessions as list_assessment_sessions
 
 logger = logging.getLogger(__name__)
 
@@ -102,17 +103,30 @@ def _build_qid_map(questions: List[AssessmentQuestion]) -> Dict[str, AssessmentQ
 
 
 def _init_session(session_id: str, job_role: str = None) -> Dict[str, Any]:
-    """Initialize or retrieve a session's assessment state."""
+    """Initialize or retrieve a session's assessment state from persistent store.
+    Falls back to memory cache if persistence is unavailable."""
     key = f"{session_id}_{job_role or 'default'}"
+    # Try persistent store first
+    try:
+        stored = load_state(session_id, job_role)
+        if stored and stored.get("state") != "not_started":
+            _sessions[key] = stored
+            return _sessions[key]
+    except Exception:
+        logger.debug("Assessment store unavailable, using memory fallback")
+    # Memory fallback
     if key not in _sessions:
         _sessions[key] = {
-            "state": "not_started",
+            "id": key,
             "session_id": session_id,
-            "job_role": job_role,
+            "job_role": job_role or "default",
+            "state": "not_started",
             "answers": [],
+            "result": None,
             "completed": False,
             "created_at": time.time(),
             "assessment_id": f"ASSESS-{session_id}-{int(time.time())}",
+            "assessment_version": "1.0.0",
         }
     return _sessions[key]
 
@@ -271,9 +285,13 @@ def submit_answer(
     # Write per-question learning event
     _write_answer_event(session_id, session, target_q, answer_entry)
 
-    # Update session state
+    # Update session state and persist
     session["answers"] = answers
     session["state"] = "in_progress"
+    try:
+        save_state(session)
+    except Exception:
+        logger.debug("Save state skipped (store unavailable)")
 
     current_index = len(answers)
     if force_complete or current_index >= len(questions):
@@ -301,28 +319,28 @@ def submit_answer(
 
 
 def _write_answer_event(session_id, session, question, answer_entry):
-    """Write a learning event for a single answered question."""
+    """Write a learning event for a single answered question.
+    Returns True on success, False on failure. Does NOT swallow exceptions silently."""
+    assessment_id = session.get("assessment_id", f"ASSESS-{session_id}")
+    event = {
+        "session_id": session_id,
+        "event_type": "initial_quiz_answered",
+        "assessment_id": assessment_id,
+        "question_id": question.qid,
+        "ability_id": question.ability_id,
+        "selected_key": answer_entry["selected"],
+        "correct_key": question.correct_key,
+        "is_correct": answer_entry["is_correct"],
+        "dimension": question.dimension,
+        "difficulty": question.difficulty,
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
     try:
-        assessment_id = session.get("assessment_id", f"ASSESS-{session_id}")
-        event = {
-            "session_id": session_id,
-            "event_type": "initial_quiz_answered",
-            "assessment_id": assessment_id,
-            "question_id": question.qid,
-            "ability_id": question.ability_id,
-            "selected_key": answer_entry["selected"],
-            "correct_key": question.correct_key,
-            "is_correct": answer_entry["is_correct"],
-            "dimension": question.dimension,
-            "difficulty": question.difficulty,
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
-        }
-        try:
-            append_normalized_event(session_id, event)
-        except Exception:
-            logger.debug("Event append skipped (store unavailable): %s", question.qid)
+        append_normalized_event(session_id, event)
+        return True
     except Exception as e:
-        logger.warning("Failed to write answer event: %s", e)
+        logger.warning("Failed to write answer event for qid=%s: %s", question.qid, e)
+        return False
 
 
 def _finish_assessment(
@@ -420,6 +438,10 @@ def _finish_assessment(
     }
 
     # Cache result for idempotency
+    try:
+        save_state(session)
+    except Exception:
+        logger.debug("Save state skipped (store unavailable)")
     session["_result_cached"] = {
         "session_id": session_id,
         "status": "completed",
