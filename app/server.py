@@ -407,8 +407,6 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(personalized_quiz(payload))
             if path == "/api/plan/personalized":
                 return self.send_json(personalized_plan(payload))
-            if path == "/api/plan/task_feedback":
-                return self.send_json(evaluate_task_feedback(payload))
             if path == "/api/explain":
                 return self.send_json(explain(payload))
             if path == "/api/scenario/start":

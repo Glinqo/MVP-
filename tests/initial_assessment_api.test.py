@@ -6,7 +6,6 @@ No SkipTest allowed.
 import json
 import os
 import socket
-import subprocess
 import sys
 import time
 import unittest
@@ -26,6 +25,56 @@ def _find_free_port():
         return s.getsockname()[1]
 
 
+
+
+import threading
+from http.server import ThreadingHTTPServer
+from app.server import MVPHandler
+
+_server = None
+_server_thread = None
+
+
+def setUpModule():
+    """Start the server in a daemon thread before any tests."""
+    global _server, _server_thread
+    # Remove stale test databases
+    for f in [ROOT / 'data' / 'assessments.db', ROOT / 'data' / 'assessments.db-wal', ROOT / 'data' / 'assessments.db-shm']:
+        if f.exists():
+            f.unlink()
+    for sf in (ROOT / 'data' / 'sessions').glob('*.json'):
+        if sf.name != '.gitkeep':
+            sf.unlink()
+
+    _server = ThreadingHTTPServer(('127.0.0.1', PORT), MVPHandler)
+    _server_thread = threading.Thread(target=_server.serve_forever, daemon=True)
+    _server_thread.start()
+
+    # Wait for server to be ready
+    deadline = time.time() + 10
+    while time.time() < deadline:
+        time.sleep(0.2)
+        try:
+            sock = socket.create_connection(('127.0.0.1', PORT), timeout=1)
+            sock.close()
+            return
+        except Exception:
+            pass
+    tearDownModule()
+    raise RuntimeError(f'Server did not start on port {PORT} within 10s')
+
+
+def tearDownModule():
+    """Stop the server after all tests."""
+    global _server, _server_thread
+    if _server is not None:
+        _server.shutdown()
+        _server.server_close()
+        _server = None
+    if _server_thread is not None:
+        _server_thread.join(timeout=5)
+        _server_thread = None
+
 PORT = _find_free_port()
 BASE = f'http://127.0.0.1:{PORT}'
 
@@ -36,46 +85,16 @@ def _request(path, body=None, method='POST'):
     data = json.dumps(body).encode() if body else None
     req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'}, method=method)
     try:
-        resp = urllib.request.urlopen(req, timeout=10)
+        resp = urllib.request.urlopen(req, timeout=2)
         return resp.status, json.loads(resp.read())
     except urllib.error.HTTPError as e:
         return e.code, json.loads(e.read())
+    except urllib.error.URLError as e:
+        raise ConnectionError(f'Cannot connect to {url}: {e.reason}') from e
+    except ConnectionError:
+        raise
 
 
-def setUpModule():
-    """Start the server before any tests."""
-    global _server_proc
-    _server_proc = subprocess.Popen(
-        [sys.executable, str(ROOT / 'app' / 'server.py'), '--port', str(PORT)],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    # Wait for server to be ready
-    deadline = time.time() + 15
-    while time.time() < deadline:
-        try:
-            status, _ = _request('/', method='GET')
-            if status == 200:
-                time.sleep(0.5)
-                return
-        except Exception:
-            pass
-        time.sleep(0.5)
-    tearDownModule()
-    raise RuntimeError(f'Server did not start on port {PORT} within 15s')
-
-
-def tearDownModule():
-    """Stop the server after all tests."""
-    global _server_proc
-    if _server_proc:
-        _server_proc.terminate()
-        try:
-            _server_proc.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            _server_proc.kill()
-            _server_proc.wait()
-        _server_proc = None
 
 
 class AssessmentApiTest(unittest.TestCase):
@@ -110,7 +129,7 @@ class AssessmentApiTest(unittest.TestCase):
         url = BASE + '/api/student/assess/summary'
         req = urllib.request.Request(url, method='GET')
         try:
-            resp = urllib.request.urlopen(req, timeout=10)
+            resp = urllib.request.urlopen(req, timeout=2)
             body = json.loads(resp.read())
             self.assertEqual(resp.status, 400, f'Expected 400, got {resp.status}: {body}')
         except urllib.error.HTTPError as e:
@@ -120,7 +139,7 @@ class AssessmentApiTest(unittest.TestCase):
         """GET summary for in-progress assessment"""
         url = BASE + '/api/student/assess/summary?session_id=api_test_001'
         req = urllib.request.Request(url, method='GET')
-        resp = urllib.request.urlopen(req, timeout=10)
+        resp = urllib.request.urlopen(req, timeout=2)
         body = json.loads(resp.read())
         self.assertEqual(resp.status, 200)
         self.assertEqual(body.get('state'), 'in_progress')
@@ -213,7 +232,7 @@ class AssessmentApiTest(unittest.TestCase):
         # Now check summary via GET
         url = BASE + '/api/student/assess/summary?session_id=' + sid
         req = urllib.request.Request(url, method='GET')
-        resp = urllib.request.urlopen(req, timeout=10)
+        resp = urllib.request.urlopen(req, timeout=2)
         body = json.loads(resp.read())
         self.assertEqual(resp.status, 200)
         self.assertEqual(body.get('state'), 'completed', f'Expected completed, got {body}')
@@ -223,20 +242,21 @@ class AssessmentApiTest(unittest.TestCase):
         self.assertIsNotNone(rs.get('total_score'), 'total_score should be present')
 
     def test_15_answer_event_savestate_failure(self):
-        """When save_state fails, answer must not succeed."""
-        sid = 'api_test_savefail'
-        _request('/api/student/assess/start', {'session_id': sid})
-        # Monkey-patch save_state to always raise
+        """When save_state fails, answer must not succeed (tested via direct call)."""
         import app.services.initial_assessment as ia
+        from app.services.assessment_store import save_state
+
+        sid = 'direct_savefail_test'
+        ia.start_assessment(sid)
+
         original_save = ia.save_state
         try:
-            ia.save_state = lambda *a, **kw: (_ for _ in ()).throw(Exception('Simulated save failure'))
-            status, body = _request('/api/student/assess/answer',
-                                    {'session_id': sid, 'qid': 'A01', 'selected_key': 'A'})
-            self.assertNotEqual(status, 200, f'Should not return 200 on save failure, got {status}')
-            self.assertIn(body.get('status', ''), ['error'], f'Should return error status, got {body}')
-            self.assertIn('Failed to persist', body.get('error', ''),
-                          f'Error should mention persistence failure')
+            def failing_save(*a, **kw):
+                raise Exception('Simulated save failure')
+            ia.save_state = failing_save
+            result = ia.submit_answer(sid, 'A01', 'A')
+            self.assertEqual(result.get('status'), 'error')
+            self.assertIn('Failed to persist', result.get('error', ''))
         finally:
             ia.save_state = original_save
 

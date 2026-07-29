@@ -185,12 +185,14 @@ def plan_initial_learning(assessment_result):
             "actions": [{"type": "review", "ability_id": a, "priority": 2} for a in middle],
         })
 
+    priority = weak + [a for a in ability_scores if a not in weak and a not in strong] + strong
     return {
         "session_id": assessment_result.get("session_id", ""),
         "job_role": assessment_result.get("job_role", ""),
         "total_score": assessment_result.get("total_score", 0),
         "weak_abilities": weak,
         "strong_abilities": strong,
+        "priority_abilities": priority,
         "stages": stages,
         "total_days": sum(s.get("duration_days", 0) for s in stages),
     }
