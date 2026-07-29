@@ -79,13 +79,26 @@ const $ = (id) => {
 };
 
 async function api(path, options = {}) {
-  const response = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
-    ...options
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-  return data;
+  var extSignal = options.signal;
+  delete options.signal;
+  var ctrl = new AbortController();
+  var signal = ctrl.signal;
+  var timeoutMs = options.timeoutMs || 25000;
+  delete options.timeoutMs;
+  var timeoutId = setTimeout(function() { ctrl.abort(); }, timeoutMs);
+  if (extSignal) { extSignal.addEventListener("abort", function() { ctrl.abort(); }); }
+  try {
+    var response = await fetch(path, {
+      headers: { "Content-Type": "application/json" },
+      signal: signal,
+      ...options
+    });
+    var data = await response.json();
+    if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
+    return data;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 function escapeHtml(value) {
@@ -400,6 +413,9 @@ function addMessage(role, content, meta) {
 
 function renderMessages() {
   $("chatMessages").innerHTML = state.messages.map((message) => {
+    if (message.role === "typing") {
+      return '<article class="message typing"><div class="message-body"><span class="typing-dots"><span></span><span></span><span></span></span></div></article>';
+    }
     const roleLabel = message.role === "user" ? "我" : "AI";
     const safety = message.meta?.safety_notice
       ? `<div class="notice compact">${escapeHtml(message.meta.safety_notice)}</div>`
@@ -1860,35 +1876,148 @@ async function applyChatResult(data) {
 }
 
 async function sendChat(message) {
-  const text = (message || $("chatInput").value).trim();
+  var text = (message || $("chatInput").value).trim();
   if (!text) return;
   $("chatInput").value = "";
   addMessage("user", text);
-  $("sendChat").disabled = true;
-  $("sendChat").textContent = "发送中";
+
+  // Typing indicator
+  var typingMsg = { role: "typing", content: "AI ...", meta: {} };
+  state.messages.push(typingMsg);
+  renderMessages();
+  persistSession();
+
+  // Switch to stop button
+  $("sendChat").style.display = "none";
+  $("stopChat").style.display = "inline-block";
+  $("chatInput").disabled = true;
+
+  var controller = new AbortController();
+  state._abortController = controller;
+
   try {
-    const history = state.messages
-      .filter((item) => item.role === "user" || item.role === "assistant")
+    var history = state.messages
+      .filter(function(m) { return m.role === "user" || m.role === "assistant"; })
       .slice(-8)
-      .map((item) => ({ role: item.role, content: item.content }));
-    const data = await api("/api/chat/message", {
+      .map(function(m) { return { role: m.role, content: m.content }; });
+
+    var response = await fetch("/api/chat/stream", {
       method: "POST",
+      signal: controller.signal,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         session_id: state.sessionId,
         message: text,
         learner_role: "职业新人",
         job_role: state.jobProfile?.id,
         target_job_profile_id: state.jobProfile?.id,
-        history,
+        history: history,
         context: collectContext()
       })
     });
-    applyChatResult(data);
+
+    var reader = response.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = "";
+    var meta = null;
+    var answer = "";
+
+    while (true) {
+      var result = await reader.read();
+      if (result.done) break;
+      buffer += decoder.decode(result.value, { stream: true });
+      var lines = buffer.split("\n");
+      buffer = lines.pop();
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (!line) continue;
+        // Parse SSE: "event: type\ndata: json"
+        if (line.startsWith("event: ")) {
+          var eventType = line.substring(7);
+          var dataLine = (lines[i+1] || "").trim();
+          if (dataLine.startsWith("data: ")) {
+            var dataStr = dataLine.substring(6);
+            try {
+              var sseData = JSON.parse(dataStr);
+            } catch(e) { continue; }
+            i++; // consume data line
+
+            if (eventType === "error") {
+              // Non-streamable intent: fall back to regular API
+              reader.cancel();
+              state._abortController = null;
+              var fbData = await api("/api/chat/message", {
+                method: "POST",
+                body: JSON.stringify({
+                  session_id: state.sessionId,
+                  message: text,
+                  learner_role: "职业新人",
+                  job_role: state.jobProfile?.id,
+                  target_job_profile_id: state.jobProfile?.id,
+                  history: history,
+                  context: collectContext()
+                })
+              });
+              state.messages = state.messages.filter(function(m) { return m.role !== "typing"; });
+              applyChatResult(fbData);
+              return;
+            }
+
+            if (eventType === "meta") {
+              meta = sseData;
+            }
+
+            if (eventType === "chunk") {
+              answer += sseData.text;
+              // Update typing message inline with accumulated answer
+              for (var j = state.messages.length - 1; j >= 0; j--) {
+                if (state.messages[j].role === "typing") {
+                  state.messages[j].content = answer || "AI ...";
+                  break;
+                }
+              }
+              renderMessages();
+            }
+
+            if (eventType === "done") {
+              // Build final result from meta + answer
+              var result = meta || {};
+              result.answer = answer || sseData.answer || "";
+              state.messages = state.messages.filter(function(m) { return m.role !== "typing"; });
+              state._abortController = null;
+              applyChatResult(result);
+            }
+          }
+        }
+      }
+    }
   } catch (error) {
-    addMessage("assistant", `请求失败：${error.message}`);
+    state.messages = state.messages.filter(function(m) { return m.role !== "typing"; });
+    if (error.name !== "AbortError") {
+      addMessage("assistant", "请求失败：" + error.message);
+    }
+    state._abortController = null;
   } finally {
-    $("sendChat").disabled = false;
-    $("sendChat").textContent = "发送";
+    $("sendChat").style.display = "";
+    $("stopChat").style.display = "none";
+    $("chatInput").disabled = false;
+    $("chatInput").focus();
+    renderMessages();
+    persistSession();
+  }
+}
+function stopChat() {
+  // Immediately update UI - don't wait for abort chain
+  state.messages = state.messages.filter(function(m) { return m.role !== "typing"; });
+  renderMessages();
+  $("sendChat").style.display = "";
+  $("stopChat").style.display = "none";
+  $("chatInput").disabled = false;
+  $("chatInput").focus();
+  // Then cancel the pending request
+  if (state._abortController) {
+    state._abortController.abort();
+    state._abortController = null;
   }
 }
 

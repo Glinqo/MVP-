@@ -815,7 +815,7 @@ button:active{transform:translateY(0)}
   gap: 8px;
 }
 .safety-notice::before {
-  content: 'âš?;  /* warning sign */
+  content: 'ï¿½?;  /* warning sign */
   font-size: 1rem;
   flex-shrink: 0;
 }
@@ -1047,3 +1047,26 @@ button:active{transform:translateY(0)}
   transition: opacity 0.2s ease;
 }
 .history-sidebar:hover::after { opacity: 0; }
+
+/* Typing indicator */
+.typing-dots { display: inline-flex; gap: 6px; align-items: center; padding: 8px 0; }
+.typing-dots span {
+  width: 8px; height: 8px; border-radius: 50%; background: #475569;
+  animation: typing-bounce 1.4s infinite ease-in-out both;
+}
+.typing-dots span:nth-child(1) { animation-delay: 0s; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+.message.typing .message-body { padding: 8px 16px; }
+
+/* Stop button */
+.stop {
+  background: #ef4444; color: #fff; border: none; border-radius: 6px;
+  padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+  min-height: 44px; transition: background 0.2s;
+}
+.stop:hover { background: #dc2626; }

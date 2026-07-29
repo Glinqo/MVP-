@@ -16,7 +16,7 @@ from .intent_handlers import (
     generate_clarify_questions,
 )
 from .learner_context import format_context_for_prompt, learner_context_pack
-from .llm_client import LLMError, chat_completion, is_configured
+from .llm_client import LLMError, chat_completion, chat_completion_stream, is_configured
 from .retrieval import search_knowledge
 from .safety import safety_notice
 
@@ -155,18 +155,40 @@ def fallback_answer(assist_result):
 
 
 def suggested_questions_from_assist(assist_result):
+    """Generate dynamic follow-up questions from the assist diagnosis result."""
     if assist_result.get("status") == "need_clarification":
-        return [item.get("question") for item in assist_result.get("clarifying_questions", []) if item.get("question")][:3]
+        return [item.get("question") for item in assist_result.get("clarifying_questions", []) if item.get("question")][:4]
 
-    ability_questions = []
+    questions = []
+
+    # 1) Questions anchored to highlighted abilities
     for ability in assist_result.get("highlighted_abilities", [])[:3]:
         name = ability.get("name") or ability.get("id")
-        ability_questions.append(f"我该怎么补上“{name}”？")
-    base = [
-        "这个问题最可能出在接线、公共端还是程序地址？",
-        "我下一步实训应该做哪一个任务？",
-    ]
-    return (ability_questions + base)[:4]
+        questions.append(f"我该怎么补上“{name}”？")
+
+    # 2) Questions derived from knowledge gaps
+    for gap in assist_result.get("knowledge_gaps", [])[:2]:
+        topic = gap.get("topic") or gap.get("id") or ""
+        if topic:
+            questions.append(f"“{topic}”具体怎么理解？和我的问题有什么关系？")
+
+    # 3) Questions from remediation cards (training tasks)
+    for card in assist_result.get("remediation_cards", [])[:1]:
+        title = card.get("title") or ""
+        if title:
+            questions.append(f"“{title}”这个任务具体怎么做？")
+
+    # 4) Pattern-aware follow-ups when we have few questions so far
+    pattern = assist_result.get("matched_pattern") or {}
+    pattern_title = pattern.get("title", "")
+    if len(questions) < 3 and pattern_title:
+        questions.append(f"“{pattern_title}”这个现象怎么定位根因到接线还是公共端？")
+
+    # 5) Always include one training-path question
+    if len(questions) < 4:
+        questions.append("我下一步实训应该做哪个任务？")
+
+    return questions[:4]
 
 
 def tool_suggestions_from_assist(assist_result):
@@ -409,6 +431,137 @@ def chat_message(payload):
 
     return result
 
+
+
+def chat_message_stream(payload):
+    """SSE generator: yields (event_type, data) tuples for streaming."""
+    message = payload.get("message") or payload.get("user_input") or ""
+    context = payload.get("context", {}) or {}
+    session_id = payload.get("session_id")
+    profile = primary_job_profile()
+    learner_context = learner_context_pack(session_id)
+
+    history = payload.get("history", [])[-8:]
+    intent_result = classify_intent(message, history=history, context=context)
+    intent = intent_result.get("intent", "diagnosis")
+
+    # Non-diagnosis intents: yield done result immediately
+    if intent == "quiz":
+        result = _finalize(handle_quiz(payload, intent_result), session_id)
+        yield ("done", result)
+        return
+    if intent == "graph":
+        result = _finalize(handle_graph(payload, intent_result), session_id)
+        yield ("done", result)
+        return
+    if intent == "learning_path":
+        result = _finalize(handle_learning_path(payload, intent_result), session_id)
+        yield ("done", result)
+        return
+    if intent == "clarify":
+        result = _finalize(handle_clarify(payload, intent_result), session_id)
+        yield ("done", result)
+        return
+    if intent == "knowledge_qa":
+        meta, stream_gen = handle_knowledge_qa_stream(payload, intent_result)
+        yield ("meta", {k: v for k, v in meta.items() if k != "full_answer"})
+        full = ""
+        for chunk in stream_gen:
+            full += chunk
+            yield ("chunk", {"text": chunk})
+        meta["answer"] = full
+        yield ("done", meta)
+        return
+
+    # diagnosis: existing assist flow
+    assist_result = assist({"user_input": message, "context": context})
+    evidence_used = evidence_used_from_assist(assist_result, context)
+    reasoning_steps = reasoning_steps_from_assist(assist_result)
+    knowledge_refs = knowledge_refs_from_assist(message, assist_result)
+    next_questions = suggested_questions_from_assist(assist_result)
+
+    meta = {
+        "session_id": learner_context.get("session_id") or payload.get("session_id"),
+        "safety_notice": assist_result.get("safety_notice") or safety_notice(message),
+        "learner_context": learner_context,
+        "evidence_used": evidence_used,
+        "reasoning_steps": reasoning_steps,
+        "knowledge_refs": knowledge_refs,
+        "ability_hits": assist_result.get("highlighted_abilities", []),
+        "suggested_questions": next_questions,
+        "tool_suggestions": tool_suggestions_from_assist(assist_result),
+        "highlighted_abilities": assist_result.get("highlighted_abilities", []),
+        "knowledge_gaps": assist_result.get("knowledge_gaps", []),
+        "remediation_cards": assist_result.get("remediation_cards", []),
+        "ability_knowledge_view": assist_result.get("ability_knowledge_view", {}),
+        "matched_pattern": assist_result.get("matched_pattern"),
+        "intent": intent,
+        "intent_source": intent_result.get("source", "keyword"),
+        "fallback_used": True,
+        "llm_configured": is_configured(),
+    }
+
+    yield ("meta", {k: v for k, v in meta.items() if k not in ("answer", "full_answer")})
+
+    if is_configured():
+        history = payload.get("history", [])[-8:]
+        memory = ConversationMemory(session_id) if session_id else None
+        mem_ctx = memory.get_active_context(history) if memory else {"summary": "", "key_facts": [], "active_messages": []}
+
+        user_id = payload.get("user_id")
+        cross_session_ctx = {}
+        if user_id:
+            try:
+                from .conversation_memory import UserMemoryManager
+                umm = UserMemoryManager(user_id)
+                cross_session_ctx = umm.get_cross_session_context()
+            except Exception:
+                pass
+
+        messages = [{"role": "system", "content": build_system_prompt(profile, memory=mem_ctx, cross_session=cross_session_ctx)}]
+        for item in mem_ctx.get("active_messages", history):
+            role = item.get("role")
+            item_content = item.get("content")
+            if role in {"user", "assistant"} and item_content:
+                messages.append({"role": role, "content": str(item_content)})
+        messages.append({"role": "user", "content": build_user_prompt(message, assist_result, learner_context)})
+
+        full_text = ""
+        try:
+            for chunk in chat_completion_stream(messages):
+                full_text += chunk
+                yield ("chunk", {"text": chunk})
+            meta["fallback_used"] = False
+        except Exception:
+            if not full_text:
+                full_text = fallback_answer(assist_result)
+                yield ("chunk", {"text": full_text})
+        meta["answer"] = full_text
+
+        if memory and len(history) > 6:
+            try:
+                memory.summarize_async(history)
+            except Exception:
+                pass
+    else:
+        fallback = fallback_answer(assist_result)
+        yield ("chunk", {"text": fallback})
+        meta["answer"] = fallback
+
+    if session_id:
+        append_session_event(session_id, {
+            "event_type": "chat_message",
+            "message": message,
+            "matched_pattern": assist_result.get("matched_pattern"),
+            "highlighted_abilities": assist_result.get("highlighted_abilities", []),
+            "knowledge_gaps": assist_result.get("knowledge_gaps", []),
+            "remediation_cards": assist_result.get("remediation_cards", []),
+            "recommended_path": [item.get("title") for item in assist_result.get("remediation_cards", []) if item.get("title")],
+        })
+        meta["student_graph"] = build_student_ability_graph(session_id)
+        meta["learner_context"] = learner_context_pack(session_id)
+
+    yield ("done", meta)
 
 def _finalize(result, session_id):
     """Record session event and attach updated graph/context for non-diagnosis intents."""
