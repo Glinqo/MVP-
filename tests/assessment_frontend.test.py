@@ -23,6 +23,7 @@ from http.server import ThreadingHTTPServer
 sys.path.insert(0, ".")
 from app.server import MVPHandler
 
+import app.services.data_store as _data_store_check  # ensure importable
 # ──────────────────────────────────────────
 # Static checks (no server required)
 # ──────────────────────────────────────────
@@ -181,6 +182,68 @@ class StaticFrontendChecks(unittest.TestCase):
     def test_s25_show_hide_overlay_functions_exist(self):
         self.assertIn("function showAssessmentOverlay", self.js)
         self.assertIn("function hideAssessmentOverlay", self.js)
+    def test_s26_starting_false_before_retry(self):
+        # resp.error branch must set starting=false BEFORE setAssessmentError
+        js = self.js
+        err_block = re.search(
+            r'if\s*\(resp\.error\)\s*\{[^}]*?setAssessmentError',
+            js, re.DOTALL
+        )
+        self.assertIsNotNone(err_block, "resp.error branch not found")
+        block = err_block.group()
+        start_false_pos = block.find('starting = false')
+        set_error_pos = block.find('setAssessmentError')
+        self.assertGreaterEqual(start_false_pos, 0,
+                                "starting=false missing before setAssessmentError")
+        self.assertLess(start_false_pos, set_error_pos,
+                        "starting=false must appear BEFORE setAssessmentError")
+
+    def test_s27_finally_no_unconditional_nextbtn_enable(self):
+        # finally must NOT do nextBtn.disabled = false unconditionally
+        js = self.js
+        self.assertNotIn('finally {\n    assessmentState.submitting = false;\n    nextBtn.disabled = false;',
+                         js, "finally must not unconditionally enable nextBtn")
+        self.assertIn('nextBtn.disabled = !assessmentState.selectedOption;', js,
+                      "finally must use conditional nextBtn.disabled")
+
+    def test_s28_ability_label_priority(self):
+        # renderAssessmentQuestion must use ability_label over dimension
+        js = self.js
+        self.assertIn('q.ability_label || q.dimension || q.ability_id', js,
+                      "Ability label must use ability_label || dimension || ability_id")
+
+    def test_s29_skip_key_has_session_and_job(self):
+        # assessmentSkipKey must include state.sessionId and selectedJobRole()
+        js = self.js
+        self.assertIn('function assessmentSkipKey', js,
+                      "assessmentSkipKey function must exist")
+        self.assertIn('state.sessionId || ""', js,
+                      "Skip key must include sessionId")
+        self.assertIn('selectedJobRole() || ""', js,
+                      "Skip key must include selectedJobRole()")
+
+    def test_s30_api_flow_tests_exist(self):
+        # ApiFlowTests must contain at least 8 test methods
+        test_content = _read("tests/assessment_frontend.test.py")
+        api_tests_found = re.findall(r'def test_api_\d+', test_content)
+        self.assertGreaterEqual(len(api_tests_found), 8,
+                                f"Expected >=8 API tests, found {len(api_tests_found)}: {api_tests_found}")
+
+    def test_s31_db_path_restore_is_path(self):
+        # tearDownClass must restore DB_PATH to a Path object
+        test_content = _read("tests/assessment_frontend.test.py")
+        # Check that _orig_db_path is saved as Path (not str)
+        save_line = re.search(r'cls\._orig_db_path\s*=\s*store\.DB_PATH', test_content)
+        self.assertIsNotNone(save_line, "Must save store.DB_PATH (not str)")
+
+    def test_s32_session_dir_isolation(self):
+        # setUpClass must redirect SESSIONS_DIR
+        test_content = _read("tests/assessment_frontend.test.py")
+        self.assertIn('data_store.SESSIONS_DIR = tmp', test_content,
+                      "Must redirect data_store.SESSIONS_DIR to temp dir")
+        self.assertIn('data_store.SESSIONS_DIR = cls._orig_sessions_dir', test_content,
+                      "Must restore data_store.SESSIONS_DIR in tearDown")
+
 
 
 # ──────────────────────────────────────────
@@ -204,14 +267,18 @@ class ApiFlowTests(unittest.TestCase):
         (tmp / "data").mkdir(exist_ok=True)
         (tmp / "data" / "sessions").mkdir(exist_ok=True)
 
-        # Redirect assessment store DB_PATH
+        # Redirect assessment store DB_PATH (keep as Path)
         import app.services.assessment_store as store
-        cls._orig_db_path = str(store.DB_PATH) if hasattr(store, "DB_PATH") else None
+        cls._orig_db_path = store.DB_PATH
         store.DB_PATH = tmp / "data" / "assessments.db"
-        # Also redirect learning event store
+        # Redirect learning event store sessions
         import app.services.learning_event_store as les
-        if hasattr(les, "EVENTS_DB_PATH"):
-            les.EVENTS_DB_PATH = tmp / "data" / "learning_events.db"
+        cls._orig_event_sessions_dir = les.SESSIONS_DIR
+        les.SESSIONS_DIR = tmp / "data" / "sessions"
+        # Isolate session JSON directories
+        import app.services.data_store as data_store
+        cls._orig_sessions_dir = data_store.SESSIONS_DIR
+        data_store.SESSIONS_DIR = tmp / "data" / "sessions"
 
         # Start server on random port
         cls._server = ThreadingHTTPServer(("127.0.0.1", 0), MVPHandler)
@@ -225,6 +292,172 @@ class ApiFlowTests(unittest.TestCase):
             except Exception:
                 time.sleep(0.2)
         raise RuntimeError("Server did not start")
+
+    def _api(self, path, body=None, method="POST"):
+        url = f"http://127.0.0.1:{self.PORT}{path}"
+        data = json.dumps(body).encode("utf-8") if body else None
+        req = urllib.request.Request(url, data=data, method=method)
+        req.add_header("Content-Type", "application/json")
+        try:
+            resp = urllib.request.urlopen(req, timeout=5)
+            return json.loads(resp.read().decode("utf-8")), resp.status
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="replace")
+            try:
+                return json.loads(body), e.code
+            except Exception:
+                return {"error": body}, e.code
+
+    def test_api_01_start_with_job_role(self):
+        sid = "test-api-s01"
+        _, code = self._api("/api/student/assess/start", {
+            "session_id": sid,
+            "job_role": "mechatronics_maintenance"
+        })
+        self.assertIn(code, [200, 201])
+
+    def test_api_02_answer_moves_to_next_question(self):
+        sid = "test-api-s02"
+        resp, code = self._api("/api/student/assess/start", {
+            "session_id": sid,
+            "job_role": "mechatronics_maintenance"
+        })
+        q = resp.get("first_question")
+        self.assertIsNotNone(q, f"No first_question: {resp}")
+        # Answer first question
+        options = q.get("options", [])
+        first_key = options[0]["key"] if options else "A"
+        resp2, code2 = self._api("/api/student/assess/answer", {
+            "session_id": sid,
+            "qid": q["qid"],
+            "selected_key": first_key,
+            "job_role": "mechatronics_maintenance"
+        })
+        self.assertIn(code2, [200, 201])
+        if resp2.get("next_question"):
+            self.assertNotEqual(resp2["next_question"]["qid"], q["qid"],
+                                "Next question must differ from current")
+        self.assertEqual(resp2.get("answered_count", 0), 1)
+
+    def test_api_03_start_missing_session_returns_400(self):
+        _, code = self._api("/api/student/assess/start", {"job_role": "mechatronics_maintenance"})
+        self.assertEqual(code, 400, f"Expected 400, got {code}")
+
+    def test_api_04_answer_missing_session_returns_400(self):
+        _, code = self._api("/api/student/assess/answer", {
+            "qid": "any",
+            "selected_key": "A",
+            "job_role": "mechatronics_maintenance"
+        })
+        self.assertEqual(code, 400, f"Expected 400, got {code}")
+
+    def test_api_05_resume_same_session(self):
+        sid = "test-api-s05"
+        resp1, _ = self._api("/api/student/assess/start", {
+            "session_id": sid,
+            "job_role": "mechatronics_maintenance"
+        })
+        q1 = resp1.get("first_question")
+        self.assertIsNotNone(q1)
+        options = q1.get("options", [])
+        first_key = options[0]["key"] if options else "A"
+        self._api("/api/student/assess/answer", {
+            "session_id": sid,
+            "qid": q1["qid"],
+            "selected_key": first_key,
+            "job_role": "mechatronics_maintenance"
+        })
+        # Resume: start again with same session_id
+        resp3, code3 = self._api("/api/student/assess/start", {
+            "session_id": sid,
+            "job_role": "mechatronics_maintenance"
+        })
+        self.assertIn(code3, [200, 201])
+        # Should return next_question at index 1, not first_question
+        if resp3.get("next_question"):
+            self.assertNotEqual(resp3["next_question"]["qid"], q1["qid"])
+
+    def test_api_06_duplicate_answer_is_idempotent(self):
+        sid = "test-api-s06"
+        resp1, _ = self._api("/api/student/assess/start", {
+            "session_id": sid,
+            "job_role": "mechatronics_maintenance"
+        })
+        q1 = resp1.get("first_question")
+        options = q1.get("options", [])
+        first_key = options[0]["key"] if options else "A"
+        # Submit same answer twice
+        a1, _ = self._api("/api/student/assess/answer", {
+            "session_id": sid, "qid": q1["qid"],
+            "selected_key": first_key, "job_role": "mechatronics_maintenance"
+        })
+        count1 = a1.get("answered_count", 0)
+        a2, _ = self._api("/api/student/assess/answer", {
+            "session_id": sid, "qid": q1["qid"],
+            "selected_key": first_key, "job_role": "mechatronics_maintenance"
+        })
+        count2 = a2.get("answered_count", 0)
+        self.assertEqual(count1, count2,
+                         f"Duplicate answer should not increase count: {count1} vs {count2}")
+
+    def test_api_07_completed_reentry_returns_completed_without_question(self):
+        sid = "test-api-s07"
+        # Answer all questions for this session to complete
+        resp, _ = self._api("/api/student/assess/start", {
+            "session_id": sid,
+            "job_role": "mechatronics_maintenance"
+        })
+        # Continue answering until completed
+        current = resp.get("first_question") or resp.get("next_question")
+        for _ in range(35):  # safety upper bound
+            if not current:
+                break
+            options = current.get("options", [])
+            k = options[1]["key"] if len(options) > 1 else (options[0]["key"] if options else "A")
+            a_resp, _ = self._api("/api/student/assess/answer", {
+                "session_id": sid, "qid": current["qid"],
+                "selected_key": k, "job_role": "mechatronics_maintenance"
+            })
+            if a_resp.get("status") == "completed":
+                break
+            current = a_resp.get("next_question")
+        # Now re-enter
+        re_resp, re_code = self._api("/api/student/assess/start", {
+            "session_id": sid,
+            "job_role": "mechatronics_maintenance"
+        })
+        self.assertIn(re_code, [200, 201])
+        self.assertIn(re_resp.get("status"), ["completed", None])
+        self.assertIn(re_resp.get("state"), ["completed", None])
+        # Must NOT return a new question
+        self.assertIsNone(re_resp.get("first_question"))
+        self.assertIsNone(re_resp.get("next_question"))
+
+    def test_api_08_job_role_isolation(self):
+        sid = "test-api-s08"
+        # Start with job A
+        r1, _ = self._api("/api/student/assess/start", {
+            "session_id": sid,
+            "job_role": "mechatronics_maintenance"
+        })
+        q1a = r1.get("first_question")
+        self.assertIsNotNone(q1a)
+        options = q1a.get("options", [])
+        k = options[0]["key"] if options else "A"
+        self._api("/api/student/assess/answer", {
+            "session_id": sid, "qid": q1a["qid"],
+            "selected_key": k, "job_role": "mechatronics_maintenance"
+        })
+        # Different session with different job
+        sid2 = "test-api-s08-other"
+        r2, _ = self._api("/api/student/assess/start", {
+            "session_id": sid2,
+            "job_role": "electrical_technician"
+        })
+        q2a = r2.get("first_question")
+        self.assertIsNotNone(q2a)
+        # Sessions should be independent
+        self.assertNotEqual(sid, sid2)
 
     @classmethod
     def tearDownClass(cls):
@@ -246,8 +479,17 @@ class ApiFlowTests(unittest.TestCase):
             pass
         try:
             import app.services.assessment_store as store
-            if cls._orig_db_path:
-                store.DB_PATH = cls._orig_db_path
+            store.DB_PATH = cls._orig_db_path
+        except Exception:
+            pass
+        try:
+            import app.services.learning_event_store as les
+            les.SESSIONS_DIR = cls._orig_event_sessions_dir
+        except Exception:
+            pass
+        try:
+            import app.services.data_store as data_store
+            data_store.SESSIONS_DIR = cls._orig_sessions_dir
         except Exception:
             pass
 

@@ -2163,7 +2163,7 @@ function selectJob(jobId, event) {
     state.sessionId = "demo-" + Date.now();
     localStorage.setItem("mcp_session_id", state.sessionId);
     state.messages = [];
-    sessionStorage.removeItem("mcp_assessment_skipped");
+    sessionStorage.removeItem(assessmentSkipKey());
   } else {
     var storedSessionId = localStorage.getItem("mcp_session_id");
     if (storedSessionId) {
@@ -2194,6 +2194,14 @@ function dismissLanding() {
   });
 }
 
+
+function assessmentSkipKey() {
+  return [
+    "mcp_assessment_skipped",
+    state.sessionId || "",
+    selectedJobRole() || ""
+  ].join(":");
+}
 // ---- Unified app boot ----
 
 var appBootStarted = false;
@@ -2282,7 +2290,7 @@ async function startAssessment(jobRole) {
 
   // Skip if already skipped in this tab session
   try {
-    if (sessionStorage.getItem("mcp_assessment_skipped") === "1") {
+    if (sessionStorage.getItem(assessmentSkipKey()) === "1") {
       await bootOnce();
       return;
     }
@@ -2315,6 +2323,7 @@ async function startAssessment(jobRole) {
     }
 
     if (resp.error) {
+      assessmentState.starting = false;
       setAssessmentError(resp.error || "启动测评失败", function() {
         startAssessment(selectedJobRole());
       });
@@ -2352,8 +2361,9 @@ function renderAssessmentQuestion(resp) {
   assessmentState.currentQuestion = q;
 
   // Save ability label for result display
-  if (q.dimension && q.ability_id) {
-    assessmentState.abilityLabels[q.ability_id] = q.dimension;
+  if (q.ability_id) {
+    assessmentState.abilityLabels[q.ability_id] =
+      q.ability_label || q.dimension || q.ability_id;
   }
 
   var total = resp.total_questions || 30;
@@ -2406,7 +2416,8 @@ async function submitAssessmentAnswer() {
   var nextBtn = document.getElementById("assessmentNextBtn");
   var skipBtn = document.getElementById("assessmentSkipBtn");
   var optionsDiv = document.getElementById("assessmentQuestionCard").querySelector(".question-options");
-  nextBtn.disabled = true;
+  nextBtn.textContent = "提交中...";
+    nextBtn.disabled = true;
   skipBtn.disabled = true;
   optionsDiv.style.pointerEvents = "none";
   optionsDiv.style.opacity = "0.6";
@@ -2415,7 +2426,8 @@ async function submitAssessmentAnswer() {
   if (!qid) {
     setAssessmentError("题目数据异常，请重试", function() { submitAssessmentAnswer(); });
     assessmentState.submitting = false;
-    nextBtn.disabled = false;
+    nextBtn.textContent = "确认并继续";
+    nextBtn.disabled = !assessmentState.selectedOption;
     skipBtn.disabled = false;
     optionsDiv.style.pointerEvents = "";
     optionsDiv.style.opacity = "";
@@ -2453,7 +2465,8 @@ async function submitAssessmentAnswer() {
     setAssessmentError("网络错误，提交失败，请点击重试", function() { submitAssessmentAnswer(); });
   } finally {
     assessmentState.submitting = false;
-    nextBtn.disabled = false;
+    nextBtn.textContent = "确认并继续";
+    nextBtn.disabled = !assessmentState.selectedOption;
     skipBtn.disabled = false;
     optionsDiv.style.pointerEvents = "";
     optionsDiv.style.opacity = "";
@@ -2507,7 +2520,7 @@ function showAssessmentResult(result) {
 
 function skipAssessment() {
   if (!confirm("确定暂时跳过测评吗？跳过后将无法获得个性化学习路径。")) return;
-  try { sessionStorage.setItem("mcp_assessment_skipped", "1"); } catch (_) {}
+  try { sessionStorage.setItem(assessmentSkipKey(), "1"); } catch (_) {}
   hideAssessmentOverlay();
   bootOnce();
 }
