@@ -2146,42 +2146,72 @@ function selectJob(jobId, event) {
     if (jobName) state.jobName = jobName;
   }
 
-  // Admin bypass: no assessment
+  // Admin bypass: no assessment, boot app directly
   if (identity !== "student") {
     state.selectedJobId = jobId;
     state.sessionId = "admin-" + Date.now();
     state.messages = [];
     state.jobProfile = { id: jobId, role_name: jobName || jobId };
-    dismissLanding();
+    dismissLanding().then(bootOnce);
     return;
   }
 
   // Student: restore persisted session or create new
   state.selectedJobId = jobId;
-  var storedSessionId = localStorage.getItem("mcp_session_id");
-  if (storedSessionId && previousJobId === jobId) {
-    state.sessionId = storedSessionId;
-  } else {
+  if (previousJobId && previousJobId !== jobId) {
+    // Job changed: clean old session, create new
     state.sessionId = "demo-" + Date.now();
     localStorage.setItem("mcp_session_id", state.sessionId);
     state.messages = [];
+    sessionStorage.removeItem("mcp_assessment_skipped");
+  } else {
+    var storedSessionId = localStorage.getItem("mcp_session_id");
+    if (storedSessionId) {
+      state.sessionId = storedSessionId;
+    } else {
+      state.sessionId = "demo-" + Date.now();
+      localStorage.setItem("mcp_session_id", state.sessionId);
+      state.messages = [];
+    }
   }
   state.jobProfile = { id: jobId, role_name: jobName || jobId };
 
   // Dismiss landing, then launch assessment
-  dismissLanding();
-  setTimeout(function() {
+  dismissLanding().then(function() {
     startAssessment(jobId);
-  }, 450);
+  });
 }
 
 function dismissLanding() {
-  var overlay = document.getElementById("landingOverlay");
-  overlay.classList.add("fade-out");
-  setTimeout(function() {
-    overlay.style.display = "none";
-    document.body.style.overflow = "";
-  }, 400);
+  return new Promise(function(resolve) {
+    var overlay = document.getElementById("landingOverlay");
+    overlay.classList.add("fade-out");
+    setTimeout(function() {
+      overlay.style.display = "none";
+      document.body.style.overflow = "";
+      resolve();
+    }, 400);
+  });
+}
+
+// ---- Unified app boot ----
+
+var appBootStarted = false;
+var appBootPromise = null;
+
+function bootOnce() {
+  if (appBootStarted) return appBootPromise;
+  appBootStarted = true;
+  try {
+    appBootPromise = typeof boot === "function"
+      ? Promise.resolve(boot())
+      : Promise.resolve();
+  } catch (error) {
+    appBootStarted = false;
+    appBootPromise = null;
+    throw error;
+  }
+  return appBootPromise;
 }
 
 // ---- Assessment Functions ----
@@ -2207,34 +2237,61 @@ function selectedJobRole() {
     || "";
 }
 
-function showAssessmentError(msg) {
+// ---- Overlay helpers ----
+
+function showAssessmentOverlay() {
+  var overlay = document.getElementById("assessmentOverlay");
+  overlay.style.display = "flex";
+  overlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function hideAssessmentOverlay() {
+  var overlay = document.getElementById("assessmentOverlay");
+  overlay.style.display = "none";
+  overlay.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+// ---- Error & retry ----
+
+var assessmentRetryAction = null;
+
+function setAssessmentError(message, retryAction) {
   var statusEl = document.getElementById("assessmentStatus");
-  if (statusEl) {
-    statusEl.textContent = msg;
-    statusEl.style.display = "block";
-  }
   var retryBtn = document.getElementById("assessmentRetryBtn");
-  if (retryBtn) retryBtn.hidden = false;
+  statusEl.textContent = message;
+  statusEl.style.display = "block";
+  assessmentRetryAction = typeof retryAction === "function" ? retryAction : null;
+  retryBtn.hidden = !assessmentRetryAction;
 }
 
 function clearAssessmentError() {
   var statusEl = document.getElementById("assessmentStatus");
-  if (statusEl) {
-    statusEl.textContent = "";
-    statusEl.style.display = "none";
-  }
+  statusEl.textContent = "";
+  statusEl.style.display = "none";
   var retryBtn = document.getElementById("assessmentRetryBtn");
-  if (retryBtn) retryBtn.hidden = true;
+  retryBtn.hidden = true;
+  assessmentRetryAction = null;
 }
+
+// ---- Assessment flow ----
 
 async function startAssessment(jobRole) {
   if (assessmentState.starting) return;
+
+  // Skip if already skipped in this tab session
+  try {
+    if (sessionStorage.getItem("mcp_assessment_skipped") === "1") {
+      await bootOnce();
+      return;
+    }
+  } catch (_) { /* sessionStorage unavailable */ }
+
   assessmentState.starting = true;
-  var overlay = document.getElementById("assessmentOverlay");
-  var container = overlay.querySelector(".assessment-container");
-  var result = overlay.querySelector(".assessment-result");
-  overlay.style.display = "flex";
-  overlay.setAttribute("aria-hidden", "false");
+  showAssessmentOverlay();
+  var container = document.getElementById("assessmentOverlay").querySelector(".assessment-container");
+  var result = document.getElementById("assessmentResult");
   container.style.display = "block";
   result.style.display = "none";
   clearAssessmentError();
@@ -2249,17 +2306,18 @@ async function startAssessment(jobRole) {
       })
     });
 
-    if (resp.error) {
-      // Completed assessment: server sends error instead of questions
-      if (resp.error && (resp.error.includes("completed") || resp.error.includes("already"))) {
-        overlay.style.display = "none";
-        overlay.setAttribute("aria-hidden", "true");
-        assessmentState.starting = false;
-        if (typeof boot === "function") boot();
-        return;
-      }
-      showAssessmentError(resp.error || "启动测评失败");
+    // Completed assessment: server sends status=completed, not an error
+    if (resp.status === "completed" || resp.state === "completed") {
       assessmentState.starting = false;
+      hideAssessmentOverlay();
+      await bootOnce();
+      return;
+    }
+
+    if (resp.error) {
+      setAssessmentError(resp.error || "启动测评失败", function() {
+        startAssessment(selectedJobRole());
+      });
       return;
     }
 
@@ -2273,20 +2331,31 @@ async function startAssessment(jobRole) {
     renderAssessmentQuestion(resp);
   } catch (e) {
     console.error("Assessment startup failed:", e);
-    showAssessmentError("网络错误，启动测评失败，请点击重试");
-    assessmentState.starting = false;
+    setAssessmentError("网络错误，启动测评失败，请点击重试", function() {
+      assessmentState.starting = false;
+      startAssessment(selectedJobRole());
+    });
   }
 }
 
 function renderAssessmentQuestion(resp) {
   var q = resp.first_question || resp.next_question;
   if (!q || !q.qid) {
-    showAssessmentError("测评数据异常，请重试");
+    setAssessmentError("测评数据异常，请重试", function() {
+      assessmentState.starting = false;
+      startAssessment(selectedJobRole());
+    });
     return;
   }
 
   assessmentState.currentQid = q.qid;
   assessmentState.currentQuestion = q;
+
+  // Save ability label for result display
+  if (q.dimension && q.ability_id) {
+    assessmentState.abilityLabels[q.ability_id] = q.dimension;
+  }
+
   var total = resp.total_questions || 30;
   assessmentState.totalQuestions = total;
   var idx = resp.current_index !== undefined ? resp.current_index : assessmentState.currentIndex;
@@ -2325,10 +2394,6 @@ function renderAssessmentQuestion(resp) {
   document.getElementById("assessmentNextBtn").disabled = true;
   document.getElementById("assessmentNextBtn").onclick = submitAssessmentAnswer;
   document.getElementById("assessmentSkipBtn").onclick = skipAssessment;
-  document.getElementById("assessmentRetryBtn").onclick = function() {
-    clearAssessmentError();
-    startAssessment(assessmentState.jobRole);
-  };
 }
 
 async function submitAssessmentAnswer() {
@@ -2337,10 +2402,23 @@ async function submitAssessmentAnswer() {
   assessmentState.submitting = true;
   clearAssessmentError();
 
+  // Disable UI during submission
+  var nextBtn = document.getElementById("assessmentNextBtn");
+  var skipBtn = document.getElementById("assessmentSkipBtn");
+  var optionsDiv = document.getElementById("assessmentQuestionCard").querySelector(".question-options");
+  nextBtn.disabled = true;
+  skipBtn.disabled = true;
+  optionsDiv.style.pointerEvents = "none";
+  optionsDiv.style.opacity = "0.6";
+
   var qid = assessmentState.currentQid;
   if (!qid) {
-    showAssessmentError("题目数据异常，请重试");
+    setAssessmentError("题目数据异常，请重试", function() { submitAssessmentAnswer(); });
     assessmentState.submitting = false;
+    nextBtn.disabled = false;
+    skipBtn.disabled = false;
+    optionsDiv.style.pointerEvents = "";
+    optionsDiv.style.opacity = "";
     return;
   }
 
@@ -2355,29 +2433,38 @@ async function submitAssessmentAnswer() {
       })
     });
 
-    if (resp.error) {
-      showAssessmentError(resp.error || "提交失败，请重试");
-      assessmentState.submitting = false;
+    if (resp.status === "completed") {
+      showAssessmentResult(resp.result);
       return;
     }
 
-    if (resp.status === "completed") {
-      showAssessmentResult(resp.result);
-    } else if (resp.next_question) {
+    if (resp.error) {
+      setAssessmentError(resp.error || "提交失败，请重试", function() { submitAssessmentAnswer(); });
+      return;
+    }
+
+    if (resp.next_question) {
       renderAssessmentQuestion(resp);
     } else {
-      showAssessmentError("服务端返回异常，请重试");
+      setAssessmentError("服务端返回异常，请重试", function() { submitAssessmentAnswer(); });
     }
   } catch (e) {
     console.error("Assessment answer error:", e);
-    showAssessmentError("网络错误，提交失败，请点击重试");
+    setAssessmentError("网络错误，提交失败，请点击重试", function() { submitAssessmentAnswer(); });
+  } finally {
+    assessmentState.submitting = false;
+    nextBtn.disabled = false;
+    skipBtn.disabled = false;
+    optionsDiv.style.pointerEvents = "";
+    optionsDiv.style.opacity = "";
   }
-  assessmentState.submitting = false;
 }
 
 function showAssessmentResult(result) {
   if (!result) {
-    showAssessmentError("测评结果为空");
+    setAssessmentError("测评结果为空", function() {
+      startAssessment(selectedJobRole());
+    });
     return;
   }
   document.getElementById("assessmentOverlay").querySelector(".assessment-container").style.display = "none";
@@ -2397,7 +2484,8 @@ function showAssessmentResult(result) {
     var cssClass = s >= 0.8 ? "strong" : (s >= 0.5 ? "medium" : "weak");
     var row = document.createElement("div");
     row.className = "dimension-row";
-    row.innerHTML = '<span class="dimension-label">' + (labelMap[aid] || aid) + '</span>' +
+    var label = escapeHtml(labelMap[aid] || aid);
+    row.innerHTML = '<span class="dimension-label">' + label + '</span>' +
       '<div class="dimension-bar-wrap"><div class="dimension-bar-fill ' + cssClass + '" style="width:' + (s * 100) + '%"></div></div>' +
       '<span class="dimension-score">' + Math.round(s * 100) + '%</span>';
     dimsDiv.appendChild(row);
@@ -2405,26 +2493,41 @@ function showAssessmentResult(result) {
 
   var recDiv = document.getElementById("resultRecommendations");
   recDiv.innerHTML = result.recommendations && result.recommendations.length > 0 ?
-    '<h4>学习建议</h4><ul>' + result.recommendations.map(function(r) { return '<li>' + r + '</li>'; }).join("") + '</ul>' : "";
+    '<h4>学习建议</h4><ul>' + result.recommendations.map(function(r) { return '<li>' + escapeHtml(r) + '</li>'; }).join("") + '</ul>' : "";
 
   var stepDiv = document.getElementById("resultNextSteps");
   stepDiv.innerHTML = result.next_steps && result.next_steps.length > 0 ?
-    '<h4>下一步</h4>' + result.next_steps.map(function(s) { return '<div class="next-step">' + s + '</div>'; }).join("") : "";
+    '<h4>下一步</h4>' + result.next_steps.map(function(s) { return '<div class="next-step">' + escapeHtml(s) + '</div>'; }).join("") : "";
 
-  document.getElementById("assessmentDoneBtn").onclick = finishAssessmentAndBoot;
+  document.getElementById("assessmentDoneBtn").onclick = function() {
+    hideAssessmentOverlay();
+    bootOnce();
+  };
 }
 
 function skipAssessment() {
   if (!confirm("确定暂时跳过测评吗？跳过后将无法获得个性化学习路径。")) return;
-  finishAssessmentAndBoot();
+  try { sessionStorage.setItem("mcp_assessment_skipped", "1"); } catch (_) {}
+  hideAssessmentOverlay();
+  bootOnce();
 }
 
 function finishAssessmentAndBoot() {
-  var overlay = document.getElementById("assessmentOverlay");
-  overlay.style.display = "none";
-  overlay.setAttribute("aria-hidden", "true");
-  if (typeof boot === "function") boot();
+  hideAssessmentOverlay();
+  bootOnce();
 }
+
+// Unified retry button binding (set once at init time)
+document.addEventListener("DOMContentLoaded", function() {
+  var retryBtn = document.getElementById("assessmentRetryBtn");
+  if (retryBtn) {
+    retryBtn.onclick = function() {
+      var action = assessmentRetryAction;
+      clearAssessmentError();
+      if (action) action();
+    };
+  }
+});
 
 // ---- End Assessment ----
 

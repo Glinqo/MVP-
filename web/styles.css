@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Mechatronics Training AI - Unified Dark Theme
  * Design language derived from landing overlay:
  *   - Gradient backgrounds with radial glows
@@ -953,7 +953,7 @@ button:active{transform:translateY(0)}
 .assessment-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 10010;
   background: #0f172a;
   display: flex;
   align-items: center;
