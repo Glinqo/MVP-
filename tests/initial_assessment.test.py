@@ -495,6 +495,133 @@ class InitialAssessmentTest(unittest.TestCase):
             ia.save_state = real_save
 
 
+    def test_32_assessment_id_restart_recovery(self):
+        """assessment_id survives save_state -> memory clear -> load_state."""
+        import app.services.initial_assessment as ia
+        from app.services.assessment_store import save_state, load_state
+
+        sid = "taid_restart"
+        ia.start_assessment(sid)
+        sess = ia._init_session(sid)
+
+        aid_before = sess.get("assessment_id", "")
+        self.assertTrue(aid_before, f"assessment_id must not be empty: {aid_before}")
+
+        # Save and clear memory
+        save_state(sess)
+        keys = [k for k in ia._sessions if sid in k]
+        for k in keys:
+            del ia._sessions[k]
+
+        # Reload from SQLite
+        loaded = load_state(sid)
+        aid_after = loaded.get("assessment_id", "")
+        self.assertTrue(aid_after, f"assessment_id must survive restart: {aid_after}")
+        self.assertEqual(aid_after, aid_before, f"assessment_id must match: {aid_after} != {aid_before}")
+
+    def test_33_legacy_id_normalization(self):
+        """Old id without version is normalized to canonical key on save."""
+        from app.services.assessment_store import save_state, load_state, _make_key
+
+        state = {
+            "id": "legacy_id_without_version",
+            "session_id": "t33_user",
+            "job_role": "default",
+            "assessment_version": "v1",
+            "assessment_id": "ASSESS-LEGACY-001",
+            "state": "in_progress",
+            "answers": [],
+            "result": None,
+            "created_at": 1234567890.0,
+        }
+
+        save_state(state)
+        expected_key = _make_key("t33_user", "default", "v1")
+        self.assertEqual(state["id"], expected_key, f"state['id'] should be normalized: {state['id']} != {expected_key}")
+
+        loaded = load_state("t33_user", "default", "v1")
+        self.assertEqual(loaded["id"], expected_key, f"loaded id should match key: {loaded['id']}")
+        self.assertEqual(loaded["assessment_id"], "ASSESS-LEGACY-001")
+
+        # No duplicate rows
+        import sqlite3
+        from app.services.assessment_store import DB_PATH
+        conn = sqlite3.connect(str(DB_PATH))
+        rows = conn.execute(
+            "SELECT COUNT(*) FROM assessments WHERE session_id=? AND job_role=? AND assessment_version=?",
+            ("t33_user", "default", "v1")
+        ).fetchone()
+        conn.close()
+        self.assertEqual(rows[0], 1, f"Should have exactly 1 row, got {rows[0]}")
+
+    def test_34_version_assessment_id_isolation(self):
+        """Same session_id/job_role with different versions keep separate assessment_ids."""
+        from app.services.assessment_store import save_state, load_state, _make_key
+
+        aid_v1 = "ASSESS-V1-001"
+        aid_v2 = "ASSESS-V2-001"
+
+        s1 = {
+            "id": _make_key("t34_user", "default", "v1"),
+            "session_id": "t34_user",
+            "job_role": "default",
+            "assessment_version": "v1",
+            "assessment_id": aid_v1,
+            "state": "in_progress",
+            "answers": [],
+            "result": None,
+            "created_at": 100.0,
+        }
+        s2 = {
+            "id": _make_key("t34_user", "default", "v2"),
+            "session_id": "t34_user",
+            "job_role": "default",
+            "assessment_version": "v2",
+            "assessment_id": aid_v2,
+            "state": "completed",
+            "answers": [{"qid": "A01"}],
+            "result": {"score": 0.9},
+            "created_at": 200.0,
+        }
+
+        save_state(s1)
+        save_state(s2)
+
+        l1 = load_state("t34_user", "default", "v1")
+        l2 = load_state("t34_user", "default", "v2")
+
+        self.assertEqual(l1["assessment_id"], aid_v1, f"v1 assessment_id: {l1['assessment_id']}")
+        self.assertEqual(l2["assessment_id"], aid_v2, f"v2 assessment_id: {l2['assessment_id']}")
+        self.assertEqual(l1["state"], "in_progress")
+        self.assertEqual(l2["state"], "completed")
+
+    def test_35_restart_event_assessment_id(self):
+        """After restart recovery, assessment_id is preserved from SQLite."""
+        import app.services.initial_assessment as ia
+        from app.services.assessment_store import save_state, load_state
+        import time
+
+        sid = f"t35restart_{int(time.time())}"
+        r1 = ia.start_assessment(sid)
+        ia.submit_answer(sid, r1["first_question"]["qid"], r1["first_question"]["options"][0]["key"])
+
+        sess1 = ia._init_session(sid)
+        aid1 = sess1.get("assessment_id", "")
+        self.assertTrue(aid1, "assessment_id must not be empty")
+        save_state(sess1)
+
+        # Clear memory cache
+        keys = [k for k in ia._sessions if sid in k]
+        for k in keys:
+            del ia._sessions[k]
+
+        # Resume: _init_session reads from SQLite, should get same assessment_id
+        sess2 = ia._init_session(sid)
+        aid2 = sess2.get("assessment_id", "")
+        self.assertEqual(aid1, aid2,
+                         f"assessment_id must persist across restart: {aid1} != {aid2}")
+
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

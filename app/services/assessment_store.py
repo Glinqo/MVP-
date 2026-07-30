@@ -87,42 +87,49 @@ def load_state(session_id, job_role=None, assessment_version="1.0.0"):
         "id": row[0],
         "session_id": session_id,
         "job_role": job_role or "default",
-        "assessment_id": row[2] if len(row) > 7 else "",
+        "assessment_id": row[2] or "",
         "assessment_version": assessment_version,
         "state": row[1],
         "completed": completed,
-        "answers": json.loads(row[3] if len(row) > 7 else row[2] or "[]"),
-        "result": json.loads(row[4] if len(row) > 7 else row[3]) if (row[4] if len(row) > 7 else row[3]) else None,
-        "created_at": row[5] if len(row) > 7 else row[4],
-        "updated_at": row[6] if len(row) > 7 else row[5],
-        "completed_at": row[7] if len(row) > 7 else row[6],
+        "answers": json.loads(row[3] or "[]"),
+        "result": json.loads(row[4]) if row[4] else None,
+        "created_at": row[5],
+        "updated_at": row[6],
+        "completed_at": row[7],
     }
-
 
 def save_state(state):
     """Persist assessment state. Creates or updates."""
     _ensure_table()
-    key = state.get("id") or _make_key(
-        state.get("session_id", ""),
-        state.get("job_role"),
-        state.get("assessment_version", "1.0.0")
-    )
+    # Normalize key from state fields, do not trust state["id"]
+    session_id = state.get("session_id", "")
+    job_role = state.get("job_role") or "default"
+    assessment_version = state.get("assessment_version") or "1.0.0"
+    key = _make_key(session_id, job_role, assessment_version)
     now = time.time()
     with _conn() as conn:
         conn.execute(
-            """INSERT OR REPLACE INTO assessments (id, session_id, job_role, assessment_version, state, answers_json, result_json, created_at, updated_at, completed_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-               ON CONFLICT(id) DO UPDATE SET
-               state=excluded.state,
-               answers_json=excluded.answers_json,
-               result_json=excluded.result_json,
-               updated_at=excluded.updated_at,
-               completed_at=excluded.completed_at""",
+            """INSERT INTO assessments (
+                id, session_id, job_role, assessment_id,
+                assessment_version, state, answers_json,
+                result_json, created_at, updated_at, completed_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(session_id, job_role, assessment_version)
+            DO UPDATE SET
+                id = excluded.id,
+                assessment_id = excluded.assessment_id,
+                state = excluded.state,
+                answers_json = excluded.answers_json,
+                result_json = excluded.result_json,
+                updated_at = excluded.updated_at,
+                completed_at = excluded.completed_at""",
             (
                 key,
-                state.get("session_id", ""),
-                state.get("job_role", "default"),
-                state.get("assessment_version", "1.0.0"),
+                session_id,
+                job_role,
+                state.get("assessment_id", ""),
+                assessment_version,
                 state.get("state", "not_started"),
                 json.dumps(state.get("answers", []), ensure_ascii=False),
                 json.dumps(state.get("result"), ensure_ascii=False) if state.get("result") else None,

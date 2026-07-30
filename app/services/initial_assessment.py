@@ -126,7 +126,7 @@ def _init_session(session_id: str, job_role: str = None, assessment_version: str
             "completed": False,
             "created_at": time.time(),
             "assessment_id": f"ASSESS-{session_id}-{int(time.time())}",
-            "assessment_version": "1.0.0",
+            "assessment_version": assessment_version,
         }
     return _sessions[key]
 
