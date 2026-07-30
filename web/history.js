@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Chat History Sidebar
  */
 
@@ -44,11 +44,11 @@ function toggleSidebar() {
 function refreshSidebar() {
   var list = document.getElementById("historyList");
   if (!list) return;
-  list.innerHTML = '<div class="sidebar-loading">Loading...</div>';
+  list.innerHTML = '<div class="sidebar-loading">加载中</div>';
   var jobRole = (typeof state !== "undefined" && state.jobProfile) ? (state.jobProfile.id || state.jobProfile.role_name || "") : (localStorage.getItem("mcp_job_id") || "");
   fetch("/api/conversations?job_role=" + encodeURIComponent(jobRole)).then(function(r) { return r.json(); }).then(function(sessions) {
     if (!sessions || !sessions.length) {
-      list.innerHTML = '<div class="sidebar-empty">No conversations</div>';
+      list.innerHTML = '<div class="sidebar-empty">暂无历史对话</div>';
       return;
     }
     list.innerHTML = sessions.map(function(s) {
@@ -57,9 +57,9 @@ function refreshSidebar() {
       var title = escapeHtml(s.title || sid.substring(0, 12));
       var count = s.message_count || 0;
       return '<div class="history-item' + active + '" data-sid="' + sid + '">' +
-        '<div class="history-item-title" ondblclick="startRename(this, \'' + sid + '\')" title="Double-click to rename">' + title + '</div>' +
-        '<div class="history-item-meta">' + count + ' messages</div>' +
-        '<button class="history-item-delete" title="Delete" onclick="deleteChat(event, \'' + sid + '\')">X</button>' +
+        '<div class="history-item-title" ondblclick="startRename(this, \'' + sid + '\')" title="双击重命名">' + title + '</div>' +
+        '<div class="history-item-meta">' + count + ' 条消息</div>' +
+        '<button class="history-item-delete" title="删除" onclick="deleteChat(event, \'' + sid + '\')">X</button>' +
         '</div>';
     }).join("");
     list.querySelectorAll(".history-item").forEach(function(item) {
@@ -69,7 +69,7 @@ function refreshSidebar() {
       });
     });
   }).catch(function() {
-    list.innerHTML = '<div class="sidebar-error">Failed to load</div>';
+    list.innerHTML = '<div class="sidebar-error">加载失败</div>';
   });
 }
 
@@ -88,18 +88,18 @@ function switchToChat(sessionId) {
     if (window.innerWidth <= 768) toggleSidebar();
     _sidebar_switching = false;
   }).catch(function(e) {
-    addMessage("assistant", "Failed to load: " + e.message);
+    addMessage("assistant", "加载失败: " + e.message);
     _sidebar_switching = false;
   });
 }
 
 function deleteChat(event, sessionId) {
   event.stopPropagation();
-  if (!confirm("Delete this conversation?")) return;
+  if (!confirm("确定删除此对话吗?")) return;
   fetch("/api/conversation/" + encodeURIComponent(sessionId) + "?action=delete", { method: "POST" }).then(function(r) { return r.json(); }).then(function() {
     if (sessionId === state.sessionId) { createNewChat(); } else { refreshSidebar(); }
   }).catch(function(e) {
-    addMessage("assistant", "Delete failed: " + e.message);
+    addMessage("assistant", "删除失败: " + e.message);
   });
 }
 
