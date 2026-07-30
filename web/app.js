@@ -2157,3 +2157,146 @@ function selectJob(jobId, event) {
     if (typeof boot === "function") boot();
   }, 400);
 }
+
+
+// ---- Assessment Functions ----
+var assessmentState = {
+  questions: [],
+  answers: [],
+  currentIndex: 0,
+  started: false,
+  selectedOption: null
+};
+
+async function startAssessment() {
+  var overlay = document.getElementById("assessmentOverlay");
+  var container = overlay.querySelector(".assessment-container");
+  var result = overlay.querySelector(".assessment-result");
+  overlay.style.display = "flex";
+  container.style.display = "block";
+  result.style.display = "none";
+  try {
+    var resp = await api("/api/student/assess/start", {
+      method: "POST",
+      body: JSON.stringify({ session_id: state.sessionId })
+    });
+    if (resp.error) {
+      console.warn("Assessment not available:", resp.error);
+      finishAssessmentAndBoot();
+      return;
+    }
+    assessmentState.questions = [];
+    assessmentState.answers = [];
+    assessmentState.currentIndex = 0;
+    assessmentState.started = true;
+    assessmentState.selectedOption = null;
+    renderAssessmentQuestion(resp);
+  } catch (e) {
+    console.warn("Assessment startup failed:", e);
+    finishAssessmentAndBoot();
+  }
+}
+
+function renderAssessmentQuestion(resp) {
+  var q = resp.first_question || resp.next_question;
+  var total = resp.total_questions || assessmentState.questions.length || 30;
+  var idx = resp.current_index !== undefined ? resp.current_index : assessmentState.currentIndex;
+  document.getElementById("assessmentProgress").querySelector(".progress-fill").style.width = (idx / total * 100) + "%";
+  document.getElementById("assessmentProgress").querySelector(".progress-text").textContent = idx + " / " + total;
+  var card = document.getElementById("assessmentQuestionCard");
+  card.querySelector(".question-dimension").textContent = q.dimension || "";
+  card.querySelector(".question-text").textContent = q.text || "";
+  var optsDiv = card.querySelector(".question-options");
+  optsDiv.innerHTML = "";
+  assessmentState.selectedOption = null;
+  if (q.options) {
+    q.options.forEach(function(opt) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.textContent = opt.key + ". " + opt.text;
+      btn.addEventListener("click", function() {
+        var allBtns = optsDiv.querySelectorAll(".option-btn");
+        allBtns.forEach(function(b) { b.classList.remove("selected"); });
+        btn.classList.add("selected");
+        assessmentState.selectedOption = opt.key;
+        document.getElementById("assessmentNextBtn").disabled = false;
+      });
+      optsDiv.appendChild(btn);
+    });
+  }
+  document.getElementById("assessmentNextBtn").disabled = true;
+  document.getElementById("assessmentNextBtn").onclick = submitAssessmentAnswer;
+  document.getElementById("assessmentSkipBtn").onclick = skipAssessment;
+}
+
+async function submitAssessmentAnswer() {
+  if (!assessmentState.selectedOption) return;
+  assessmentState.answers.push({ qid: assessmentState._currentQid || "", selected: assessmentState.selectedOption });
+  try {
+    var resp = await api("/api/student/assess/answer", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        qid: assessmentState._currentQid || "",
+        selected_key: assessmentState.selectedOption,
+        answers_so_far: assessmentState.answers.slice(0, -1)
+      })
+    });
+    if (resp.status === "completed") {
+      showAssessmentResult(resp.result);
+    } else {
+      assessmentState._currentQid = resp.next_question.qid;
+      assessmentState.currentIndex = resp.current_index;
+      renderAssessmentQuestion(resp);
+    }
+  } catch (e) {
+    console.error("Assessment answer error:", e);
+    finishAssessmentAndBoot();
+  }
+}
+
+function showAssessmentResult(result) {
+  document.getElementById("assessmentOverlay").querySelector(".assessment-container").style.display = "none";
+  var resultDiv = document.getElementById("assessmentResult");
+  resultDiv.style.display = "block";
+  // Score
+  document.getElementById("resultScore").textContent = Math.round((result.total_score || 0) * 100) + "%";
+  // Dimensions
+  var dimsDiv = document.getElementById("resultDimensions");
+  dimsDiv.innerHTML = "";
+  var scores = result.ability_scores || {};
+  var labelMap = {};
+  if (assessmentState.questions && assessmentState.questions.length > 0) {
+    assessmentState.questions.forEach(function(q) {
+      if (q.ability_label) labelMap[q.ability_id] = q.ability_label;
+    });
+  }
+  Object.keys(scores).forEach(function(aid) {
+    var s = scores[aid];
+    var cssClass = s >= 0.8 ? "strong" : (s >= 0.5 ? "medium" : "weak");
+    var row = document.createElement("div");
+    row.className = "dimension-row";
+    row.innerHTML = '<span class="dimension-label">' + (labelMap[aid] || aid) + '</span>' +
+      '<div class="dimension-bar-wrap"><div class="dimension-bar-fill ' + cssClass + '" style="width:' + (s * 100) + '%"></div></div>' +
+      '<span class="dimension-score">' + Math.round(s * 100) + '%</span>';
+    dimsDiv.appendChild(row);
+  });
+  // Recommendations
+  var recDiv = document.getElementById("resultRecommendations");
+  recDiv.innerHTML = result.recommendations && result.recommendations.length > 0 ?
+    '<h4>学习建议</h4><ul>' + result.recommendations.map(function(r) { return '<li>' + r + '</li>'; }).join("") + '</ul>' : "";
+  // Next steps
+  var stepDiv = document.getElementById("resultNextSteps");
+  stepDiv.innerHTML = result.next_steps && result.next_steps.length > 0 ?
+    '<h4>下一步</h4>' + result.next_steps.map(function(s) { return '<div class="next-step">' + s + '</div>'; }).join("") : "";
+  document.getElementById("assessmentDoneBtn").onclick = finishAssessmentAndBoot;
+}
+
+function skipAssessment() {
+  finishAssessmentAndBoot();
+}
+
+function finishAssessmentAndBoot() {
+  document.getElementById("assessmentOverlay").style.display = "none";
+  if (typeof boot === "function") boot();
+}

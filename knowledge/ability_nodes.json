@@ -948,6 +948,120 @@
       "radar_dimension_ids": [
         "equipment_inspection_troubleshooting"
       ]
+    },
+    {
+      "id": "plc_basic_principle",
+      "name": "PLC基本原理",
+      "level": "basic",
+      "parent_id": "role_task_understanding",
+      "description": "PLC扫描周期、梯形图编程、输入输出模块基础",
+      "prerequisites": []
+    },
+    {
+      "id": "sensor_selection",
+      "name": "传感器选型与识别",
+      "level": "basic",
+      "parent_id": "role_task_understanding",
+      "description": "电感式、光电式、电容式传感器的选型与工作原理",
+      "prerequisites": [
+        "sensor_type_identification"
+      ]
+    },
+    {
+      "id": "input_common_terminal",
+      "name": "输入公共端判断",
+      "level": "basic",
+      "parent_id": "role_task_understanding",
+      "description": "PLC输入公共端接线判断与故障排查",
+      "prerequisites": [
+        "plc_input_common_terminal"
+      ]
+    },
+    {
+      "id": "electrical_safety",
+      "name": "电气安全操作",
+      "level": "basic",
+      "parent_id": "role_task_understanding",
+      "description": "断电挂牌、验电确认、安全装备使用规范",
+      "prerequisites": [
+        "electrical_safety_check"
+      ]
+    },
+    {
+      "id": "troubleshoot_order",
+      "name": "故障排查顺序",
+      "level": "medium",
+      "parent_id": "role_task_understanding",
+      "description": "系统化故障排查方法论：先外后内、先电源后信号",
+      "prerequisites": [
+        "input_no_response_fault_scope"
+      ]
+    },
+    {
+      "id": "safety_ppe",
+      "name": "安全防护装备认知",
+      "level": "basic",
+      "parent_id": "electrical_safety_check",
+      "description": "绝缘鞋、绝缘手套、护目镜等PPE的正确使用与检查",
+      "prerequisites": []
+    },
+    {
+      "id": "plc_wiring",
+      "name": "PLC接线规范",
+      "level": "basic",
+      "parent_id": "plc_input_common_terminal",
+      "description": "PLC电源、输入、输出模块的正确接线方法",
+      "prerequisites": [
+        "plc_basic_principle"
+      ]
+    },
+    {
+      "id": "sensor_wiring",
+      "name": "传感器接线规范",
+      "level": "basic",
+      "parent_id": "sensor_wiring_color_code",
+      "description": "三线制/四线制传感器接线标准",
+      "prerequisites": [
+        "sensor_selection"
+      ]
+    },
+    {
+      "id": "motor_control",
+      "name": "电机控制基础",
+      "level": "medium",
+      "parent_id": "role_task_understanding",
+      "description": "接触器、继电器、变频器的基本控制回路",
+      "prerequisites": [
+        "electrical_safety"
+      ]
+    },
+    {
+      "id": "hmi_basic",
+      "name": "人机界面基础",
+      "level": "medium",
+      "parent_id": "role_task_understanding",
+      "description": "HMI基本操作、画面切换、参数查看",
+      "prerequisites": []
+    },
+    {
+      "id": "emergency_stop",
+      "name": "急停回路认知",
+      "level": "basic",
+      "parent_id": "electrical_safety_check",
+      "description": "急停按钮接线、安全继电器、急停回路测试",
+      "prerequisites": [
+        "electrical_safety"
+      ]
+    },
+    {
+      "id": "vfd_basic",
+      "name": "变频器基础",
+      "level": "medium",
+      "parent_id": "motor_control",
+      "description": "变频器参数设置、基本接线、故障代码解读",
+      "prerequisites": [
+        "motor_control"
+      ]
     }
   ]
 }

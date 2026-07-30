@@ -2,11 +2,11 @@
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <script src="/d3.min.js?v=20260721"></script>
+    <script src="/d3.min.js?v=20260730"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>机电岗位培训 AI</title>
-    <link rel="stylesheet" href="/styles.css?v=20260721" />
+    <link rel="stylesheet" href="/styles.css?v=20260730" />
   </head>
   <body>
     <!-- ── Identity & Job Selection Overlay ── -->
@@ -34,6 +34,39 @@
 
     <div id="landingOverlay" class="landing-overlay">
       <div class="landing-bg"></div>
+  <!-- Assessment Overlay -->
+  <div id="assessmentOverlay" class="assessment-overlay" style="display:none;">
+    <div class="assessment-container">
+      <div class="assessment-header">
+        <h2>初始能力测评</h2>
+        <p class="assessment-subtitle">完成测评后，系统将为您生成个性化的学习路径</p>
+      </div>
+      <div id="assessmentProgress" class="assessment-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+        <span class="progress-text">0 / 0</span>
+      </div>
+      <div id="assessmentQuestionCard" class="assessment-question-card">
+        <div class="question-dimension"></div>
+        <h3 class="question-text"></h3>
+        <div class="question-options"></div>
+      </div>
+      <div class="assessment-actions">
+        <button id="assessmentSkipBtn" class="btn-secondary">跳过测评</button>
+        <button id="assessmentNextBtn" class="btn-primary" disabled>确认并继续</button>
+      </div>
+    </div>
+    <div id="assessmentResult" class="assessment-result" style="display:none;">
+      <div class="result-header">
+        <h2>测评完成</h2>
+        <p class="result-total-score">总分：<strong id="resultScore"></strong></p>
+      </div>
+      <div class="result-dimensions" id="resultDimensions"></div>
+      <div class="result-recommendations" id="resultRecommendations"></div>
+      <div class="result-next-steps" id="resultNextSteps"></div>
+      <button id="assessmentDoneBtn" class="btn-primary">进入学习</button>
+    </div>
+  </div>
+
       <div class="landing-container">
 
         <!-- Step 1: Identity -->
@@ -135,7 +168,6 @@
                 </svg>
               </div>
             </button>
-          </button>
 
             <button class="landing-card job-card-lg" onclick="selectJob('automation_equipment_debugger',event)" data-job-name="自动化设备调试员">
               <div class="landing-card-icon">
@@ -551,8 +583,8 @@
       </div>
     </aside>
 
-    <script src="/graph-renderer.js?v=20260721"></script>
-    <script src="/app.js?v=20260721"></script>
-    <script src="/history.js?v=20260721"></script>
+    <script src="/graph-renderer.js?v=20260730"></script>
+    <script src="/app.js?v=20260730"></script>
+    <script src="/history.js?v=20260730"></script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import json
 import mimetypes
 import sys
@@ -52,6 +52,11 @@ from app.services.ability_state_engine import compute_ability_state  # noqa: E40
 from app.services.next_action_recommender import recommend_next_actions  # noqa: E402
 from app.services.device_state_handler import record_device_state  # noqa: E402
 
+from app.services.initial_assessment import start_assessment as ia_start, submit_answer as ia_submit_answer, get_assessment_summary as ia_get_summary  # noqa: E402
+from app.services.action_planner import plan_initial_learning  # noqa: E402
+from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
+from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
+from app.services.transfer_engine import suggest_transfer_tasks  # noqa: E402
 
 
 WEB_DIR = ROOT / "web"
@@ -265,6 +270,16 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/sessions":
             return self.send_json(list_sessions())
 
+        
+        if path == "/api/teacher/students/assessments":
+            return self.send_json(list_student_sessions())
+
+        if path == "/api/teacher/students/assessment":
+            query = parse_qs(parsed.query)
+            session_id = query.get("session_id", [None])[0]
+            if not session_id:
+                return self.send_error_json(400, "session_id is required")
+            return self.send_json(generate_individual_report(session_id))
         if path == "/api/student/ability-state":
             session_id = query_params.get("session_id", ["default"])[0]
             ability_id = query_params.get("ability_id", [None])[0]
@@ -278,6 +293,15 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/student/job-gap":
             session_id = query_params.get("session_id", ["default"])[0]
             return self.send_json(_compute_job_gap(session_id))
+
+        if path == "/api/student/assess/summary":
+            query = parse_qs(parsed.query)
+            session_id = query.get("session_id", [None])[0]
+            if not session_id:
+                return self.send_error_json(400, "session_id is required")
+            job_role = query.get("job_role", [None])[0]
+            assessment_version = query.get("assessment_version", ["1.0.0"])[0]
+            return self.send_json(ia_get_summary(session_id, job_role, assessment_version))
 
         if path == "/api/scenario/next-action":
             query = parse_qs(parsed.query)
@@ -383,8 +407,6 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(personalized_quiz(payload))
             if path == "/api/plan/personalized":
                 return self.send_json(personalized_plan(payload))
-            if path == "/api/plan/task_feedback":
-                return self.send_json(evaluate_task_feedback(payload))
             if path == "/api/explain":
                 return self.send_json(explain(payload))
             if path == "/api/scenario/start":
@@ -468,6 +490,85 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(score_result)
             if path == "/api/diagnose":
                 return self.send_json(diagnose(payload))
+            if path == "/api/student/assess/start":
+                session_id = payload.get("session_id", "")
+                if not session_id:
+                    return self.send_error_json(400, "session_id is required")
+                job_role = payload.get("job_role", None)
+                return self.send_json(ia_start(session_id, job_role))
+
+            if path == "/api/student/assess/answer":
+                session_id = payload.get("session_id", "")
+                if not session_id:
+                    return self.send_error_json(400, "session_id is required")
+                qid = payload.get("qid", "")
+                selected_key = payload.get("selected_key", "")
+                job_role = payload.get("job_role", None)
+                # answers_so_far and force_complete are IGNORED by the server
+                # Only SQLite persisted answers are used as source of truth
+                result = ia_submit_answer(session_id, qid, selected_key, job_role)
+                if result.get("status") == "error":
+                    return self.send_error_json(500, result.get("error", "Assessment persistence failed"))
+                return self.send_json(result)
+
+
+            if path == "/api/student/plan/from-assessment":
+                session_id = payload.get("session_id", "")
+                if not session_id:
+                    return self.send_error_json(400, "session_id is required")
+                job_role = payload.get("job_role", None)
+
+                # Read assessment state from SQLite only — NEVER from client-provided result
+                from app.services.assessment_store import load_state
+                stored = load_state(session_id, job_role)
+                if stored.get("state") != "completed":
+                    return self.send_error_json(409,
+                        "Assessment not yet completed. Finish all assessment questions first.")
+
+                # Build result from persisted storage only
+                answers = stored.get("answers", [])
+                assessment_result = stored.get("result")
+                if assessment_result:
+                    pass  # Use the stored result directly
+                else:
+                    # Fallback: build minimal result dict from stored answers
+                    assessment_result = {
+                        "session_id": session_id,
+                        "job_role": job_role,
+                        "answers": answers,
+                        "total_score": 0,
+                        "ability_scores": {},
+                        "weak_abilities": [],
+                        "strong_abilities": [],
+                        "dimension_scores": {},
+                        "recommendations": [],
+                        "next_steps": [],
+                    }
+
+                data = plan_initial_learning(assessment_result)
+                weak = assessment_result.get("weak_abilities", [])
+                data["scaffold_config"] = get_scaffold_config_for_assessment(
+                    assessment_result, default_level=3
+                )
+                data["transfer_tasks"] = suggest_transfer_tasks(weak)
+                return self.send_json(data)
+
+            if path == "/api/plan/task_feedback":
+                session_id = payload.get("session_id", "")
+                if not session_id:
+                    return self.send_error_json(400, "session_id is required")
+                task_id = payload.get("task_id", "")
+                if not task_id:
+                    return self.send_error_json(400, "task_id is required")
+                ability_id = payload.get("ability_id") or (payload.get("ability_ids", [None])[0] if payload.get("ability_ids") else None)
+                if not ability_id:
+                    return self.send_error_json(400, "ability_id or ability_ids is required")
+                result = evaluate_task_feedback(payload)
+                if not result.get("saved"):
+                    err = result.get("error", "Unknown error")
+                    return self.send_error_json(400 if "required" in err.lower() else 500, err)
+                return self.send_json(result)
+
             if path == "/api/feedback":
                 return self.send_json(save_feedback(payload))
         except ValueError as exc:
@@ -510,3 +611,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

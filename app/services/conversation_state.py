@@ -1,4 +1,4 @@
-﻿"""Unified server-side conversation state.
+"""Unified server-side conversation state.
 
 The server is the single source of truth for conversation history.
 Frontend sends only session_id + message; backend manages all history.

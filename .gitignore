@@ -1,26 +1,33 @@
-﻿__pycache__/
+__pycache__/
 *.pyc
 .env
 .DS_Store
 node_modules/
-data/sessions/*.json
-!data/sessions/.gitkeep
-data/job_intelligence_runs.json
-data/job_intelligence_raw/
 web/node_modules/
 web/pnpm-lock.yaml
-.codex-audit/
-demo_test.py
 
-# Runtime evidence data
+# Runtime data
+data/sessions/*.json
+!data/sessions/.gitkeep
+data/sessions.db
+data/sessions.db-wal
+data/sessions.db-shm
+data/assessments.db
+data/assessments.db-wal
+data/assessments.db-shm
+data/graph_update_events.json
+
+# Crawler data
+data/job_intelligence_runs.json
+data/job_intelligence_raw/
 data/evidence/
 data/raw_jobs/
 
-# Temp files
+# Temp and build
 .codex-audit/
 demo_test.py
 _git_push_temp*
 _phase*
 _builder*
- .tmp-playwright/
- web/.pnpm-store/
+.tmp-playwright/
+web/.pnpm-store/
