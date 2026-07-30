@@ -426,6 +426,75 @@ class InitialAssessmentTest(unittest.TestCase):
             # Might get 409 if assessment not complete yet; that's also valid
             self.assertIn(e.code, [200, 409])
 
+    def test_30_version_isolation(self):
+        """get_assessment_summary with different assessment_version reads separate states."""
+        import app.services.initial_assessment as ia
+
+        # Create a completed assessment at version v1 via direct state manipulation
+        s_v1 = ia._init_session("ver_iso_user", "default", assessment_version="v1")
+        s_v1["state"] = "completed"
+        s_v1["completed"] = True
+        s_v1["result"] = {"total_score": 0.85, "weak_abilities": [], "strong_abilities": []}
+        s_v1["answers"] = [{"qid": "A01", "selected": "A", "is_correct": True}]
+        s_v1["answered_count"] = 1
+        ia.save_state(s_v1)
+
+        # Reading with v1 should return completed
+        summ_v1 = ia.get_assessment_summary("ver_iso_user", assessment_version="v1")
+        self.assertEqual(summ_v1.get("state"), "completed",
+                         f"v1 should be completed: {summ_v1}")
+        self.assertIsNotNone(summ_v1.get("result_summary"))
+
+        # Reading with v2 should return not_started (different version)
+        summ_v2 = ia.get_assessment_summary("ver_iso_user", assessment_version="v2")
+        self.assertEqual(summ_v2.get("state"), "not_started",
+                         f"v2 should be not_started: {summ_v2}")
+        self.assertEqual(summ_v2.get("answered_count"), 0,
+                         f"v2 should have 0 answered: {summ_v2}")
+
+    def test_31_completion_save_failure(self):
+        """When _finish_assessment save_state fails, returns error not completed."""
+        import app.services.initial_assessment as ia
+        calls = {"count": 0}
+        real_save = ia.save_state
+
+        def fail_on_completion(state):
+            calls["count"] += 1
+            if state.get("state") == "completed":
+                raise Exception("Simulated completion persistence failure")
+            return real_save(state)
+
+        sid = "completion_fail_test"
+        ia.start_assessment(sid)
+
+        from app.services.initial_assessment import _load_questions
+        qs = _load_questions()
+
+        try:
+            ia.save_state = fail_on_completion
+            # Intermediate answers: save_state succeeds (not completed state)
+            for q in qs[:-1]:
+                r = ia.submit_answer(sid, q.qid, q.options[0]["key"])
+                # May get error if save_state raised; that is acceptable for this test
+                if r.get("status") == "error":
+                    break
+
+            last_q = qs[-1]
+            r = ia.submit_answer(sid, last_q.qid, last_q.options[0]["key"])
+            self.assertEqual(r.get("status"), "error",
+                             f"Completion should return error: {r}")
+            self.assertIn("Failed to persist", r.get("error", ""),
+                          f"Should mention persistence failure: {r}")
+
+            session = ia._init_session(sid, "default")
+            self.assertEqual(session.get("state"), "in_progress",
+                             f"State should be in_progress, got {session.get('state')}")
+            self.assertFalse(session.get("completed"))
+            self.assertIsNone(session.get("result"))
+        finally:
+            ia.save_state = real_save
+
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

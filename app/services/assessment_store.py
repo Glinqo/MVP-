@@ -110,7 +110,7 @@ def save_state(state):
     now = time.time()
     with _conn() as conn:
         conn.execute(
-            """INSERT INTO assessments (id, session_id, job_role, assessment_version, state, answers_json, result_json, created_at, updated_at, completed_at)
+            """INSERT OR REPLACE INTO assessments (id, session_id, job_role, assessment_version, state, answers_json, result_json, created_at, updated_at, completed_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT(id) DO UPDATE SET
                state=excluded.state,

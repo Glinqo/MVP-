@@ -242,23 +242,109 @@ class AssessmentApiTest(unittest.TestCase):
         self.assertIsNotNone(rs.get('total_score'), 'total_score should be present')
 
     def test_15_answer_event_savestate_failure(self):
-        """When save_state fails, answer must not succeed (tested via direct call)."""
+        """When save_state fails on first answer, HTTP 500 and rollback."""
         import app.services.initial_assessment as ia
-        from app.services.assessment_store import save_state
 
-        sid = 'direct_savefail_test'
-        ia.start_assessment(sid)
+        sid = 'api_savefail_first'
+        _request('/api/student/assess/start', {'session_id': sid})
 
         original_save = ia.save_state
         try:
             def failing_save(*a, **kw):
                 raise Exception('Simulated save failure')
             ia.save_state = failing_save
-            result = ia.submit_answer(sid, 'A01', 'A')
-            self.assertEqual(result.get('status'), 'error')
-            self.assertIn('Failed to persist', result.get('error', ''))
+            status, body = _request('/api/student/assess/answer',
+                                    {'session_id': sid, 'qid': 'A01', 'selected_key': 'A'})
+            self.assertNotEqual(status, 200, f'Should not return 200 on save failure, got {status}')
+            self.assertIn('error', body, f'Response must have error key: {body}')
+            self.assertIn('Failed to persist', body.get('error', ''),
+                          f'Error should mention persistence failure: {body}')
         finally:
             ia.save_state = original_save
+
+    def test_16_completion_save_failure(self):
+        """When _finish_assessment save_state fails, no completed state returned."""
+        import app.services.initial_assessment as ia
+
+        sid = 'api_completion_fail'
+
+        # Monkey-patch save_state to fail only on completion
+        calls = {'count': 0}
+        real_save = ia.save_state
+        try:
+            def fail_on_completion(state):
+                calls['count'] += 1
+                if state.get('state') == 'completed':
+                    raise Exception('Simulated completion persistence failure')
+                return real_save(state)
+            ia.save_state = fail_on_completion
+
+            # Start and answer all questions
+            _request('/api/student/assess/start', {'session_id': sid})
+            from app.services.initial_assessment import _load_questions
+            qs = _load_questions()
+            last_status = None
+            for q in qs:
+                status, body = _request('/api/student/assess/answer',
+                                        {'session_id': sid, 'qid': q.qid, 'selected_key': q.options[0]['key']})
+                last_status = status
+                if status != 200:
+                    break
+
+            # The last answer should fail with 500 (completion save_state failed)
+            self.assertNotEqual(last_status, 200, 'Last answer should not return 200')
+
+            # SQLite state should NOT be completed
+            url = BASE + '/api/student/assess/summary?session_id=' + sid
+            req = urllib.request.Request(url, method='GET')
+            resp = urllib.request.urlopen(req, timeout=2)
+            summary = json.loads(resp.read())
+            self.assertNotEqual(summary.get('state'), 'completed',
+                                f'SQLite state should not be completed: {summary}')
+
+            # plan should return 409
+            pstatus, pbody = _request('/api/student/plan/from-assessment',
+                                      {'session_id': sid})
+            self.assertEqual(pstatus, 409, f'Plan should return 409, got {pstatus}: {pbody}')
+
+            # After clearing memory cache, summary still not completed
+            keys_to_clear = [k for k in ia._sessions if sid in k]
+            for k in keys_to_clear:
+                del ia._sessions[k]
+            resp2 = urllib.request.urlopen(req, timeout=2)
+            summary2 = json.loads(resp2.read())
+            self.assertNotEqual(summary2.get('state'), 'completed',
+                                f'After cache clear, state should not be completed: {summary2}')
+        finally:
+            ia.save_state = real_save
+
+    def test_17_version_isolation(self):
+        """Same session_id with different versions store separate states."""
+        sid = 'api_ver_iso'
+
+        # Use start/answer with default version, then verify isolation
+        # via summary endpoint with different assessment_version query params
+        _request('/api/student/assess/start', {'session_id': sid})
+        _request('/api/student/assess/answer',
+                 {'session_id': sid, 'qid': 'A01', 'selected_key': 'A'})
+
+        # Default version (1.0.0) should have 1 answered
+        url_default = BASE + '/api/student/assess/summary?session_id=' + sid
+        req = urllib.request.Request(url_default, method='GET')
+        resp = urllib.request.urlopen(req, timeout=2)
+        body_default = json.loads(resp.read())
+        self.assertEqual(body_default.get('answered_count'), 1,
+                         f'default version should have 1 answered: {body_default}')
+
+        # Explicit different version should be empty (separate storage)
+        url_v99 = BASE + '/api/student/assess/summary?session_id=' + sid + '&assessment_version=v99'
+        req2 = urllib.request.Request(url_v99, method='GET')
+        resp2 = urllib.request.urlopen(req2, timeout=2)
+        body_v99 = json.loads(resp2.read())
+        self.assertEqual(body_v99.get('answered_count'), 0,
+                         f'v99 should have 0 answered: {body_v99}')
+        self.assertNotEqual(body_default.get('state'), 'not_started',
+                            f'default version should not be not_started: {body_default}')
 
 
 if __name__ == '__main__':

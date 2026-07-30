@@ -506,9 +506,10 @@ class MVPHandler(BaseHTTPRequestHandler):
                 job_role = payload.get("job_role", None)
                 # answers_so_far and force_complete are IGNORED by the server
                 # Only SQLite persisted answers are used as source of truth
-                return self.send_json(ia_submit_answer(
-                    session_id, qid, selected_key, job_role
-                ))
+                result = ia_submit_answer(session_id, qid, selected_key, job_role)
+                if result.get("status") == "error":
+                    return self.send_error_json(500, result.get("error", "Assessment persistence failed"))
+                return self.send_json(result)
 
 
             if path == "/api/student/plan/from-assessment":

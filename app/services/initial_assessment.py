@@ -465,6 +465,19 @@ def _finish_assessment(
         save_state(session)
     except Exception as e:
         logger.error("Failed to save assessment completion state: %s", e)
+        session["state"] = "in_progress"
+        session["completed"] = False
+        session["result"] = None
+        session["completed_at"] = None
+        session.pop("_result_cached", None)
+        return {
+            "session_id": session_id,
+            "status": "error",
+            "state": "in_progress",
+            "error": f"Failed to persist assessment completion state: {e}",
+            "answered_count": len(answers),
+            "total_questions": len(questions),
+        }
     # Cache result for idempotency (in-memory fallback)
     session["_result_cached"] = {
         "session_id": session_id,
@@ -481,7 +494,7 @@ def _finish_assessment(
 def get_assessment_summary(session_id: str, job_role: str = None, assessment_version: str = "1.0.0") -> Dict[str, Any]:
     """Retrieve assessment state for a session, including progress and recommendations."""
     questions = _load_questions(job_role)
-    session = _init_session(session_id, job_role)
+    session = _init_session(session_id, job_role, assessment_version)
 
     state = session.get("state", "not_started")
     answered = len(session.get("answers", []))
