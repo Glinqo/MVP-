@@ -67,8 +67,14 @@ def chat_start(payload=None):
         except Exception:
             pass
 
+    session_id = context_pack.get("session_id")
+    # Persist session to server so it appears in history sidebar immediately
+    try:
+        append_session_event(session_id, {"event_type": "session_created"})
+    except Exception:
+        pass
     return {
-        "session_id": context_pack.get("session_id"),
+        "session_id": session_id,
         "job_profile": profile,
         "learner_context": context_pack,
         "cross_session_memory": cross_mem,

@@ -162,8 +162,9 @@ def list_conversation_sessions(limit=20):
                 continue
             sid = conv.get("session_id", fpath.stem)
             msgs = conv.get("messages", [])
-            if not msgs or len(msgs) == 0:
-                continue  # skip empty sessions
+            evts = record.get("events", [])
+            if (not msgs or len(msgs) == 0) and (not evts or len(evts) == 0):
+                continue  # skip truly empty sessions
             title = conv.get("metadata", {}).get("title", "")
             if not title:
                 for m in msgs:
