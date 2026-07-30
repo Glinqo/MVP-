@@ -1260,3 +1260,19 @@ button:active{transform:translateY(0)}
     font-size: 10px;
   }
 }
+
+/* Assessment status & retry */
+.assessment-status {
+  text-align: center;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 8px;
+  color: #fca5a5;
+  font-size: 0.9rem;
+  display: none;
+}
+#assessmentRetryBtn {
+  margin-left: 8px;
+}

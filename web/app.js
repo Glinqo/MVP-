@@ -2138,82 +2138,179 @@ function backToIdentity() {
 }
 
 function selectJob(jobId, event) {
+  var identity = localStorage.getItem("mcp_identity") || "";
+  var previousJobId = localStorage.getItem("mcp_job_id") || "";
   localStorage.setItem("mcp_job_id", jobId);
   if (event && event.currentTarget) {
     var jobName = event.currentTarget.getAttribute("data-job-name");
     if (jobName) state.jobName = jobName;
   }
-  // Create a fresh session for the new job
-  state.sessionId = "demo-" + Date.now();
-  state.messages = [];
-  localStorage.removeItem("mcp_session_id");
-  localStorage.removeItem("mcp_messages");
-  const overlay = document.getElementById("landingOverlay");
+
+  // Admin bypass: no assessment
+  if (identity !== "student") {
+    state.selectedJobId = jobId;
+    state.sessionId = "admin-" + Date.now();
+    state.messages = [];
+    state.jobProfile = { id: jobId, role_name: jobName || jobId };
+    dismissLanding();
+    return;
+  }
+
+  // Student: restore persisted session or create new
+  state.selectedJobId = jobId;
+  var storedSessionId = localStorage.getItem("mcp_session_id");
+  if (storedSessionId && previousJobId === jobId) {
+    state.sessionId = storedSessionId;
+  } else {
+    state.sessionId = "demo-" + Date.now();
+    localStorage.setItem("mcp_session_id", state.sessionId);
+    state.messages = [];
+  }
+  state.jobProfile = { id: jobId, role_name: jobName || jobId };
+
+  // Dismiss landing, then launch assessment
+  dismissLanding();
+  setTimeout(function() {
+    startAssessment(jobId);
+  }, 450);
+}
+
+function dismissLanding() {
+  var overlay = document.getElementById("landingOverlay");
   overlay.classList.add("fade-out");
   setTimeout(function() {
     overlay.style.display = "none";
     document.body.style.overflow = "";
-    // Start the app if not already started
-    if (typeof boot === "function") boot();
   }, 400);
 }
 
-
 // ---- Assessment Functions ----
+
 var assessmentState = {
-  questions: [],
-  answers: [],
+  currentQid: "",
+  currentQuestion: null,
   currentIndex: 0,
+  answeredCount: 0,
+  totalQuestions: 0,
+  selectedOption: null,
+  jobRole: "",
+  abilityLabels: {},
   started: false,
-  selectedOption: null
+  starting: false,
+  submitting: false
 };
 
-async function startAssessment() {
+function selectedJobRole() {
+  return assessmentState.jobRole
+    || state.selectedJobId
+    || localStorage.getItem("mcp_job_id")
+    || "";
+}
+
+function showAssessmentError(msg) {
+  var statusEl = document.getElementById("assessmentStatus");
+  if (statusEl) {
+    statusEl.textContent = msg;
+    statusEl.style.display = "block";
+  }
+  var retryBtn = document.getElementById("assessmentRetryBtn");
+  if (retryBtn) retryBtn.hidden = false;
+}
+
+function clearAssessmentError() {
+  var statusEl = document.getElementById("assessmentStatus");
+  if (statusEl) {
+    statusEl.textContent = "";
+    statusEl.style.display = "none";
+  }
+  var retryBtn = document.getElementById("assessmentRetryBtn");
+  if (retryBtn) retryBtn.hidden = true;
+}
+
+async function startAssessment(jobRole) {
+  if (assessmentState.starting) return;
+  assessmentState.starting = true;
   var overlay = document.getElementById("assessmentOverlay");
   var container = overlay.querySelector(".assessment-container");
   var result = overlay.querySelector(".assessment-result");
   overlay.style.display = "flex";
+  overlay.setAttribute("aria-hidden", "false");
   container.style.display = "block";
   result.style.display = "none";
+  clearAssessmentError();
+
+  var role = jobRole || state.selectedJobId || localStorage.getItem("mcp_job_id") || "";
   try {
     var resp = await api("/api/student/assess/start", {
       method: "POST",
-      body: JSON.stringify({ session_id: state.sessionId })
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        job_role: role
+      })
     });
+
     if (resp.error) {
-      console.warn("Assessment not available:", resp.error);
-      finishAssessmentAndBoot();
+      // Completed assessment: server sends error instead of questions
+      if (resp.error && (resp.error.includes("completed") || resp.error.includes("already"))) {
+        overlay.style.display = "none";
+        overlay.setAttribute("aria-hidden", "true");
+        assessmentState.starting = false;
+        if (typeof boot === "function") boot();
+        return;
+      }
+      showAssessmentError(resp.error || "启动测评失败");
+      assessmentState.starting = false;
       return;
     }
-    assessmentState.questions = [];
-    assessmentState.answers = [];
+
+    assessmentState.jobRole = role;
+    assessmentState.currentQid = "";
     assessmentState.currentIndex = 0;
+    assessmentState.answeredCount = 0;
     assessmentState.started = true;
     assessmentState.selectedOption = null;
+    assessmentState.starting = false;
     renderAssessmentQuestion(resp);
   } catch (e) {
-    console.warn("Assessment startup failed:", e);
-    finishAssessmentAndBoot();
+    console.error("Assessment startup failed:", e);
+    showAssessmentError("网络错误，启动测评失败，请点击重试");
+    assessmentState.starting = false;
   }
 }
 
 function renderAssessmentQuestion(resp) {
   var q = resp.first_question || resp.next_question;
-  var total = resp.total_questions || assessmentState.questions.length || 30;
+  if (!q || !q.qid) {
+    showAssessmentError("测评数据异常，请重试");
+    return;
+  }
+
+  assessmentState.currentQid = q.qid;
+  assessmentState.currentQuestion = q;
+  var total = resp.total_questions || 30;
+  assessmentState.totalQuestions = total;
   var idx = resp.current_index !== undefined ? resp.current_index : assessmentState.currentIndex;
-  document.getElementById("assessmentProgress").querySelector(".progress-fill").style.width = (idx / total * 100) + "%";
+  assessmentState.currentIndex = idx;
+  assessmentState.answeredCount = resp.answered_count !== undefined ? resp.answered_count : idx;
+
+  var progressPct = total > 0 ? (idx / total * 100) : 0;
+  document.getElementById("assessmentProgress").querySelector(".progress-fill").style.width = progressPct + "%";
   document.getElementById("assessmentProgress").querySelector(".progress-text").textContent = idx + " / " + total;
+
   var card = document.getElementById("assessmentQuestionCard");
   card.querySelector(".question-dimension").textContent = q.dimension || "";
   card.querySelector(".question-text").textContent = q.text || "";
+
   var optsDiv = card.querySelector(".question-options");
   optsDiv.innerHTML = "";
   assessmentState.selectedOption = null;
+
   if (q.options) {
     q.options.forEach(function(opt) {
       var btn = document.createElement("button");
       btn.className = "option-btn";
       btn.textContent = opt.key + ". " + opt.text;
+      btn.type = "button";
       btn.addEventListener("click", function() {
         var allBtns = optsDiv.querySelectorAll(".option-btn");
         allBtns.forEach(function(b) { b.classList.remove("selected"); });
@@ -2224,53 +2321,77 @@ function renderAssessmentQuestion(resp) {
       optsDiv.appendChild(btn);
     });
   }
+
   document.getElementById("assessmentNextBtn").disabled = true;
   document.getElementById("assessmentNextBtn").onclick = submitAssessmentAnswer;
   document.getElementById("assessmentSkipBtn").onclick = skipAssessment;
+  document.getElementById("assessmentRetryBtn").onclick = function() {
+    clearAssessmentError();
+    startAssessment(assessmentState.jobRole);
+  };
 }
 
 async function submitAssessmentAnswer() {
   if (!assessmentState.selectedOption) return;
-  assessmentState.answers.push({ qid: assessmentState._currentQid || "", selected: assessmentState.selectedOption });
+  if (assessmentState.submitting) return;
+  assessmentState.submitting = true;
+  clearAssessmentError();
+
+  var qid = assessmentState.currentQid;
+  if (!qid) {
+    showAssessmentError("题目数据异常，请重试");
+    assessmentState.submitting = false;
+    return;
+  }
+
   try {
     var resp = await api("/api/student/assess/answer", {
       method: "POST",
       body: JSON.stringify({
         session_id: state.sessionId,
-        qid: assessmentState._currentQid || "",
+        qid: qid,
         selected_key: assessmentState.selectedOption,
-        answers_so_far: assessmentState.answers.slice(0, -1)
+        job_role: assessmentState.jobRole
       })
     });
+
+    if (resp.error) {
+      showAssessmentError(resp.error || "提交失败，请重试");
+      assessmentState.submitting = false;
+      return;
+    }
+
     if (resp.status === "completed") {
       showAssessmentResult(resp.result);
-    } else {
-      assessmentState._currentQid = resp.next_question.qid;
-      assessmentState.currentIndex = resp.current_index;
+    } else if (resp.next_question) {
       renderAssessmentQuestion(resp);
+    } else {
+      showAssessmentError("服务端返回异常，请重试");
     }
   } catch (e) {
     console.error("Assessment answer error:", e);
-    finishAssessmentAndBoot();
+    showAssessmentError("网络错误，提交失败，请点击重试");
   }
+  assessmentState.submitting = false;
 }
 
 function showAssessmentResult(result) {
+  if (!result) {
+    showAssessmentError("测评结果为空");
+    return;
+  }
   document.getElementById("assessmentOverlay").querySelector(".assessment-container").style.display = "none";
+  document.getElementById("assessmentStatus").style.display = "none";
+  document.getElementById("assessmentRetryBtn").hidden = true;
   var resultDiv = document.getElementById("assessmentResult");
   resultDiv.style.display = "block";
-  // Score
+
   document.getElementById("resultScore").textContent = Math.round((result.total_score || 0) * 100) + "%";
-  // Dimensions
+
   var dimsDiv = document.getElementById("resultDimensions");
   dimsDiv.innerHTML = "";
   var scores = result.ability_scores || {};
-  var labelMap = {};
-  if (assessmentState.questions && assessmentState.questions.length > 0) {
-    assessmentState.questions.forEach(function(q) {
-      if (q.ability_label) labelMap[q.ability_id] = q.ability_label;
-    });
-  }
+  var labelMap = assessmentState.abilityLabels || {};
   Object.keys(scores).forEach(function(aid) {
     var s = scores[aid];
     var cssClass = s >= 0.8 ? "strong" : (s >= 0.5 ? "medium" : "weak");
@@ -2281,22 +2402,29 @@ function showAssessmentResult(result) {
       '<span class="dimension-score">' + Math.round(s * 100) + '%</span>';
     dimsDiv.appendChild(row);
   });
-  // Recommendations
+
   var recDiv = document.getElementById("resultRecommendations");
   recDiv.innerHTML = result.recommendations && result.recommendations.length > 0 ?
     '<h4>学习建议</h4><ul>' + result.recommendations.map(function(r) { return '<li>' + r + '</li>'; }).join("") + '</ul>' : "";
-  // Next steps
+
   var stepDiv = document.getElementById("resultNextSteps");
   stepDiv.innerHTML = result.next_steps && result.next_steps.length > 0 ?
     '<h4>下一步</h4>' + result.next_steps.map(function(s) { return '<div class="next-step">' + s + '</div>'; }).join("") : "";
+
   document.getElementById("assessmentDoneBtn").onclick = finishAssessmentAndBoot;
 }
 
 function skipAssessment() {
+  if (!confirm("确定暂时跳过测评吗？跳过后将无法获得个性化学习路径。")) return;
   finishAssessmentAndBoot();
 }
 
 function finishAssessmentAndBoot() {
-  document.getElementById("assessmentOverlay").style.display = "none";
+  var overlay = document.getElementById("assessmentOverlay");
+  overlay.style.display = "none";
+  overlay.setAttribute("aria-hidden", "true");
   if (typeof boot === "function") boot();
 }
+
+// ---- End Assessment ----
+
