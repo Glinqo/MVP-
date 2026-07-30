@@ -15,12 +15,27 @@ def compact_ability(ability_id):
     }
 
 
+_task_scenario_cache = None
+
+def _get_task_scenarios():
+    global _task_scenario_cache
+    if _task_scenario_cache is None:
+        _task_scenario_cache = _load_training_plan_tasks()
+    return _task_scenario_cache
+
 def scenario_by_id(scenario_id=None):
     scenarios = load_data()["troubleshooting_scenarios"]
+    task_scenarios = _get_task_scenarios()
     if scenario_id:
-        for scenario in scenarios:
-            if scenario.get("id") == scenario_id:
-                return scenario
+        for s in task_scenarios:
+            if s.get("id") == scenario_id:
+                return s
+    if scenario_id:
+        for s in scenarios:
+            if s.get("id") == scenario_id:
+                return s
+    if task_scenarios:
+        return task_scenarios[0]
     if not scenarios:
         raise ValueError("no troubleshooting scenarios configured")
     return scenarios[0]
@@ -64,17 +79,83 @@ def scenario_summary(scenario):
     }
 
 
+def _load_training_plan_tasks():
+    """Load task items from training-plans.json, generate scenario dicts."""
+    import json as _json
+    from pathlib import Path as _Path
+    plan_path = _Path(__file__).resolve().parents[2] / "web" / "training-plans.json"
+    if not plan_path.exists():
+        return []
+    with open(plan_path, "r", encoding="utf-8") as f:
+        plans = _json.load(f)
+    scenarios = []
+    tid = 1
+    for _job_name, job_plan in plans.items():
+        for stage in job_plan.get("stages", []):
+            stage_name = stage.get("name", "")
+            stage_tasks = stage.get("tasks", "")
+            if not stage_tasks:
+                continue
+            stage_short = stage_name.split("\uff1a")[-1] if "\uff1a" in stage_name else stage_name
+            goal = stage.get("goal", "")
+            for task_item in stage_tasks.split("；"):
+                task_item = task_item.strip()
+                if not task_item:
+                    continue
+                sid = "TSK_{:03d}".format(tid)
+                tid += 1
+                kw = task_item
+                if "\u63a5\u7ebf" in kw or "\u65ad\u7535" in kw:
+                    safety = "安全提醒：接线、拆线和端子检查前先断电；通电监控前确认急停、气源和设备状态。"
+                elif "PLC" in kw or "\u8f93\u5165" in kw:
+                    safety = "安全提醒：通电测量前确认安全条件，不确定时请教师确认；改线必须断电。"
+                else:
+                    safety = "安全提醒：操作前确认设备状态和安全边界，不确定时请教师确认。"
+                scenarios.append({
+                    "id": sid,
+                    "title": "\u3010" + stage_short + "\u3011" + task_item[:32],
+                    "roleplay_frame": "\u4f60\u662f\u81ea\u52a8\u5316\u751f\u4ea7\u7ebf\u88c5\u8c03\u4e0e\u8fd0\u7ef4\u6280\u672f\u5458\u65b0\u4eba\uff0c\u5e08\u5085\u8ba9\u4f60\u5b8c\u6210\u4ee5\u4e0b\u4efb\u52a1\uff1a" + task_item + "\u3002",
+                    "initial_symptom": "\u4efb\u52a1\uff1a" + task_item + "\uff1b\u76ee\u6807\uff1a" + goal,
+                    "safety_notice": safety,
+                    "ability_ids": [],
+                    "source": "training_plan_task",
+                    "steps": [
+                        {"id": "S1", "prompt": "\u4efb\u52a1\uff1a" + task_item + "\u3002\u8bf7\u63cf\u8ff0\u4f60\u7684\u7b2c\u4e00\u6b65\u64cd\u4f5c\uff1a", "ability_ids": [],
+                         "options": [
+                             {"id": "A", "text": "\u5148\u65ad\u7535\u5e76\u786e\u8ba4\u8bbe\u5907\u5b89\u5168\u72b6\u6001\uff0c\u518d\u8fdb\u884c\u64cd\u4f5c", "is_correct": True,
+                              "feedback": "\u6b63\u786e\u3002\u5b89\u5168\u662f\u6240\u6709\u64cd\u4f5c\u7684\u524d\u63d0\u3002",
+                              "observation": "\u73b0\u573a\u5df2\u65ad\u7535\uff0c\u53ef\u5f00\u59cb\u4efb\u52a1\u3002"},
+                             {"id": "B", "text": "\u76f4\u63a5\u5f00\u59cb\u64cd\u4f5c\uff0c\u4e0d\u5fc5\u786e\u8ba4\u8bbe\u5907\u72b6\u6001", "is_correct": False,
+                              "feedback": "\u4e0d\u5408\u9002\u3002\u6240\u6709\u64cd\u4f5c\u5fc5\u987b\u4ee5\u5b89\u5168\u4e3a\u524d\u63d0\u3002",
+                              "observation": "\u5e08\u5085\u63d0\u9192\u4f60\u5148\u65ad\u7535\u786e\u8ba4\u3002"}]},
+                        {"id": "S2", "prompt": "\u4e0b\u4e00\u6b65\uff0c\u8bf7\u6839\u636e\u4efb\u52a1\u8981\u6c42\u8bf4\u660e\u4f60\u7684\u6392\u6545\u601d\u8def\uff1a" + task_item, "ability_ids": [],
+                         "options": [
+                             {"id": "A", "text": "\u67e5\u770b\u63a5\u7ebf\u56fe\u3001\u67e5\u9605\u578b\u53f7\u8bf4\u660e\u4e66\uff0c\u6309\u6b65\u9aa4\u6392\u67e5", "is_correct": True,
+                              "feedback": "\u6b63\u786e\u3002\u6392\u6545\u5148\u67e5\u56fe\u7eb8\u548c\u8bf4\u660e\u4e66\u3002",
+                              "observation": "\u627e\u5230\u4e86\u76f8\u5173\u6280\u672f\u8d44\u6599\u3002"},
+                             {"id": "B", "text": "\u968f\u4fbf\u6362\u4e00\u4e2a\u8f93\u5165\u70b9\u8bd5\u8bd5", "is_correct": False,
+                              "feedback": "\u4e0d\u5408\u9002\u3002\u6392\u6545\u9700\u8981\u6709\u7cbe\u70b9\u548c\u65b9\u6cd5\u3002",
+                              "observation": "\u5e08\u5085\u8981\u6c42\u4f60\u5148\u770b\u56fe\u7eb8\u3002"}]}]})
+    return scenarios
+
 def list_scenarios():
+    curated = load_data()["troubleshooting_scenarios"]
+    task_list = _get_task_scenarios()
+    all_scenarios = []
+    for s in task_list:
+        all_scenarios.append(s)
+    for s in curated:
+        all_scenarios.append(s)
     return {
         "scenarios": [
             {
-                "id": scenario.get("id"),
-                "title": scenario.get("title"),
-                "initial_symptom": scenario.get("initial_symptom"),
-                "ability_hits": [compact_ability(item) for item in scenario.get("ability_ids", [])],
-                "source": scenario.get("source"),
+                "id": s.get("id"),
+                "title": s.get("title"),
+                "initial_symptom": s.get("initial_symptom"),
+                "ability_hits": [compact_ability(item) for item in s.get("ability_ids", [])],
+                "source": s.get("source"),
             }
-            for scenario in load_data()["troubleshooting_scenarios"]
+            for s in all_scenarios
         ]
     }
 
