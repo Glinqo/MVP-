@@ -1412,6 +1412,21 @@ function setGraphView(view) {
   });
 }
 
+
+function applyAssessmentScoresToGraph(scores) {
+  if (!scores || !state.graphs || !state.graphs.student) return;
+  var nodes = state.graphs.student.nodes || [];
+  nodes.forEach(function(node) {
+    var aid = node.id || node.ability_id || "";
+    if (scores[aid] !== undefined) {
+      node.mastery_score = parseFloat(scores[aid].toFixed(2));
+    }
+  });
+  // Re-render the graph if renderer exists
+  if (state.graphRenderers && state.graphRenderers["student-graph"]) {
+    state.graphRenderers["student-graph"].update(state.graphs.student);
+  }
+}
 async function refreshStudentGraph() {
   const graph = await api(`/api/graph/student?session_id=${encodeURIComponent(state.sessionId)}`);
   renderGraph(graph, "student");
@@ -2556,15 +2571,21 @@ function showAssessmentResult(result) {
     });
   }
 
+  // Store assessment scores for graph update
+  state.assessmentScores = result.ability_scores || {};
+
   document.getElementById("assessmentDoneBtn").onclick = function() {
     hideAssessmentOverlay();
     bootOnce().then(function() {
-      // After boot completes, auto-open workspace to show knowledge gaps + graph
+      // Apply assessment scores to student graph after boot
       setTimeout(function() {
+        if (typeof applyAssessmentScoresToGraph === "function" && state.assessmentScores) {
+          applyAssessmentScoresToGraph(state.assessmentScores);
+        }
         if (typeof openWorkspace === "function") {
           openWorkspace("knowledge");
         }
-      }, 800);
+      }, 1200);
     });
   };
 }
