@@ -171,7 +171,7 @@ function attachDashboardActions(root) {
         return;
       }
       if (tool === "student_graph") {
-        openWorkspace("graph", "student");
+        openWorkspace("knowledge");
         return;
       }
       openWorkspace(tool, button.dataset.dashboardGraph);
@@ -2493,40 +2493,76 @@ function showAssessmentResult(result) {
 
   try { localStorage.setItem(assessmentCompletedKey(), "1"); } catch (_) {}
 
+  // Collect labels to search: wrong-answer labels + weak ability labels
+  var searchLabels = [];
   var answers = result.answers || [];
-  var wrongAnswers = answers.filter(function(a) { return a.correct === false; });
-  var wrongLabels = [];
-  wrongAnswers.forEach(function(a) {
-    var label = a.ability_label || "";
-    if (label && wrongLabels.indexOf(label) === -1) wrongLabels.push(label);
+  if (answers.length > 0) {
+    var wrongAnswers = answers.filter(function(a) { return a.correct === false; });
+    wrongAnswers.forEach(function(a) {
+      var label = a.ability_label || "";
+      if (label && searchLabels.indexOf(label) === -1) searchLabels.push(label);
+    });
+  }
+  // Fallback: use weak_abilities with their labels from ability_scores
+  var weakIds = result.weak_abilities || [];
+  var abilityLabels = assessmentState.abilityLabels || {};
+  weakIds.forEach(function(aid) {
+    var label = abilityLabels[aid] || aid;
+    if (label && searchLabels.indexOf(label) === -1 && searchLabels.length < 8) {
+      searchLabels.push(label);
+    }
   });
 
   var allCards = [];
-  var promises = wrongLabels.map(function(label) {
-    return api("/api/knowledge/search?query=" + encodeURIComponent(label))
-      .then(function(res) {
-        if (res.results && res.results.length > 0) {
-          res.results.forEach(function(item) { allCards.push(item); });
-        }
-      }).catch(function() {});
-  });
-
-  Promise.all(promises).then(function() {
-    var seen = {};
-    var unique = allCards.filter(function(c) { if (seen[c.id]) return false; seen[c.id] = true; return true; });
-    var gapEl = document.getElementById("knowledgeGapCards");
-    var refsEl = document.getElementById("knowledgeRefs");
-    if (unique.length > 0) {
-      var h = renderKnowledgeCards(unique);
-      if (gapEl) { gapEl.innerHTML = h; gapEl.classList.remove("muted"); }
-      if (refsEl) { refsEl.innerHTML = h; refsEl.classList.remove("muted"); }
-    }
+  var promises = [];
+  if (searchLabels.length === 0) {
+    // No search labels: render empty state immediately
+    var gapEl2 = document.getElementById("knowledgeGapCards");
+    var refsEl2 = document.getElementById("knowledgeRefs");
+    if (gapEl2) gapEl2.innerHTML = '<p class="muted">测评已完成，未检测到薄弱知识点。</p>';
+    if (refsEl2) refsEl2.innerHTML = '<p class="muted">测评已完成，未检测到薄弱知识点。</p>';
     if (typeof refreshStudentGraph === "function") refreshStudentGraph();
-  });
+  } else {
+    promises = searchLabels.map(function(label) {
+      return api("/api/knowledge/search?query=" + encodeURIComponent(label))
+        .then(function(res) {
+          if (res.results && res.results.length > 0) {
+            res.results.forEach(function(item) { allCards.push(item); });
+          }
+        }).catch(function() {});
+    });
+
+    var doneBtn = document.getElementById("assessmentDoneBtn");
+    var originalBtnText = doneBtn.textContent;
+    doneBtn.textContent = "正在生成知识缺口...";
+    doneBtn.disabled = true;
+
+    Promise.all(promises).then(function() {
+      var seen = {};
+      var unique = allCards.filter(function(c) { if (seen[c.id]) return false; seen[c.id] = true; return true; });
+      var gapEl = document.getElementById("knowledgeGapCards");
+      var refsEl = document.getElementById("knowledgeRefs");
+      if (unique.length > 0) {
+        var h = renderKnowledgeCards(unique);
+        if (gapEl) { gapEl.innerHTML = h; gapEl.classList.remove("muted"); }
+        if (refsEl) { refsEl.innerHTML = h; refsEl.classList.remove("muted"); }
+      }
+      if (typeof refreshStudentGraph === "function") refreshStudentGraph();
+      doneBtn.textContent = originalBtnText;
+      doneBtn.disabled = false;
+    });
+  }
 
   document.getElementById("assessmentDoneBtn").onclick = function() {
     hideAssessmentOverlay();
-    bootOnce();
+    bootOnce().then(function() {
+      // After boot completes, auto-open workspace to show knowledge gaps + graph
+      setTimeout(function() {
+        if (typeof openWorkspace === "function") {
+          openWorkspace("knowledge");
+        }
+      }, 800);
+    });
   };
 }
 
@@ -2744,18 +2780,38 @@ function backToIdentity() {
 }
 
 function selectJob(jobId, event) {
+  var identity = localStorage.getItem("mcp_identity") || "";
   localStorage.setItem("mcp_job_id", jobId);
   if (event && event.currentTarget) {
     var jobName = event.currentTarget.getAttribute("data-job-name");
     if (jobName) state.jobName = jobName;
   }
-  const overlay = document.getElementById("landingOverlay");
-  overlay.classList.add("fade-out");
-  setTimeout(function() {
-    overlay.style.display = "none";
-    document.body.style.overflow = "";
-    dismissLanding().then(function() { startAssessment(jobId); });
-  }, 400);
+
+  // Admin bypass: no assessment, boot app directly
+  if (identity !== "student") {
+    state.selectedJobId = jobId;
+    state.sessionId = "admin-" + Date.now();
+    state.messages = [];
+    state.jobProfile = { id: jobId, role_name: state.jobName || jobId };
+    const overlay = document.getElementById("landingOverlay");
+    overlay.classList.add("fade-out");
+    setTimeout(function() {
+      overlay.style.display = "none";
+      document.body.style.overflow = "";
+      bootOnce();
+    }, 400);
+    return;
+  }
+
+  // Student: use assessment flow
+  state.selectedJobId = jobId;
+  state.sessionId = "demo-" + Date.now();
+  localStorage.setItem("mcp_session_id", state.sessionId);
+  state.messages = [];
+  state.jobProfile = { id: jobId, role_name: state.jobName || jobId };
+  dismissLanding().then(function() {
+    startAssessment(jobId);
+  });
 }
 
 function dismissLanding() {

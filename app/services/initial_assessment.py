@@ -448,6 +448,7 @@ def _finish_assessment(
             "Start recommended learning path for weak areas",
             "Complete safety training before hands-on practice" if safety_gaps else "Proceed to scenario training",
         ],
+        "answers": answer_list,
         "completed_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "session_id": session_id,
         "job_role": job_role or "unknown",
