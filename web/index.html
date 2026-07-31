@@ -1,17 +1,17 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <script src="/d3.min.js"></script>
+    <script src="/d3.min.js?v=20260730-2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>机电岗位培训 AI</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=20260730-2" />
   </head>
   <body>
     <!-- ── Identity & Job Selection Overlay ── --><div id="landingOverlay" class="landing-overlay">
       <div class="landing-bg"></div>
-      <div class="landing-container">
+  <div class="landing-container">
 
         <!-- Step 1: Identity -->
         <div id="landingStepIdentity" class="landing-step active">
@@ -112,7 +112,6 @@
                 </svg>
               </div>
             </button>
-          </button>
 
             <button class="landing-card job-card-lg" onclick="selectJob('automation_equipment_debugger',event)" data-job-name="自动化设备调试员">
               <div class="landing-card-icon">
@@ -219,6 +218,41 @@
         </div>
       </div>
     </div>
+  <!-- Assessment Overlay (independent from landing overlay) -->
+  <div id="assessmentOverlay" class="assessment-overlay" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;">
+    <div class="assessment-container">
+      <div class="assessment-header">
+        <h2>初始能力测评</h2>
+        <p class="assessment-subtitle">完成测评后，系统将为您生成个性化的学习路径</p>
+      </div>
+      <div id="assessmentProgress" class="assessment-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+        <span class="progress-text">0 / 0</span>
+      </div>
+      <div id="assessmentStatus" class="assessment-status" role="status" aria-live="polite"></div>
+      <div id="assessmentQuestionCard" class="assessment-question-card">
+        <div class="question-dimension"></div>
+        <h3 class="question-text"></h3>
+        <div class="question-options"></div>
+      </div>
+      <div class="assessment-actions">
+        <button id="assessmentSkipBtn" class="btn-secondary" type="button">暂时跳过</button>
+        <button id="assessmentRetryBtn" class="btn-secondary" type="button" hidden>重试</button>
+        <button id="assessmentNextBtn" class="btn-primary" type="button" disabled>确认并继续</button>
+      </div>
+    </div>
+    <div id="assessmentResult" class="assessment-result" style="display:none;">
+      <div class="result-header">
+        <h2>测评完成</h2>
+        <p class="result-total-score">总分：<strong id="resultScore"></strong></p>
+      </div>
+      <div class="result-dimensions" id="resultDimensions"></div>
+      <div class="result-recommendations" id="resultRecommendations"></div>
+      <div class="result-next-steps" id="resultNextSteps"></div>
+      <button id="assessmentDoneBtn" class="btn-primary">进入学习</button>
+    </div>
+  </div>
+
 
     <header class="topbar">
       <div>
@@ -245,7 +279,6 @@
         <form id="chatForm" class="chat-input">
           <textarea id="chatInput" rows="2" placeholder="直接问：传感器动作灯亮但 PLC 没输入，为什么？"></textarea>
           <button id="sendChat" class="primary" type="submit">发送</button>
-          <button id="stopChat" class="stop" type="button" style="display:none" onclick="stopChat()">停止</button>
         </form>
       </section>
 
@@ -304,25 +337,24 @@
 
         <section class="launcher-panel">
           <h2>功能工作台</h2>
-          <div class="tool-launcher"><button data-open-tool="knowledge" type="button">
-              <strong>知识缺口</strong>
-              <span>NPN/PNP、公共端、I/O 地址</span>
-            </button>
-<button data-open-tool="graph" type="button">
+          <div class="tool-launcher">
+            <button data-open-tool="graph" type="button">
               <strong>能力图谱</strong>
               <span>岗位需求与个人能力可视化</span>
             </button>
-<button data-open-tool="jobAdmin" type="button">
+            <button data-open-tool="jobAdmin" type="button">
               <strong>岗位数据</strong>
               <span>JD 导入与图谱提案审核</span>
             </button>
-<button data-open-tool="plan" type="button">
-              <strong>个人培养方案</strong>
-<button data-open-tool="tasks" type="button">
+            <button data-open-tool="knowledge" type="button">
+              <strong>知识缺口</strong>
+              <span>NPN/PNP、公共端、I/O 地址</span>
+            </button>
+            <button data-open-tool="tasks" type="button">
               <strong>实训任务</strong>
               <span>一节课内可完成的补救训练</span>
             </button>
-<button data-open-tool="scenario" type="button">
+            <button data-open-tool="scenario" type="button">
               <strong>排故角色扮演</strong>
               <span>像师傅带教一样练现场判断</span>
             </button>
@@ -330,6 +362,8 @@
               <strong>自测验证 <span id="quizCount">加载中</span></strong>
               <span>8 题确定性评分</span>
             </button>
+            <button data-open-tool="plan" type="button">
+              <strong>个人培养方案</strong>
           </div>
             </button>
         </section>
@@ -354,13 +388,13 @@
         </header>
 
         <nav class="workspace-tabs" aria-label="功能工作台">
-          <button class="active" data-workspace-panel="knowledge" type="button">知识缺口</button>
-<button data-workspace-panel="graph" type="button">能力图谱</button>
-<button data-workspace-panel="jobAdmin" type="button">岗位数据</button>
-<button data-workspace-panel="plan" type="button">培养方案</button>
-<button data-workspace-panel="tasks" type="button">实训任务</button>
-<button data-workspace-panel="scenario" type="button">角色扮演</button>
-<button data-workspace-panel="quiz" type="button">自测</button>
+          <button class="active" data-workspace-panel="graph" type="button">能力图谱</button>
+          <button data-workspace-panel="jobAdmin" type="button">岗位数据</button>
+          <button data-workspace-panel="knowledge" type="button">知识缺口</button>
+          <button data-workspace-panel="tasks" type="button">实训任务</button>
+          <button data-workspace-panel="scenario" type="button">角色扮演</button>
+          <button data-workspace-panel="quiz" type="button">自测</button>
+          <button data-workspace-panel="plan" type="button">培养方案</button>
         </nav>
 
         <div class="workspace-body">
@@ -528,8 +562,8 @@
       </div>
     </aside>
 
-    <script src="/graph-renderer.js"></script>
-    <script src="/app.js"></script>
-      
-</body>
+    <script src="/graph-renderer.js?v=20260730-2"></script>
+    <script src="/app.js?v=20260730-2"></script>
+    <script src="/history.js?v=20260730-2"></script>
+  </body>
 </html>

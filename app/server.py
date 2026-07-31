@@ -53,6 +53,9 @@ from app.services.student_dashboard import build_student_dashboard  # noqa: E402
 
 from scripts.pipeline.evidence_store import list_snapshots, get_snapshot, version_diff, version_rollback
 from app.services.matching import compute_match
+
+from app.services.initial_assessment import start_assessment as ia_start, submit_answer as ia_submit_answer, get_assessment_summary as ia_get_summary  # noqa: E402
+from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.conversation_state import list_conversation_sessions, load_conversation_state, rename_conversation, delete_conversation, generate_session_title  # noqa: E402
 
 
@@ -260,6 +263,23 @@ class MVPHandler(BaseHTTPRequestHandler):
                 result = reject_proposal(pid)
             return self.send_json(result)
 
+        if path == "/api/student/assess/summary":
+            query = parse_qs(parsed.query)
+            session_id = query.get("session_id", [None])[0]
+            if not session_id:
+                return self.send_error_json(400, "session_id is required")
+            return self.send_json(ia_get_summary(session_id, query.get("job_role", [None])[0], query.get("assessment_version", ["1.0.0"])[0]))
+
+        if path == "/api/teacher/students/assessments":
+            return self.send_json(list_student_sessions())
+
+        if path == "/api/teacher/students/assessment":
+            query = parse_qs(parsed.query)
+            session_id = query.get("session_id", [None])[0]
+            if not session_id:
+                return self.send_error_json(400, "session_id is required")
+            return self.send_json(generate_individual_report(session_id))
+
         if path == "/api/scenarios":
             return self.send_json(list_scenarios())
 
@@ -442,6 +462,10 @@ class MVPHandler(BaseHTTPRequestHandler):
 
             if path == "/api/graph/job/versions/rollback":
                 return self.send_json(version_rollback(payload.get("version"), payload.get("job_role")))
+            if path == "/api/student/assess/start":
+                return self.send_json(ia_start(payload.get("session_id", ""), payload.get("job_role")))
+            if path == "/api/student/assess/submit":
+                return self.send_json(ia_submit_answer(payload.get("session_id", ""), payload.get("qid", ""), payload.get("selected_key", ""), payload.get("job_role")))
         return self.send_error_json(404, "API endpoint not found")
 
     def serve_static(self, request_path):

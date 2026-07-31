@@ -26,7 +26,12 @@ const state = {
   },
   activeWorkspace: "graph",
   activeGraphView: "job",
-  sessionId: localStorage.getItem("mcp_session_id") || `demo-${Date.now()}`
+  sessionId: (function() {
+    var hash = location.hash.replace("#", "");
+    if (hash && hash.indexOf("session=") === 0) return hash.replace("session=", "");
+    var ls = localStorage.getItem("mcp_session_id");
+    return ls || "demo-" + Date.now();
+  })()
 };
 
 const DEFAULT_JOB_ROLE = "自动化生产线装调与运维技术员";
@@ -34,30 +39,49 @@ const DEFAULT_JOB_ROLE = "自动化生产线装调与运维技术员";
 // ── Persistence helpers ──────────────────────────────────────────
 function persistSession() {
   localStorage.setItem("mcp_session_id", state.sessionId);
+  location.hash = "#session=" + state.sessionId;
   try {
-    localStorage.setItem("mcp_messages", JSON.stringify(state.messages.slice(-40)));
+    localStorage.setItem("msg_" + state.sessionId, JSON.stringify(state.messages.slice(-40)));
   } catch (e) { /* quota exceeded, ignore */ }
 }
 
 function restoreMessages() {
   try {
-    const raw = localStorage.getItem("mcp_messages");
-    return raw ? JSON.parse(raw) : [];
+    var key = "msg_" + state.sessionId;
+    var raw = localStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
+    var oldRaw = localStorage.getItem("mcp_messages");
+    if (oldRaw) {
+      localStorage.removeItem("mcp_messages");
+      var arr = JSON.parse(oldRaw);
+      if (arr.length) localStorage.setItem(key, JSON.stringify(arr.slice(-40)));
+      return arr;
+    }
+    return [];
   } catch (e) { return []; }
+}
+
+function newSession() {
+  localStorage.removeItem("mcp_session_id");
+  localStorage.removeItem("mcp_messages");
+  // clean per-session message caches
+  var keys = Object.keys(localStorage);
+  keys.forEach(function(k) {
+    if (k.startsWith("msg_")) localStorage.removeItem(k);
+  });
+  location.reload();
 }
 
 function createNewChat() {
   var newId = "demo-" + Date.now();
   state.sessionId = newId;
   state.messages = [];
-  localStorage.setItem("mcp_session_id", newId);
-  renderMessages();
-}
-
-function newSession() {
-  localStorage.removeItem("mcp_session_id");
   localStorage.removeItem("mcp_messages");
-  location.reload();
+  persistSession();
+  // clear in-server old messages by creating new session on next send
+  renderMessages();
+  refreshSidebar();
+  if (window.innerWidth <= 768) toggleSidebar();
 }
 
 const $_raw = (id) => document.getElementById(id);
@@ -77,26 +101,13 @@ const $ = (id) => {
 };
 
 async function api(path, options = {}) {
-  var extSignal = options.signal;
-  delete options.signal;
-  var ctrl = new AbortController();
-  var signal = ctrl.signal;
-  var timeoutMs = options.timeoutMs || 25000;
-  delete options.timeoutMs;
-  var timeoutId = setTimeout(function() { ctrl.abort(); }, timeoutMs);
-  if (extSignal) { extSignal.addEventListener("abort", function() { ctrl.abort(); }); }
-  try {
-    var response = await fetch(path, {
-      headers: { "Content-Type": "application/json" },
-      signal: signal,
-      ...options
-    });
-    var data = await response.json();
-    if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
-    return data;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...options
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+  return data;
 }
 
 function escapeHtml(value) {
@@ -401,18 +412,17 @@ function addMessage(role, content, meta) {
   state.messages.push({ role: role, content: content, meta: meta });
   renderMessages();
   persistSession();
-  // AI title generation on first user message
+  // Auto-title on first user message
   if (role === "user" && state.messages.filter(function(m) { return m.role === "user"; }).length === 1) {
-    if (typeof generateAITitle === "function") setTimeout(function() { generateAITitle(state.sessionId); }, 800);
+    fetch("/api/conversation/" + encodeURIComponent(state.sessionId) + "?action=title", { method: "POST" }).catch(function(){});
   }
-
+  // Update activity
+  fetch("/api/conversation/" + encodeURIComponent(state.sessionId) + "?action=title", { method: "POST" }).catch(function(){});
+  if (typeof refreshSidebar === "function") refreshSidebar();
 }
 
 function renderMessages() {
   $("chatMessages").innerHTML = state.messages.map((message) => {
-    if (message.role === "typing") {
-      return '<article class="message typing"><div class="message-body"><span class="typing-dots"><span></span><span></span><span></span></span></div></article>';
-    }
     const roleLabel = message.role === "user" ? "我" : "AI";
     const safety = message.meta?.safety_notice
       ? `<div class="notice compact">${escapeHtml(message.meta.safety_notice)}</div>`
@@ -430,7 +440,6 @@ function renderMessages() {
           ${extras}
           ${fallback}
         </div>
-        <button class="copy-btn" onclick="copyMsg(this)">复制</button>
       </article>
     `;
   }).join("");
@@ -438,22 +447,6 @@ function renderMessages() {
   $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
 }
 
-
-
-function copyMsg(btn) {
-  var body = btn.previousElementSibling;
-  if (!body || !body.classList.contains("message-body")) {
-    body = btn.parentElement.querySelector(".message-body");
-  }
-  if (!body) return;
-  var text = (body.textContent || "").trim();
-  if (!text) return;
-  navigator.clipboard.writeText(text).then(function() {
-    btn.classList.add("copied");
-    btn.textContent = "✓";
-    setTimeout(function() { btn.classList.remove("copied"); btn.textContent = "复制"; }, 1200);
-  }).catch(function() {});
-}
 function renderJobProfile(profile) {
   state.jobProfile = profile;
   const tasks = (profile.core_job_tasks || []).slice(0, 4);
@@ -730,16 +723,17 @@ function renderGraphLegend(graph, targetId) {
       </div>
     </div>
     <div class="legend-block">
-      <strong>${targetId.includes("student") ? "外环 = 掌握度" : "外环 = 节点状态"}</strong>
+      <strong>外环 = 节点状态</strong>
       <div class="legend-items">
-        ${targetId.includes("student")
-          ? '<span class="legend-chip"><i class="legend-ring mastery-ring-legend" style="border-color:#22c55e"></i>绿色进度 = 掌握度</span>'
-          : statusItems.map((item) => {
-              const color = graphColor(item.status);
-              const dashed = ["industry_hot", "industry", "recommended_next"].includes(item.status) ? " dashed" : "";
-              return '<span class="legend-chip"><i class="legend-ring' + dashed + '" style="border-color:' + color.stroke + '"></i>' + escapeHtml(item.label) + '</span>';
-            }).join("")
-        }
+        ${statusItems.map((item) => {
+          const color = graphColor(item.status);
+          const dashed = ["industry_hot", "industry", "recommended_next"].includes(item.status) ? " dashed" : "";
+          return `
+            <span class="legend-chip">
+              <i class="legend-ring${dashed}" style="border-color:${color.stroke}"></i>${escapeHtml(item.label)}
+            </span>
+          `;
+        }).join("")}
       </div>
     </div>
     <div class="legend-block">
@@ -774,6 +768,8 @@ function renderGraphDiagram(graph, targetId) {
   }
   state.graphRenderers[targetId].update(graph);
   return;
+
+
 
 }
 
@@ -818,6 +814,31 @@ function renderGraphUpdateLog(updates) {
       `).join("")}
     </ul>
   ` : '<p class="muted">暂无更新日志</p>';
+}
+
+function renderMasteryBars(node) {
+  const dimensions = [
+    ["knowledge_mastery", "知识理解"],
+    ["procedure_mastery", "过程掌握"],
+    ["transfer_score", "迁移应用"],
+    ["safety_score", "安全合规"]
+  ];
+  if (!dimensions.some(([key]) => node[key] !== undefined && node[key] !== null)) return "";
+  return `
+    <h3>四维认知画像</h3>
+    <div class="mastery-bars">
+      ${dimensions.map(([key, label]) => {
+        const value = Number(node[key] ?? 0);
+        const width = Math.max(0, Math.min(100, value));
+        return `
+          <div class="mastery-bar-row">
+            <div class="mastery-bar-label"><span>${escapeHtml(label)}</span><strong>${escapeHtml(width)}</strong></div>
+            <div class="mastery-bar-track"><i style="width:${width}%"></i></div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
 }
 
 function renderStrategyTags(node) {
@@ -902,7 +923,15 @@ function showGraphNodeDetail(node, graph) {
       <div class="metric"><strong>${escapeHtml(node.evidence_count ?? 0)}</strong><span>证据总数</span></div>
       <div class="metric"><strong>${escapeHtml(node.uncertainty ?? "-")}</strong><span>不确定性</span></div>
     </div>
-
+    ${renderMasteryBars(node)}
+    ${renderProcessMetrics(node)}
+    ${renderStrategyTags(node)}
+    <h3>证据来源分布</h3>
+    ${node.source_types ? Object.entries(node.source_types).map(([src, cnt]) => `
+      <div style="display:flex;justify-content:space-between;padding:2px 0;font-size:13px">
+        <span>${escapeHtml(src)}</span><span>${escapeHtml(cnt)} 条</span>
+      </div>
+    `).join("") : '<p class="muted">暂无证据</p>'}
     <h3>最新证据</h3>
     ${node.latest_evidence && node.latest_evidence.length ? `
       <ul class="item-list">
@@ -914,6 +943,8 @@ function showGraphNodeDetail(node, graph) {
     <h3>下一步</h3>
     <p>${escapeHtml(node.next_best_action || "先查看讲解，再完成一个关联训练任务。")}</p>
     ${node.why_next ? `<p class="muted">推荐理由：${escapeHtml(node.why_next)}</p>` : ""}
+    <h3>版本历史</h3>
+    <div id="versionInfo_${escapeHtml(node.id)}" style="font-size:12px;color:#64748b">加载中...</div>
     <h3>证据时间线</h3>
     ${renderEvidenceTimeline(node, events)}
     <div class="question-actions">
@@ -928,6 +959,13 @@ function showGraphNodeDetail(node, graph) {
       loadPersonalizedPlan("today", button.dataset.planNode);
     });
   });
+  // Load version list for this node
+  fetch("/api/graph/job/versions").then(function(r) { return r.json(); }).then(function(data) {
+    var verDiv = document.getElementById("versionInfo_" + node.id);
+    if (verDiv && data.versions) {
+      verDiv.innerHTML = "共 " + data.versions.length + " 个版本，最新：" + (data.versions[0] ? data.versions[0].version : "-");
+    }
+  }).catch(function() {});
   $("nodeDetailDrawer").classList.add("open");
   $("nodeDetailDrawer").setAttribute("aria-hidden", "false");
 }
@@ -1710,6 +1748,7 @@ function planButtonText(planMode) {
   return "阶段方案";
 }
 
+
 // ---- Training Plans (from static JSON) ----
 async function fetchTrainingPlans(jobName) {
   if (!jobName) jobName = state.jobName || '';
@@ -1743,7 +1782,7 @@ function renderTrainingPlanToday(planData) {
   var todayTask = planData.seven_day[0];
   var html = '<div style="padding:14px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-radius:8px">';
   html += '<h4 style="margin:0 0 8px;color:#7dd3fc">今日实训任务</h4>';
-  html += '<p style="margin:0;font-size:0.9rem;color:#e2e8f0;line-height:1.7">' + escapeHtml(todayTask.replace(/\|/g, ' → ')) + '</p>';
+  html += '<p style="margin:0;font-size:0.9rem;color:#e2e8f0;line-height:1.7">' + escapeHtml(todayTask.replace(/|/g, ' → ')) + '</p>';
   html += '</div>';
   html += '<div style="margin-top:14px"><h4 style="color:#94a3b8;margin:0 0 8px">全部阶段实训任务</h4>';
   if (planData.stages) {
@@ -1890,148 +1929,35 @@ async function applyChatResult(data) {
 }
 
 async function sendChat(message) {
-  var text = (message || $("chatInput").value).trim();
+  const text = (message || $("chatInput").value).trim();
   if (!text) return;
   $("chatInput").value = "";
   addMessage("user", text);
-
-  // Typing indicator
-  var typingMsg = { role: "typing", content: "AI ...", meta: {} };
-  state.messages.push(typingMsg);
-  renderMessages();
-  persistSession();
-
-  // Switch to stop button
-  $("sendChat").style.display = "none";
-  $("stopChat").style.display = "inline-block";
-  $("chatInput").disabled = true;
-
-  var controller = new AbortController();
-  state._abortController = controller;
-
+  $("sendChat").disabled = true;
+  $("sendChat").textContent = "发送中";
   try {
-    var history = state.messages
-      .filter(function(m) { return m.role === "user" || m.role === "assistant"; })
+    const history = state.messages
+      .filter((item) => item.role === "user" || item.role === "assistant")
       .slice(-8)
-      .map(function(m) { return { role: m.role, content: m.content }; });
-
-    var response = await fetch("/api/chat/stream", {
+      .map((item) => ({ role: item.role, content: item.content }));
+    const data = await api("/api/chat/message", {
       method: "POST",
-      signal: controller.signal,
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         session_id: state.sessionId,
         message: text,
         learner_role: "职业新人",
         job_role: state.jobProfile?.id,
         target_job_profile_id: state.jobProfile?.id,
-        history: history,
+        history,
         context: collectContext()
       })
     });
-
-    var reader = response.body.getReader();
-    var decoder = new TextDecoder();
-    var buffer = "";
-    var meta = null;
-    var answer = "";
-
-    while (true) {
-      var result = await reader.read();
-      if (result.done) break;
-      buffer += decoder.decode(result.value, { stream: true });
-      var lines = buffer.split("\n");
-      buffer = lines.pop();
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].trim();
-        if (!line) continue;
-        // Parse SSE: "event: type\ndata: json"
-        if (line.startsWith("event: ")) {
-          var eventType = line.substring(7);
-          var dataLine = (lines[i+1] || "").trim();
-          if (dataLine.startsWith("data: ")) {
-            var dataStr = dataLine.substring(6);
-            try {
-              var sseData = JSON.parse(dataStr);
-            } catch(e) { continue; }
-            i++; // consume data line
-
-            if (eventType === "error") {
-              // Non-streamable intent: fall back to regular API
-              reader.cancel();
-              state._abortController = null;
-              var fbData = await api("/api/chat/message", {
-                method: "POST",
-                body: JSON.stringify({
-                  session_id: state.sessionId,
-                  message: text,
-                  learner_role: "职业新人",
-                  job_role: state.jobProfile?.id,
-                  target_job_profile_id: state.jobProfile?.id,
-                  history: history,
-                  context: collectContext()
-                })
-              });
-              state.messages = state.messages.filter(function(m) { return m.role !== "typing"; });
-              applyChatResult(fbData);
-              return;
-            }
-
-            if (eventType === "meta") {
-              meta = sseData;
-            }
-
-            if (eventType === "chunk") {
-              answer += sseData.text;
-              // Update typing message inline with accumulated answer
-              for (var j = state.messages.length - 1; j >= 0; j--) {
-                if (state.messages[j].role === "typing") {
-                  state.messages[j].content = answer || "AI ...";
-                  break;
-                }
-              }
-              renderMessages();
-            }
-
-            if (eventType === "done") {
-              // Build final result from meta + answer
-              var result = meta || {};
-              result.answer = answer || sseData.answer || "";
-              state.messages = state.messages.filter(function(m) { return m.role !== "typing"; });
-              state._abortController = null;
-              applyChatResult(result);
-            }
-          }
-        }
-      }
-    }
+    applyChatResult(data);
   } catch (error) {
-    state.messages = state.messages.filter(function(m) { return m.role !== "typing"; });
-    if (error.name !== "AbortError") {
-      addMessage("assistant", "请求失败：" + error.message);
-    }
-    state._abortController = null;
+    addMessage("assistant", `请求失败：${error.message}`);
   } finally {
-    $("sendChat").style.display = "";
-    $("stopChat").style.display = "none";
-    $("chatInput").disabled = false;
-    $("chatInput").focus();
-    renderMessages();
-    persistSession();
-  }
-}
-function stopChat() {
-  // Immediately update UI - don't wait for abort chain
-  state.messages = state.messages.filter(function(m) { return m.role !== "typing"; });
-  renderMessages();
-  $("sendChat").style.display = "";
-  $("stopChat").style.display = "none";
-  $("chatInput").disabled = false;
-  $("chatInput").focus();
-  // Then cancel the pending request
-  if (state._abortController) {
-    state._abortController.abort();
-    state._abortController = null;
+    $("sendChat").disabled = false;
+    $("sendChat").textContent = "发送";
   }
 }
 
@@ -2101,13 +2027,31 @@ async function boot() {
     $("llmStatus").textContent = start.llm_configured ? "模型已配置" : "规则兜底";
     $("llmStatus").classList.toggle("ok", Boolean(start.llm_configured));
 
-    // Restore previous messages if available, otherwise show welcome
-    const saved = restoreMessages();
-    if (saved.length > 0) {
-      state.messages = saved;
-      renderMessages();
-    } else {
-      addMessage("assistant", start.welcome || "");
+    // Load messages from server for current session (server is source of truth)
+    try {
+      var serverConv = await api("/api/conversation/" + encodeURIComponent(state.sessionId));
+      if (serverConv.messages && serverConv.messages.length > 0) {
+        state.messages = serverConv.messages.map(function(m) {
+          return { role: m.role, content: m.content, meta: m.meta || {} };
+        });
+        renderMessages();
+      } else {
+        var saved2 = restoreMessages();
+        if (saved2.length > 0) {
+          state.messages = saved2;
+          renderMessages();
+        } else {
+          addMessage("assistant", start.welcome || "");
+        }
+      }
+    } catch(e2) {
+      var saved3 = restoreMessages();
+      if (saved3.length > 0) {
+        state.messages = saved3;
+        renderMessages();
+      } else {
+        addMessage("assistant", start.welcome || "");
+      }
     }
     renderSuggestedQuestions(start.suggested_questions || []);
     renderQuiz(quiz.questions);
@@ -2169,6 +2113,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && $("explainDrawer").classList.contains("open")) closeExplainDrawer();
 });
 
+
   // ForceGraph responsive resize
   window.addEventListener('resize', () => {
     setTimeout(() => {
@@ -2193,16 +2138,409 @@ function backToIdentity() {
 }
 
 function selectJob(jobId, event) {
+  var identity = localStorage.getItem("mcp_identity") || "";
+  var previousJobId = localStorage.getItem("mcp_job_id") || "";
   localStorage.setItem("mcp_job_id", jobId);
   if (event && event.currentTarget) {
     var jobName = event.currentTarget.getAttribute("data-job-name");
     if (jobName) state.jobName = jobName;
   }
-  const overlay = document.getElementById("landingOverlay");
-  overlay.classList.add("fade-out");
-  setTimeout(function() {
-    overlay.style.display = "none";
-    document.body.style.overflow = "";
-    if (typeof boot === "function") boot();
-  }, 400);
+
+  // Admin bypass: no assessment, boot app directly
+  if (identity !== "student") {
+    state.selectedJobId = jobId;
+    state.sessionId = "admin-" + Date.now();
+    state.messages = [];
+    state.jobProfile = { id: jobId, role_name: jobName || jobId };
+    dismissLanding().then(bootOnce);
+    return;
+  }
+
+  // Student: restore persisted session or create new
+  state.selectedJobId = jobId;
+  if (previousJobId && previousJobId !== jobId) {
+    // Job changed: clean old session, create new
+    state.sessionId = "demo-" + Date.now();
+    localStorage.setItem("mcp_session_id", state.sessionId);
+    state.messages = [];
+    sessionStorage.removeItem(assessmentSkipKey());
+  } else {
+    var storedSessionId = localStorage.getItem("mcp_session_id");
+    if (storedSessionId) {
+      state.sessionId = storedSessionId;
+    } else {
+      state.sessionId = "demo-" + Date.now();
+      localStorage.setItem("mcp_session_id", state.sessionId);
+      state.messages = [];
+    }
+  }
+  state.jobProfile = { id: jobId, role_name: jobName || jobId };
+
+  // Dismiss landing, then launch assessment
+  dismissLanding().then(function() {
+    startAssessment(jobId);
+  });
 }
+
+function dismissLanding() {
+  return new Promise(function(resolve) {
+    var overlay = document.getElementById("landingOverlay");
+    overlay.classList.add("fade-out");
+    setTimeout(function() {
+      overlay.style.display = "none";
+      document.body.style.overflow = "";
+      resolve();
+    }, 400);
+  });
+}
+
+
+function assessmentSkipKey() {
+  return [
+    "mcp_assessment_skipped",
+    state.sessionId || "",
+    selectedJobRole() || ""
+  ].join(":");
+}
+// ---- Unified app boot ----
+
+var appBootStarted = false;
+var appBootPromise = null;
+
+function bootOnce() {
+  if (appBootStarted) return appBootPromise;
+  appBootStarted = true;
+  try {
+    appBootPromise = typeof boot === "function"
+      ? Promise.resolve(boot())
+      : Promise.resolve();
+  } catch (error) {
+    appBootStarted = false;
+    appBootPromise = null;
+    throw error;
+  }
+  return appBootPromise;
+}
+
+// ---- Assessment Functions ----
+
+var assessmentState = {
+  currentQid: "",
+  currentQuestion: null,
+  currentIndex: 0,
+  answeredCount: 0,
+  totalQuestions: 0,
+  selectedOption: null,
+  jobRole: "",
+  abilityLabels: {},
+  started: false,
+  starting: false,
+  submitting: false
+};
+
+function selectedJobRole() {
+  return assessmentState.jobRole
+    || state.selectedJobId
+    || localStorage.getItem("mcp_job_id")
+    || "";
+}
+
+// ---- Overlay helpers ----
+
+function showAssessmentOverlay() {
+  var overlay = document.getElementById("assessmentOverlay");
+  overlay.style.display = "flex";
+  overlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function hideAssessmentOverlay() {
+  var overlay = document.getElementById("assessmentOverlay");
+  overlay.style.display = "none";
+  overlay.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+// ---- Error & retry ----
+
+var assessmentRetryAction = null;
+
+function setAssessmentError(message, retryAction) {
+  var statusEl = document.getElementById("assessmentStatus");
+  var retryBtn = document.getElementById("assessmentRetryBtn");
+  statusEl.textContent = message;
+  statusEl.style.display = "block";
+  assessmentRetryAction = typeof retryAction === "function" ? retryAction : null;
+  retryBtn.hidden = !assessmentRetryAction;
+}
+
+function clearAssessmentError() {
+  var statusEl = document.getElementById("assessmentStatus");
+  statusEl.textContent = "";
+  statusEl.style.display = "none";
+  var retryBtn = document.getElementById("assessmentRetryBtn");
+  retryBtn.hidden = true;
+  assessmentRetryAction = null;
+}
+
+// ---- Assessment flow ----
+
+async function startAssessment(jobRole) {
+  if (assessmentState.starting) return;
+
+  // Skip if already skipped in this tab session
+  try {
+    if (sessionStorage.getItem(assessmentSkipKey()) === "1") {
+      await bootOnce();
+      return;
+    }
+  } catch (_) { /* sessionStorage unavailable */ }
+
+  assessmentState.starting = true;
+  showAssessmentOverlay();
+  var container = document.getElementById("assessmentOverlay").querySelector(".assessment-container");
+  var result = document.getElementById("assessmentResult");
+  container.style.display = "block";
+  result.style.display = "none";
+  clearAssessmentError();
+
+  var role = jobRole || state.selectedJobId || localStorage.getItem("mcp_job_id") || "";
+  try {
+    var resp = await api("/api/student/assess/start", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        job_role: role
+      })
+    });
+
+    // Completed assessment: server sends status=completed, not an error
+    if (resp.status === "completed" || resp.state === "completed") {
+      assessmentState.starting = false;
+      hideAssessmentOverlay();
+      await bootOnce();
+      return;
+    }
+
+    if (resp.error) {
+      assessmentState.starting = false;
+      setAssessmentError(resp.error || "启动测评失败", function() {
+        startAssessment(selectedJobRole());
+      });
+      return;
+    }
+
+    assessmentState.jobRole = role;
+    assessmentState.currentQid = "";
+    assessmentState.currentIndex = 0;
+    assessmentState.answeredCount = 0;
+    assessmentState.started = true;
+    assessmentState.selectedOption = null;
+    assessmentState.starting = false;
+    renderAssessmentQuestion(resp);
+  } catch (e) {
+    console.error("Assessment startup failed:", e);
+    setAssessmentError("网络错误，启动测评失败，请点击重试", function() {
+      assessmentState.starting = false;
+      startAssessment(selectedJobRole());
+    });
+  }
+}
+
+function renderAssessmentQuestion(resp) {
+  var q = resp.first_question || resp.next_question;
+  if (!q || !q.qid) {
+    setAssessmentError("测评数据异常，请重试", function() {
+      assessmentState.starting = false;
+      startAssessment(selectedJobRole());
+    });
+    return;
+  }
+
+  assessmentState.currentQid = q.qid;
+  assessmentState.currentQuestion = q;
+
+  // Save ability label for result display
+  if (q.ability_id) {
+    assessmentState.abilityLabels[q.ability_id] =
+      q.ability_label || q.dimension || q.ability_id;
+  }
+
+  var total = resp.total_questions || 30;
+  assessmentState.totalQuestions = total;
+  var idx = resp.current_index !== undefined ? resp.current_index : assessmentState.currentIndex;
+  assessmentState.currentIndex = idx;
+  assessmentState.answeredCount = resp.answered_count !== undefined ? resp.answered_count : idx;
+
+  var progressPct = total > 0 ? (idx / total * 100) : 0;
+  document.getElementById("assessmentProgress").querySelector(".progress-fill").style.width = progressPct + "%";
+  document.getElementById("assessmentProgress").querySelector(".progress-text").textContent = idx + " / " + total;
+
+  var card = document.getElementById("assessmentQuestionCard");
+  card.querySelector(".question-dimension").textContent = q.dimension || "";
+  card.querySelector(".question-text").textContent = q.text || "";
+
+  var optsDiv = card.querySelector(".question-options");
+  optsDiv.innerHTML = "";
+  assessmentState.selectedOption = null;
+
+  if (q.options) {
+    q.options.forEach(function(opt) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.textContent = opt.key + ". " + opt.text;
+      btn.type = "button";
+      btn.addEventListener("click", function() {
+        var allBtns = optsDiv.querySelectorAll(".option-btn");
+        allBtns.forEach(function(b) { b.classList.remove("selected"); });
+        btn.classList.add("selected");
+        assessmentState.selectedOption = opt.key;
+        document.getElementById("assessmentNextBtn").disabled = false;
+      });
+      optsDiv.appendChild(btn);
+    });
+  }
+
+  document.getElementById("assessmentNextBtn").disabled = true;
+  document.getElementById("assessmentNextBtn").onclick = submitAssessmentAnswer;
+  document.getElementById("assessmentSkipBtn").onclick = skipAssessment;
+}
+
+async function submitAssessmentAnswer() {
+  if (!assessmentState.selectedOption) return;
+  if (assessmentState.submitting) return;
+  assessmentState.submitting = true;
+  clearAssessmentError();
+
+  // Disable UI during submission
+  var nextBtn = document.getElementById("assessmentNextBtn");
+  var skipBtn = document.getElementById("assessmentSkipBtn");
+  var optionsDiv = document.getElementById("assessmentQuestionCard").querySelector(".question-options");
+  nextBtn.textContent = "提交中...";
+    nextBtn.disabled = true;
+  skipBtn.disabled = true;
+  optionsDiv.style.pointerEvents = "none";
+  optionsDiv.style.opacity = "0.6";
+
+  var qid = assessmentState.currentQid;
+  if (!qid) {
+    setAssessmentError("题目数据异常，请重试", function() { submitAssessmentAnswer(); });
+    assessmentState.submitting = false;
+    nextBtn.textContent = "确认并继续";
+    nextBtn.disabled = !assessmentState.selectedOption;
+    skipBtn.disabled = false;
+    optionsDiv.style.pointerEvents = "";
+    optionsDiv.style.opacity = "";
+    return;
+  }
+
+  try {
+    var resp = await api("/api/student/assess/answer", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        qid: qid,
+        selected_key: assessmentState.selectedOption,
+        job_role: assessmentState.jobRole
+      })
+    });
+
+    if (resp.status === "completed") {
+      showAssessmentResult(resp.result);
+      return;
+    }
+
+    if (resp.error) {
+      setAssessmentError(resp.error || "提交失败，请重试", function() { submitAssessmentAnswer(); });
+      return;
+    }
+
+    if (resp.next_question) {
+      renderAssessmentQuestion(resp);
+    } else {
+      setAssessmentError("服务端返回异常，请重试", function() { submitAssessmentAnswer(); });
+    }
+  } catch (e) {
+    console.error("Assessment answer error:", e);
+    setAssessmentError("网络错误，提交失败，请点击重试", function() { submitAssessmentAnswer(); });
+  } finally {
+    assessmentState.submitting = false;
+    nextBtn.textContent = "确认并继续";
+    nextBtn.disabled = !assessmentState.selectedOption;
+    skipBtn.disabled = false;
+    optionsDiv.style.pointerEvents = "";
+    optionsDiv.style.opacity = "";
+  }
+}
+
+function showAssessmentResult(result) {
+  if (!result) {
+    setAssessmentError("测评结果为空", function() {
+      startAssessment(selectedJobRole());
+    });
+    return;
+  }
+  document.getElementById("assessmentOverlay").querySelector(".assessment-container").style.display = "none";
+  document.getElementById("assessmentStatus").style.display = "none";
+  document.getElementById("assessmentRetryBtn").hidden = true;
+  var resultDiv = document.getElementById("assessmentResult");
+  resultDiv.style.display = "block";
+
+  document.getElementById("resultScore").textContent = Math.round((result.total_score || 0) * 100) + "%";
+
+  var dimsDiv = document.getElementById("resultDimensions");
+  dimsDiv.innerHTML = "";
+  var scores = result.ability_scores || {};
+  var labelMap = assessmentState.abilityLabels || {};
+  Object.keys(scores).forEach(function(aid) {
+    var s = scores[aid];
+    var cssClass = s >= 0.8 ? "strong" : (s >= 0.5 ? "medium" : "weak");
+    var row = document.createElement("div");
+    row.className = "dimension-row";
+    var label = escapeHtml(labelMap[aid] || aid);
+    row.innerHTML = '<span class="dimension-label">' + label + '</span>' +
+      '<div class="dimension-bar-wrap"><div class="dimension-bar-fill ' + cssClass + '" style="width:' + (s * 100) + '%"></div></div>' +
+      '<span class="dimension-score">' + Math.round(s * 100) + '%</span>';
+    dimsDiv.appendChild(row);
+  });
+
+  var recDiv = document.getElementById("resultRecommendations");
+  recDiv.innerHTML = result.recommendations && result.recommendations.length > 0 ?
+    '<h4>学习建议</h4><ul>' + result.recommendations.map(function(r) { return '<li>' + escapeHtml(r) + '</li>'; }).join("") + '</ul>' : "";
+
+  var stepDiv = document.getElementById("resultNextSteps");
+  stepDiv.innerHTML = result.next_steps && result.next_steps.length > 0 ?
+    '<h4>下一步</h4>' + result.next_steps.map(function(s) { return '<div class="next-step">' + escapeHtml(s) + '</div>'; }).join("") : "";
+
+  document.getElementById("assessmentDoneBtn").onclick = function() {
+    hideAssessmentOverlay();
+    bootOnce();
+  };
+}
+
+function skipAssessment() {
+  if (!confirm("确定暂时跳过测评吗？跳过后将无法获得个性化学习路径。")) return;
+  try { sessionStorage.setItem(assessmentSkipKey(), "1"); } catch (_) {}
+  hideAssessmentOverlay();
+  bootOnce();
+}
+
+function finishAssessmentAndBoot() {
+  hideAssessmentOverlay();
+  bootOnce();
+}
+
+// Unified retry button binding (set once at init time)
+document.addEventListener("DOMContentLoaded", function() {
+  var retryBtn = document.getElementById("assessmentRetryBtn");
+  if (retryBtn) {
+    retryBtn.onclick = function() {
+      var action = assessmentRetryAction;
+      clearAssessmentError();
+      if (action) action();
+    };
+  }
+});
+
+// ---- End Assessment ----
+
