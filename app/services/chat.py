@@ -1,8 +1,6 @@
-import json
-import logging
+﻿import json
 
 from .assist import assist
-from .conversation_memory import ConversationMemory
 from .data_loader import primary_job_profile
 from .feedback import append_session_event
 from .graph import build_student_ability_graph
@@ -16,11 +14,40 @@ from .intent_handlers import (
     generate_clarify_questions,
 )
 from .learner_context import format_context_for_prompt, learner_context_pack
-from .llm_client import LLMError, chat_completion, chat_completion_stream, is_configured
+from .llm_client import LLMError, chat_completion, is_configured
 from .retrieval import search_knowledge
 from .safety import safety_notice
-
-logger = logging.getLogger(__name__)
+from .conversation_state import (
+    get_conversation_context,
+    append_user_message,
+    append_assistant_message,
+    get_all_messages,
+    load_conversation_state,
+)
+from .conversation_slots import (
+    extract_slots_from_message,
+    resolve_pending_slot_answer,
+    apply_slot_updates,
+    get_missing_slots,
+    merge_ui_context_into_slots,
+    slots_to_assist_context,
+    slots_summary,
+)
+from .conversation_policy import decide_next_actions
+from .conversation_tools import execute_tool
+from .action_planner import plan_actions
+from .response_composer import compose_response
+from .conversation_task import (
+    start_task,
+    get_active_task,
+    get_task_slots,
+    set_task_slots,
+    get_pending_slot,
+    set_pending_slot,
+    clear_pending_slot,
+    looks_like_task_continuation,
+    task_summary,
+)
 
 
 TOOLS = [
@@ -53,40 +80,30 @@ def chat_start(payload=None):
     learner_stage = profile.get("learner_stage", "职业新人")
     focus_task = profile.get("mvp_focus_task", "传感器 NPN/PNP 接线与 PLC 输入信号排查")
     context_pack = learner_context_pack(payload.get("session_id"))
-
-    user_id = payload.get("user_id")
-    cross_mem = {}
-    welcome_extra = ""
-    if user_id:
+    # Store job_role in conversation metadata so sidebar can filter by job
+    sid = context_pack.get("session_id")
+    if sid:
         try:
-            from .conversation_memory import UserMemoryManager
-            umm = UserMemoryManager(user_id)
-            cross_mem = umm.get_cross_session_context()
-            if umm.session_count > 0:
-                welcome_extra = " 欢迎回来！这是你的第 {} 次会话。".format(umm.session_count + 1)
+            from .conversation_state import save_conversation_state, load_conversation_state
+            cs = load_conversation_state(sid)
+            cs.setdefault("metadata", {})
+            cs["metadata"]["job_role"] = job_role or profile.get("role_name", "")
+            save_conversation_state(cs)
         except Exception:
             pass
-
-    session_id = context_pack.get("session_id")
-    # Persist session to server so it appears in history sidebar immediately
-    try:
-        append_session_event(session_id, {"event_type": "session_created"})
-    except Exception:
-        pass
     return {
-        "session_id": session_id,
+        "session_id": sid,
         "job_profile": profile,
         "learner_context": context_pack,
-        "cross_session_memory": cross_mem,
         "welcome": (
             f"你好，我会按“{role_name} / {learner_stage}”的岗位要求来回答。"
             f"当前重点训练任务是：{focus_task}。你可以直接描述问题；"
             "如果涉及接线、通电监控或设备动作，我会先提醒安全，再帮你定位能力和知识缺口。"
-            + welcome_extra
         ),
         "suggested_questions": welcome_questions(),
         "tool_suggestions": TOOLS,
         "llm_configured": is_configured(),
+        "conversation_messages": get_all_messages(context_pack.get("session_id")) if context_pack.get("session_id") else [],
     }
 
 
@@ -94,8 +111,8 @@ def compact_for_prompt(items, limit=6):
     return items[:limit] if isinstance(items, list) else []
 
 
-def build_system_prompt(profile, memory=None, cross_session=None):
-    parts = [
+def build_system_prompt(profile):
+    return (
         "你是面向职业新人的机电一体化岗位培训 AI。"
         "你服务的默认岗位是自动化生产线装调与运维技术员，场景聚焦传感器 NPN/PNP 接线与 PLC 输入信号排查。"
         "你的目标不是简单回答问题，而是帮助学生完成问题诊断、"
@@ -105,24 +122,9 @@ def build_system_prompt(profile, memory=None, cross_session=None):
         "不要指导绕过安全回路、短接保护或带电冒险操作。"
         "专业结论优先依据给定知识条目、能力节点和问题模式；不要编造来源、设备型号或教材页码。"
         "你可以解释评分结果，但不得自由评分，也不得覆盖规则评分。"
-        "回答末尾用简短列表给出 2 到 4 个更有价值的追问建议。",
-    ]
-    if memory:
-        summary = memory.get("summary", "")
-        key_facts = memory.get("key_facts", [])
-        if summary:
-            parts.append(f"先前对话摘要：{summary}")
-        if key_facts:
-            parts.append("已确认的关键事实：\n" + "\n".join(f"- {f}" for f in key_facts))
-    if cross_session:
-        prev = cross_session.get("previous_session_summary", "")
-        long_facts = cross_session.get("long_term_facts", [])
-        if prev:
-            parts.append(prev)
-        if long_facts:
-            parts.append("学生长期学习记录：\n" + "\n".join(f"- {f}" for f in long_facts))
-    parts.append(f"岗位画像：{json.dumps(profile, ensure_ascii=False)}")
-    return "\n".join(parts)
+        "回答末尾用简短列表给出 2 到 4 个更有价值的追问建议。"
+        f"\n岗位画像：{json.dumps(profile, ensure_ascii=False)}"
+    )
 
 
 def build_user_prompt(message, assist_result, learner_context=None):
@@ -161,40 +163,18 @@ def fallback_answer(assist_result):
 
 
 def suggested_questions_from_assist(assist_result):
-    """Generate dynamic follow-up questions from the assist diagnosis result."""
     if assist_result.get("status") == "need_clarification":
-        return [item.get("question") for item in assist_result.get("clarifying_questions", []) if item.get("question")][:4]
+        return [item.get("question") for item in assist_result.get("clarifying_questions", []) if item.get("question")][:3]
 
-    questions = []
-
-    # 1) Questions anchored to highlighted abilities
+    ability_questions = []
     for ability in assist_result.get("highlighted_abilities", [])[:3]:
         name = ability.get("name") or ability.get("id")
-        questions.append(f"我该怎么补上“{name}”？")
-
-    # 2) Questions derived from knowledge gaps
-    for gap in assist_result.get("knowledge_gaps", [])[:2]:
-        topic = gap.get("topic") or gap.get("id") or ""
-        if topic:
-            questions.append(f"“{topic}”具体怎么理解？和我的问题有什么关系？")
-
-    # 3) Questions from remediation cards (training tasks)
-    for card in assist_result.get("remediation_cards", [])[:1]:
-        title = card.get("title") or ""
-        if title:
-            questions.append(f"“{title}”这个任务具体怎么做？")
-
-    # 4) Pattern-aware follow-ups when we have few questions so far
-    pattern = assist_result.get("matched_pattern") or {}
-    pattern_title = pattern.get("title", "")
-    if len(questions) < 3 and pattern_title:
-        questions.append(f"“{pattern_title}”这个现象怎么定位根因到接线还是公共端？")
-
-    # 5) Always include one training-path question
-    if len(questions) < 4:
-        questions.append("我下一步实训应该做哪个任务？")
-
-    return questions[:4]
+        ability_questions.append(f"我该怎么补上“{name}”？")
+    base = [
+        "这个问题最可能出在接线、公共端还是程序地址？",
+        "我下一步实训应该做哪一个任务？",
+    ]
+    return (ability_questions + base)[:4]
 
 
 def tool_suggestions_from_assist(assist_result):
@@ -292,6 +272,7 @@ def knowledge_refs_from_assist(message, assist_result):
 
 
 def chat_message(payload):
+
     payload = payload or {}
     message = payload.get("message") or payload.get("user_input") or ""
     context = payload.get("context", {}) or {}
@@ -299,26 +280,173 @@ def chat_message(payload):
     profile = primary_job_profile()
     learner_context = learner_context_pack(session_id)
 
-    # ── intent classification ──────────────────────────────────
-    history = payload.get("history", [])[-8:]
-    intent_result = classify_intent(message, history=history, context=context)
-    intent = intent_result.get("intent", "diagnosis")
+    # ---- Phase 2 Step 0: Record user message ----
+    if session_id and message:
+        append_user_message(session_id, message)
 
-    # ── route to handler ────────────────────────────────────────
-    if intent == "quiz":
-        return _finalize(handle_quiz(payload, intent_result), session_id)
-    if intent == "graph":
-        return _finalize(handle_graph(payload, intent_result), session_id)
-    if intent == "learning_path":
-        return _finalize(handle_learning_path(payload, intent_result), session_id)
-    if intent == "knowledge_qa":
-        return _finalize(handle_knowledge_qa(payload, intent_result), session_id)
-    if intent == "clarify":
-        return _finalize(handle_clarify(payload, intent_result), session_id)
+    # ---- Phase 2 Step 1: Resolve pending slot (highest priority) ----
+    pending_slot = get_pending_slot(session_id) if session_id else None
+    if pending_slot and message:
+        slot_name, slot_val = resolve_pending_slot_answer(pending_slot, message)
+        if slot_name:
+            task_slots = get_task_slots(session_id)
+            task_slots = apply_slot_updates(task_slots, {slot_name: slot_val})
+            set_task_slots(session_id, task_slots)
+            clear_pending_slot(session_id)
 
-    # diagnosis / clarify → existing assist flow
-    assist_result = assist({"user_input": message, "context": context})
-    evidence_used = evidence_used_from_assist(assist_result, context)
+    # ---- Phase 2 Step 2: Build initial effective context ----
+    active_task = get_active_task(session_id) if session_id else None
+    effective_context = context
+
+    # ---- Phase 2 Step 3: Task-first routing ----
+    history = get_conversation_context(session_id, limit=8) if session_id else []
+    intent_result = None
+    intent = "diagnosis"
+
+    if active_task and looks_like_task_continuation(message, True):
+        intent = active_task.get("type", "diagnosis")
+        intent_result = {"intent": intent, "source": "task_continuation"}
+    else:
+        intent_result = classify_intent(message, history=history, context=effective_context)
+        intent = intent_result.get("intent", "diagnosis")
+
+    # ---- Phase 2 Step 4: Start new task for new diagnosis ----
+    if intent == "diagnosis" and not active_task:
+        pattern = {}
+        if intent_result and intent_result.get("source") != "task_continuation":
+            pre = assist({"user_input": message, "context": effective_context})
+            pattern = pre.get("matched_pattern", {})
+        start_task(
+            session_id,
+            task_type="diagnosis",
+            topic=pattern.get("title", message[:40]) if pattern else message[:40],
+            matched_pattern_id=pattern.get("id") if pattern else None,
+        )
+        active_task = get_active_task(session_id)
+
+    # ---- Phase 2 Step 5: Extract slots from message (after task exists) ----
+    extracted_slots = extract_slots_from_message(message)
+    if extracted_slots and session_id and active_task:
+        task_slots = get_task_slots(session_id)
+        task_slots = apply_slot_updates(task_slots, extracted_slots)
+        set_task_slots(session_id, task_slots)
+
+    # ---- Phase 2 Step 6: Merge UI context into task slots ----
+    if session_id and context and active_task:
+        task_slots = get_task_slots(session_id)
+        task_slots = merge_ui_context_into_slots(task_slots, context)
+        set_task_slots(session_id, task_slots)
+
+    # ---- Phase 2 Step 7: Rebuild effective context with updated slots ----
+    if active_task:
+        effective_context = slots_to_assist_context(active_task.get("slots", {}))
+        if context:
+            for k, v in context.items():
+                if effective_context.get(k, "unknown") in ("unknown", "", None):
+                    effective_context[k] = v
+
+    # ---- Phase 3: Policy-based routing (replaces single-intent dispatch) ----
+    policy = decide_next_actions(message, session_id)
+    policy_source = policy.get("policy_source", "unknown")
+    actions = policy.get("actions", [])
+
+    # If policy deferred to planner, use LLM action planner
+    if policy.get("mode") == "defer_to_planner":
+        intent_result = classify_intent(message, history=history, context=effective_context)
+        planner_result = plan_actions(
+            message,
+            conversation_state={"slots": active_task.get("slots", {}) if active_task else {}},
+            active_task=active_task,
+            slots=active_task.get("slots", {}) if active_task else {},
+            history=history,
+        )
+        if planner_result.get("actions"):
+            actions = planner_result["actions"]
+            policy["preserve_active_task"] = planner_result.get("preserve_active_task", True)
+            policy_source = "action_planner"
+        else:
+            # Planner fallback: use intent-based routing as last resort
+            intent = intent_result.get("intent", "diagnosis")
+            return _route_by_intent(intent, payload, intent_result, session_id, active_task, effective_context, history, profile, learner_context, message)
+
+    # ---- Execute tools ----
+    tool_results = []
+    for action in actions:
+        tool_name = action.get("tool", "")
+        tool_args = action.get("args", {})
+        if tool_name == "run_diagnosis":
+            tool_args["active_task"] = active_task
+        if tool_name in ("get_student_graph", "generate_quiz", "generate_learning_plan"):
+            tool_args["session_id"] = session_id
+        result = execute_tool(tool_name, **tool_args)
+        tool_results.append(result)
+
+    # ---- Compose response ----
+    composed = compose_response(message, tool_results, active_task=active_task)
+    answer = composed.get("answer", "") if composed else fallback_answer({"status": "ok"})
+
+    # ---- Build result ----
+    notice = ""
+    if tool_results:
+        first = tool_results[0]
+        if hasattr(first, "data") and isinstance(first.data, dict):
+            notice = first.data.get("safety_notice", "")
+
+    result = {
+        "session_id": learner_context.get("session_id") or payload.get("session_id"),
+        "answer": answer,
+        "safety_notice": notice or safety_notice(message),
+        "learner_context": learner_context,
+        "tool_results": [r.to_dict() if hasattr(r, "to_dict") else r for r in tool_results],
+        "policy_source": policy_source,
+        "llm_configured": is_configured(),
+        "intent": "policy_routed",
+        "intent_source": policy_source,
+        "conversation_state": {
+            "active_task": task_summary(session_id) if session_id else None,
+            "slots": slots_summary(active_task.get("slots", {}) if active_task else {}),
+        },
+    }
+
+    # Track pending_slot for next turn
+    active_task2 = get_active_task(session_id) if session_id else None
+    if session_id and active_task2:
+        # Check if any tool result suggests a clarifying question
+        for tr in tool_results:
+            if hasattr(tr, "data") and isinstance(tr.data, dict):
+                questions = tr.data.get("clarifying_questions", [])
+                if questions:
+                    pending = get_pending_slot(session_id)
+                    if not pending:
+                        for q in questions:
+                            field = q.get("field")
+                            if field:
+                                task_slots2 = active_task2.get("slots", {})
+                                slot_val = task_slots2.get(field, {})
+                                val = slot_val.get("value", "unknown") if isinstance(slot_val, dict) else str(slot_val)
+                                if val in ("unknown", "", None):
+                                    set_pending_slot(session_id, field)
+                                    break
+
+    if session_id:
+        append_session_event(session_id, {
+            "event_type": "chat_message",
+            "message": message,
+            "policy_source": policy_source,
+            "tools_used": [a.get("tool") for a in actions],
+        })
+        result["student_graph"] = build_student_ability_graph(session_id)
+        result["learner_context"] = learner_context_pack(session_id)
+
+    if session_id:
+        append_assistant_message(session_id, answer)
+
+    return result
+
+
+# ---- Legacy intent-based routing (fallback only) ----
+    assist_result = assist({"user_input": message, "context": effective_context})
+    evidence_used = evidence_used_from_assist(assist_result, effective_context)
     reasoning_steps = reasoning_steps_from_assist(assist_result)
     knowledge_refs = knowledge_refs_from_assist(message, assist_result)
     next_questions = suggested_questions_from_assist(assist_result)
@@ -327,17 +455,17 @@ def chat_message(payload):
     llm_error = ""
     answer = fallback_answer(assist_result)
 
-    # ── LLM-powered clarification ────────────────────────────────
+    # ---- LLM-powered clarification ----
     clarify_handled = False
     if assist_result.get("status") == "need_clarification" and is_configured():
         try:
             clarify_qs, clarify_safety, _ = generate_clarify_questions(
-                message, assist_result, context,
-                history=payload.get("history", [])[-4:]
+                message, assist_result, effective_context,
+                history=history[-4:]
             )
             if clarify_qs:
                 pattern_title = (assist_result.get("matched_pattern") or {}).get(
-                    "title", "输入信号排查"
+                    "title", "??????"
                 )
                 question_lines = "\n".join(
                     f"{i + 1}. **{q.get('question', '')}**"
@@ -349,50 +477,30 @@ def chat_message(payload):
                     for i, q in enumerate(clarify_qs)
                 )
                 answer = (
-                    f"我先按「{pattern_title}」的情况来理解。目前信息还不够完整，想先确认几个关键信息：\n\n"
+                    f"????{pattern_title}?????????????????????????????\n\n"
                     f"{question_lines}\n\n"
-                    "你也可以在右侧「现场状态」面板直接选择传感器动作灯、PLC 输入灯和在线监控的状态。"
+                    "??????????????????????????PLC ????????????"
                 )
                 if clarify_safety:
                     reasoning_steps.insert(0, clarify_safety)
                 clarify_handled = True
                 fallback_used = False
         except Exception:
-            pass  # keep static fallback
+            pass
 
     if is_configured() and not clarify_handled:
-        history = payload.get("history", [])[-8:]
-        memory = ConversationMemory(session_id) if session_id else None
-        mem_ctx = memory.get_active_context(history) if memory else {"summary": "", "key_facts": [], "active_messages": []}
-
-        user_id = payload.get("user_id")
-        cross_session_ctx = {}
-        if user_id:
-            try:
-                from .conversation_memory import UserMemoryManager
-                umm = UserMemoryManager(user_id)
-                cross_session_ctx = umm.get_cross_session_context()
-            except Exception:
-                pass
-
-        messages = [{"role": "system", "content": build_system_prompt(profile, memory=mem_ctx, cross_session=cross_session_ctx)}]
-        for item in mem_ctx.get("active_messages", history):
+        messages = [{"role": "system", "content": build_system_prompt(profile)}]
+        for item in history:
             role = item.get("role")
-            item_content = item.get("content")
-            if role in {"user", "assistant"} and item_content:
-                messages.append({"role": role, "content": str(item_content)})
+            c = item.get("content")
+            if role in {"user", "assistant"} and c:
+                messages.append({"role": role, "content": str(c)})
         messages.append({"role": "user", "content": build_user_prompt(message, assist_result, learner_context)})
         try:
             answer = chat_completion(messages)
             fallback_used = False
         except LLMError as exc:
             llm_error = str(exc)
-
-        if memory and len(history) > 6:
-            try:
-                memory.summarize_async(history)
-            except Exception:
-                pass
 
     notice = assist_result.get("safety_notice") or safety_notice(message)
     result = {
@@ -416,8 +524,27 @@ def chat_message(payload):
         "llm_configured": is_configured(),
         "llm_error": llm_error,
         "intent": intent,
-        "intent_source": intent_result.get("source", "keyword"),
+        "intent_source": intent_result.get("source", "keyword") if intent_result else "task_continuation",
+        "conversation_state": {
+            "active_task": task_summary(session_id) if session_id else None,
+            "slots": slots_summary(active_task.get("slots", {}) if active_task else {}),
+        },
     }
+
+    # Track pending_slot for next turn
+    active_task2 = get_active_task(session_id) if session_id else None
+    if session_id and active_task2 and assist_result.get("status") == "need_clarification":
+        pending = get_pending_slot(session_id)
+        if not pending:
+            for q in assist_result.get("clarifying_questions", []):
+                field = q.get("field")
+                if field:
+                    task_slots2 = active_task2.get("slots", {})
+                    slot_val = task_slots2.get(field, {})
+                    val = slot_val.get("value", "unknown") if isinstance(slot_val, dict) else str(slot_val)
+                    if val in ("unknown", "", None):
+                        set_pending_slot(session_id, field)
+                        break
 
     if session_id:
         append_session_event(
@@ -435,139 +562,45 @@ def chat_message(payload):
         result["student_graph"] = build_student_ability_graph(session_id)
         result["learner_context"] = learner_context_pack(session_id)
 
+    if session_id:
+        append_assistant_message(session_id, answer)
+
     return result
 
 
-
-def chat_message_stream(payload):
-    """SSE generator: yields (event_type, data) tuples for streaming."""
-    message = payload.get("message") or payload.get("user_input") or ""
-    context = payload.get("context", {}) or {}
-    session_id = payload.get("session_id")
-    profile = primary_job_profile()
-    learner_context = learner_context_pack(session_id)
-
-    history = payload.get("history", [])[-8:]
-    intent_result = classify_intent(message, history=history, context=context)
-    intent = intent_result.get("intent", "diagnosis")
-
-    # Non-diagnosis intents: yield done result immediately
+def _route_by_intent(intent, payload, intent_result, session_id, active_task, effective_context, history, profile, learner_context, message):
+    """Legacy intent-based routing. Used as fallback when policy/planner cannot determine actions."""
     if intent == "quiz":
-        result = _finalize(handle_quiz(payload, intent_result), session_id)
-        yield ("done", result)
-        return
+        return _finalize(handle_quiz(payload, intent_result), session_id)
     if intent == "graph":
-        result = _finalize(handle_graph(payload, intent_result), session_id)
-        yield ("done", result)
-        return
+        return _finalize(handle_graph(payload, intent_result), session_id)
     if intent == "learning_path":
-        result = _finalize(handle_learning_path(payload, intent_result), session_id)
-        yield ("done", result)
-        return
-    if intent == "clarify":
-        result = _finalize(handle_clarify(payload, intent_result), session_id)
-        yield ("done", result)
-        return
+        return _finalize(handle_learning_path(payload, intent_result), session_id)
     if intent == "knowledge_qa":
-        meta, stream_gen = handle_knowledge_qa_stream(payload, intent_result)
-        yield ("meta", {k: v for k, v in meta.items() if k != "full_answer"})
-        full = ""
-        for chunk in stream_gen:
-            full += chunk
-            yield ("chunk", {"text": chunk})
-        meta["answer"] = full
-        yield ("done", meta)
-        return
-
-    # diagnosis: existing assist flow
-    assist_result = assist({"user_input": message, "context": context})
-    evidence_used = evidence_used_from_assist(assist_result, context)
-    reasoning_steps = reasoning_steps_from_assist(assist_result)
-    knowledge_refs = knowledge_refs_from_assist(message, assist_result)
-    next_questions = suggested_questions_from_assist(assist_result)
-
-    meta = {
-        "session_id": learner_context.get("session_id") or payload.get("session_id"),
-        "safety_notice": assist_result.get("safety_notice") or safety_notice(message),
-        "learner_context": learner_context,
-        "evidence_used": evidence_used,
-        "reasoning_steps": reasoning_steps,
-        "knowledge_refs": knowledge_refs,
-        "ability_hits": assist_result.get("highlighted_abilities", []),
-        "suggested_questions": next_questions,
-        "tool_suggestions": tool_suggestions_from_assist(assist_result),
-        "highlighted_abilities": assist_result.get("highlighted_abilities", []),
-        "knowledge_gaps": assist_result.get("knowledge_gaps", []),
-        "remediation_cards": assist_result.get("remediation_cards", []),
-        "ability_knowledge_view": assist_result.get("ability_knowledge_view", {}),
+        result = _finalize(handle_knowledge_qa(payload, intent_result), session_id)
+        if session_id:
+            active = get_active_task(session_id)
+            if active:
+                result["conversation_state"] = {
+                    "active_task": task_summary(session_id),
+                    "slots": slots_summary(active.get("slots", {})),
+                }
+        return result
+    if intent == "clarify":
+        return _finalize(handle_clarify(payload, intent_result), session_id)
+    # Default: run diagnosis
+    assist_result = assist({"user_input": message, "context": effective_context})
+    answer = fallback_answer(assist_result)
+    result = {
+        "answer": answer,
         "matched_pattern": assist_result.get("matched_pattern"),
         "intent": intent,
-        "intent_source": intent_result.get("source", "keyword"),
-        "fallback_used": True,
-        "llm_configured": is_configured(),
+        "intent_source": "fallback",
     }
-
-    yield ("meta", {k: v for k, v in meta.items() if k not in ("answer", "full_answer")})
-
-    if is_configured():
-        history = payload.get("history", [])[-8:]
-        memory = ConversationMemory(session_id) if session_id else None
-        mem_ctx = memory.get_active_context(history) if memory else {"summary": "", "key_facts": [], "active_messages": []}
-
-        user_id = payload.get("user_id")
-        cross_session_ctx = {}
-        if user_id:
-            try:
-                from .conversation_memory import UserMemoryManager
-                umm = UserMemoryManager(user_id)
-                cross_session_ctx = umm.get_cross_session_context()
-            except Exception:
-                pass
-
-        messages = [{"role": "system", "content": build_system_prompt(profile, memory=mem_ctx, cross_session=cross_session_ctx)}]
-        for item in mem_ctx.get("active_messages", history):
-            role = item.get("role")
-            item_content = item.get("content")
-            if role in {"user", "assistant"} and item_content:
-                messages.append({"role": role, "content": str(item_content)})
-        messages.append({"role": "user", "content": build_user_prompt(message, assist_result, learner_context)})
-
-        full_text = ""
-        try:
-            for chunk in chat_completion_stream(messages):
-                full_text += chunk
-                yield ("chunk", {"text": chunk})
-            meta["fallback_used"] = False
-        except Exception:
-            if not full_text:
-                full_text = fallback_answer(assist_result)
-                yield ("chunk", {"text": full_text})
-        meta["answer"] = full_text
-
-        if memory and len(history) > 6:
-            try:
-                memory.summarize_async(history)
-            except Exception:
-                pass
-    else:
-        fallback = fallback_answer(assist_result)
-        yield ("chunk", {"text": fallback})
-        meta["answer"] = fallback
-
     if session_id:
-        append_session_event(session_id, {
-            "event_type": "chat_message",
-            "message": message,
-            "matched_pattern": assist_result.get("matched_pattern"),
-            "highlighted_abilities": assist_result.get("highlighted_abilities", []),
-            "knowledge_gaps": assist_result.get("knowledge_gaps", []),
-            "remediation_cards": assist_result.get("remediation_cards", []),
-            "recommended_path": [item.get("title") for item in assist_result.get("remediation_cards", []) if item.get("title")],
-        })
-        meta["student_graph"] = build_student_ability_graph(session_id)
-        meta["learner_context"] = learner_context_pack(session_id)
+        append_assistant_message(session_id, answer)
+    return _finalize(result, session_id)
 
-    yield ("done", meta)
 
 def _finalize(result, session_id):
     """Record session event and attach updated graph/context for non-diagnosis intents."""
