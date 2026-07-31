@@ -1397,6 +1397,9 @@ function setWorkspacePanel(panel) {
   if (panel === "jobAdmin") loadJobAdmin();
   if (panel === "plan") loadTrainingPlans("staged");
   if (panel === "scenario") loadScenarios();
+  // Reset scroll position when switching panels
+  var body = document.querySelector(".workspace-body");
+  if (body) body.scrollTop = 0;
 }
 
 function setGraphView(view) {
