@@ -78,8 +78,9 @@ def append_normalized_event(session_id, raw_event):
 
     This is the single entry point for all new events. It:
     1. Normalizes the event
-    2. Appends to session store
-    3. Returns the normalized event
+    2. Checks for duplicate event_id (idempotency guard)
+    3. Appends to session store
+    4. Returns the normalized event
 
     Args:
         session_id: Student session ID
@@ -91,6 +92,43 @@ def append_normalized_event(session_id, raw_event):
     norm = normalize_event(raw_event)
     if not norm:
         raise ValueError(f"Cannot normalize event: {raw_event}")
+
+    # Idempotency guard: check if this exact event_id already exists
+    event_id = norm.get("event_id", "")
+    if event_id:
+        import json, os
+        from pathlib import Path as _Path
+        from .feedback import safe_session_id
+        sessions_dir = _Path(__file__).resolve().parents[2] / "data" / "sessions"
+        safe_sid = safe_session_id(session_id)
+        session_file = sessions_dir / f"{safe_sid}.json"
+        if session_file.exists():
+            try:
+                record = json.loads(session_file.read_text(encoding="utf-8"))
+                for evt in (record.get("events") or []):
+                    eid = evt.get("event_id", "")
+                    if evt.get("event_type") == "task_completed":
+                        s = evt.get("session_id", "")
+                        t = evt.get("task_id", "")
+                        if s and t:
+                            if f"task:{s}:{t}" == event_id:
+                                return {
+                                    "saved": False,
+                                    "session_id": session_id,
+                                    "duplicate": True,
+                                    "message": f"Event {event_id} already exists -- skipped (idempotent)",
+                                    "normalized_event": norm,
+                                }
+                    if eid and eid == event_id:
+                        return {
+                            "saved": False,
+                            "session_id": session_id,
+                            "duplicate": True,
+                            "message": f"Event {event_id} already exists -- skipped (idempotent)",
+                            "normalized_event": norm,
+                        }
+            except (json.JSONDecodeError, OSError):
+                pass
 
     # Append to session store (the raw format for backward compatibility)
     from .feedback import append_session_event

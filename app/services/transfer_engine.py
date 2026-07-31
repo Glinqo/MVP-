@@ -203,3 +203,25 @@ def _avg(values):
     if not values:
         return 0
     return round(sum(values) / len(values), 1)
+
+
+def suggest_transfer_tasks(weak_abilities, ability_labels=None):
+    """Suggest transfer tasks for weak abilities. Stage 3."""
+    if ability_labels is None:
+        ability_labels = {}
+    tasks = []
+    for aid in weak_abilities:
+        label = ability_labels.get(aid, aid)
+        tasks.append({
+            "ability_id": aid,
+            "ability_label": label,
+            "task_type": "targeted_practice",
+            "description": f"针对{label}的专项迁移训练",
+            "suggested_scenarios": [],
+            "difficulty": "beginner",
+        })
+    return {
+        "total_tasks": len(tasks),
+        "tasks": tasks,
+        "suggestion": "基于测评弱项，推荐以下迁移训练任务",
+    }

@@ -10,6 +10,9 @@ from datetime import datetime, timezone
 
 # All supported event types
 VALID_EVENT_TYPES = frozenset({
+    "initial_quiz_answered",
+    "initial_assessment_completed",
+    "initial_profile_submitted",
     "chat_question",
     "quiz_answered",
     "question_explained",
@@ -114,6 +117,9 @@ def _infer_event_type(raw_event):
         "feedback": "feedback_submitted",
         "task_completed": "task_completed",
         "device_state_recorded": "device_state_recorded",
+        "initial_quiz_answered": "initial_quiz_answered",
+        "initial_assessment_completed": "initial_assessment_completed",
+        "initial_profile_submitted": "initial_profile_submitted",
     }
 
     if raw_type in type_map:
@@ -162,13 +168,13 @@ def _classify_category(raw_event, event_type):
     """Determine category and polarity."""
     if event_type in ("chat_question", "quiz_answered", "question_explained"):
         return "knowledge", _polarity_from_outcome(raw_event)
-    if event_type in ("scenario_started",):
+    if event_type in ("scenario_started", "initial_assessment_completed", "initial_profile_submitted"):
         return "procedure", "neutral"
     if event_type in ("diagnostic_action", "scenario_completed"):
         return "procedure", _polarity_from_outcome(raw_event)
     if event_type in ("task_completed",):
         return "procedure", "positive"
-    if event_type in ("feedback_submitted",):
+    if event_type in ("feedback_submitted", "initial_quiz_answered"):
         return "meta", "neutral"
     if event_type in ("device_state_recorded",):
         return "evidence", "neutral"
@@ -211,7 +217,7 @@ def _extract_outcome(raw_event, event_type):
     if is_correct is False:
         return "incorrect"
 
-    if event_type in ("scenario_started", "feedback_submitted", "device_state_recorded"):
+    if event_type in ("scenario_started", "feedback_submitted", "device_state_recorded", "initial_assessment_completed", "initial_profile_submitted"):
         return "recorded"
 
     return "unknown"
@@ -234,7 +240,9 @@ def _compute_evidence_weight(event_type, outcome, raw_event):
         base = 1.0
 
     # Event-type adjustments
-    if event_type == "diagnostic_action":
+    if event_type == "initial_quiz_answered":
+        return 0.6
+    elif event_type == "diagnostic_action":
         # Direct procedure evidence is strong
         base *= 1.0
     elif event_type == "quiz_answered":

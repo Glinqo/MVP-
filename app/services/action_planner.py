@@ -150,3 +150,49 @@ def _fallback_plan(message, active_task):
         "confidence": 0.3,
         "mode": "tool_actions",
     }
+
+
+def plan_initial_learning(assessment_result):
+    """Generate a learning plan based on assessment results. Stage 3."""
+    ability_scores = assessment_result.get("ability_scores", {})
+    weak = assessment_result.get("weak_abilities", [])
+    strong = assessment_result.get("strong_abilities", [])
+
+    stages = []
+    if weak:
+        stages.append({
+            "title": "基础巩固",
+            "description": "针对薄弱环节的系统学习",
+            "abilities": weak,
+            "duration_days": len(weak) * 2,
+            "actions": [{"type": "learn", "ability_id": a, "priority": 3} for a in weak],
+        })
+    if strong:
+        stages.append({
+            "title": "能力拓展",
+            "description": "基于强项的进阶训练",
+            "abilities": strong,
+            "duration_days": len(strong) * 1,
+            "actions": [{"type": "practice", "ability_id": a, "priority": 1} for a in strong],
+        })
+    middle = [a for a in ability_scores if a not in weak and a not in strong]
+    if middle:
+        stages.append({
+            "title": "常规训练",
+            "description": "巩固中等掌握度能力",
+            "abilities": middle,
+            "duration_days": len(middle),
+            "actions": [{"type": "review", "ability_id": a, "priority": 2} for a in middle],
+        })
+
+    priority = weak + [a for a in ability_scores if a not in weak and a not in strong] + strong
+    return {
+        "session_id": assessment_result.get("session_id", ""),
+        "job_role": assessment_result.get("job_role", ""),
+        "total_score": assessment_result.get("total_score", 0),
+        "weak_abilities": weak,
+        "strong_abilities": strong,
+        "priority_abilities": priority,
+        "stages": stages,
+        "total_days": sum(s.get("duration_days", 0) for s in stages),
+    }
