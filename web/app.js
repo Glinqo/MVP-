@@ -1424,7 +1424,13 @@ function applyAssessmentScoresToGraph(scores) {
     var score = parseFloat(scores[aid].toFixed(2));
     ids.forEach(function(tid) {
       var node = nodeMap[tid];
-      if (node) { node.mastery_score = score; updated++; }
+      if (node) {
+        // Blend: 30% current mastery + 70% assessment score, clamp to [0.1, 0.85]
+        var current = node.mastery_score || 0.3;
+        var blended = current * 0.3 + score * 0.7;
+        node.mastery_score = parseFloat(Math.max(0.1, Math.min(0.85, blended)).toFixed(2));
+        updated++;
+      }
     });
   });
   
