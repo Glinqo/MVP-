@@ -82,28 +82,14 @@ const $ = (id) => {
 };
 
 async function api(path, options = {}) {
-  var extSignal = options.signal;
-  delete options.signal;
-  var ctrl = new AbortController();
-  var signal = ctrl.signal;
-  var timeoutMs = options.timeoutMs || 25000;
-  delete options.timeoutMs;
-  var timeoutId = setTimeout(function() { ctrl.abort(); }, timeoutMs);
-  if (extSignal) { extSignal.addEventListener("abort", function() { ctrl.abort(); }); }
-  try {
-    var response = await fetch(path, {
-      headers: { "Content-Type": "application/json" },
-      signal: signal,
-      ...options
-    });
-    var data = await response.json();
-    if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
-    return data;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...options
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+  return data;
 }
-
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
