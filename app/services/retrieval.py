@@ -353,7 +353,7 @@ def _format_results(scored: list) -> list[dict]:
 # ===================================================================
 
 
-def search_knowledge(query, limit=5):
+def search_knowledge(query, limit=5, **kwargs):
     """知识检索入口。
 
     优先使用向量+关键词混合检索；向量模块不可用时自动降级为纯关键词检索。
