@@ -27,7 +27,9 @@ const state = {
   activeWorkspace: "graph",
  activeGraphView: "job",
   completedSteps: JSON.parse(localStorage.getItem("completed_steps") || "[]"),
- sessionId: localStorage.getItem("mcp_session_id") || `demo-${Date.now()}`
+ sessionId: localStorage.getItem("mcp_session_id") || `demo-${Date.now()}`,
+  selectedJobId: null,
+  jobName: null
 };
 
 const DEFAULT_JOB_ROLE = "自动化生产线装调与运维技术员";
@@ -2163,6 +2165,396 @@ async function submitFeedback(feedback) {
   await refreshStudentGraph();
 }
 
+
+function assessmentSkipKey() {
+  return [
+    "mcp_assessment_skipped",
+    state.sessionId || "",
+    selectedJobRole() || ""
+  ].join(":");
+}
+
+function assessmentCompletedKey() {
+  return "mcp_assessment_completed_" + state.sessionId;
+}
+// ---- Unified app boot ----
+
+var appBootStarted = false;
+var appBootPromise = null;
+
+function bootOnce() {
+  if (appBootStarted) return appBootPromise;
+  appBootStarted = true;
+  try {
+    appBootPromise = typeof boot === "function"
+      ? Promise.resolve(boot())
+      : Promise.resolve();
+  } catch (error) {
+    appBootStarted = false;
+    appBootPromise = null;
+    throw error;
+  }
+  return appBootPromise;
+}
+
+// ---- Assessment Functions ----
+
+var assessmentState = {
+  currentQid: "",
+  currentQuestion: null,
+  currentIndex: 0,
+  answeredCount: 0,
+  totalQuestions: 0,
+  selectedOption: null,
+  jobRole: "",
+  abilityLabels: {},
+  started: false,
+  starting: false,
+  submitting: false
+};
+
+function selectedJobRole() {
+  return assessmentState.jobRole
+    || state.selectedJobId
+    || localStorage.getItem("mcp_job_id")
+    || "";
+}
+
+// ---- Overlay helpers ----
+
+function showAssessmentOverlay() {
+  var overlay = document.getElementById("assessmentOverlay");
+  overlay.style.display = "flex";
+  overlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function hideAssessmentOverlay() {
+  var overlay = document.getElementById("assessmentOverlay");
+  overlay.style.display = "none";
+  overlay.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+// ---- Error & retry ----
+
+var assessmentRetryAction = null;
+
+function setAssessmentError(message, retryAction) {
+  var statusEl = document.getElementById("assessmentStatus");
+  var retryBtn = document.getElementById("assessmentRetryBtn");
+  statusEl.textContent = message;
+  statusEl.style.display = "block";
+  assessmentRetryAction = typeof retryAction === "function" ? retryAction : null;
+  retryBtn.hidden = !assessmentRetryAction;
+}
+
+function clearAssessmentError() {
+  var statusEl = document.getElementById("assessmentStatus");
+  statusEl.textContent = "";
+  statusEl.style.display = "none";
+  var retryBtn = document.getElementById("assessmentRetryBtn");
+  retryBtn.hidden = true;
+  assessmentRetryAction = null;
+}
+
+// ---- Assessment flow ----
+
+async function startAssessment(jobRole) {
+  if (assessmentState.starting) return;
+
+  // Skip if already completed or skipped
+  try {
+    if (localStorage.getItem(assessmentCompletedKey()) === "1") {
+      await bootOnce();
+      return;
+    }
+    if (sessionStorage.getItem(assessmentSkipKey()) === "1") {
+      await bootOnce();
+      return;
+    }
+  } catch (_) { /* storage unavailable */ }
+
+  assessmentState.starting = true;
+  showAssessmentOverlay();
+  var container = document.getElementById("assessmentOverlay").querySelector(".assessment-container");
+  var result = document.getElementById("assessmentResult");
+  container.style.display = "block";
+  result.style.display = "none";
+  clearAssessmentError();
+
+  var role = jobRole || state.selectedJobId || localStorage.getItem("mcp_job_id") || "";
+  try {
+    var resp = await api("/api/student/assess/start", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        job_role: role
+      })
+    });
+
+    // Completed assessment: server sends status=completed, not an error
+    if (resp.status === "completed" || resp.state === "completed") {
+      assessmentState.starting = false;
+      hideAssessmentOverlay();
+      await bootOnce();
+      return;
+    }
+
+    if (resp.error) {
+      assessmentState.starting = false;
+      setAssessmentError(resp.error || "启动测评失败", function() {
+        startAssessment(selectedJobRole());
+      });
+      return;
+    }
+
+    assessmentState.jobRole = role;
+    assessmentState.currentQid = "";
+    assessmentState.currentIndex = 0;
+    assessmentState.answeredCount = 0;
+    assessmentState.started = true;
+    assessmentState.selectedOption = null;
+    assessmentState.starting = false;
+    renderAssessmentQuestion(resp);
+  } catch (e) {
+    console.error("Assessment startup failed:", e);
+    setAssessmentError("网络错误，启动测评失败，请点击重试", function() {
+      assessmentState.starting = false;
+      startAssessment(selectedJobRole());
+    });
+  }
+}
+
+function renderAssessmentQuestion(resp) {
+  var q = resp.first_question || resp.next_question;
+  if (!q || !q.qid) {
+    setAssessmentError("测评数据异常，请重试", function() {
+      assessmentState.starting = false;
+      startAssessment(selectedJobRole());
+    });
+    return;
+  }
+
+  assessmentState.currentQid = q.qid;
+  assessmentState.currentQuestion = q;
+
+  // Save ability label for result display
+  if (q.ability_id) {
+    assessmentState.abilityLabels[q.ability_id] =
+      q.ability_label || q.dimension || q.ability_id;
+  }
+
+  var total = resp.total_questions || 30;
+  assessmentState.totalQuestions = total;
+  var idx = resp.current_index !== undefined ? resp.current_index : assessmentState.currentIndex;
+  assessmentState.currentIndex = idx;
+  assessmentState.answeredCount = resp.answered_count !== undefined ? resp.answered_count : idx;
+
+  var progressPct = total > 0 ? (idx / total * 100) : 0;
+  document.getElementById("assessmentProgress").querySelector(".progress-fill").style.width = progressPct + "%";
+  document.getElementById("assessmentProgress").querySelector(".progress-text").textContent = idx + " / " + total;
+
+  var card = document.getElementById("assessmentQuestionCard");
+  card.querySelector(".question-dimension").textContent = q.dimension || "";
+  card.querySelector(".question-text").textContent = q.text || "";
+
+  var optsDiv = card.querySelector(".question-options");
+  optsDiv.innerHTML = "";
+  assessmentState.selectedOption = null;
+
+  if (q.options) {
+    q.options.forEach(function(opt) {
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.textContent = opt.key + ". " + opt.text;
+      btn.type = "button";
+      btn.addEventListener("click", function() {
+        var allBtns = optsDiv.querySelectorAll(".option-btn");
+        allBtns.forEach(function(b) { b.classList.remove("selected"); });
+        btn.classList.add("selected");
+        assessmentState.selectedOption = opt.key;
+        document.getElementById("assessmentNextBtn").disabled = false;
+      });
+      optsDiv.appendChild(btn);
+    });
+  }
+
+  document.getElementById("assessmentNextBtn").disabled = true;
+  document.getElementById("assessmentNextBtn").onclick = submitAssessmentAnswer;
+  document.getElementById("assessmentSkipBtn").onclick = skipAssessment;
+}
+
+async function submitAssessmentAnswer() {
+  if (!assessmentState.selectedOption) return;
+  if (assessmentState.submitting) return;
+  assessmentState.submitting = true;
+  clearAssessmentError();
+
+  // Disable UI during submission
+  var nextBtn = document.getElementById("assessmentNextBtn");
+  var skipBtn = document.getElementById("assessmentSkipBtn");
+  var optionsDiv = document.getElementById("assessmentQuestionCard").querySelector(".question-options");
+  nextBtn.textContent = "提交中...";
+    nextBtn.disabled = true;
+  skipBtn.disabled = true;
+  optionsDiv.style.pointerEvents = "none";
+  optionsDiv.style.opacity = "0.6";
+
+  var qid = assessmentState.currentQid;
+  if (!qid) {
+    setAssessmentError("题目数据异常，请重试", function() { submitAssessmentAnswer(); });
+    assessmentState.submitting = false;
+    nextBtn.textContent = "确认并继续";
+    nextBtn.disabled = !assessmentState.selectedOption;
+    skipBtn.disabled = false;
+    optionsDiv.style.pointerEvents = "";
+    optionsDiv.style.opacity = "";
+    return;
+  }
+
+  try {
+    var resp = await api("/api/student/assess/answer", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        qid: qid,
+        selected_key: assessmentState.selectedOption,
+        job_role: assessmentState.jobRole
+      })
+    });
+
+    if (resp.status === "completed") {
+      showAssessmentResult(resp.result);
+      return;
+    }
+
+    if (resp.error) {
+      setAssessmentError(resp.error || "提交失败，请重试", function() { submitAssessmentAnswer(); });
+      return;
+    }
+
+    if (resp.next_question) {
+      renderAssessmentQuestion(resp);
+    } else {
+      setAssessmentError("服务端返回异常，请重试", function() { submitAssessmentAnswer(); });
+    }
+  } catch (e) {
+    console.error("Assessment answer error:", e);
+    setAssessmentError("网络错误，提交失败，请点击重试", function() { submitAssessmentAnswer(); });
+  } finally {
+    assessmentState.submitting = false;
+    nextBtn.textContent = "确认并继续";
+    nextBtn.disabled = !assessmentState.selectedOption;
+    skipBtn.disabled = false;
+    optionsDiv.style.pointerEvents = "";
+    optionsDiv.style.opacity = "";
+  }
+}
+
+function showAssessmentResult(result) {
+  if (!result) {
+    setAssessmentError("测评结果为空", function() {
+      startAssessment(selectedJobRole());
+    });
+    return;
+  }
+  document.getElementById("assessmentOverlay").querySelector(".assessment-container").style.display = "none";
+  document.getElementById("assessmentStatus").style.display = "none";
+  document.getElementById("assessmentRetryBtn").hidden = true;
+  var resultDiv = document.getElementById("assessmentResult");
+  resultDiv.style.display = "block";
+
+  document.getElementById("resultScore").textContent = Math.round((result.total_score || 0) * 100) + "%";
+
+  var dimsDiv = document.getElementById("resultDimensions");
+  dimsDiv.innerHTML = "";
+  var scores = result.ability_scores || {};
+  var labelMap = assessmentState.abilityLabels || {};
+  Object.keys(scores).forEach(function(aid) {
+    var s = scores[aid];
+    var cssClass = s >= 0.8 ? "strong" : (s >= 0.5 ? "medium" : "weak");
+    var row = document.createElement("div");
+    row.className = "dimension-row";
+    var label = escapeHtml(labelMap[aid] || aid);
+    row.innerHTML = '<span class="dimension-label">' + label + '</span>' +
+      '<div class="dimension-bar-wrap"><div class="dimension-bar-fill ' + cssClass + '" style="width:' + (s * 100) + '%"></div></div>' +
+      '<span class="dimension-score">' + Math.round(s * 100) + '%</span>';
+    dimsDiv.appendChild(row);
+  });
+
+  var recDiv = document.getElementById("resultRecommendations");
+  recDiv.innerHTML = result.recommendations && result.recommendations.length > 0 ?
+    '<h4>学习建议</h4><ul>' + result.recommendations.map(function(r) { return '<li>' + escapeHtml(r) + '</li>'; }).join("") + '</ul>' : "";
+
+  var stepDiv = document.getElementById("resultNextSteps");
+  stepDiv.innerHTML = result.next_steps && result.next_steps.length > 0 ?
+    '<h4>下一步</h4>' + result.next_steps.map(function(s) { return '<div class="next-step">' + escapeHtml(s) + '</div>'; }).join("") : "";
+
+  try { localStorage.setItem(assessmentCompletedKey(), "1"); } catch (_) {}
+
+  var answers = result.answers || [];
+  var wrongAnswers = answers.filter(function(a) { return a.correct === false; });
+  var wrongLabels = [];
+  wrongAnswers.forEach(function(a) {
+    var label = a.ability_label || "";
+    if (label && wrongLabels.indexOf(label) === -1) wrongLabels.push(label);
+  });
+
+  var allCards = [];
+  var promises = wrongLabels.map(function(label) {
+    return api("/api/knowledge/search?query=" + encodeURIComponent(label))
+      .then(function(res) {
+        if (res.results && res.results.length > 0) {
+          res.results.forEach(function(item) { allCards.push(item); });
+        }
+      }).catch(function() {});
+  });
+
+  Promise.all(promises).then(function() {
+    var seen = {};
+    var unique = allCards.filter(function(c) { if (seen[c.id]) return false; seen[c.id] = true; return true; });
+    var gapEl = document.getElementById("knowledgeGapCards");
+    var refsEl = document.getElementById("knowledgeRefs");
+    if (unique.length > 0) {
+      var h = renderKnowledgeCards(unique);
+      if (gapEl) { gapEl.innerHTML = h; gapEl.classList.remove("muted"); }
+      if (refsEl) { refsEl.innerHTML = h; refsEl.classList.remove("muted"); }
+    }
+    if (typeof refreshStudentGraph === "function") refreshStudentGraph();
+  });
+
+  document.getElementById("assessmentDoneBtn").onclick = function() {
+    hideAssessmentOverlay();
+    bootOnce();
+  };
+}
+
+function skipAssessment() {
+  if (!confirm("确定暂时跳过测评吗？跳过后将无法获得个性化学习路径。")) return;
+  try { sessionStorage.setItem(assessmentSkipKey(), "1"); } catch (_) {}
+  hideAssessmentOverlay();
+  bootOnce();
+}
+
+function finishAssessmentAndBoot() {
+  hideAssessmentOverlay();
+  bootOnce();
+}
+
+// Unified retry button binding (set once at init time)
+document.addEventListener("DOMContentLoaded", function() {
+  var retryBtn = document.getElementById("assessmentRetryBtn");
+  if (retryBtn) {
+    retryBtn.onclick = function() {
+      var action = assessmentRetryAction;
+      clearAssessmentError();
+      if (action) action();
+    };
+  }
+});
+
+// ---- End Assessment ----
 async function boot() {
   try {
     const health = await api("/api/health");
@@ -2362,10 +2754,22 @@ function selectJob(jobId, event) {
   setTimeout(function() {
     overlay.style.display = "none";
     document.body.style.overflow = "";
-    if (typeof refreshSidebar === "function") refreshSidebar();
-    if (typeof boot === "function") boot();
+    dismissLanding().then(function() { startAssessment(jobId); });
   }, 400);
 }
+
+function dismissLanding() {
+  return new Promise(function(resolve) {
+    var overlay = document.getElementById("landingOverlay");
+    overlay.classList.add("fade-out");
+    setTimeout(function() {
+      overlay.style.display = "none";
+      document.body.style.overflow = "";
+      resolve();
+    }, 400);
+  });
+}
+
 function toggleDrawer() {
   document.querySelector(".chat-layout").classList.toggle("drawer-collapsed");
 }
