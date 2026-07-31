@@ -1243,6 +1243,7 @@ function renderKnowledge(items) {
       </div>
     </div>
   `).join("");
+  attachAskButtons($("knowledgeRefs"));
 }
 
 function renderTasks(items) {
