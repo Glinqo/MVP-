@@ -954,6 +954,12 @@ function showGraphNodeDetail(node, graph) {
   });
   $("nodeDetailDrawer").classList.add("open");
   $("nodeDetailDrawer").setAttribute("aria-hidden", "false");
+  // Scroll to top and flash to indicate content changed
+  $("nodeDetailDrawer").scrollTop = 0;
+  $("nodeDetailDrawer").classList.add("node-detail-flash");
+  setTimeout(function() {
+    $("nodeDetailDrawer").classList.remove("node-detail-flash");
+  }, 400);
 }
 
 function closeNodeDetail() {
