@@ -1322,7 +1322,7 @@ async function loadScenarios() {
     return;
   }
   try {
-    const data = await api("/api/scenarios");
+    const data = await api("/api/scenario/list");
     state.scenarios = data.scenarios || [];
     renderScenarioList();
   } catch (error) {
@@ -1333,7 +1333,7 @@ async function loadScenarios() {
 async function startScenario() {
   await loadScenarios();
   const selected = document.querySelector("input[name='scenarioChoice']:checked")?.value || state.scenarios[0]?.id;
-  if (!selected) return;
+  if (!selected) { $("scenarioStage").innerHTML = '<p class="muted">请先选择一个场景</p>'; return; }
   $("scenarioStage").innerHTML = '<p class="muted">场景启动中...</p>';
   const data = await api("/api/scenario/start", {
     method: "POST",
