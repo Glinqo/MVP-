@@ -62,7 +62,13 @@ def compact_resource(item):
 
 
 def find_question(question_id):
+    # Search merged data first
     for question in load_data()["questions_data"].get("questions", []):
+        if question.get("id") == question_id:
+            return question
+    # Fallback: search public_questions (diagnosis/*.json)
+    from .data_loader import public_questions
+    for question in public_questions():
         if question.get("id") == question_id:
             return question
     return None
