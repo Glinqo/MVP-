@@ -2353,7 +2353,7 @@ async function submitAssessmentAnswer() {
     }
   } catch (e) {
     console.error("Assessment answer error:", e);
-    setAssessmentError("网络错误，提交失败，请点击重试", function() { submitAssessmentAnswer(); });
+    setAssessmentError("提交失败: " + (e.message || "未知错误"), function() { submitAssessmentAnswer(); });
   } finally {
     assessmentState.submitting = false;
     nextBtn.textContent = "确认并继续";
