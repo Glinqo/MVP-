@@ -489,7 +489,7 @@ class MVPHandler(BaseHTTPRequestHandler):
                     )
                 return self.send_json(score_result)
             if path == "/api/diagnose":
-                return self.send_json(ia_start(payload.get("session_id", ""), payload.get("job_role")))
+                return self.send_json(diagnose(payload))
             if path == "/api/student/assess/start":
                 return self.send_json(ia_start(payload.get("session_id", ""), payload.get("job_role")))
                 job_role = payload.get("job_role", None)
