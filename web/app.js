@@ -52,8 +52,6 @@ function createNewChat() {
   state.messages = [];
   localStorage.setItem("mcp_session_id", newId);
   renderMessages();
-  if (typeof refreshSidebar === "function") refreshSidebar();
-  if (window.innerWidth <= 768 && typeof toggleSidebar === "function") toggleSidebar();
 }
 
 function newSession() {
@@ -407,7 +405,6 @@ function addMessage(role, content, meta) {
   if (role === "user" && state.messages.filter(function(m) { return m.role === "user"; }).length === 1) {
     if (typeof generateAITitle === "function") setTimeout(function() { generateAITitle(state.sessionId); }, 800);
   }
-  if (typeof refreshSidebar === "function") refreshSidebar();
 
 }
 
@@ -2206,7 +2203,6 @@ function selectJob(jobId, event) {
   setTimeout(function() {
     overlay.style.display = "none";
     document.body.style.overflow = "";
-    if (typeof refreshSidebar === "function") refreshSidebar();
     if (typeof boot === "function") boot();
   }, 400);
 }
