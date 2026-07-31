@@ -1331,19 +1331,23 @@ async function loadScenarios() {
 }
 
 async function startScenario() {
-  await loadScenarios();
-  const selected = document.querySelector("input[name='scenarioChoice']:checked")?.value || state.scenarios[0]?.id;
+  var selected = document.querySelector("input[name='scenarioChoice']:checked")?.value || state.scenarios[0]?.id;
   if (!selected) { $("scenarioStage").innerHTML = '<p class="muted">请先选择一个场景</p>'; return; }
   $("scenarioStage").innerHTML = '<p class="muted">场景启动中...</p>';
-  const data = await api("/api/scenario/start", {
-    method: "POST",
-    body: JSON.stringify({
-      session_id: state.sessionId,
-      scenario_id: selected
-    })
-  });
-  renderScenarioStage(data);
-  if (data.student_graph) renderGraph(data.student_graph, "student");
+  try {
+    var data = await api("/api/scenario/start", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        scenario_id: selected
+      })
+    });
+    renderScenarioStage(data);
+    if (data.student_graph) renderGraph(data.student_graph, "student");
+  } catch (e) {
+    $("scenarioStage").innerHTML = '<p class="muted">场景启动失败：' + (e.message || '未知错误') + '</p>';
+    console.error("Scenario start failed:", e);
+  }
 }
 
 async function submitScenarioStep(choiceId) {
