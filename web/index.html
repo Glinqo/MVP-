@@ -9,7 +9,12 @@
     <link rel="stylesheet" href="/styles.css?v=20260730-2" />
   </head>
   <body>
-    <!-- ── Identity & Job Selection Overlay ── --><div id="landingOverlay" class="landing-overlay">
+    <!-- ── Identity & Job Selection Overlay ── -->
+    
+  
+
+
+    <div id="landingOverlay" class="landing-overlay">
       <div class="landing-bg"></div>
   <div class="landing-container">
 
@@ -338,6 +343,10 @@
         <section class="launcher-panel">
           <h2>功能工作台</h2>
           <div class="tool-launcher">
+            <button data-open-tool="knowledge" type="button">
+              <strong>知识缺口</strong>
+              <span>NPN/PNP、公共端、I/O 地址</span>
+            </button>
             <button data-open-tool="graph" type="button">
               <strong>能力图谱</strong>
               <span>岗位需求与个人能力可视化</span>
@@ -345,10 +354,6 @@
             <button data-open-tool="jobAdmin" type="button">
               <strong>岗位数据</strong>
               <span>JD 导入与图谱提案审核</span>
-            </button>
-            <button data-open-tool="knowledge" type="button">
-              <strong>知识缺口</strong>
-              <span>NPN/PNP、公共端、I/O 地址</span>
             </button>
             <button data-open-tool="tasks" type="button">
               <strong>实训任务</strong>
@@ -362,9 +367,7 @@
               <strong>自测验证 <span id="quizCount">加载中</span></strong>
               <span>8 题确定性评分</span>
             </button>
-            <button data-open-tool="plan" type="button">
-              <strong>个人培养方案</strong>
-              <span>分阶段补强计划</span>
+          </div>
             </button>
         </section>
 
@@ -388,14 +391,13 @@
         </header>
 
         <nav class="workspace-tabs" aria-label="功能工作台">
-<button class="active" data-workspace-panel="knowledge" type="button">知识缺口</button>
-<button data-workspace-panel="graph" type="button">能力图谱</button>
-<button data-workspace-panel="jobAdmin" type="button">岗位数据</button>
-<button data-workspace-panel="plan" type="button">培养方案</button>
-<button data-workspace-panel="tasks" type="button">实训任务</button>
-<button data-workspace-panel="scenario" type="button">角色扮演</button>
-<button data-workspace-panel="quiz" type="button">自测</button>
-
+          <button class="active" data-workspace-panel="knowledge" type="button">知识缺口</button>
+          <button data-workspace-panel="graph" type="button">能力图谱</button>
+          <button data-workspace-panel="jobAdmin" type="button">岗位数据</button>
+          <button data-workspace-panel="plan" type="button">培养方案</button>
+          <button data-workspace-panel="tasks" type="button">实训任务</button>
+          <button data-workspace-panel="scenario" type="button">角色扮演</button>
+          <button data-workspace-panel="quiz" type="button">自测</button>
         </nav>
 
         <div class="workspace-body">
@@ -565,6 +567,5 @@
 
     <script src="/graph-renderer.js?v=20260730-2"></script>
     <script src="/app.js?v=20260730-2"></script>
-    <script src="/history.js?v=20260730-2"></script>
   </body>
 </html>
