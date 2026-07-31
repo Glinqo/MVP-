@@ -1415,16 +1415,25 @@ function setGraphView(view) {
 
 function applyAssessmentScoresToGraph(scores) {
   if (!scores || !state.graphs || !state.graphs.student) return;
+  var mapping = {"electrical_safety":["electrical_safety_check","at_01","pc_05","cm_06","power_isolation_confirmation","mw_06","mw_07","mw_09"],"emergency_stop":["ir_13","electrical_safety_check","at_01","at_19","at_20","ad_12","ir_11","ir_12"],"hmi_basic":["mw_01","ir_04","pc_07","sn_11","sd_01","sd_02","cm_01","cm_20"],"input_common_terminal":["plc_input_common_terminal","at_11","no_response_common_terminal_check","at_30","sensor_led_observation","plc_input_grouping","input_led_compare","at_08"],"motor_control":["sd_01","sd_02","mw_01","ad_10","ir_04","pc_07","pc_16","pc_18"],"plc_basic_principle":["mw_07","ir_01"],"plc_wiring":["sensor_wiring_color_code","sensor_wiring_judgement","mw_08","at_09","at_10","at_20","ad_04","ad_12"],"safety_ppe":["electrical_safety_check","at_01","ir_11","ir_12","ir_14","ir_15","pc_05","cm_06"],"sensor_selection":["sensor_type_identification","at_05","ad_01","sn_01","sensor_nameplate_reading","sensor_output_logic","sensor_led_observation","sensor_wiring_color_code"],"sensor_wiring":["sensor_wiring_color_code","sensor_wiring_judgement","at_09","at_10","ad_04","sn_03","sn_04","sensor_led_observation"],"troubleshoot_order":["mw_17","at_22","ir_17","input_no_response_fault_scope","no_response_power_path_check","no_response_sensor_side_check","no_response_common_terminal_check","no_response_address_mapping_check"],"vfd_basic":["mw_01","ir_04","pc_07","sn_11","sd_01","sd_02","cm_01","cm_20"]};
   var nodes = state.graphs.student.nodes || [];
-  nodes.forEach(function(node) {
-    var aid = node.id || node.ability_id || "";
-    if (scores[aid] !== undefined) {
-      node.mastery_score = parseFloat(scores[aid].toFixed(2));
-    }
+  
+  var nodeMap = {};
+  nodes.forEach(function(n) { nodeMap[n.id] = n; });
+  
+  var updated = 0;
+  Object.keys(scores).forEach(function(aid) {
+    var ids = mapping[aid];
+    if (!ids) return;
+    var score = parseFloat(scores[aid].toFixed(2));
+    ids.forEach(function(tid) {
+      var node = nodeMap[tid];
+      if (node) { node.mastery_score = score; updated++; }
+    });
   });
-  // Re-render the graph if renderer exists
-  if (state.graphRenderers && state.graphRenderers["student-graph"]) {
-    state.graphRenderers["student-graph"].update(state.graphs.student);
+  
+  if (updated > 0 && state.graphRenderers && state.graphRenderers["studentGraphDiagram"]) {
+    state.graphRenderers["studentGraphDiagram"].update(state.graphs.student);
   }
 }
 async function refreshStudentGraph() {
