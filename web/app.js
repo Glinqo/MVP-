@@ -2457,8 +2457,8 @@ function showAssessmentResult(result) {
       var refsEl = document.getElementById("knowledgeRefs");
       if (unique.length > 0) {
         var h = renderKnowledgeCards(unique);
-        if (gapEl) { gapEl.innerHTML = h; gapEl.classList.remove("muted"); }
-        if (refsEl) { refsEl.innerHTML = h; refsEl.classList.remove("muted"); }
+        if (gapEl) { gapEl.innerHTML = h; gapEl.classList.remove("muted"); attachAskButtons(gapEl); }
+        if (refsEl) { refsEl.innerHTML = h; refsEl.classList.remove("muted"); attachAskButtons(refsEl); }
       }
       if (typeof refreshStudentGraph === "function") refreshStudentGraph();
       doneBtn.textContent = originalBtnText;
