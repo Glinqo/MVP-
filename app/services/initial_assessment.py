@@ -379,6 +379,7 @@ def _finish_assessment(
     ability_answers: Dict[str, List[float]] = {}
     ability_labels: Dict[str, str] = {}
     dimension_scores: Dict[str, List[float]] = {}
+    answer_list = []
 
     for ans in answers:
         q = q_map.get(ans.get("qid", ans.get("question_id", "")))
@@ -396,6 +397,15 @@ def _finish_assessment(
         if dim not in dimension_scores:
             dimension_scores[dim] = []
         dimension_scores[dim].append(score)
+        answer_list.append({
+            "qid": ans.get("qid", ""),
+            "ability_id": aid,
+            "ability_label": ability_labels.get(aid, ""),
+            "selected": ans.get("selected", ""),
+            "correct_key": q.correct_key,
+            "correct": ans.get("is_correct", False),
+            "dimension": dim,
+        })
 
     # Per-ability scores
     ability_scores = {}
