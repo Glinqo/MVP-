@@ -1322,7 +1322,7 @@ async function loadScenarios() {
     return;
   }
   try {
-    const data = await api("/api/scenario/list");
+    const data = await api("/api/scenarios");
     state.scenarios = data.scenarios || [];
     renderScenarioList();
   } catch (error) {
