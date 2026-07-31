@@ -573,7 +573,7 @@ button:active{transform:translateY(0)}
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow-y: auto;
   background: linear-gradient(135deg, #0a1628 0%, #1a2a4a 40%, #1e3a5f 100%);
 }
 
@@ -592,6 +592,8 @@ button:active{transform:translateY(0)}
   z-index: 1;
   width: 100%;
   max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
   padding: 40px 24px;
 }
 
