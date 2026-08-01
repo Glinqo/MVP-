@@ -1081,6 +1081,7 @@ function renderGraph(graph, type = "job") {
     renderGraphDiagram(graph, "jobGraphDiagram");
     renderGraphNodes(graph, "jobGraphList");
     renderDemandSources(graph);
+    renderDimensionOverview(graph, "jobDimensionOverview");
     return;
   }
   if (type === "student") {
@@ -1090,6 +1091,7 @@ function renderGraph(graph, type = "job") {
     renderGraphNodes(graph, "studentGraphList");
     renderStudentEvidence(graph);
     renderGraphUpdateLog(graph?.update_log || []);
+    renderDimensionOverview(graph, "studentDimensionOverview");
     return;
   }
 }
