@@ -108,6 +108,12 @@ class ForceGraph {
     _setupZoom() {
         this.zoom = d3.zoom()
             .scaleExtent([0.3, 4])
+            .filter(function(ev){
+                if(ev.type==="wheel"||ev.type==="mousedown"||ev.type==="touchstart"){
+                    var r=this.getBoundingClientRect();if(!r||r.width===0)return true;
+                    var mx=r.width/8,my=r.height/8;
+                    return ev.clientX-r.left>=mx&&ev.clientX-r.left<=r.width-mx&&ev.clientY-r.top>=my&&ev.clientY-r.top<=r.height-my}
+                return true})
             .on("zoom", (ev) => { this.g.attr("transform", ev.transform); });
         this.svg.call(this.zoom);
         this.svg.call(this.zoom.transform, d3.zoomIdentity.translate(-20, -20).scale(0.85));
@@ -283,6 +289,15 @@ class ForceGraph {
                     .attr("font-weight", d.status === "root" ? "700" : "500")
                     .text(line);
             });
+            if (d.dimension_score !== undefined && d.dimension_children_count > 0) {
+                text.append("tspan")
+                    .attr("x", 0)
+                    .attr("dy", lines.length === 0 ? 0 : 15)
+                    .attr("fill", "#22d3ee")
+                    .attr("font-weight", "700")
+                    .attr("font-size", "11")
+                    .text(d.dimension_score + "分");
+            }
             d._labelLines = lines;
             d._labelWidth = Math.max(...lines.map(l => l.length)) * 8 + 20;
             d._labelHeight = lines.length * 15 + 10;

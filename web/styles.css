@@ -1298,3 +1298,123 @@ button:active{transform:translateY(0)}
   0%   { border-left-color: rgba(56,189,248,0.6); box-shadow: inset 4px 0 0 rgba(56,189,248,0.4); }
   100% { border-left-color: var(--line); box-shadow: none; }
 }
+
+.peer-dist{margin:10px 0;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:8px}
+.peer-dist.compact{padding:8px 10px}
+.peer-dist-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px}
+.peer-dist-percent{color:#22d3ee;font-weight:700;white-space:nowrap}
+.peer-dist-track{position:relative;height:30px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.07));border:1px solid rgba(255,255,255,0.07);border-radius:6px}
+.peer-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:rgba(148,163,184,0.45);z-index:1}
+.peer-dot.me{width:15px;height:15px;background:#22d3ee;border:2px solid #fff;box-shadow:0 0 10px rgba(34,211,238,0.85);z-index:2}
+.peer-dist.compact .peer-dot{width:5px;height:5px}
+.peer-dist.compact .peer-dot.me{width:11px;height:11px}
+.peer-dist-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-top:6px}
+.process-metrics,.strategy-tags{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 14px}
+.process-metrics span,.strategy-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  border:1px solid var(--line);border-radius:999px;
+  background:var(--glass);color:var(--text-secondary);
+  font-size:12px;line-height:1;padding:7px 10px;
+}
+.strategy-tag.ok{border-color:rgba(34,197,94,0.32);background:rgba(34,197,94,0.08);color:#86efac}
+.strategy-tag.warn{border-color:rgba(251,191,36,0.32);background:rgba(251,191,36,0.08);color:#fde68a}
+.evidence-timeline{
+  display:grid;gap:8px;margin:8px 0 0;padding:0;list-style:none;
+  counter-reset:evidence-step;
+}
+.evidence-timeline li{
+  position:relative;border:1px solid var(--line);border-radius:var(--radius-sm);
+  background:rgba(255,255,255,0.025);padding:10px 12px 10px 36px;line-height:1.55;
+}
+.evidence-timeline li::before{
+  counter-increment:evidence-step;content:counter(evidence-step);
+  position:absolute;left:10px;top:12px;width:17px;height:17px;border-radius:999px;
+  display:grid;place-items:center;font-size:10px;font-weight:700;
+  color:var(--primary-light);border:1px solid rgba(20,184,166,0.35);
+  background:rgba(15,118,110,0.12);
+}
+.proposal-box{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:rgba(255,255,255,0.02); margin-bottom:16px; padding:14px;
+}
+.question-actions,.quiz-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+.question-actions button{min-height:34px;padding:7px 12px;font-size:13px}
+.personalized-quiz{margin:14px 0 20px}
+.personalized-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.personalized-card details{margin-top:8px}
+.personalized-card summary{cursor:pointer;color:var(--primary-light);font-weight:700}
+.plan-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+
+/* 閳光偓閳光偓 Workspace Overlay 閳光偓閳光偓 */
+.workspace-overlay{
+  display:none; position:fixed; inset:0; z-index:20;
+  background:rgba(5,13,26,0.75);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.workspace-overlay.open{display:block}
+.workspace-shell{
+  display:grid; grid-template-rows:auto auto 1fr;
+  width:100vw; height:100vh; margin:0;
+  border:1px solid var(--line); border-radius:0;
+  background:linear-gradient(180deg, #0f1d35 0%, #0a1628 100%);
+  overflow:hidden;
+}
+.workspace-header{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:18px 24px; border-bottom:1px solid var(--line);
+  background:rgba(15,23,42,0.5); backdrop-filter:blur(12px);
+}
+.workspace-header h2{margin:0;font-size:1.4rem;font-weight:700;color:var(--text)}
+.close-workspace{min-width:80px;font-weight:600}
+.workspace-tabs,.graph-tabs{
+  display:flex;gap:8px;overflow-x:auto;padding:12px 24px;
+  border-bottom:1px solid var(--line); background:rgba(15,23,42,0.3);
+}
+.workspace-tabs button,.graph-tabs button{
+  white-space:nowrap; border-radius:var(--radius-sm);
+  padding:8px 16px; font-size:13px; font-weight:500;
+}
+.workspace-tabs button.active,.graph-tabs button.active{
+  border-color:var(--primary); background:rgba(15,118,110,0.12);
+  color:var(--primary-light); font-weight:700;
+}
+.workspace-body{min-height:0;overflow:auto;padding:24px}
+.workspace-panel,.graph-view{display:none}
+.workspace-panel.active,.graph-view.active{display:block}
+.workspace-grid{display:grid;grid-template-columns:1fr;gap:20px}
+.workspace-body h3{font-size:1rem;font-weight:700;color:var(--text);margin:0 0 10px}
+.dimension-overview{margin-bottom:16px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,0.03)}
+.dimension-overview-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px}
+.dimension-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.dimension-card{padding:12px 14px;border:1px solid var(--line);border-top:3px solid var(--dim-color);border-radius:8px;background:var(--card-bg)}
+.dimension-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.35}
+.dimension-score{font-size:26px;font-weight:800;color:var(--dim-color);line-height:1}
+.dimension-score span{font-size:12px;font-weight:500;color:var(--muted);margin-left:2px}
+.dimension-bar{height:6px;background:rgba(255,255,255,0.08);border-radius:999px;margin:8px 0 6px;overflow:hidden}
+.dimension-bar span{display:block;height:100%;border-radius:999px;background:var(--dim-color)}
+.dimension-sub{font-size:11px;color:var(--muted)}
+
+/* 閳光偓閳光偓 Dashboard 閳光偓閳光偓 */
+.dashboard-panel{min-height:180px}
+.dashboard-hero{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px;
+  margin-bottom:16px;
+}
+.dashboard-hero .metric{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--glass); padding:16px;
+  transition:all .2s;
+}
+.dashboard-hero .metric:hover{border-color:var(--line-strong);transform:translateY(-2px);box-shadow:var(--shadow-hover)}
+.dashboard-hero .metric strong{font-size:28px}
+.dashboard-chip{
+  display:inline-flex; border:1px solid var(--line); border-radius:999px;
+  background:var(--glass); color:var(--text-secondary); font-size:12px;
+  padding:4px 10px; margin:2px;
+}
+.dashboard-chip.weak{border-color:var(--weak-line);color:#fb7185}
+.dashboard-chip.mastered{border-color:rgba(34,197,94,0.3);color:#22c55e}
+
+/* 閳光偓閳光偓 Drawers 閳光偓閳光偓 */
+
