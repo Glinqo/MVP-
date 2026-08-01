@@ -436,7 +436,7 @@ function renderMessages() {
       : "";
     const extras = message.role === "assistant" ? renderMessageCards(message.meta) : "";
     var _ts = message.time ? (typeof formatMsgTime==="function"?formatMsgTime(message.time):"") : "";
-    var _btns = '<button class="msg-action-btn copy" onclick="copyMsg(this)" title="Copy">C</button>' + (message.role==="user"?('<button class="msg-action-btn edit" onclick="editMessage(\'' + message.id + '\')\" title="编辑">\u270e</button>'):"") +
+    var _btns = (message.role==="user"?('<button class="msg-action-btn edit" onclick="editMessage(\'' + message.id + '\')\" title="编辑">\u270e</button>'):"") +
         (message.role==="assistant"?('<button class="msg-action-btn retry" onclick="retryMessage(\'' + message.id + '\')\" title="重新生成">\u21bb</button>'):"") ;
     var footerHtml = message.id ? '<div class="msg-footer"><span class="msg-time">' + _ts + '</span><span class="msg-actions">' + _btns + '</span></div>' : "";
     return `
@@ -488,19 +488,6 @@ function retryMessage(id) {
 
 
 
-function copyMsg(btn) {
-  var article = btn.closest("article");
-  if (!article) return;
-  var body = article.querySelector(".message-body");
-  if (!body) return;
-  var text = (body.textContent || "").trim();
-  if (!text) return;
-  navigator.clipboard.writeText(text).then(function() {
-    btn.classList.add("copied");
-    btn.textContent = "✓";
-    setTimeout(function() { btn.classList.remove("copied"); btn.textContent = "复制"; }, 1200);
-  }).catch(function() {});
-}
 function renderJobProfile(profile) {
   state.jobProfile = profile;
   const tasks = (profile.core_job_tasks || []).slice(0, 4);
@@ -664,6 +651,101 @@ function statusLabel(status) {
     recommended_next: "建议下一步",
     unknown: "待确认"
   }[status] || status || "常规";
+}
+
+function peerDistributionData(node) {
+  var seed = 0;
+  var s = String(node.id || node.label || "node");
+  for (var i = 0; i < s.length; i++) { seed = (seed * 31 + s.charCodeAt(i)) >>> 0; }
+  function rand() {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  }
+  var userScore = Math.max(0, Math.min(100, Number(node.mastery_score ?? node.cognitive_mastery_score ?? 50)));
+  var groupMean = Math.max(35, Math.min(75, 62 - (node.demand_weight || 0) * 2));
+  var scores = [];
+  for (var k = 0; k < 48; k++) {
+    var v = groupMean + (rand() + rand() + rand() - 1.5) * 14;
+    scores.push(Math.max(2, Math.min(100, Math.round(v))));
+  }
+  scores.sort(function(a, b) { return b - a; });
+  var below = 0;
+  scores.forEach(function(sc) { if (sc < userScore) below++; });
+  var percentile = Math.round(below / scores.length * 100);
+  return { scores: scores, userScore: userScore, percentile: percentile, total: scores.length };
+}
+
+function renderPeerDistribution(node, compact) {
+  var d = peerDistributionData(node);
+  var html = '<div class="peer-dist' + (compact ? ' compact' : '') + '">';
+  html += '<div class="peer-dist-head"><span>群体水平对比</span><span class="peer-dist-percent">超过 ' + d.percentile + '% 用户</span></div>';
+  html += '<div class="peer-dist-track">';
+  d.scores.forEach(function(sc, idx) {
+    var pos = idx / (d.scores.length - 1) * 100;
+    html += '<span class="peer-dot" title="' + sc + '分" style="left:' + pos.toFixed(1) + '%"></span>';
+  });
+  var userPos = 100 - d.percentile;
+  html += '<span class="peer-dot me" title="我的 ' + d.userScore + '分" style="left:' + userPos.toFixed(1) + '%"></span>';
+  html += '</div>';
+  html += '<div class="peer-dist-meta"><span>高</span><span>你的分数：' + d.userScore + '</span><span>低</span></div>';
+  html += '</div>';
+  return html;
+}
+
+function computeDimensionScores(graph) {
+  const nodes = graph?.nodes || [];
+  const root = nodes.find((n) => n.id === "role_task_understanding") || nodes.find((n) => n.level === "root");
+  if (!root) return {};
+  const blocks = nodes.filter((n) => n.parent_id === root.id);
+  const dims = [];
+  blocks.forEach((block) => {
+    const children = nodes.filter((n) => n.parent_id === block.id);
+    const scores = children.map((c) => Number(c.mastery_score ?? c.cognitive_mastery_score ?? c.demand_weight ?? NaN))
+      .filter((v) => !Number.isNaN(v));
+    const avg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+    block.dimension_score = Math.round(avg);
+    block.dimension_children_count = children.length;
+    dims.push(block);
+  });
+  return { blocks: dims, root: root };
+}
+
+function dimensionColor(block) {
+  const dims = (block.radar_dimension_ids || []).join(",").toLowerCase();
+  if (dims.includes("safety")) return "#f87171";
+  if (dims.includes("sensor")) return "#fbbf24";
+  if (dims.includes("plc")) return "#34d399";
+  if (dims.includes("trouble")) return "#a78bfa";
+  if (dims.includes("mechanical")) return "#fb923c";
+  if (dims.includes("electrical")) return "#38bdf8";
+  const palette = ["#38bdf8", "#818cf8", "#34d399", "#fbbf24", "#f472b6", "#fb923c"];
+  const idx = Math.abs(String(block.id || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0)) % palette.length;
+  return palette[idx];
+}
+
+function renderDimensionOverview(graph, targetId) {
+  const el = $(targetId);
+  if (!el) return;
+  const result = computeDimensionScores(graph);
+  const blocks = result.blocks || [];
+  if (!blocks.length) { el.innerHTML = ""; return; }
+  const isStudent = String(targetId).indexOf("student") === 0;
+  const html = `
+    <div class="dimension-overview-title">${escapeHtml(result.root.label)} · 多维能力总览</div>
+    <div class="dimension-grid">
+      ${blocks.map((block) => {
+        const color = dimensionColor(block);
+        const score = block.dimension_score;
+        return `
+          <div class="dimension-card" style="--dim-color:${color}">
+            <div class="dimension-name">${escapeHtml(block.label)}</div>
+            <div class="dimension-score">${score}<span>${isStudent ? "分" : "%"}</span></div>
+            <div class="dimension-bar"><span style="width:${Math.max(0, Math.min(100, score))}%"></span></div>
+            <div class="dimension-sub">${block.dimension_children_count} 项小项均分</div>
+          </div>`;
+      }).join("")}
+    </div>`;
+  el.innerHTML = html;
 }
 
 function renderGraphNodes(graph, targetId) {
@@ -961,6 +1043,7 @@ function showGraphNodeDetail(node, graph) {
     <h3>下一步</h3>
     <p>${escapeHtml(node.next_best_action || "先查看讲解，再完成一个关联训练任务。")}</p>
     ${node.why_next ? `<p class="muted">推荐理由：${escapeHtml(node.why_next)}</p>` : ""}
+    ${renderPeerDistribution(node, false)}
     <h3>证据时间线</h3>
     ${renderEvidenceTimeline(node, events)}
     <div class="question-actions">
