@@ -651,14 +651,11 @@ async function doLogin() {
     localStorage.setItem("mcp_identity", "student");
     if (typeof state !== "undefined") { state.authToken = d.token; state.currentUser = d.user; }
 
-    // Check if user already completed assessment for this account
+    // If user previously selected a job, go directly to main page
     var uname = d.user.username;
     var prevJob = localStorage.getItem("mcp_job_id");
-    var completedKey = "mcp_assessment_completed_" + uname + "-session";
-    var wasCompleted = localStorage.getItem(completedKey) === "1";
 
-    if (prevJob && wasCompleted) {
-      // Already completed everything - go directly to app
+    if (prevJob) {
       if (typeof state !== "undefined") {
         state.selectedJobId = prevJob;
         state.jobName = localStorage.getItem("mcp_job_name") || "";
@@ -670,15 +667,6 @@ async function doLogin() {
       dismissLanding().then(function() {
         if (typeof bootOnce !== "undefined") bootOnce();
       });
-      return;
-    }
-
-    if (prevJob) {
-      // Has job, skip identity, go to job selection
-      var ls = document.getElementById("landingStepLogin");
-      var js = document.getElementById("landingStepJob");
-      if (ls) ls.classList.remove("active");
-      if (js) js.classList.add("active");
       return;
     }
 

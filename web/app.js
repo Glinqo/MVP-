@@ -1999,7 +1999,7 @@ function renderWorkspaceTasks(planData) {
 async function loadTrainingPlans(planMode) {
   var pp = document.getElementById('personalizedPlan');
   if (pp) pp.style.display = '';
-  var jobName = state.jobName || '';
+  var jobName = state.jobName || state.jobProfile?.role_name || localStorage.getItem("mcp_job_name") || '';
   if (!jobName) { document.getElementById('personalizedPlan').innerHTML = '<div class="muted">请先选择岗位</div>'; return; }
   document.getElementById('personalizedPlan').innerHTML = '<div class="muted">加载中...</div>';
  var planData = await fetchTrainingPlans(jobName);
