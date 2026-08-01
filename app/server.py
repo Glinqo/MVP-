@@ -53,7 +53,9 @@ from app.services.next_action_recommender import recommend_next_actions  # noqa:
 from app.services.device_state_handler import record_device_state  # noqa: E402
 
 from app.services.initial_assessment import start_assessment as ia_start, submit_answer as ia_submit_answer, get_assessment_summary as ia_get_summary  # noqa: E402
-from app.services.action_planner import plan_initial_learning  # noqa: E402
+from app.services.action_planner import plan_initial_learning
+from app.services.auth import login, get_user
+from app.middleware import find_authed_user  # noqa: E402
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
 from app.services.transfer_engine import suggest_transfer_tasks  # noqa: E402
@@ -389,6 +391,15 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(list_conversation_sessions(job_role=job_role))
                 job_role = query_params.get("job_role", [None])[0]
                 return self.send_json(list_conversation_sessions(job_role=job_role))
+            # ---- Auth routes ----
+            if path == "/api/auth/login":
+                return self.send_json(login(payload.get("username", ""), payload.get("password", "")))
+            if path == "/api/auth/me":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
+                return self.send_json({"ok": True, "user": user})
+
             if path == "/api/chat/start":
                 return self.send_json(chat_start(payload))
             if path == "/api/chat/stream":
