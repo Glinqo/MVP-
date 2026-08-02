@@ -486,9 +486,6 @@ function retryMessage(id) {
   sendChat(prev.content);
 }
 
-
-
-
 function renderJobProfile(profile) {
   state.jobProfile = profile;
   const tasks = (profile.core_job_tasks || []).slice(0, 4);
@@ -908,49 +905,6 @@ function renderGraphDiagram(graph, targetId) {
 
 }
 
-function renderDemandSources(graph) {
-  const sources = graph?.demand_sources || [];
-  $("jobDemandSources").innerHTML = sources.length ? `
-    <ul class="item-list">
-      ${sources.map((item) => `
-        <li>
-          <strong>${escapeHtml(item.snapshot_id)} · ${escapeHtml(item.source_type)}</strong>
-          <div>${escapeHtml(item.evidence)}</div>
-          <div class="muted">${escapeHtml(item.collected_at)} · weight ${escapeHtml(item.weight)} · source: ${escapeHtml(item.source)}</div>
-        </li>
-      `).join("")}
-    </ul>
-  ` : '<p class="muted">暂无行业需求来源</p>';
-}
-
-function renderStudentEvidence(graph) {
-  const weak = (graph?.nodes || []).filter((node) => node.status === "weak").length;
-  const touched = (graph?.nodes || []).filter((node) => node.status === "touched").length;
-  const next = (graph?.nodes || []).filter((node) => node.status === "recommended_next").length;
-  const improving = (graph?.nodes || []).filter((node) => node.status === "improving").length;
-  $("studentGraphEvidence").innerHTML = `
-    <p>会话：${escapeHtml(graph?.session_id || state.sessionId)}</p>
-    <p>已记录事件：${escapeHtml(graph?.event_count || 0)}</p>
-    <p>薄弱节点：${weak}；正在提升：${improving}；问答命中：${touched}；建议下一步：${next}</p>
-    <p class="muted">依据来自本地问答命中、确定性自测评分和学生反馈，不使用 LLM 自由评分。</p>
-  `;
-}
-
-function renderGraphUpdateLog(updates) {
-  state.graphUpdates = updates || [];
-  $("graphUpdateLog").innerHTML = state.graphUpdates.length ? `
-    <ul class="item-list">
-      ${state.graphUpdates.slice(-8).reverse().map((item) => `
-        <li>
-          <strong>${escapeHtml(item.ability_name || item.ability_id)}</strong>
-          <div>${escapeHtml(item.reason || "图谱证据更新")}</div>
-          <div class="muted">${escapeHtml(item.event_type)} · ${escapeHtml(item.created_at || "")} · source: ${escapeHtml(item.source || "")}</div>
-        </li>
-      `).join("")}
-    </ul>
-  ` : '<p class="muted">暂无更新日志</p>';
-}
-
 function renderStrategyTags(node) {
   const tags = node.strategy_tags || [];
   const gate = node.safety_gate;
@@ -1018,7 +972,6 @@ function renderEvidenceTimeline(node, events) {
 
 function showGraphNodeDetail(node, graph) {
   const events = node.evidence_events || [];
-  $("graphEvidencePanel").innerHTML = `
     <strong>${escapeHtml(node.label)}</strong>
     <p>状态：${escapeHtml(node.status_label || statusLabel(node.status))}；掌握度：${escapeHtml(node.mastery_score ?? "-")}；认知分：${escapeHtml(node.cognitive_mastery_score ?? "-")}；置信度：${escapeHtml(node.confidence ?? "-")}</p>
     <p>${(node.update_reasons || node.evidence || []).map(escapeHtml).join("；") || "暂无明确证据"}</p>
@@ -1079,21 +1032,16 @@ function renderGraph(graph, type = "job") {
   state.graphs[type] = graph || null;
   computeDimensionScores(graph);
   if (type === "job") {
-    $("jobMermaidOutput").textContent = graph?.mermaid || "";
     renderGraphLegend(graph, "jobGraphDiagram");
     renderGraphDiagram(graph, "jobGraphDiagram");
     renderGraphNodes(graph, "jobGraphList");
-    renderDemandSources(graph);
     renderDimensionOverview(graph, "jobDimensionOverview");
     return;
   }
   if (type === "student") {
-    $("studentMermaidOutput").textContent = graph?.mermaid || "";
     renderGraphLegend(graph, "studentGraphDiagram");
     renderGraphDiagram(graph, "studentGraphDiagram");
     renderGraphNodes(graph, "studentGraphList");
-    renderStudentEvidence(graph);
-    renderGraphUpdateLog(graph?.update_log || []);
     renderDimensionOverview(graph, "studentDimensionOverview");
     return;
   }
@@ -1520,7 +1468,6 @@ function setGraphView(view) {
   });
 }
 
-
 function applyAssessmentScoresToGraph(scores) {
   if (!scores || !state.graphs || !state.graphs.student) return;
   var mapping = {"electrical_safety":["electrical_safety_check","at_01","pc_05","cm_06","power_isolation_confirmation","mw_06","mw_07","mw_09"],"emergency_stop":["ir_13","electrical_safety_check","at_01","at_19","at_20","ad_12","ir_11","ir_12"],"hmi_basic":["mw_01","ir_04","pc_07","sn_11","sd_01","sd_02","cm_01","cm_20"],"input_common_terminal":["plc_input_common_terminal","at_11","no_response_common_terminal_check","at_30","sensor_led_observation","plc_input_grouping","input_led_compare","at_08"],"motor_control":["sd_01","sd_02","mw_01","ad_10","ir_04","pc_07","pc_16","pc_18"],"plc_basic_principle":["mw_07","ir_01"],"plc_wiring":["sensor_wiring_color_code","sensor_wiring_judgement","mw_08","at_09","at_10","at_20","ad_04","ad_12"],"safety_ppe":["electrical_safety_check","at_01","ir_11","ir_12","ir_14","ir_15","pc_05","cm_06"],"sensor_selection":["sensor_type_identification","at_05","ad_01","sn_01","sensor_nameplate_reading","sensor_output_logic","sensor_led_observation","sensor_wiring_color_code"],"sensor_wiring":["sensor_wiring_color_code","sensor_wiring_judgement","at_09","at_10","ad_04","sn_03","sn_04","sensor_led_observation"],"troubleshoot_order":["mw_17","at_22","ir_17","input_no_response_fault_scope","no_response_power_path_check","no_response_sensor_side_check","no_response_common_terminal_check","no_response_address_mapping_check"],"vfd_basic":["mw_01","ir_04","pc_07","sn_11","sd_01","sd_02","cm_01","cm_20"]};
@@ -1558,9 +1505,7 @@ async function refreshStudentGraph() {
 }
 
 async function loadGraphUpdates() {
-  const data = await api(`/api/graph/updates?session_id=${encodeURIComponent(state.sessionId)}`);
-  renderGraphUpdateLog(data.updates || []);
-}
+  return;
 
 async function loadStudentDashboard() {
   try {
@@ -2189,7 +2134,6 @@ async function submitFeedback(feedback) {
   await refreshStudentGraph();
 }
 
-
 function assessmentSkipKey() {
   return [
     "mcp_assessment_skipped",
@@ -2651,7 +2595,6 @@ async function boot() {
     renderGraph(jobGraph, "job");
     renderJobProposals(jobGraph.pending_proposals || []);
     renderGraph(studentBootstrap.student_graph, "student");
-    renderGraphUpdateLog(studentBootstrap.student_graph?.update_log || []);
   } catch (error) {
     $("healthStatus").textContent = "未连接";
     $("healthStatus").classList.remove("ok");
@@ -2715,7 +2658,6 @@ document.addEventListener("keydown", (event) => {
     }, 200);
   });
 
-
 document.querySelectorAll(".tb-btn").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll(".tb-btn").forEach(function(x){x.classList.remove("active")});this.classList.add("active");state.timeBudget=parseInt(this.dataset.budget);localStorage.setItem("time_budget",state.timeBudget)})});
 if (document.getElementById("learningGoalSelect")) {
   document.getElementById("learningGoalSelect").value = localStorage.getItem(userKey("learning_goal")) || "日常实事";
@@ -2724,8 +2666,6 @@ if (document.getElementById("learningGoalSelect")) {
     localStorage.setItem(userKey("learning_goal"), this.value);
   });
 }
-
-
 
 document.getElementById("personalizedPlan").addEventListener("click", function(e) {
   var btn = e.target.closest("button");
@@ -2790,7 +2730,6 @@ function addStageReorderHandlers(planData) {
 
 function updateChecklistProgress(){var el=document.getElementById("personalizedPlan");if(!el)return;var boxes=el.querySelectorAll(".checklist-cb:checked");var total=el.querySelectorAll(".checklist-cb").length;var done=boxes.length;var prog=el.querySelector(".checklist-progress");if(prog)prog.textContent="进度："+done+"/"+total+" 步已完成"}
 
-
 function renderRadarChart(stages,id){var c=document.getElementById(id);if(!c||!stages||stages.length<3)return;c.innerHTML="";var w=c.clientWidth||280;var h=190;var cx=w/2,cy=h/2-10;var r=Math.min(cx-40,cy-25);if(r<30)return;var data=stages.slice(0,6).map(function(s,i){return{a:s.name||"",v:0.5}});var angleStep=Math.PI*2/data.length;var svg='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg"><g transform="translate('+cx+','+cy+')">';[0.2,0.4,0.6,0.8,1].forEach(function(lv){var pts=[];for(var i=0;i<=data.length;i++){var a=angleStep*(i%data.length)-Math.PI/2;pts.push((r*lv*Math.cos(a)).toFixed(1)+","+(r*lv*Math.sin(a)).toFixed(1))}svg+='<polygon points="'+pts.join(" ")+'" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.8"/>'});data.forEach(function(d,i){var a=angleStep*i-Math.PI/2;var x2=(r*Math.cos(a)).toFixed(1);var y2=(r*Math.sin(a)).toFixed(1);svg+='<line x1="0" y1="0" x2="'+x2+'" y2="'+y2+'" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>';var lx=((r+22)*Math.cos(a)).toFixed(1);var ly=((r+22)*Math.sin(a)).toFixed(1);svg+='<text x="'+lx+'" y="'+ly+'" text-anchor="middle" dominant-baseline="middle" fill="#94a3b8" font-size="9">'+d.a.slice(0,5)+".."+'</text>'});var pts2=[];for(var j=0;j<data.length;j++){var a2=angleStep*j-Math.PI/2;var r2=r*data[j].v;pts2.push(r2*Math.cos(a2)+","+r2*Math.sin(a2))}pts2.push(pts2[0]);svg+='<polygon points="'+pts2.join(" ")+'" fill="rgba(56,189,248,0.15)" stroke="#38bdf8" stroke-width="1.5" stroke-linejoin="round"/>';svg+='</g></svg>';c.innerHTML=svg}
 
 function stageColor(idx){var c=["#38bdf8","#818cf8","#34d399","#fbbf24","#f472b6","#fb923c","#a78bfa"];return c[idx%c.length]}
@@ -2831,7 +2770,6 @@ async function doLogin() {
     errEl.style.display = "block";
   }
 }
-
 
 function selectIdentity(identity) {
   localStorage.setItem(userKey("mcp_identity"), identity);
