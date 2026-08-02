@@ -719,7 +719,8 @@ function switchAccount() {
           state.selectedJobId = pj;
           state.jobName = localStorage.getItem("mcp_job_name_" + u) || "";
         }
-        if (typeof boot === "function") boot();
+        if (typeof startAssessment === "function") { startAssessment(pj); }
+        else if (typeof boot === "function") boot();
       });
     }
   }
