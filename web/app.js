@@ -1030,7 +1030,7 @@ function showGraphNodeDetail(node, graph) {
       <div class="metric"><strong>${escapeHtml(node.uncertainty ?? "-")}</strong><span>不确定性</span></div>
     </div>
 
-    ${renderPeerDistribution(node, false)}
+    ${$("graphViewStudent")?.classList.contains("active") ? renderPeerDistribution(node, false) : ""}
     <h3>最新证据</h3>
     ${node.latest_evidence && node.latest_evidence.length ? `
       <ul class="item-list">
