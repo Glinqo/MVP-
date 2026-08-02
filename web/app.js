@@ -694,36 +694,32 @@ function renderPeerDistribution(node, compact) {
 }
 
 function computeDimensionScores(graph) {
-  const nodes = graph?.nodes || [];
-  const root = nodes.find((n) => n.id === "role_task_understanding") || nodes.find((n) => n.level === "root");
-  if (!root) return {};
-  const blocks = nodes.filter((n) => n.parent_id === root.id);
-  const dims = [];
-  blocks.forEach((block) => {
-    const children = nodes.filter((n) => n.parent_id === block.id);
-    const scores = children.map((c) => Number(c.mastery_score ?? c.cognitive_mastery_score ?? c.demand_weight ?? NaN))
-      .filter((v) => !Number.isNaN(v));
-    const avg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-    block.dimension_score = Math.round(avg);
-    block.dimension_children_count = children.length;
-    dims.push(block);
+  var nodes = graph?.nodes || [];
+  if (!nodes.length) return { blocks: [] };
+  var dims = [
+    { id: "electrical_safety", label: "电气安全", color: "#f87171", match: function(ids) { return ids.some(function(d) { return d.indexOf("electrical_safety") === 0; }); } },
+    { id: "sensor_signal", label: "传感器/信号", color: "#fbbf24", match: function(ids) { return ids.some(function(d) { return d.indexOf("sensor_signal") === 0; }); } },
+    { id: "plc_control", label: "PLC控制", color: "#60a5fa", match: function(ids) { return ids.some(function(d) { return d.indexOf("plc_control") === 0; }); } },
+    { id: "troubleshooting", label: "排故诊断", color: "#34d399", match: function(ids) { return ids.some(function(d) { return d.indexOf("equipment_inspection") === 0 || d.indexOf("troubleshooting") >= 0; }); } }
+  ];
+  var blocks = [];
+  dims.forEach(function(dim) {
+    var matched = nodes.filter(function(n) {
+      var ids = n.radar_dimension_ids || [];
+      return dim.match(ids);
+    });
+    var scores = matched.map(function(n) { return Number(n.mastery_score ?? n.cognitive_mastery_score ?? 0); }).filter(function(v) { return !isNaN(v); });
+    var avg = scores.length ? Math.round(scores.reduce(function(a, b) { return a + b; }, 0) / scores.length) : 0;
+    if (matched.length > 0) {
+      blocks.push({ id: dim.id, label: dim.label, color: dim.color, dimension_score: avg, dimension_children_count: matched.length, radar_dimension_ids: [dim.id] });
+    }
   });
-  return { blocks: dims, root: root };
+  return { blocks: blocks };
 }
 
 function dimensionColor(block) {
-  const dims = (block.radar_dimension_ids || []).join(",").toLowerCase();
-  if (dims.includes("safety")) return "#f87171";
-  if (dims.includes("sensor")) return "#fbbf24";
-  if (dims.includes("plc")) return "#34d399";
-  if (dims.includes("trouble")) return "#a78bfa";
-  if (dims.includes("mechanical")) return "#fb923c";
-  if (dims.includes("electrical")) return "#38bdf8";
-  const palette = ["#38bdf8", "#818cf8", "#34d399", "#fbbf24", "#f472b6", "#fb923c"];
-  const idx = Math.abs(String(block.id || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0)) % palette.length;
-  return palette[idx];
+  return block.color || "#38bdf8";
 }
-
 function renderDimensionOverview(graph, targetId) {
   const el = $(targetId);
   if (!el) return;
@@ -732,7 +728,7 @@ function renderDimensionOverview(graph, targetId) {
   if (!blocks.length) { el.innerHTML = ""; return; }
   const isStudent = String(targetId).indexOf("student") === 0;
   const html = `
-    <div class="dimension-overview-title">${escapeHtml(result.root.label)} · 多维能力总览</div>
+    <div class="dimension-overview-title">?????? · 多维能力总览</div>
     <div class="dimension-grid">
       ${blocks.map((block) => {
         const color = dimensionColor(block);
