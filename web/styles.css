@@ -536,6 +536,7 @@ button:active{transform:translateY(0)}
   .explain-drawer{width:100vw}
   .explain-drawer header,.explain-actions{align-items:flex-start;flex-direction:column}
   .graph-legend-panel{grid-template-columns:1fr}
+.dimension-grid{grid-template-columns:1fr}
 }
 
 /* 鈹€鈹€ Identity & Job Selection Landing 鈹€鈹€ */

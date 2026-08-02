@@ -769,6 +769,7 @@ function renderGraphNodes(graph, targetId) {
         <div class="muted">${escapeHtml(node.id)}</div>
         ${weight}
         ${score}
+        ${renderPeerDistribution(node, true)}
         ${evidence}
         <div class="muted">source: ${escapeHtml(node.source || "")}</div>
       </div>
@@ -1033,6 +1034,7 @@ function showGraphNodeDetail(node, graph) {
       <div class="metric"><strong>${escapeHtml(node.uncertainty ?? "-")}</strong><span>不确定性</span></div>
     </div>
 
+    ${renderPeerDistribution(node, false)}
     <h3>最新证据</h3>
     ${node.latest_evidence && node.latest_evidence.length ? `
       <ul class="item-list">
@@ -1044,7 +1046,6 @@ function showGraphNodeDetail(node, graph) {
     <h3>下一步</h3>
     <p>${escapeHtml(node.next_best_action || "先查看讲解，再完成一个关联训练任务。")}</p>
     ${node.why_next ? `<p class="muted">推荐理由：${escapeHtml(node.why_next)}</p>` : ""}
-    ${renderPeerDistribution(node, false)}
     <h3>证据时间线</h3>
     ${renderEvidenceTimeline(node, events)}
     <div class="question-actions">
