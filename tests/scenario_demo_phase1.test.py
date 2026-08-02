@@ -165,4 +165,3 @@ class ScenarioTests:
                 assert opt["is_correct"] is True
             if opt["id"] == "B":
                 assert opt["is_correct"] is False
-
