@@ -728,7 +728,7 @@ function renderDimensionOverview(graph, targetId) {
   if (!blocks.length) { el.innerHTML = ""; return; }
   const isStudent = String(targetId).indexOf("student") === 0;
   const html = `
-    <div class="dimension-overview-title">?????? · 多维能力总览</div>
+    <div class="dimension-overview-title">多维能力总览</div>
     <div class="dimension-grid">
       ${blocks.map((block) => {
         const color = dimensionColor(block);
