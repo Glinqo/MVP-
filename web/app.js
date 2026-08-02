@@ -1080,7 +1080,7 @@ function renderGraph(graph, type = "job") {
     renderGraphDiagram(graph, "jobGraphDiagram");
   // renderGraphNodes job removed
       // renderDemandSources removed
-    renderDimensionOverview(graph, "jobDimensionOverview");
+  // jobDimensionOverview removed
     return;
   }
   if (type === "student") {
