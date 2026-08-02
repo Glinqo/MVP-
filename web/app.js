@@ -1078,7 +1078,7 @@ function renderGraph(graph, type = "job") {
     // jobMermaidOutput removed
     renderGraphLegend(graph, "jobGraphDiagram");
     renderGraphDiagram(graph, "jobGraphDiagram");
-    renderGraphNodes(graph, "jobGraphList");
+  // renderGraphNodes job removed
       // renderDemandSources removed
     renderDimensionOverview(graph, "jobDimensionOverview");
     return;
@@ -1087,7 +1087,7 @@ function renderGraph(graph, type = "job") {
     // studentMermaidOutput removed
     renderGraphLegend(graph, "studentGraphDiagram");
     renderGraphDiagram(graph, "studentGraphDiagram");
-    renderGraphNodes(graph, "studentGraphList");
+  // renderGraphNodes student removed
     // renderStudentEvidence removed
     // renderGraphUpdateLog removed
     renderDimensionOverview(graph, "studentDimensionOverview");
