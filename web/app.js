@@ -1077,6 +1077,7 @@ function closeNodeDetail() {
 
 function renderGraph(graph, type = "job") {
   state.graphs[type] = graph || null;
+  computeDimensionScores(graph);
   if (type === "job") {
     $("jobMermaidOutput").textContent = graph?.mermaid || "";
     renderGraphLegend(graph, "jobGraphDiagram");
