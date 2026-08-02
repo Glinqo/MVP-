@@ -283,3 +283,25 @@
   .scenario-header-title { flex: none; width: 100%; }
   .scenario-report { padding: 1.25rem; }
 }
+
+/* Accessibility: focus-visible */
+.scenario-action-card:focus-visible,
+.scenario-btn-primary:focus-visible,
+.scenario-header-back:focus-visible,
+.scenario-card:focus-visible,
+.scenario-submit-btn:focus-visible,
+.scenario-coach-preview:focus-visible,
+.scenario-report button:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: 2px;
+}
+/* Status dot text-only fallback */
+.scenario-status-dot::after {
+  content: attr(data-label);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}

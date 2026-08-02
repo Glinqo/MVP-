@@ -1385,16 +1385,16 @@ const scenarioDemoState = {
 function renderScenarioCatalog() {
   var container = $("scenarioCatalogView");
   if (!container) return;
-  
+
   var featured = null;
   var others = [];
   (state.scenarios || []).forEach(function(s) {
     if (s.id === "SCN_SENSOR_LED_ON_PLC_LED_OFF") featured = s;
     else others.push(s);
   });
-  
+
   var html = "";
-  
+
   // Featured scenario card
   if (featured) {
     html += '<div class="scenario-feature-card">' +
@@ -1425,7 +1425,7 @@ function renderScenarioCatalog() {
       '</div>' +
       '</div>';
   }
-  
+
   // More scenarios
   if (others.length > 0) {
     html += '<div class="scenario-more-section">' +
@@ -1439,7 +1439,7 @@ function renderScenarioCatalog() {
     });
     html += '</div></div>';
   }
-  
+
   container.innerHTML = html || '<p class="muted">\u6682\u65e0\u53ef\u7528\u573a\u666f</p>';
 }
 
@@ -1461,12 +1461,12 @@ async function doStartScenario(scenarioId) {
   var statusCol = $("scenarioStatusCol");
   var actionsCol = $("scenarioActionsCol");
   var rightCol = $("scenarioRightCol");
-  
+
   if (header) header.innerHTML = '<div style="padding:1rem;text-align:center;color:#888;">\u6b63\u5728\u52a0\u8f7d\u573a\u666f\u2026</div>';
   if (statusCol) statusCol.innerHTML = "";
   if (actionsCol) actionsCol.innerHTML = "";
   if (rightCol) rightCol.innerHTML = "";
-  
+
   try {
     var data = await api("/api/scenario/start", {
       method: "POST",
@@ -1490,18 +1490,18 @@ async function doStartScenario(scenarioId) {
 
 async function submitScenarioStep(choiceId) {
   if (scenarioDemoState.isSubmitting) return;
-  
+
   var scenarioId = state.activeScenario?.scenario?.id;
   var stepId = state.activeScenario?.current_step?.id;
   if (!scenarioId || !stepId || !choiceId) return;
-  
+
   scenarioDemoState.isSubmitting = true;
   scenarioDemoState.selectedChoiceId = choiceId;
   refreshActionCards();
-  
+
   var submitBtn = document.querySelector(".scenario-submit-btn");
   if (submitBtn) { submitBtn.classList.add("loading"); submitBtn.textContent = "\u63d0\u4ea4\u4e2d\u2026"; }
-  
+
   try {
     var data = await api("/api/scenario/step", {
       method: "POST",
@@ -1512,15 +1512,15 @@ async function submitScenarioStep(choiceId) {
         choice_id: choiceId
       })
     });
-    
+
     state.activeScenario = data;
     scenarioDemoState.currentStep = data.current_step;
-    
+
     // Record timeline
     var choiceText = choiceId;
     var currentOpts = data.current_step?.options || (state.activeScenario?.current_step?.options);
     if (!currentOpts && data.current_step) currentOpts = data.current_step.options;
-    
+
     // Find the step options from the API return
     var step = state.activeScenario;
     scenarioDemoState.timeline.push({
@@ -1530,11 +1530,11 @@ async function submitScenarioStep(choiceId) {
       feedback: data.feedback || "",
       time: new Date().toLocaleTimeString()
     });
-    
+
     renderScenarioWorkbench(data);
     if (data.student_graph) renderGraph(data.student_graph, "student");
     if (typeof loadGraphUpdates === "function") loadGraphUpdates();
-    
+
     // Check completion
     if (data.completed) {
       setTimeout(function() { showScenarioCompletionReport(data); }, 600);
@@ -1559,7 +1559,7 @@ function renderScenarioWorkbench(data) {
   var scenario = data.scenario || {};
   var step = data.current_step;
   var completed = data.completed;
-  
+
   renderScenarioHeader(scenario, step);
   renderScenarioStatus(step);
   renderScenarioActions(step, data);
@@ -1571,16 +1571,16 @@ function renderScenarioWorkbench(data) {
 function renderScenarioHeader(scenario, step) {
   var header = $("scenarioHeader");
   if (!header) return;
-  
+
   var progress = step?.progress || {};
   var current = progress.current || 0;
   var total = progress.total || 3;
   var pct = total > 0 ? Math.round(current / total * 100) : 0;
-  
-  header.innerHTML = 
+
+  header.innerHTML =
     '<button class="scenario-header-back" onclick="backToScenarioCatalog()">\u2190 \u8fd4\u56de\u573a\u666f</button>' +
     '<span class="scenario-header-title">' + escapeHtml(scenario.title || "") + '</span>' +
-    '<span class="scenario-header-progress">\u9636\u6bb5 ' + current + ' / ' + total + 
+    '<span class="scenario-header-progress">\u9636\u6bb5 ' + current + ' / ' + total +
       '<span class="scenario-progress-bar"><span class="scenario-progress-fill" style="width:' + pct + '%"></span></span>' +
     '</span>' +
     '<span class="scenario-header-meta">\u57fa\u7840 \u00b7 \u7ea65\u5206\u949f</span>';
@@ -1589,15 +1589,15 @@ function renderScenarioHeader(scenario, step) {
 function renderScenarioStatus(step) {
   var col = $("scenarioStatusCol");
   if (!col) return;
-  
+
   var statuses = step?.scene_status || [];
   if (!statuses.length) {
     col.innerHTML = '<h4>\u73b0\u573a\u72b6\u6001</h4><div class="scenario-status-empty">\u6682\u65e0\u72b6\u6001\u6570\u636e</div>';
     return;
   }
-  
+
   var prevIds = new Set(scenarioDemoState.previousStatus.map(function(s) { return s.id; }));
-  
+
   var html = '<h4>\u73b0\u573a\u72b6\u6001</h4>';
   statuses.forEach(function(item) {
     var isNew = !prevIds.has(item.id);
@@ -1608,16 +1608,16 @@ function renderScenarioStatus(step) {
       '<span class="scenario-status-value">' + escapeHtml(item.value != null ? String(item.value) : "\u5c1a\u672a\u68c0\u67e5") + '</span>' +
     '</div>';
   });
-  
+
   col.innerHTML = html;
-  
+
   // Clear highlights after 1.2s
   setTimeout(function() {
     col.querySelectorAll(".scenario-status-updated").forEach(function(el) {
       el.classList.remove("scenario-status-updated");
     });
   }, 1200);
-  
+
   // Update previous
   scenarioDemoState.previousStatus = statuses.map(function(s) { return { id: s.id }; });
 }
@@ -1625,20 +1625,20 @@ function renderScenarioStatus(step) {
 function renderScenarioActions(step, data) {
   var col = $("scenarioActionsCol");
   if (!col) return;
-  
+
   if (!step) {
     col.innerHTML = '<h4>\u5f53\u524d\u4efb\u52a1</h4><p class="muted">\u573a\u666f\u5df2\u5b8c\u6210</p>';
     return;
   }
-  
+
   var options = step.options || [];
   var feedback = data.feedback;
   var feedbackType = data.feedback_type || "incorrect";
   var isLocked = scenarioDemoState.isSubmitting;
-  
+
   var html = '<h4>\u5f53\u524d\u4efb\u52a1</h4>';
   html += '<p class="scenario-task-prompt">' + escapeHtml(step.prompt || "") + '</p>';
-  
+
   // Feedback area
   html += '<div class="scenario-feedback-area">';
   if (feedback) {
@@ -1657,12 +1657,12 @@ function renderScenarioActions(step, data) {
     '</div>';
   }
   html += '</div>';
-  
+
   // Action cards
   html += '<div class="scenario-action-cards">';
   options.forEach(function(opt) {
     var isSelected = scenarioDemoState.selectedChoiceId === opt.id;
-    html += '<div class="scenario-action-card' + (isSelected ? " selected" : "") + (isLocked ? " disabled" : "") + 
+    html += '<div class="scenario-action-card' + (isSelected ? " selected" : "") + (isLocked ? " disabled" : "") +
       '" data-choice-id="' + escapeHtml(opt.id) + '" onclick="selectActionCard(\'' + escapeHtml(opt.id) + '\')">' +
       '<span class="scenario-action-radio"></span>' +
       '<span class="scenario-action-text">' +
@@ -1672,13 +1672,13 @@ function renderScenarioActions(step, data) {
     '</div>';
   });
   html += '</div>';
-  
+
   // Submit button
   html += '<button class="scenario-submit-btn' + (isLocked ? " loading" : "") + '" ' +
     (isLocked ? "disabled" : "") + ' onclick="handleSubmitAction()">' +
     (isLocked ? "\u63d0\u4ea4\u4e2d\u2026" : "\u6267\u884c\u8be5\u64cd\u4f5c") +
   '</button>';
-  
+
   col.innerHTML = html;
 }
 
@@ -1708,12 +1708,12 @@ function handleSubmitAction() {
 function renderScenarioEvidence(step, data) {
   var col = $("scenarioRightCol");
   if (!col) return;
-  
+
   var evidence = step?.evidence || [];
   var prevIds = new Set(scenarioDemoState.previousEvidence.map(function(e) { return e.id; }));
-  
+
   var html = '<h4>\u5df2\u83b7\u8bc1\u636e</h4>';
-  
+
   if (!evidence.length) {
     html += '<div class="scenario-evidence-empty">\u6267\u884c\u68c0\u67e5\u64cd\u4f5c\u540e\uff0c\u83b7\u5f97\u7684\u5173\u952e\u4fe1\u606f\u4f1a\u663e\u793a\u5728\u8fd9\u91cc\u3002</div>';
   } else {
@@ -1725,7 +1725,7 @@ function renderScenarioEvidence(step, data) {
         '<span>' + escapeHtml(item.text) + '</span>' +
       '</div>';
     });
-    
+
     // Clear evidence highlights
     setTimeout(function() {
       col.querySelectorAll(".scenario-evidence-new").forEach(function(el) {
@@ -1733,16 +1733,16 @@ function renderScenarioEvidence(step, data) {
       });
     }, 1200);
   }
-  
+
   scenarioDemoState.previousEvidence = evidence.map(function(e) { return { id: e.id }; });
-  
+
   col.innerHTML = html + renderScenarioCoachHtml(step);
 }
 
 function renderScenarioCoachHtml(step) {
   var hint = step?.hint;
   if (!hint) return "";
-  
+
   var expanded = scenarioDemoState.hintExpanded;
   var html = '<div class="scenario-coach">' +
     '<div class="scenario-coach-label">AI\u5e08\u5085\u63d0\u793a</div>' +
@@ -1770,12 +1770,12 @@ function renderScenarioCoach(step) {
 function renderScenarioTimeline() {
   var list = $("scenarioTimelineList");
   if (!list) return;
-  
+
   if (!scenarioDemoState.timeline.length) {
     list.innerHTML = '<div style="padding:0.5rem 0;color:#999;font-size:0.8rem;">\u5c1a\u65e0\u64cd\u4f5c\u8bb0\u5f55</div>';
     return;
   }
-  
+
   var html = "";
   scenarioDemoState.timeline.forEach(function(item, idx) {
     var ft = item.feedbackType || "incorrect";
@@ -1798,24 +1798,24 @@ function showScenarioCompletionReport(data) {
   var report = document.createElement("div");
   report.className = "scenario-report-overlay";
   report.id = "scenarioReportOverlay";
-  
+
   var verifiedStateHtml = "";
   var vs = summary.verified_state || {};
   Object.keys(vs).forEach(function(key) {
     verifiedStateHtml += '<span class="scenario-report-verified-item"><strong>' + escapeHtml(String(vs[key])) + '</strong> ' + escapeHtml(key) + '</span>';
   });
-  
+
   var completedItemsHtml = "";
   (summary.completed_items || []).forEach(function(item) {
     completedItemsHtml += '<li>' + escapeHtml(item) + '</li>';
   });
-  
+
   var tagsHtml = "";
   (summary.ability_labels || []).forEach(function(label) {
     tagsHtml += '<span class="scenario-report-tag">' + escapeHtml(label) + '</span>';
   });
-  
-  report.innerHTML = 
+
+  report.innerHTML =
     '<div class="scenario-report">' +
       '<h2>\u8bad\u7ec3\u5b8c\u6210</h2>' +
       '<p class="scenario-report-subtitle">' + escapeHtml(data.scenario?.title || "") + '</p>' +
@@ -1841,13 +1841,23 @@ function showScenarioCompletionReport(data) {
         '<button onclick="askAboutScenario()">\u5411AI\u8ffd\u95ee</button>' +
       '</div>' +
     '</div>';
-  
+
   document.body.appendChild(report);
-  
+
+  // Focus trap: focus first button in report
+  var firstBtn = report.querySelector('.scenario-btn-primary');
+  if (firstBtn) firstBtn.focus();
+
   // Close on overlay click
   report.addEventListener("click", function(e) {
     if (e.target === report) closeCompletionReport();
   });
+
+  // Close on Escape key
+  var escHandler = function(e) {
+    if (e.key === 'Escape') { closeCompletionReport(); document.removeEventListener('keydown', escHandler); }
+  };
+  document.addEventListener('keydown', escHandler);
 }
 
 function closeCompletionReport() {
@@ -1901,6 +1911,8 @@ function showCatalogView() {
 
 function resetScenarioDemoState() {
   scenarioDemoState.activeScenarioId = state.activeScenario?.scenario?.id || scenarioDemoState.activeScenarioId;
+  // Close any lingering report overlay
+  closeCompletionReport();
   scenarioDemoState.currentStep = null;
   scenarioDemoState.selectedChoiceId = null;
   scenarioDemoState.timeline = [];
@@ -1975,10 +1987,10 @@ function applyAssessmentScoresToGraph(scores) {
   if (!scores || !state.graphs || !state.graphs.student) return;
   var mapping = {"electrical_safety":["electrical_safety_check","at_01","pc_05","cm_06","power_isolation_confirmation","mw_06","mw_07","mw_09"],"emergency_stop":["ir_13","electrical_safety_check","at_01","at_19","at_20","ad_12","ir_11","ir_12"],"hmi_basic":["mw_01","ir_04","pc_07","sn_11","sd_01","sd_02","cm_01","cm_20"],"input_common_terminal":["plc_input_common_terminal","at_11","no_response_common_terminal_check","at_30","sensor_led_observation","plc_input_grouping","input_led_compare","at_08"],"motor_control":["sd_01","sd_02","mw_01","ad_10","ir_04","pc_07","pc_16","pc_18"],"plc_basic_principle":["mw_07","ir_01"],"plc_wiring":["sensor_wiring_color_code","sensor_wiring_judgement","mw_08","at_09","at_10","at_20","ad_04","ad_12"],"safety_ppe":["electrical_safety_check","at_01","ir_11","ir_12","ir_14","ir_15","pc_05","cm_06"],"sensor_selection":["sensor_type_identification","at_05","ad_01","sn_01","sensor_nameplate_reading","sensor_output_logic","sensor_led_observation","sensor_wiring_color_code"],"sensor_wiring":["sensor_wiring_color_code","sensor_wiring_judgement","at_09","at_10","ad_04","sn_03","sn_04","sensor_led_observation"],"troubleshoot_order":["mw_17","at_22","ir_17","input_no_response_fault_scope","no_response_power_path_check","no_response_sensor_side_check","no_response_common_terminal_check","no_response_address_mapping_check"],"vfd_basic":["mw_01","ir_04","pc_07","sn_11","sd_01","sd_02","cm_01","cm_20"]};
   var nodes = state.graphs.student.nodes || [];
-  
+
   var nodeMap = {};
   nodes.forEach(function(n) { nodeMap[n.id] = n; });
-  
+
   var updated = 0;
   Object.keys(scores).forEach(function(aid) {
     var ids = mapping[aid];
@@ -1995,7 +2007,7 @@ function applyAssessmentScoresToGraph(scores) {
       }
     });
   });
-  
+
   if (updated > 0 && state.graphRenderers && state.graphRenderers["studentGraphDiagram"]) {
     state.graphRenderers["studentGraphDiagram"].update(state.graphs.student);
   }
