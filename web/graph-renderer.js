@@ -289,15 +289,6 @@ class ForceGraph {
                     .attr("font-weight", d.status === "root" ? "700" : "500")
                     .text(line);
             });
-            if (d.dimension_score !== undefined && d.dimension_children_count > 0) {
-                text.append("tspan")
-                    .attr("x", 0)
-                    .attr("dy", lines.length === 0 ? 0 : 15)
-                    .attr("fill", "#22d3ee")
-                    .attr("font-weight", "700")
-                    .attr("font-size", "11")
-                    .text(d.dimension_score + "分");
-            }
             d._labelLines = lines;
             d._labelWidth = Math.max(...lines.map(l => l.length)) * 8 + 20;
             d._labelHeight = lines.length * 15 + 10;
