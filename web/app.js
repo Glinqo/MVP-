@@ -1,4 +1,4 @@
-const state = {
+var state = {
   questions: [],
   jobProfile: null,
   jobAdmin: {
@@ -39,6 +39,7 @@ const DEFAULT_JOB_ROLE = "自动化生产线装调与运维技术员";
 
 // ── Persistence helpers ──────────────────────────────────────────
 function userKey(key) {
+  if (typeof state === "undefined") return key;
   var uname = (state.currentUser && state.currentUser.username) || "";
   return uname ? (key + "_" + uname) : key;
 }
@@ -80,7 +81,7 @@ function switchAccount() {
   // Clear auth and reload to show login page
   localStorage.removeItem("mcp_auth_token");
   localStorage.removeItem("mcp_session_id");
-  localStorage.removeItem("mcp_identity");
+  localStorage.removeItem(userKey("mcp_identity")); localStorage.removeItem("mcp_identity");
   state.authToken = null;
   state.currentUser = null;
   location.reload();
@@ -1999,7 +2000,7 @@ function renderWorkspaceTasks(planData) {
 async function loadTrainingPlans(planMode) {
   var pp = document.getElementById('personalizedPlan');
   if (pp) pp.style.display = '';
-  var jobName = state.jobName || state.jobProfile?.role_name || localStorage.getItem("mcp_job_name") || '';
+  var jobName = state.jobName || state.jobProfile?.role_name || localStorage.getItem(userKey("mcp_job_name")) || localStorage.getItem("mcp_job_name") || '';
   if (!jobName) { document.getElementById('personalizedPlan').innerHTML = '<div class="muted">请先选择岗位</div>'; return; }
   document.getElementById('personalizedPlan').innerHTML = '<div class="muted">加载中...</div>';
  var planData = await fetchTrainingPlans(jobName);
@@ -2715,10 +2716,10 @@ document.addEventListener("keydown", (event) => {
 
 document.querySelectorAll(".tb-btn").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll(".tb-btn").forEach(function(x){x.classList.remove("active")});this.classList.add("active");state.timeBudget=parseInt(this.dataset.budget);localStorage.setItem("time_budget",state.timeBudget)})});
 if (document.getElementById("learningGoalSelect")) {
-  document.getElementById("learningGoalSelect").value = localStorage.getItem("learning_goal") || "日常实事";
+  document.getElementById("learningGoalSelect").value = localStorage.getItem(userKey("learning_goal")) || "日常实事";
   document.getElementById("learningGoalSelect").addEventListener("change", function() {
     state.learningGoal = this.value;
-    localStorage.setItem("learning_goal", this.value);
+    localStorage.setItem(userKey("learning_goal"), this.value);
   });
 }
 
@@ -2735,7 +2736,7 @@ document.getElementById("personalizedPlan").addEventListener("click", function(e
     if (idx > -1) { arr.splice(idx, 1); }
     else { arr.push(st); }
     state.completedStages = arr;
-    localStorage.setItem("completed_stages", JSON.stringify(arr));
+    localStorage.setItem(userKey("completed_stages"), JSON.stringify(arr));
     loadTrainingPlans("staged");
   }
 });
@@ -2750,7 +2751,7 @@ document.getElementById("personalizedPlan").addEventListener("change", function(
     } else {
       if (idx > -1) state.completedSteps.splice(idx, 1);
     }
-    localStorage.setItem("completed_steps", JSON.stringify(state.completedSteps));
+    localStorage.setItem(userKey("completed_steps"), JSON.stringify(state.completedSteps));
     updateChecklistProgress();
     var lbl = e.target.closest(".checklist-item");
     if (lbl) lbl.classList.toggle("done", e.target.checked);
@@ -2817,7 +2818,7 @@ async function doLogin() {
     state.authToken = data.token;
     state.currentUser = data.user;
     localStorage.setItem("mcp_auth_token", data.token);
-    localStorage.setItem("mcp_identity", "student");
+    localStorage.setItem(userKey("mcp_identity"), "student");
     // Switch steps
     var loginStep = document.getElementById("landingStepLogin");
     var identityStep = document.getElementById("landingStepIdentity");
@@ -2831,7 +2832,7 @@ async function doLogin() {
 
 
 function selectIdentity(identity) {
-  localStorage.setItem("mcp_identity", identity);
+  localStorage.setItem(userKey("mcp_identity"), identity);
   document.getElementById("landingStepIdentity").classList.remove("active");
   document.getElementById("landingStepJob").classList.add("active");
 }
@@ -2842,7 +2843,7 @@ function backToIdentity() {
 }
 
 function selectJob(jobId, event) {
-  var identity = localStorage.getItem("mcp_identity") || "";
+  var identity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "";
   localStorage.setItem("mcp_job_id", jobId);
   if (event && event.currentTarget) {
     var jobName = event.currentTarget.getAttribute("data-job-name");
@@ -2890,4 +2891,9 @@ function dismissLanding() {
 
 function toggleDrawer() {
   document.querySelector(".chat-layout").classList.toggle("drawer-collapsed");
+}
+if (typeof state !== "undefined" && state.authToken) {
+  var u2 = localStorage.getItem("mcp_login_user") || "";
+  var j2 = localStorage.getItem("mcp_job_id_" + u2);
+  if (j2) { state.selectedJobId = j2; state.jobName = localStorage.getItem("mcp_job_name_" + u2) || ""; if (typeof boot === "function") boot(); }
 }

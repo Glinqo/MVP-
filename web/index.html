@@ -631,112 +631,99 @@
     </aside>
 
     <script src="/graph-renderer.js?v=20260731"></script>
-    <script src="/app.js?v=20260801"></script>
+    <script>
+window.addEventListener("error", function(e) {
+  var hs = document.getElementById("healthStatus");
+  if (hs) hs.textContent = "JS错误: " + (e.message || e.filename || "未知");
+  var lm = document.getElementById("llmStatus");
+  if (lm) lm.textContent = "";
+});
+</script>
+<script src="/app.js?v=20260801"></script>
   
 <script>
+function myKey(k) { var u = localStorage.getItem("mcp_login_user")||""; return u?k+"_"+u:k; }
+
 async function doLogin() {
-  var u = document.getElementById("loginUsername");
-  var p = document.getElementById("loginPassword");
-  var e = document.getElementById("loginError");
-  if (!u || !p || !e) { alert("\u9875\u9762\u52a0\u8f7d\u5f02\u5e38\uff0c\u8bf7\u5237\u65b0"); return; }
-  var uname = u.value.trim(), pwd = p.value.trim();
-  if (!uname) { e.textContent = "\u8bf7\u8f93\u5165\u7528\u6237\u540d"; e.style.display = "block"; return; }
-  if (!pwd) { e.textContent = "\u8bf7\u8f93\u5165\u5bc6\u7801"; e.style.display = "block"; return; }
+  var u = document.getElementById("loginUsername"), p = document.getElementById("loginPassword"), e = document.getElementById("loginError");
+  if (!u||!p||!e) return;
+  var un = u.value.trim(), pw = p.value.trim();
+  if (!un) { e.textContent = "请输入用户名"; e.style.display = "block"; return; }
+  if (!pw) { e.textContent = "请输入密码"; e.style.display = "block"; return; }
   e.style.display = "none";
   try {
-    var r = await fetch("/api/auth/login", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({username:uname,password:pwd}) });
+    var r = await fetch("/api/auth/login", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({username:un,password:pw}) });
     var d = await r.json();
     if (!d.ok) { e.textContent = d.error; e.style.display = "block"; return; }
     localStorage.setItem("mcp_auth_token", d.token);
-    localStorage.setItem("mcp_identity", "student");
-    if (typeof state !== "undefined") { state.authToken = d.token; state.currentUser = d.user; }
-
-    // If user previously selected a job, go directly to main page
-    var uname = d.user.username;
-    var prevJob = localStorage.getItem("mcp_job_id");
-
+    localStorage.setItem("mcp_login_user", d.user.username);
+    var prevJob = localStorage.getItem(myKey("mcp_job_id"));
     if (prevJob) {
-      if (typeof state !== "undefined") {
-        state.selectedJobId = prevJob;
-        state.jobName = localStorage.getItem("mcp_job_name") || "";
-        state.sessionId = uname + "-session";
-        localStorage.setItem("mcp_session_id", state.sessionId);
-        state.messages = [];
-        state.jobProfile = { id: prevJob, role_name: state.jobName || prevJob };
-      }
-      dismissLanding().then(function() {
-        if (typeof bootOnce !== "undefined") bootOnce();
-      });
+      localStorage.setItem("mcp_session_id", d.user.username + "-session");
+      location.reload();
       return;
     }
-
-    // New user: show identity selection
     var ls = document.getElementById("landingStepLogin");
     var is = document.getElementById("landingStepIdentity");
     if (ls) ls.classList.remove("active");
     if (is) is.classList.add("active");
-  } catch(x) { e.textContent = "\u767b\u5f55\u5931\u8d25: " + (x.message || "\u7f51\u7edc\u9519\u8bef"); e.style.display = "block"; }
+  } catch(x) { e.textContent = "登录失败: " + (x.message||"网络错误"); e.style.display = "block"; }
 }
 
 function selectIdentity(identity) {
-  localStorage.setItem("mcp_identity", identity);
+  localStorage.setItem(myKey("mcp_identity"), identity);
   document.getElementById("landingStepIdentity").classList.remove("active");
   document.getElementById("landingStepJob").classList.add("active");
 }
 
-function backToIdentity() {
-  document.getElementById("landingStepJob").classList.remove("active");
-  document.getElementById("landingStepIdentity").classList.add("active");
-}
-
 function selectJob(jobId, event) {
-  var identity = localStorage.getItem("mcp_identity") || "";
-  localStorage.setItem("mcp_job_id", jobId);
-  if (event && event.currentTarget) {
-    var jobName = event.currentTarget.getAttribute("data-job-name");
-    if (typeof state !== "undefined" && jobName) state.jobName = jobName;
-  }
-  if (identity !== "student") {
-    if (typeof state !== "undefined") {
-      state.selectedJobId = jobId;
-      state.sessionId = "admin-" + Date.now();
-      state.messages = [];
-      state.jobProfile = { id: jobId, role_name: jobName || jobId };
-    }
-    var overlay = document.getElementById("landingOverlay");
-    overlay.classList.add("fade-out");
-    setTimeout(function() {
-      overlay.style.display = "none";
-      document.body.style.overflow = "";
-      if (typeof bootOnce !== "undefined") bootOnce();
-    }, 400);
-    return;
-  }
-  if (typeof state !== "undefined") {
-    state.selectedJobId = jobId;
-    var uname = (state.currentUser && state.currentUser.username) || "000";
-    state.sessionId = uname + "-session";
-    localStorage.setItem("mcp_session_id", state.sessionId);
-    state.messages = [];
-    state.jobProfile = { id: jobId, role_name: jobName || jobId };
-  }
-  dismissLanding().then(function() {
-    if (typeof startAssessment !== "undefined") startAssessment(jobId);
-  });
+  var identity = localStorage.getItem(myKey("mcp_identity")) || "";
+  var jobName = event && event.currentTarget ? event.currentTarget.getAttribute("data-job-name") || "" : "";
+  localStorage.setItem(myKey("mcp_job_id"), jobId);
+  localStorage.setItem(myKey("mcp_job_name"), jobName);
+  var un = localStorage.getItem("mcp_login_user") || "000";
+  localStorage.setItem("mcp_session_id", un + "-session");
+  location.reload();
 }
 
 function dismissLanding() {
   return new Promise(function(resolve) {
-    var overlay = document.getElementById("landingOverlay");
-    overlay.classList.add("fade-out");
-    setTimeout(function() {
-      overlay.style.display = "none";
-      document.body.style.overflow = "";
-      resolve();
-    }, 400);
+    var o = document.getElementById("landingOverlay");
+    o.classList.add("fade-out");
+    setTimeout(function() { o.style.display = "none"; document.body.style.overflow = ""; resolve(); }, 400);
   });
+}
+
+function switchAccount() {
+  localStorage.removeItem("mcp_auth_token");
+  localStorage.removeItem("mcp_login_user");
+  location.reload();
 }
 </script>
 
+
+<script>
+(function() {
+  var t = localStorage.getItem("mcp_auth_token");
+  var u = localStorage.getItem("mcp_login_user");
+  if (t && u) {
+    var pj = localStorage.getItem("mcp_job_id_" + u);
+    if (pj) {
+      localStorage.setItem("mcp_session_id", u + "-session");
+      var lo = document.getElementById("landingOverlay");
+      if (lo) { lo.style.display = "none"; }
+      document.body.style.overflow = "";
+      // Boot after all scripts loaded
+      window.addEventListener("load", function() {
+        if (typeof state !== "undefined") {
+          state.selectedJobId = pj;
+          state.jobName = localStorage.getItem("mcp_job_name_" + u) || "";
+        }
+        if (typeof boot === "function") boot();
+      });
+    }
+  }
+})();
+</script>
 </body>
 </html>
