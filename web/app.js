@@ -1592,17 +1592,6 @@ function renderScenarioStatus(step) {
   col.innerHTML = html;
 
   // Bind click and keyboard events to action cards
-  col.querySelectorAll(".scenario-action-card").forEach(function(card) {
-    card.addEventListener("click", function() {
-      selectActionCard(card.getAttribute("data-choice-id"));
-    });
-    card.addEventListener("keydown", function(event) {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        selectActionCard(card.getAttribute("data-choice-id"));
-      }
-    });
-  });
 
   // Clear highlights after 1.2s
   setTimeout(function() {
@@ -1655,10 +1644,18 @@ function renderScenarioActions(step, data) {
   html += '<div class="scenario-action-cards">';
   options.forEach(function(opt) {
     var isSelected = scenarioDemoState.selectedChoiceId === opt.id;
-    html += '<div class="scenario-action-card' + (isSelected ? " selected" : "") + (isLocked ? " disabled" : "") + " role=\"button\" tabindex=\"0\" aria-pressed=\"" + (isSelected ? "true" : "false") + "\" data-choice-id=\"" + escapeHtml(opt.id) + "\">' +"
+    html += '<div class="scenario-action-card' +
+      (isSelected ? ' selected' : '') +
+      (isLocked ? ' disabled' : '') +
+      '" role="button"' +
+      ' tabindex="0"' +
+      ' aria-pressed="' + (isSelected ? 'true' : 'false') + '"' +
+      ' aria-disabled="' + (isLocked ? 'true' : 'false') + '"' +
+      ' data-choice-id="' + escapeHtml(opt.id) + '">' +
+      '<span class="scenario-action-radio"></span>' +
       '<span class="scenario-action-text">' +
         '<span class="scenario-action-name">' + escapeHtml(opt.text) + '</span>' +
-        (opt.description ? '<span class="scenario-action-desc">' + escapeHtml(opt.description) + '</span>' : "") +
+        (opt.description ? '<span class="scenario-action-desc">' + escapeHtml(opt.description) + '</span>' : '') +
       '</span>' +
     '</div>';
   });
