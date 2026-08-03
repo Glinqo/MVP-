@@ -7,6 +7,23 @@ from app.services.scenario import scenario_by_id, start_scenario, step_scenario,
 SCENARIO_ID = "SCN_SENSOR_LED_ON_PLC_LED_OFF"
 
 
+
+def collect_strings(value):
+    """Recursively collect all strings from a nested dict/list."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        result = []
+        for item in value.values():
+            result.extend(collect_strings(item))
+        return result
+    if isinstance(value, list):
+        result = []
+        for item in value:
+            result.extend(collect_strings(item))
+        return result
+    return []
+
 class ScenarioTests:
     """Tests for scenario demo phase 1 - 3-stage teaching flow."""
 
@@ -128,7 +145,39 @@ class ScenarioTests:
     def test_closure_missing(self):
         step_scenario({"scenario_id": SCENARIO_ID, "step_id": "S1", "choice_id": "A"})
         step_scenario({"scenario_id": SCENARIO_ID, "step_id": "S2", "choice_id": "A"})
-        result = step_scenario({"scenario_id": SCENARIO_ID, "step_id": "S3", "choice_id": "B"})
+        result = step_scenario({"scenario_id": SCENARIO_ID, "step_id": "S3", "choice_id": "B"
+    def test_scenario_text_is_not_corrupted(self):
+        """Verify no corruption in scenario Chinese text."""
+        scenario = scenario_by_id(SCENARIO_ID)
+        strings = collect_strings(scenario)
+        combined = "\n".join(strings)
+
+        assert "??" not in combined
+        assert "\ufffd" not in combined
+        assert scenario["title"] == "\u4f20\u611f\u5668\u52a8\u4f5c\u706f\u4eae\uff0c\u4f46 PLC \u8f93\u5165\u706f\u4e0d\u4eae"
+        assert "\u5224\u65ad\u6545\u969c\u8303\u56f4" in str(scenario["summary"]["completed_items"])
+        assert "\u8f93\u5165\u516c\u5171\u7aef" in combined
+        assert "\u4e09\u8054\u72b6\u6001\u9a8c\u8bc1" in combined
+
+    def test_scenario_contains_sufficient_chinese_text(self):
+        """Verify enough CJK characters to confirm text is not corrupted."""
+        import re
+        scenario = scenario_by_id(SCENARIO_ID)
+        combined = "\n".join(collect_strings(scenario))
+        chinese_chars = re.findall(r"[\u4e00-\u9fff]", combined)
+        assert len(chinese_chars) >= 150
+
+    def test_scenario_action_cards_keep_keyboard_support(self):
+        """Verify keyboard accessibility in app.js for action cards."""
+        from pathlib import Path
+        app_js = (Path(__file__).resolve().parents[1] / "web" / "app.js").read_text(encoding="utf-8")
+        assert "role=\"button\"" in app_js
+        assert "tabindex=\"0\"" in app_js
+        assert "aria-pressed" in app_js
+        assert "event.key === \"Enter\"" in app_js
+        assert "event.key === \" \"" in app_js
+
+})
         assert result["is_correct"] is False
         assert result["feedback_type"] == "closure_missing"
         assert result["completed"] is False

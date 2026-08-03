@@ -1591,6 +1591,19 @@ function renderScenarioStatus(step) {
 
   col.innerHTML = html;
 
+  // Bind click and keyboard events to action cards
+  col.querySelectorAll(".scenario-action-card").forEach(function(card) {
+    card.addEventListener("click", function() {
+      selectActionCard(card.getAttribute("data-choice-id"));
+    });
+    card.addEventListener("keydown", function(event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectActionCard(card.getAttribute("data-choice-id"));
+      }
+    });
+  });
+
   // Clear highlights after 1.2s
   setTimeout(function() {
     col.querySelectorAll(".scenario-status-updated").forEach(function(el) {
@@ -1642,9 +1655,7 @@ function renderScenarioActions(step, data) {
   html += '<div class="scenario-action-cards">';
   options.forEach(function(opt) {
     var isSelected = scenarioDemoState.selectedChoiceId === opt.id;
-    html += '<div class="scenario-action-card' + (isSelected ? " selected" : "") + (isLocked ? " disabled" : "") +
-      '" data-choice-id="' + escapeHtml(opt.id) + '" onclick="selectActionCard(\'' + escapeHtml(opt.id) + '\')">' +
-      '<span class="scenario-action-radio"></span>' +
+    html += '<div class="scenario-action-card' + (isSelected ? " selected" : "") + (isLocked ? " disabled" : "") + " role=\"button\" tabindex=\"0\" aria-pressed=\"" + (isSelected ? "true" : "false") + "\" data-choice-id=\"" + escapeHtml(opt.id) + "\">' +"
       '<span class="scenario-action-text">' +
         '<span class="scenario-action-name">' + escapeHtml(opt.text) + '</span>' +
         (opt.description ? '<span class="scenario-action-desc">' + escapeHtml(opt.description) + '</span>' : "") +
@@ -1660,6 +1671,19 @@ function renderScenarioActions(step, data) {
   '</button>';
 
   col.innerHTML = html;
+
+  // Bind click and keyboard events to action cards
+  col.querySelectorAll(".scenario-action-card").forEach(function(card) {
+    card.addEventListener("click", function() {
+      selectActionCard(card.getAttribute("data-choice-id"));
+    });
+    card.addEventListener("keydown", function(event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectActionCard(card.getAttribute("data-choice-id"));
+      }
+    });
+  });
 }
 
 function selectActionCard(choiceId) {
@@ -1672,10 +1696,17 @@ function refreshActionCards() {
   var cards = document.querySelectorAll(".scenario-action-card");
   cards.forEach(function(card) {
     var cid = card.getAttribute("data-choice-id");
-    if (cid === scenarioDemoState.selectedChoiceId) card.classList.add("selected");
+    var isSelected = cid === scenarioDemoState.selectedChoiceId;
+    if (isSelected) card.classList.add("selected");
     else card.classList.remove("selected");
-    if (scenarioDemoState.isSubmitting) card.classList.add("disabled");
-    else card.classList.remove("disabled");
+    card.setAttribute("aria-pressed", isSelected ? "true" : "false");
+    if (scenarioDemoState.isSubmitting) {
+      card.classList.add("disabled");
+      card.setAttribute("aria-disabled", "true");
+    } else {
+      card.classList.remove("disabled");
+      card.setAttribute("aria-disabled", "false");
+    }
   });
 }
 
