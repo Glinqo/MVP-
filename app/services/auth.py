@@ -60,12 +60,22 @@ def verify_token(token: str) -> Optional[Dict]:
 
 def login(username: str, password: str) -> Dict[str, Any]:
     with _conn() as conn:
-        row = conn.execute("SELECT id, username, password_hash, nickname, role FROM users WHERE username = ?", (username,)).fetchone()
+        row = conn.execute("SELECT id, username, password_hash, nickname, role, identity, job_role FROM users WHERE username = ?", (username,)).fetchone()
     if not row: return {"ok": False, "error": "用户不存在"}
     if not verify_password(password, row["password_hash"]): return {"ok": False, "error": "密码错误"}
-    user = {"id": row["id"], "username": row["username"], "nickname": row["nickname"], "role": row["role"]}
-    return {"ok": True, "token": create_token(user), "user": user}
+    user = {"id": row["id"], "username": row["username"], "nickname": row["nickname"], "role": row["role"],
+            "identity": row["identity"] or "", "job_role": row["job_role"] or ""}
 
+
+def save_identity(username: str, identity: str, job_role: str) -> Dict[str, Any]:
+    with _conn() as conn:
+        conn.execute("UPDATE users SET identity = ?, job_role = ?, updated_at = ? WHERE username = ?",
+                     (identity, job_role, time.time(), username))
+        conn.commit()
+        row = conn.execute("SELECT id, username, nickname, role, identity, job_role FROM users WHERE username = ?", (username,)).fetchone()
+    user = {"id": row["id"], "username": row["username"], "nickname": row["nickname"], "role": row["role"],
+            "identity": row["identity"] or "", "job_role": row["job_role"] or ""}
+    return {"ok": True, "user": user}
 def get_user(user_id: int) -> Optional[Dict]:
     with _conn() as conn:
         row = conn.execute("SELECT id, username, nickname, role FROM users WHERE id = ?", (user_id,)).fetchone()

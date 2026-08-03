@@ -54,7 +54,7 @@ from app.services.device_state_handler import record_device_state  # noqa: E402
 
 from app.services.initial_assessment import start_assessment as ia_start, submit_answer as ia_submit_answer, get_assessment_summary as ia_get_summary  # noqa: E402
 from app.services.action_planner import plan_initial_learning  # noqa: E402
-from app.services.auth import login, get_user
+from app.services.auth import login, get_user, save_identity
 from app.middleware import find_authed_user  # noqa: E402
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
@@ -399,6 +399,11 @@ class MVPHandler(BaseHTTPRequestHandler):
                 if not user:
                     return self.send_error_json(401, "请先登录")
                 return self.send_json({"ok": True, "user": user})
+            if path == "/api/identity":
+                if not find_authed_user(self):
+                    return self.send_error_json(401, "????")
+                result = save_identity(payload.get("username", ""), payload.get("identity", "student"), payload.get("job_role", ""))
+                return self.send_json(result)
 
             if path == "/api/chat/start":
                 return self.send_json(chat_start(payload))

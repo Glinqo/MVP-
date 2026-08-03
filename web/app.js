@@ -2808,9 +2808,28 @@ async function doLogin() {
     });
     var data = await resp.json();
     if (!data.ok) { errEl.textContent = data.error; errEl.style.display = "block"; return; }
-    state.authToken = data.token;
     state.currentUser = data.user;
     localStorage.setItem("mcp_auth_token", data.token);
+    localStorage.setItem("mcp_login_user", data.user.username);
+    // If identity already chosen, skip to main page
+    if (data.user.job_role) {
+      localStorage.setItem("mcp_job_id", data.user.job_role);
+      localStorage.setItem("mcp_job_id_" + data.user.username, data.user.job_role);
+      localStorage.setItem(userKey("mcp_identity"), data.user.identity || "student");
+      state.selectedJobId = data.user.job_role;
+      state.jobName = data.user.job_role;
+      state.sessionId = data.user.job_role + "-s";
+      state.messages = [];
+      state.jobProfile = { id: data.user.job_role, role_name: data.user.job_role };
+      var overlay = document.getElementById("landingOverlay");
+      overlay.classList.add("fade-out");
+      setTimeout(function() {
+        overlay.style.display = "none";
+        document.body.style.overflow = "";
+        boot();
+      }, 400);
+      return;
+    }
     localStorage.setItem(userKey("mcp_identity"), "student");
     // Switch steps
     var loginStep = document.getElementById("landingStepLogin");
@@ -2838,6 +2857,15 @@ function backToIdentity() {
 function selectJob(jobId, event) {
   var identity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "";
   localStorage.setItem("mcp_job_id", jobId);
+  var loginUser = localStorage.getItem("mcp_login_user") || "";
+  localStorage.setItem("mcp_job_id_" + loginUser, jobId);
+  // Persist identity to server
+  var identity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
+  fetch("/api/identity", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: loginUser, identity: identity, job_role: jobId })
+  }).catch(function() { /* non-blocking */ });
   if (event && event.currentTarget) {
     var jobName = event.currentTarget.getAttribute("data-job-name");
     if (jobName) state.jobName = jobName;
