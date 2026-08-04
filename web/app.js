@@ -1963,6 +1963,22 @@ async function loadScenarios() {
   renderScenarioCatalog();
 }
 
+
+function workspaceTitle(panel) {
+  var titles = {
+    graph: "能力图谱",
+    plan: "培养方案",
+    assessment: "初始测评",
+    quiz: "自测验证",
+    diagnosis: "知识诊断",
+    scenario: "排故演练",
+    jobAdmin: "岗位管理",
+    knowledge: "知识缺口",
+    tasks: "实训任务"
+  };
+  return titles[panel] || panel;
+}
+
 function setWorkspacePanel(panel) {
   state.activeWorkspace = panel;
   $("workspaceTitle").textContent = workspaceTitle(panel);
