@@ -437,8 +437,7 @@ function renderMessages() {
       : "";
     const extras = message.role === "assistant" ? renderMessageCards(message.meta) : "";
     var _ts = message.time ? (typeof formatMsgTime==="function"?formatMsgTime(message.time):"") : "";
-    var _btns = (message.role==="user"?('<button class="msg-action-btn edit" onclick="editMessage(\'' + message.id + '\')\" title="编辑">\u270e</button>'):"") +
-        (message.role==="assistant"?('<button class="msg-action-btn retry" onclick="retryMessage(\'' + message.id + '\')\" title="重新生成">\u21bb</button>'):"") ;
+    var _btns = "";
     var footerHtml = message.id ? '<div class="msg-footer"><span class="msg-time">' + _ts + '</span><span class="msg-actions">' + _btns + '</span></div>' : "";
     return `
       <article class="message ${message.role}">
@@ -457,33 +456,12 @@ function renderMessages() {
   $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
 }
 
-function editMessage(id) {
-  var idx = state.messages.findIndex(function(m) { return m.id === id; });
-  if (idx === -1 || state.messages[idx].role !== "user") return;
-  $("#chatInput").value = state.messages[idx].content;
-  state.messages.splice(idx, 1);
-  renderMessages();
-  persistSession();
-  $("#chatInput").focus();
-}
-
 function deleteMessage(id) {
   var idx = state.messages.findIndex(function(m) { return m.id === id; });
   if (idx === -1) return;
   state.messages.splice(idx, 1);
   renderMessages();
   persistSession();
-}
-
-function retryMessage(id) {
-  var idx = state.messages.findIndex(function(m) { return m.id === id; });
-  if (idx === -1) return;
-  var prev = state.messages[idx-1];
-  if (!prev || prev.role !== "user") return;
-  state.messages.splice(idx-1, 2);
-  renderMessages();
-  persistSession();
-  sendChat(prev.content);
 }
 
 
