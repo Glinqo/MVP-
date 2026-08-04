@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>机电岗位培训 AI</title>
     <link rel="stylesheet" href="/styles.css?v=20260731" />
+    <link rel="stylesheet" href="/scenario.css">
   </head>
   <body>
     <!-- ── Identity & Job Selection Overlay ── -->
@@ -495,14 +496,21 @@
             <div id="taskRefs" class="section-block muted">暂无</div>
           </section>
 
-          <section id="workspaceScenario" class="workspace-panel">
-            <div class="plan-toolbar">
-              <h3>排故角色扮演</h3>
-              <button id="startScenario" type="button" onclick="startScenario()">开始场景</button>
-            </div>
-            <div id="scenarioList" class="section-block muted">场景加载中</div>
-            <div id="scenarioStage" class="section-block muted">选择一个场景后开始。</div>
-          </section>
+          <<section id="workspaceScenario" class="workspace-panel">
+              <section id="scenarioCatalogView" class="scenario-catalog"></section>
+              <section id="scenarioTrainingView" class="scenario-workbench scenario-workbench-hidden">
+                <div class="scenario-header" id="scenarioHeader"></div>
+                <div class="scenario-body">
+                  <div class="scenario-status-col" id="scenarioStatusCol"></div>
+                  <div class="scenario-actions-col" id="scenarioActionsCol"></div>
+                  <div class="scenario-right-col" id="scenarioRightCol"></div>
+                </div>
+                <div class="scenario-timeline" id="scenarioTimeline">
+                  <h4>操作记录</h4>
+                  <div class="scenario-timeline-list" id="scenarioTimelineList"></div>
+                </div>
+              </section>
+            </section>
 
           <section id="workspaceQuiz" class="workspace-panel">
             <h3>自测验证</h3>

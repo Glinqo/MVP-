@@ -57,10 +57,17 @@ def public_step(step):
         "id": step.get("id"),
         "prompt": step.get("prompt"),
         "ability_hits": [compact_ability(item) for item in step.get("ability_ids", [])],
+        "progress": step.get("progress"),
+        "scene_status": step.get("scene_status", []),
+        "evidence": step.get("evidence", []),
+        "hint": step.get("hint"),
         "options": [
             {
                 "id": option.get("id"),
                 "text": option.get("text"),
+                "description": option.get("description", ""),
+                "feedback_type": option.get("feedback_type", "incorrect"),
+                "feedback": option.get("feedback"),
             }
             for option in step.get("options", [])
         ],
@@ -235,9 +242,16 @@ def step_scenario(payload=None):
         "choice_id": choice_id,
         "is_correct": is_correct,
         "feedback": option.get("feedback"),
+        "feedback_type": option.get("feedback_type", "incorrect"),
         "observation": option.get("observation"),
         "ability_hits": [compact_ability(item) for item in ability_ids],
+        "progress": step.get("progress"),
+        "scene_status": step.get("scene_status", []),
+        "evidence": step.get("evidence", []),
+        "hint": step.get("hint"),
         "current_step": public_step(next_step) if is_correct and next_step else (public_step(step) if not is_correct else None),
+        "completed": completed,
+        "summary": scenario.get("summary") if completed else None,
         "suggested_questions": [
             "为什么这一步要放在当前顺序？",
             "如果我选错了，对应哪个能力点薄弱？",

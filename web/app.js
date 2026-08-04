@@ -1344,125 +1344,623 @@ function renderTasks(items) {
 }
 
 function renderScenarioList() {
-  $("scenarioList").innerHTML = state.scenarios.length ? `
-    <div class="scenario-list">
-      ${state.scenarios.map((scenario, index) => `
-        <label class="scenario-option">
-          <input type="radio" name="scenarioChoice" value="${escapeHtml(scenario.id)}" ${index === 0 ? "checked" : ""} />
-          <span>
-            <strong>${escapeHtml(scenario.title)}</strong>
-            <small>${escapeHtml(scenario.initial_symptom || "")}</small>
-          </span>
-        </label>
-      `).join("")}
-    </div>
-  ` : '<p class="muted">暂无排故角色扮演场景</p>';
+  // Phase 2: replaced by renderScenarioCatalog
+  renderScenarioCatalog();
 }
 
-function renderScenarioStage(data) {
-  state.activeScenario = data;
-  const scenario = data.scenario || {};
-  const step = data.current_step;
-  const feedback = data.feedback ? `
-    <div class="${data.is_correct ? "notice compact" : "notice compact weak"}">
-      <strong>${data.is_correct ? "判断正确" : "需要调整"}</strong>
-      <div>${escapeHtml(data.feedback)}</div>
-      <div>${escapeHtml(data.observation || "")}</div>
-    </div>
-  ` : "";
-  if (!step) {
-    $("scenarioStage").innerHTML = `
-      ${feedback}
-      <h3>${escapeHtml(scenario.title || "场景完成")}</h3>
-      <p>${escapeHtml(data.status === "completed" ? "本轮排故角色扮演已完成，可以查看个人图谱或继续追问。" : "暂无下一步。")}</p>
-      <div class="question-actions">
-        <button type="button" data-ask="${escapeHtml(`复盘这个排故角色扮演：${scenario.title || ""}`)}">问 AI 复盘</button>
-      </div>
-    `;
-    attachAskButtons($("scenarioStage"));
-    return;
-  }
-  $("scenarioStage").innerHTML = `
-    ${feedback}
-    <h3>${escapeHtml(scenario.title || "")}</h3>
-    <p>${escapeHtml(scenario.roleplay_frame || "")}</p>
-    <div class="notice compact">${escapeHtml(scenario.safety_notice || "")}</div>
-    <p><strong>${escapeHtml(step.prompt)}</strong></p>
-    <div class="scenario-options">
-      ${(step.options || []).map((option) => `
-        <button type="button" data-scenario-choice="${escapeHtml(option.id)}">${escapeHtml(option.id)}. ${escapeHtml(option.text)}</button>
-      `).join("")}
-    </div>
-    <div class="muted">命中能力：${(step.ability_hits || []).map((item) => escapeHtml(item.name || item.id)).join("、")}</div>
-  `;
-  $("scenarioStage").querySelectorAll("[data-scenario-choice]").forEach((button) => {
-    button.addEventListener("click", () => submitScenarioStep(button.dataset.scenarioChoice));
+// ===== Scenario Demo Phase 2: State =====
+const scenarioDemoState = {
+  activeScenarioId: null,
+  currentStep: null,
+  selectedChoiceId: null,
+  timeline: [],
+  previousStatus: [],
+  previousEvidence: [],
+  isSubmitting: false,
+  hintExpanded: false
+};
+
+// ===== Scenario Demo Phase 2: Catalog View =====
+
+function renderScenarioCatalog() {
+  var container = $("scenarioCatalogView");
+  if (!container) return;
+
+  var featured = null;
+  var others = [];
+  (state.scenarios || []).forEach(function(s) {
+    if (s.id === "SCN_SENSOR_LED_ON_PLC_LED_OFF") featured = s;
+    else others.push(s);
   });
+
+  var html = "";
+
+  // Featured scenario card
+  if (featured) {
+    html += '<div class="scenario-feature-card">' +
+      '<span class="scenario-feature-badge">\u63a8\u8350\u8bad\u7ec3</span>' +
+      '<div class="scenario-feature-icon">\u2699</div>' +
+      '<h3>' + escapeHtml(featured.title) + '</h3>' +
+      '<p class="scenario-feature-desc">\u4f60\u5c06\u6839\u636e\u73b0\u573a\u4e09\u8054\u72b6\u6001\uff0c\u9010\u6b65\u5224\u65ad\u6545\u969c\u8303\u56f4\u3001\u5b9a\u4f4d\u8f93\u5165\u516c\u5171\u7aef\u5f02\u5e38\uff0c\u5e76\u5b8c\u6210\u5b89\u5168\u4fee\u590d\u4e0e\u9a8c\u8bc1\u3002</p>' +
+      '<div class="scenario-feature-meta">' +
+        '<span>\u2605 \u57fa\u7840</span>' +
+        '<span>\u23f1 \u7ea65\u5206\u949f</span>' +
+        '<span>\u9636\u6bb5\uff1a\u6545\u969c\u8303\u56f4 \u2192 \u539f\u56e0\u5b9a\u4f4d \u2192 \u5b89\u5168\u4fee\u590d</span>' +
+      '</div>' +
+      '<div class="scenario-feature-goals">' +
+        '<h4>\u5b66\u4e60\u76ee\u6807</h4>' +
+        '<ul>' +
+          '<li>\u638c\u63e1PLC\u8f93\u5165\u4fe1\u53f7\u94fe\u7684\u6392\u67e5\u987a\u5e8f</li>' +
+          '<li>\u907f\u514d\u65e0\u4f9d\u636e\u4fee\u6539\u7a0b\u5e8f\u6216\u66f4\u6362\u6a21\u5757</li>' +
+          '<li>\u5f62\u6210\u7ef4\u4fee\u540e\u7684\u95ed\u73af\u9a8c\u8bc1\u610f\u8bc6</li>' +
+        '</ul>' +
+      '</div>' +
+      '<div class="scenario-feature-stages">' +
+        '<span class="scenario-stage-tag">\u2460 \u5224\u65ad\u6545\u969c\u8303\u56f4</span>' +
+        '<span class="scenario-stage-tag">\u2461 \u5b9a\u4f4d\u5177\u4f53\u539f\u56e0</span>' +
+        '<span class="scenario-stage-tag">\u2462 \u5b89\u5168\u4fee\u590d\u548c\u95ed\u73af\u9a8c\u8bc1</span>' +
+      '</div>' +
+      '<div class="scenario-feature-actions">' +
+        '<button class="scenario-btn-primary" onclick="startFeaturedScenario()">\u5f00\u59cb\u60c5\u666f\u8bad\u7ec3</button>' +
+      '</div>' +
+      '</div>';
+  }
+
+  // More scenarios
+  if (others.length > 0) {
+    html += '<div class="scenario-more-section">' +
+      '<h3>\u66f4\u591a\u8bad\u7ec3</h3>' +
+      '<div class="scenario-more-grid">';
+    others.forEach(function(s) {
+      html += '<div class="scenario-card" onclick="startScenarioById(\'' + escapeHtml(s.id) + '\')">' +
+        '<h4>' + escapeHtml(s.title) + '</h4>' +
+        '<p>' + escapeHtml(s.initial_symptom || "") + '</p>' +
+      '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  container.innerHTML = html || '<p class="muted">\u6682\u65e0\u53ef\u7528\u573a\u666f</p>';
 }
 
-async function loadScenarios() {
-  if (state.scenarios.length) {
-    renderScenarioList();
-    return;
-  }
-  try {
-    const data = await api("/api/scenarios");
-    state.scenarios = data.scenarios || [];
-    renderScenarioList();
-  } catch (error) {
-    $("scenarioList").innerHTML = `<p class="muted">场景加载失败：${escapeHtml(error.message)}</p>`;
-  }
+function startFeaturedScenario() {
+  startScenarioById("SCN_SENSOR_LED_ON_PLC_LED_OFF");
 }
 
-async function startScenario() {
-  var selected = document.querySelector("input[name='scenarioChoice']:checked")?.value || state.scenarios[0]?.id;
-  if (!selected) { $("scenarioStage").innerHTML = '<p class="muted">请先选择一个场景</p>'; return; }
-  $("scenarioStage").innerHTML = '<p class="muted">场景启动中...</p>';
+function startScenarioById(scenarioId) {
+  resetScenarioDemoState();
+  scenarioDemoState.activeScenarioId = scenarioId;
+  doStartScenario(scenarioId);
+}
+
+// ===== Scenario Demo Phase 2: API Calls =====
+
+async function doStartScenario(scenarioId) {
+  showTrainingView();
+  var header = $("scenarioHeader");
+  var statusCol = $("scenarioStatusCol");
+  var actionsCol = $("scenarioActionsCol");
+  var rightCol = $("scenarioRightCol");
+
+  if (header) header.innerHTML = '<div style="padding:1rem;text-align:center;color:#888;">\u6b63\u5728\u52a0\u8f7d\u573a\u666f\u2026</div>';
+  if (statusCol) statusCol.innerHTML = "";
+  if (actionsCol) actionsCol.innerHTML = "";
+  if (rightCol) rightCol.innerHTML = "";
+
   try {
     var data = await api("/api/scenario/start", {
       method: "POST",
       body: JSON.stringify({
         session_id: state.sessionId,
-        scenario_id: selected
+        scenario_id: scenarioId
       })
     });
-    renderScenarioStage(data);
+    state.activeScenario = data;
+    scenarioDemoState.currentStep = data.current_step;
+    scenarioDemoState.previousStatus = [];
+    scenarioDemoState.previousEvidence = [];
+    scenarioDemoState.hintExpanded = false;
+    renderScenarioWorkbench(data);
     if (data.student_graph) renderGraph(data.student_graph, "student");
   } catch (e) {
-    $("scenarioStage").innerHTML = '<p class="muted">场景启动失败：' + (e.message || '未知错误') + '</p>';
+    if (actionsCol) actionsCol.innerHTML = '<div class="scenario-error"><h4>\u52a0\u8f7d\u5931\u8d25</h4><p>\u6682\u65f6\u65e0\u6cd5\u52a0\u8f7d\u60c5\u666f\u8bad\u7ec3\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5\u3002</p><button onclick="backToScenarioCatalog()">\u8fd4\u56de\u573a\u666f\u4e2d\u5fc3</button></div>';
     console.error("Scenario start failed:", e);
   }
 }
 
 async function submitScenarioStep(choiceId) {
-  const scenarioId = state.activeScenario?.scenario?.id;
-  const stepId = state.activeScenario?.current_step?.id;
+  if (scenarioDemoState.isSubmitting) return;
+
+  var scenarioId = state.activeScenario?.scenario?.id;
+  var stepId = state.activeScenario?.current_step?.id;
   if (!scenarioId || !stepId || !choiceId) return;
-  const data = await api("/api/scenario/step", {
-    method: "POST",
-    body: JSON.stringify({
-      session_id: state.sessionId,
-      scenario_id: scenarioId,
-      step_id: stepId,
-      choice_id: choiceId
-    })
-  });
-  renderScenarioStage(data);
-  if (data.student_graph) renderGraph(data.student_graph, "student");
-  await loadGraphUpdates();
+
+  scenarioDemoState.isSubmitting = true;
+  scenarioDemoState.selectedChoiceId = choiceId;
+  refreshActionCards();
+
+  var submitBtn = document.querySelector(".scenario-submit-btn");
+  if (submitBtn) { submitBtn.classList.add("loading"); submitBtn.textContent = "\u63d0\u4ea4\u4e2d\u2026"; }
+
+  try {
+    var data = await api("/api/scenario/step", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        scenario_id: scenarioId,
+        step_id: stepId,
+        choice_id: choiceId
+      })
+    });
+
+    state.activeScenario = data;
+    scenarioDemoState.currentStep = data.current_step;
+
+    // Record timeline
+    var choiceText = choiceId;
+    var currentOpts = data.current_step?.options || (state.activeScenario?.current_step?.options);
+    if (!currentOpts && data.current_step) currentOpts = data.current_step.options;
+
+    // Find the step options from the API return
+    var step = state.activeScenario;
+    scenarioDemoState.timeline.push({
+      stepId: stepId,
+      choiceId: choiceId,
+      feedbackType: data.feedback_type || "incorrect",
+      feedback: data.feedback || "",
+      time: new Date().toLocaleTimeString()
+    });
+
+    renderScenarioWorkbench(data);
+    if (data.student_graph) renderGraph(data.student_graph, "student");
+    if (typeof loadGraphUpdates === "function") loadGraphUpdates();
+
+    // Check completion
+    if (data.completed) {
+      setTimeout(function() { showScenarioCompletionReport(data); }, 600);
+    }
+  } catch (e) {
+    var feedbackArea = document.querySelector(".scenario-feedback-area");
+    if (feedbackArea) {
+      feedbackArea.innerHTML = '<div class="scenario-feedback incorrect"><div class="scenario-feedback-icon">\u26a0</div><div class="scenario-feedback-body"><strong>\u63d0\u4ea4\u5931\u8d25</strong><p>\u64cd\u4f5c\u63d0\u4ea4\u5931\u8d25\uff0c\u672c\u6b21\u9009\u62e9\u5c1a\u672a\u751f\u6548\uff0c\u8bf7\u91cd\u65b0\u63d0\u4ea4\u3002</p></div></div>';
+    }
+    console.error("Scenario step failed:", e);
+  } finally {
+    scenarioDemoState.isSubmitting = false;
+    scenarioDemoState.selectedChoiceId = null;
+    if (submitBtn) { submitBtn.classList.remove("loading"); submitBtn.textContent = "\u6267\u884c\u8be5\u64cd\u4f5c"; }
+    refreshActionCards();
+  }
 }
 
-function workspaceTitle(panel) {
-  return {
-    dashboard: "学习驾驶舱",
-    graph: "能力图谱",
-    jobAdmin: "岗位数据导入与提案审核",
-    knowledge: "知识缺口",
-    tasks: "实训任务",
-    scenario: "排故角色扮演",
-    quiz: "自测验证",
-    plan: "个人培养方案",
-  }[panel] || "功能工作台";
+// ===== Scenario Demo Phase 2: Workbench Rendering =====
+
+function renderScenarioWorkbench(data) {
+  var scenario = data.scenario || {};
+  var step = data.current_step;
+  var completed = data.completed;
+
+  renderScenarioHeader(scenario, step);
+  renderScenarioStatus(step);
+  renderScenarioActions(step, data);
+  renderScenarioEvidence(step, data);
+  renderScenarioCoach(step);
+  renderScenarioTimeline();
+}
+
+function renderScenarioHeader(scenario, step) {
+  var header = $("scenarioHeader");
+  if (!header) return;
+
+  var progress = step?.progress || {};
+  var current = progress.current || 0;
+  var total = progress.total || 3;
+  var pct = total > 0 ? Math.round(current / total * 100) : 0;
+
+  header.innerHTML =
+    '<button class="scenario-header-back" onclick="backToScenarioCatalog()">\u2190 \u8fd4\u56de\u573a\u666f</button>' +
+    '<span class="scenario-header-title">' + escapeHtml(scenario.title || "") + '</span>' +
+    '<span class="scenario-header-progress">\u9636\u6bb5 ' + current + ' / ' + total +
+      '<span class="scenario-progress-bar"><span class="scenario-progress-fill" style="width:' + pct + '%"></span></span>' +
+    '</span>' +
+    '<span class="scenario-header-meta">\u57fa\u7840 \u00b7 \u7ea65\u5206\u949f</span>';
+}
+
+function renderScenarioStatus(step) {
+  var col = $("scenarioStatusCol");
+  if (!col) return;
+
+  var statuses = step?.scene_status || [];
+  if (!statuses.length) {
+    col.innerHTML = '<h4>\u73b0\u573a\u72b6\u6001</h4><div class="scenario-status-empty">\u6682\u65e0\u72b6\u6001\u6570\u636e</div>';
+    return;
+  }
+
+  var prevIds = new Set(scenarioDemoState.previousStatus.map(function(s) { return s.id; }));
+
+  var html = '<h4>\u73b0\u573a\u72b6\u6001</h4>';
+  statuses.forEach(function(item) {
+    var isNew = !prevIds.has(item.id);
+    var statusClass = item.status || "unknown";
+    html += '<div class="scenario-status-card' + (isNew ? ' scenario-status-updated' : '') + '">' +
+      '<span class="scenario-status-dot ' + statusClass + '"></span>' +
+      '<span class="scenario-status-label">' + escapeHtml(item.label || item.id) + '</span>' +
+      '<span class="scenario-status-value">' + escapeHtml(item.value != null ? String(item.value) : "\u5c1a\u672a\u68c0\u67e5") + '</span>' +
+    '</div>';
+  });
+
+  col.innerHTML = html;
+
+  // Bind click and keyboard events to action cards
+
+  // Clear highlights after 1.2s
+  setTimeout(function() {
+    col.querySelectorAll(".scenario-status-updated").forEach(function(el) {
+      el.classList.remove("scenario-status-updated");
+    });
+  }, 1200);
+
+  // Update previous
+  scenarioDemoState.previousStatus = statuses.map(function(s) { return { id: s.id }; });
+}
+
+function renderScenarioActions(step, data) {
+  var col = $("scenarioActionsCol");
+  if (!col) return;
+
+  if (!step) {
+    col.innerHTML = '<h4>\u5f53\u524d\u4efb\u52a1</h4><p class="muted">\u573a\u666f\u5df2\u5b8c\u6210</p>';
+    return;
+  }
+
+  var options = step.options || [];
+  var feedback = data.feedback;
+  var feedbackType = data.feedback_type || "incorrect";
+  var isLocked = scenarioDemoState.isSubmitting;
+
+  var html = '<h4>\u5f53\u524d\u4efb\u52a1</h4>';
+  html += '<p class="scenario-task-prompt">' + escapeHtml(step.prompt || "") + '</p>';
+
+  // Feedback area
+  html += '<div class="scenario-feedback-area">';
+  if (feedback) {
+    var feedbackLabels = {
+      correct: { title: "\u5224\u65ad\u6b63\u786e", icon: "\u2713" },
+      premature: { title: "\u64cd\u4f5c\u8fc7\u65e9", icon: "\u26a0" },
+      inefficient: { title: "\u64cd\u4f5c\u4f4e\u6548", icon: "\u2139" },
+      unsafe: { title: "\u5b89\u5168\u64cd\u4f5c\u88ab\u963b\u6b62", icon: "\u26d4" },
+      closure_missing: { title: "\u7f3a\u5c11\u95ed\u73af\u9a8c\u8bc1", icon: "\u26a0" },
+      incorrect: { title: "\u9700\u8981\u91cd\u65b0\u5224\u65ad", icon: "\u2716" }
+    };
+    var fl = feedbackLabels[feedbackType] || feedbackLabels.incorrect;
+    html += '<div class="scenario-feedback ' + feedbackType + '">' +
+      '<div class="scenario-feedback-icon">' + fl.icon + '</div>' +
+      '<div class="scenario-feedback-body"><strong>' + fl.title + '</strong><p>' + escapeHtml(feedback) + '</p></div>' +
+    '</div>';
+  }
+  html += '</div>';
+
+  // Action cards
+  html += '<div class="scenario-action-cards">';
+  options.forEach(function(opt) {
+    var isSelected = scenarioDemoState.selectedChoiceId === opt.id;
+    html += '<div class="scenario-action-card' +
+      (isSelected ? ' selected' : '') +
+      (isLocked ? ' disabled' : '') +
+      '" role="button"' +
+      ' tabindex="0"' +
+      ' aria-pressed="' + (isSelected ? 'true' : 'false') + '"' +
+      ' aria-disabled="' + (isLocked ? 'true' : 'false') + '"' +
+      ' data-choice-id="' + escapeHtml(opt.id) + '">' +
+      '<span class="scenario-action-radio"></span>' +
+      '<span class="scenario-action-text">' +
+        '<span class="scenario-action-name">' + escapeHtml(opt.text) + '</span>' +
+        (opt.description ? '<span class="scenario-action-desc">' + escapeHtml(opt.description) + '</span>' : '') +
+      '</span>' +
+    '</div>';
+  });
+  html += '</div>';
+
+  // Submit button
+  html += '<button class="scenario-submit-btn' + (isLocked ? " loading" : "") + '" ' +
+    (isLocked ? "disabled" : "") + ' onclick="handleSubmitAction()">' +
+    (isLocked ? "\u63d0\u4ea4\u4e2d\u2026" : "\u6267\u884c\u8be5\u64cd\u4f5c") +
+  '</button>';
+
+  col.innerHTML = html;
+
+  // Bind click and keyboard events to action cards
+  col.querySelectorAll(".scenario-action-card").forEach(function(card) {
+    card.addEventListener("click", function() {
+      selectActionCard(card.getAttribute("data-choice-id"));
+    });
+    card.addEventListener("keydown", function(event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectActionCard(card.getAttribute("data-choice-id"));
+      }
+    });
+  });
+}
+
+function selectActionCard(choiceId) {
+  if (scenarioDemoState.isSubmitting) return;
+  scenarioDemoState.selectedChoiceId = choiceId;
+  refreshActionCards();
+}
+
+function refreshActionCards() {
+  var cards = document.querySelectorAll(".scenario-action-card");
+  cards.forEach(function(card) {
+    var cid = card.getAttribute("data-choice-id");
+    var isSelected = cid === scenarioDemoState.selectedChoiceId;
+    if (isSelected) card.classList.add("selected");
+    else card.classList.remove("selected");
+    card.setAttribute("aria-pressed", isSelected ? "true" : "false");
+    if (scenarioDemoState.isSubmitting) {
+      card.classList.add("disabled");
+      card.setAttribute("aria-disabled", "true");
+    } else {
+      card.classList.remove("disabled");
+      card.setAttribute("aria-disabled", "false");
+    }
+  });
+}
+
+function handleSubmitAction() {
+  if (scenarioDemoState.isSubmitting) return;
+  if (!scenarioDemoState.selectedChoiceId) return;
+  submitScenarioStep(scenarioDemoState.selectedChoiceId);
+}
+
+function renderScenarioEvidence(step, data) {
+  var col = $("scenarioRightCol");
+  if (!col) return;
+
+  var evidence = step?.evidence || [];
+  var prevIds = new Set(scenarioDemoState.previousEvidence.map(function(e) { return e.id; }));
+
+  var html = '<h4>\u5df2\u83b7\u8bc1\u636e</h4>';
+
+  if (!evidence.length) {
+    html += '<div class="scenario-evidence-empty">\u6267\u884c\u68c0\u67e5\u64cd\u4f5c\u540e\uff0c\u83b7\u5f97\u7684\u5173\u952e\u4fe1\u606f\u4f1a\u663e\u793a\u5728\u8fd9\u91cc\u3002</div>';
+  } else {
+    evidence.forEach(function(item) {
+      var isNew = !prevIds.has(item.id);
+      var levelIcons = { known: "\u2713", confirmed: "\u2713", suspected: "?" };
+      html += '<div class="scenario-evidence-item' + (isNew ? " scenario-evidence-new" : "") + '">' +
+        '<span class="scenario-evidence-icon">' + (levelIcons[item.level] || "\u2022") + '</span>' +
+        '<span>' + escapeHtml(item.text) + '</span>' +
+      '</div>';
+    });
+
+    // Clear evidence highlights
+    setTimeout(function() {
+      col.querySelectorAll(".scenario-evidence-new").forEach(function(el) {
+        el.classList.remove("scenario-evidence-new");
+      });
+    }, 1200);
+  }
+
+  scenarioDemoState.previousEvidence = evidence.map(function(e) { return { id: e.id }; });
+
+  col.innerHTML = html + renderScenarioCoachHtml(step);
+}
+
+function renderScenarioCoachHtml(step) {
+  var hint = step?.hint;
+  if (!hint) return "";
+
+  var expanded = scenarioDemoState.hintExpanded;
+  var html = '<div class="scenario-coach">' +
+    '<div class="scenario-coach-label">AI\u5e08\u5085\u63d0\u793a</div>' +
+    '<div class="scenario-coach-box">' +
+      '<div class="scenario-coach-preview" onclick="toggleCoachHint()">' +
+        '<span class="scenario-coach-avatar">\ud83e\udd16</span>' +
+        '<span>' + (expanded ? "\u6536\u8d77\u63d0\u793a" : "\u9047\u5230\u56f0\u96be\u65f6\uff0c\u53ef\u4ee5\u67e5\u770b\u672c\u9636\u6bb5\u63d0\u793a\u3002") + '</span>' +
+      '</div>' +
+      '<div class="scenario-coach-text' + (expanded ? "" : " scenario-coach-hidden") + '">' + escapeHtml(hint) + '</div>' +
+    '</div>' +
+  '</div>';
+  return html;
+}
+
+function toggleCoachHint() {
+  scenarioDemoState.hintExpanded = !scenarioDemoState.hintExpanded;
+  var step = state.activeScenario?.current_step || scenarioDemoState.currentStep;
+  renderScenarioEvidence(step, state.activeScenario || {});
+}
+
+function renderScenarioCoach(step) {
+  // Coach is rendered inside renderScenarioEvidence (right column)
+}
+
+function renderScenarioTimeline() {
+  var list = $("scenarioTimelineList");
+  if (!list) return;
+
+  if (!scenarioDemoState.timeline.length) {
+    list.innerHTML = '<div style="padding:0.5rem 0;color:#999;font-size:0.8rem;">\u5c1a\u65e0\u64cd\u4f5c\u8bb0\u5f55</div>';
+    return;
+  }
+
+  var html = "";
+  scenarioDemoState.timeline.forEach(function(item, idx) {
+    var ft = item.feedbackType || "incorrect";
+    var summary = item.feedback ? item.feedback.substring(0, 40) : "";
+    html += '<div class="scenario-timeline-item ' + ft + '">' +
+      '<span class="scenario-timeline-num">' + (idx + 1) + '</span>' +
+      '<span class="scenario-timeline-detail">' +
+        '<strong>' + escapeHtml(item.stepId) + ' \u2192 ' + escapeHtml(item.choiceId) + '</strong>' +
+        (summary ? '<br>' + escapeHtml(summary) : "") +
+      '</span>' +
+    '</div>';
+  });
+  list.innerHTML = html;
+}
+
+// ===== Scenario Demo Phase 2: Completion Report =====
+
+function showScenarioCompletionReport(data) {
+  var summary = data.summary || {};
+  var report = document.createElement("div");
+  report.className = "scenario-report-overlay";
+  report.id = "scenarioReportOverlay";
+
+  var verifiedStateHtml = "";
+  var vs = summary.verified_state || {};
+  Object.keys(vs).forEach(function(key) {
+    verifiedStateHtml += '<span class="scenario-report-verified-item"><strong>' + escapeHtml(String(vs[key])) + '</strong> ' + escapeHtml(key) + '</span>';
+  });
+
+  var completedItemsHtml = "";
+  (summary.completed_items || []).forEach(function(item) {
+    completedItemsHtml += '<li>' + escapeHtml(item) + '</li>';
+  });
+
+  var tagsHtml = "";
+  (summary.ability_labels || []).forEach(function(label) {
+    tagsHtml += '<span class="scenario-report-tag">' + escapeHtml(label) + '</span>';
+  });
+
+  report.innerHTML =
+    '<div class="scenario-report">' +
+      '<h2>\u8bad\u7ec3\u5b8c\u6210</h2>' +
+      '<p class="scenario-report-subtitle">' + escapeHtml(data.scenario?.title || "") + '</p>' +
+      '<div class="scenario-report-section">' +
+        '<h4>\u6545\u969c\u539f\u56e0</h4>' +
+        '<span class="scenario-report-label">' + escapeHtml(summary.root_cause || "\u5df2\u6392\u9664") + '</span>' +
+      '</div>' +
+      '<div class="scenario-report-section">' +
+        '<h4>\u9a8c\u8bc1\u72b6\u6001</h4>' +
+        '<div class="scenario-report-verified">' + verifiedStateHtml + '</div>' +
+      '</div>' +
+      '<div class="scenario-report-section">' +
+        '<h4>\u5b8c\u6210\u9879\u76ee</h4>' +
+        '<ul class="scenario-report-checklist">' + completedItemsHtml + '</ul>' +
+      '</div>' +
+      '<div class="scenario-report-section">' +
+        '<h4>\u80fd\u529b\u6807\u7b7e</h4>' +
+        '<div class="scenario-report-tags">' + tagsHtml + '</div>' +
+      '</div>' +
+      '<div class="scenario-report-actions">' +
+        '<button class="scenario-btn-primary" onclick="restartScenario()">\u91cd\u65b0\u8bad\u7ec3</button>' +
+        '<button onclick="backToScenarioCatalog()">\u8fd4\u56de\u573a\u666f\u4e2d\u5fc3</button>' +
+        '<button onclick="askAboutScenario()">\u5411AI\u8ffd\u95ee</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(report);
+
+  // Focus trap: focus first button in report
+  var firstBtn = report.querySelector('.scenario-btn-primary');
+  if (firstBtn) firstBtn.focus();
+
+  // Close on overlay click
+  report.addEventListener("click", function(e) {
+    if (e.target === report) closeCompletionReport();
+  });
+
+  // Close on Escape key
+  var escHandler = function(e) {
+    if (e.key === 'Escape') { closeCompletionReport(); document.removeEventListener('keydown', escHandler); }
+  };
+  document.addEventListener('keydown', escHandler);
+}
+
+function closeCompletionReport() {
+  var overlay = document.getElementById("scenarioReportOverlay");
+  if (overlay) overlay.remove();
+}
+
+function restartScenario() {
+  closeCompletionReport();
+  resetScenarioDemoState();
+  if (scenarioDemoState.activeScenarioId) {
+    doStartScenario(scenarioDemoState.activeScenarioId);
+  }
+}
+
+function backToScenarioCatalog() {
+  closeCompletionReport();
+  resetScenarioDemoState();
+  state.activeScenario = null;
+  showCatalogView();
+  loadScenarios();
+}
+
+function askAboutScenario() {
+  closeCompletionReport();
+  // Switch to chat panel with pre-filled question
+  var scenarioTitle = state.activeScenario?.scenario?.title || "";
+  var question = "\u8bf7\u5e2e\u6211\u590d\u76d8\u8fd9\u4e2a\u6392\u6545\u573a\u666f\uff1a" + scenarioTitle;
+  // Navigate to chat
+  if (typeof setActiveTool === "function") setActiveTool("chat");
+  // Pre-fill input if possible
+  var chatInput = document.getElementById("chatInput") || document.querySelector("[data-chat-input]");
+  if (chatInput) { chatInput.value = question; chatInput.focus(); }
+}
+
+// ===== Scenario Demo Phase 2: View Management =====
+
+function showTrainingView() {
+  var catalog = $("scenarioCatalogView");
+  var training = $("scenarioTrainingView");
+  if (catalog) catalog.style.display = "none";
+  if (training) { training.classList.remove("scenario-workbench-hidden"); training.style.display = ""; }
+}
+
+function showCatalogView() {
+  var catalog = $("scenarioCatalogView");
+  var training = $("scenarioTrainingView");
+  if (catalog) catalog.style.display = "";
+  if (training) { training.classList.add("scenario-workbench-hidden"); training.style.display = "none"; }
+}
+
+function resetScenarioDemoState() {
+  scenarioDemoState.activeScenarioId = state.activeScenario?.scenario?.id || scenarioDemoState.activeScenarioId;
+  // Close any lingering report overlay
+  closeCompletionReport();
+  scenarioDemoState.currentStep = null;
+  scenarioDemoState.selectedChoiceId = null;
+  scenarioDemoState.timeline = [];
+  scenarioDemoState.previousStatus = [];
+  scenarioDemoState.previousEvidence = [];
+  scenarioDemoState.isSubmitting = false;
+  scenarioDemoState.hintExpanded = false;
+}
+
+// ===== Scenario Demo Phase 2: Legacy Compat =====
+
+function renderScenarioStage(data) {
+  // Phase 1 compat: redirect to new workbench
+  state.activeScenario = data;
+  scenarioDemoState.currentStep = data.current_step;
+  scenarioDemoState.previousStatus = [];
+  scenarioDemoState.previousEvidence = [];
+  if (data.current_step) showTrainingView();
+  renderScenarioWorkbench(data);
+}
+
+async function startScenario() {
+  // Phase 1 compat: start using first available scenario
+  var selected = document.querySelector("input[name='scenarioChoice']:checked")?.value || (state.scenarios[0]?.id);
+  if (!selected) return;
+  resetScenarioDemoState();
+  scenarioDemoState.activeScenarioId = selected;
+  await doStartScenario(selected);
+}
+
+async function loadScenarios() {
+  if (!state.scenarios || !state.scenarios.length) {
+    try {
+      var data = await api("/api/scenarios");
+      state.scenarios = data.scenarios || [];
+    } catch (e) {
+      console.error("Failed to load scenarios:", e);
+    }
+  }
+  renderScenarioCatalog();
 }
 
 function setWorkspacePanel(panel) {

@@ -4,100 +4,309 @@
   "scenarios": [
     {
       "id": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
-      "title": "传感器灯亮但 PLC 输入灯不亮",
-      "roleplay_frame": "你是自动化生产线装调与运维技术员新人，师傅让你判断为什么传感器有动作但 PLC 没有收到输入。",
-      "initial_symptom": "传感器动作灯亮，PLC 输入模块指示灯不亮，在线监控也不变化。",
-      "safety_notice": "安全提醒：接线、拆线和端子检查前先断电；通电监控前确认急停、气源、电源和设备状态，不确定时请教师或实训指导人员确认。",
+      "title": "传感器动作灯亮，但 PLC 输入灯不亮",
+      "roleplay_frame": "你是自动化生产线装调与运维技术员新人，需要根据现场状态判断传感器信号为什么没有进入 PLC。",
+      "initial_symptom": "传感器动作灯亮，PLC 输入指示灯不亮，PLC 在线监控值始终为 0。",
+      "safety_notice": "安全提醒：接线、拆线和端子检查前必须先断电；通电监控前确认急停、气源、电源和设备状态。",
       "ability_ids": [
         "electrical_safety_check",
         "sensor_wiring_judgement",
         "plc_input_common_terminal",
         "plc_input_monitoring"
       ],
+      "summary": {
+        "root_cause": "PLC 输入公共端未正确连接",
+        "result": "故障已排除",
+        "verified_state": {
+          "sensor_led": "亮",
+          "plc_input_led": "亮",
+          "online_value": 1
+        },
+        "completed_items": [
+          "正确判断故障范围",
+          "定位输入公共端异常",
+          "完成安全修复",
+          "完成三联状态验证"
+        ],
+        "ability_labels": [
+          "PLC 输入信号排查",
+          "维修后验证",
+          "安全操作规范"
+        ]
+      },
       "steps": [
         {
           "id": "S1",
-          "prompt": "现在你第一步最应该做什么？",
-          "ability_ids": ["electrical_safety_check"],
+          "prompt": "传感器检测到工件后动作指示灯亮，但 PLC 对应输入指示灯不亮，在线监控值始终为 0。根据当前现象，应该优先检查哪个环节？",
+          "ability_ids": [
+            "electrical_safety_check"
+          ],
+          "progress": {
+            "current": 1,
+            "total": 3
+          },
+          "scene_status": [
+            {
+              "id": "sensor_led",
+              "label": "传感器动作灯",
+              "value": "亮",
+              "status": "normal"
+            },
+            {
+              "id": "plc_input_led",
+              "label": "PLC 输入指示灯",
+              "value": "灭",
+              "status": "fault"
+            },
+            {
+              "id": "online_value",
+              "label": "PLC 在线监控值",
+              "value": "0",
+              "status": "fault"
+            },
+            {
+              "id": "input_common",
+              "label": "输入公共端",
+              "value": "尚未检查",
+              "status": "unknown"
+            },
+            {
+              "id": "sensor_output",
+              "label": "传感器输出线",
+              "value": "尚未检查",
+              "status": "unknown"
+            }
+          ],
+          "evidence": [
+            {
+              "id": "E_SENSOR_ACTIVE",
+              "text": "传感器已经检测到工件并产生动作",
+              "level": "known"
+            },
+            {
+              "id": "E_PLC_NO_INPUT",
+              "text": "PLC 输入侧尚未接收到有效信号",
+              "level": "known"
+            }
+          ],
+          "hint": "先根据信号链判断问题位于传感器侧、输入回路还是程序侧。",
           "options": [
             {
               "id": "A",
-              "text": "先断电并确认急停、气源、电源状态，再进行端子和接线检查",
+              "text": "检查传感器到 PLC 输入端之间的信号链",
+              "description": "依次检查传感器输出、现场接线和 PLC 输入回路。",
               "is_correct": true,
-              "feedback": "正确。设备排故先确认安全边界，不能带电冒险改线。",
-              "observation": "现场断电后，允许你检查传感器棕/蓝/黑三线和 PLC 输入端子。"
+              "feedback_type": "correct",
+              "feedback": "判断正确。传感器已经产生动作，但 PLC 输入灯没有亮，应优先检查传感器输出、接线和 PLC 输入回路。",
+              "observation": "进一步检查确认传感器可以正常输出，故障范围缩小到接线或 PLC 输入回路。"
             },
             {
               "id": "B",
-              "text": "直接把黑色输出线换到另一个输入点试试",
+              "text": "直接修改 PLC 程序",
+              "description": "在没有检查输入回路前先修改程序。",
               "is_correct": false,
-              "feedback": "不合适。没有断电和教师确认时不能直接改线，也容易把问题扩大。",
-              "observation": "师傅要求你先回到安全检查和接线图核对。"
+              "feedback_type": "premature",
+              "feedback": "当前没有证据表明 PLC 程序存在问题。输入指示灯尚未点亮，应先检查现场信号和输入回路。",
+              "observation": "当前证据不足以支持程序故障判断。"
             },
             {
               "id": "C",
-              "text": "先修改 PLC 程序，把输入地址换一个",
+              "text": "直接更换 PLC 输入模块",
+              "description": "跳过基础检查，直接更换硬件。",
               "is_correct": false,
-              "feedback": "顺序不对。PLC 输入灯都不亮时，优先排查接线和公共端，不应先改程序。",
-              "observation": "当前还没有证据说明是程序地址问题。"
+              "feedback_type": "inefficient",
+              "feedback": "目前没有证据证明 PLC 输入模块损坏。直接更换模块会增加维修成本，应先完成基础检查。",
+              "observation": "输入模块是否损坏仍未得到证据支持。"
             }
           ],
           "next_step_id": "S2"
         },
         {
           "id": "S2",
-          "prompt": "安全确认后，你观察到黑色输出线接到 I0.2，但 PLC 这一组公共端未接。下一步判断是什么？",
-          "ability_ids": ["sensor_wiring_judgement", "plc_input_common_terminal"],
+          "prompt": "已经确认传感器输出正常，问题位于传感器到 PLC 输入端之间。下一步应该优先检查什么？",
+          "ability_ids": [
+            "sensor_wiring_judgement",
+            "plc_input_common_terminal"
+          ],
+          "progress": {
+            "current": 2,
+            "total": 3
+          },
+          "scene_status": [
+            {
+              "id": "sensor_led",
+              "label": "传感器动作灯",
+              "value": "亮",
+              "status": "normal"
+            },
+            {
+              "id": "plc_input_led",
+              "label": "PLC 输入指示灯",
+              "value": "灭",
+              "status": "fault"
+            },
+            {
+              "id": "online_value",
+              "label": "PLC 在线监控值",
+              "value": "0",
+              "status": "fault"
+            },
+            {
+              "id": "sensor_output",
+              "label": "传感器输出",
+              "value": "正常",
+              "status": "normal"
+            },
+            {
+              "id": "input_common",
+              "label": "输入公共端",
+              "value": "尚未检查",
+              "status": "unknown"
+            }
+          ],
+          "evidence": [
+            {
+              "id": "E_SENSOR_ACTIVE",
+              "text": "传感器已经检测到工件并产生动作",
+              "level": "known"
+            },
+            {
+              "id": "E_PLC_NO_INPUT",
+              "text": "PLC 输入侧尚未接收到有效信号",
+              "level": "known"
+            },
+            {
+              "id": "E_SENSOR_WORKS",
+              "text": "传感器本体和输出功能正常",
+              "level": "known"
+            },
+            {
+              "id": "E_FAULT_IN_LINK",
+              "text": "故障更可能位于输出接线或 PLC 输入公共端",
+              "level": "known"
+            }
+          ],
+          "hint": "重点检查信号进入 PLC 输入模块之前必须满足的接线条件。",
           "options": [
             {
               "id": "A",
-              "text": "公共端未接会导致输入回路不成立，应先按模块要求核对公共端接法",
+              "text": "检查 PLC 输入公共端和传感器输出线",
+              "description": "核对输入回路是否完整以及端子连接是否正确。",
               "is_correct": true,
-              "feedback": "正确。传感器灯亮不等于 PLC 输入回路成立，公共端是关键证据。",
-              "observation": "接好对应公共端并通电监控后，PLC 输入灯开始随传感器动作变化。"
+              "feedback_type": "correct",
+              "feedback": "判断正确。检查发现 PLC 输入组公共端未正确连接。",
+              "observation": "确认 PLC 输入公共端连接异常。接好公共端后，PLC 输入指示灯可以随传感器动作变化。"
             },
             {
               "id": "B",
-              "text": "传感器灯亮说明接线一定正确，应该直接更换 PLC 模块",
+              "text": "检查 PLC 输出程序",
+              "description": "检查与当前输入信号无关的输出逻辑。",
               "is_correct": false,
-              "feedback": "不合适。还没有排除公共端和端子问题，不应直接更换模块。",
-              "observation": "继续检查发现公共端悬空，这是更优先的故障点。"
+              "feedback_type": "premature",
+              "feedback": "当前问题发生在输入信号进入 PLC 之前，检查输出程序不能解释输入灯不亮的问题。",
+              "observation": "PLC 输出程序与当前输入回路故障无直接关系。"
             },
             {
               "id": "C",
-              "text": "在线监控没变，所以一定是电脑监控软件问题",
+              "text": "更换整套传感器",
+              "description": "在传感器输出正常时直接更换设备。",
               "is_correct": false,
-              "feedback": "证据不足。输入灯不亮时，信号还没进入 PLC 输入侧，不能先归因于监控软件。",
-              "observation": "师傅提醒你要先让输入灯变化，再看在线监控。"
+              "feedback_type": "inefficient",
+              "feedback": "传感器已经能够正常动作和输出，更换整套传感器缺少证据支持。",
+              "observation": "故障仍应优先从接线和输入公共端中查找。"
             }
           ],
           "next_step_id": "S3"
         },
         {
           "id": "S3",
-          "prompt": "接好公共端后，PLC 输入灯亮了。你最后需要怎样验证？",
-          "ability_ids": ["plc_input_monitoring"],
+          "prompt": "已经确认 PLC 输入公共端未正确连接。应该如何完成安全修复和故障验证？",
+          "ability_ids": [
+            "electrical_safety_check",
+            "plc_input_common_terminal",
+            "plc_input_monitoring"
+          ],
+          "progress": {
+            "current": 3,
+            "total": 3
+          },
+          "scene_status": [
+            {
+              "id": "sensor_led",
+              "label": "传感器动作灯",
+              "value": "亮",
+              "status": "normal"
+            },
+            {
+              "id": "plc_input_led",
+              "label": "PLC 输入指示灯",
+              "value": "灭",
+              "status": "fault"
+            },
+            {
+              "id": "online_value",
+              "label": "PLC 在线监控值",
+              "value": "0",
+              "status": "fault"
+            },
+            {
+              "id": "input_common",
+              "label": "输入公共端",
+              "value": "连接异常",
+              "status": "danger"
+            },
+            {
+              "id": "power_state",
+              "label": "回路电源",
+              "value": "尚未隔离",
+              "status": "danger"
+            }
+          ],
+          "evidence": [
+            {
+              "id": "E_SENSOR_ACTIVE",
+              "text": "传感器已经检测到工件并产生动作",
+              "level": "known"
+            },
+            {
+              "id": "E_SENSOR_WORKS",
+              "text": "传感器本体和输出功能正常",
+              "level": "known"
+            },
+            {
+              "id": "E_COMMON_OPEN",
+              "text": "PLC 输入组公共端未正确连接",
+              "level": "confirmed"
+            }
+          ],
+          "hint": "正确维修流程必须同时包含安全隔离、故障处理和维修后验证。",
           "options": [
             {
               "id": "A",
-              "text": "同时记录传感器灯、PLC 输入灯、在线监控三联状态是否同步",
+              "text": "断电并确认安全后重新接好公共端，再完成三联状态验证",
+              "description": "完成安全隔离、接线修复和传感器灯、PLC 输入灯、在线监控三联验证。",
               "is_correct": true,
-              "feedback": "正确。三联状态同步，才能证明信号已经进入 PLC 并被监控到。",
-              "observation": "你完成了故障闭环：安全确认、接线/公共端修正、PLC 监控验证。"
+              "feedback_type": "correct",
+              "feedback": "处理正确。维修过程包含安全隔离、故障修复和三联状态验证，形成了完整闭环。",
+              "observation": "传感器动作灯亮、PLC 输入指示灯亮、PLC 在线监控值变为 1，故障已经排除。"
             },
             {
               "id": "B",
-              "text": "只要 PLC 输入灯亮，就不用看在线监控",
+              "text": "重新接好公共端后直接结束维修",
+              "description": "完成接线但不执行维修后验证。",
               "is_correct": false,
-              "feedback": "不完整。输入灯亮只说明模块侧有信号，还要看在线监控和地址是否对应。",
-              "observation": "如果监控地址看错，仍会误判故障没有解决。"
+              "feedback_type": "closure_missing",
+              "feedback": "维修后必须进行验证。仅完成接线不能证明故障已经排除。",
+              "observation": "尚未确认 PLC 输入指示灯和在线监控值是否恢复。"
             },
             {
               "id": "C",
-              "text": "马上拆线恢复原状，不需要记录",
+              "text": "不断电直接拆接公共端",
+              "description": "在回路带电时直接修改接线。",
               "is_correct": false,
-              "feedback": "不合适。实训排故需要留下状态记录和提交物，方便教师复核。",
-              "observation": "师傅要求你提交三联状态记录表。"
+              "feedback_type": "unsafe",
+              "feedback": "禁止带电拆接线路。必须先断电，并确认设备处于安全状态。",
+              "observation": "危险操作已被阻止，现场状态没有改变。"
             }
           ],
           "next_step_id": null
@@ -111,12 +320,19 @@
       "roleplay_frame": "你要判断信号已经到输入模块，但程序或监控地址为什么没有变化。",
       "initial_symptom": "传感器动作灯亮，PLC 输入灯亮，但在线监控的目标地址不变。",
       "safety_notice": "安全提醒：PLC 在线监控前确认设备状态安全，不让执行机构误动作；不确定时请教师确认。",
-      "ability_ids": ["plc_io_address_mapping", "program_variable_lookup", "plc_input_monitoring"],
+      "ability_ids": [
+        "plc_io_address_mapping",
+        "program_variable_lookup",
+        "plc_input_monitoring"
+      ],
       "steps": [
         {
           "id": "S1",
           "prompt": "PLC 输入灯已亮但监控不变，最优先核对什么？",
-          "ability_ids": ["plc_io_address_mapping", "program_variable_lookup"],
+          "ability_ids": [
+            "plc_io_address_mapping",
+            "program_variable_lookup"
+          ],
           "options": [
             {
               "id": "A",
@@ -151,12 +367,19 @@
       "roleplay_frame": "你要判断问题是否发生在传感器供电、检测距离、目标材质或传感器本体侧。",
       "initial_symptom": "传感器动作灯不亮，或目标经过时动作灯不稳定。",
       "safety_notice": "安全提醒：测量 24V DC 供电前确认量程和表笔位置，接线调整前先断电并请教师确认。",
-      "ability_ids": ["sensor_type_identification", "sensor_led_observation", "dc24v_power_check"],
+      "ability_ids": [
+        "sensor_type_identification",
+        "sensor_led_observation",
+        "dc24v_power_check"
+      ],
       "steps": [
         {
           "id": "S1",
           "prompt": "传感器动作灯不亮时，第一轮应检查什么？",
-          "ability_ids": ["sensor_led_observation", "dc24v_power_check"],
+          "ability_ids": [
+            "sensor_led_observation",
+            "dc24v_power_check"
+          ],
           "options": [
             {
               "id": "A",
@@ -184,12 +407,18 @@
       "roleplay_frame": "你要把气缸不动作分成电气、程序和气路三层排查。",
       "initial_symptom": "按钮或传感器条件满足后，气缸没有动作。",
       "safety_notice": "安全提醒：气缸动作前确认人员远离运动部件，调试前确认急停、气源、电源和初始位。",
-      "ability_ids": ["input_no_response_fault_scope", "plc_input_monitoring", "no_response_power_path_check"],
+      "ability_ids": [
+        "input_no_response_fault_scope",
+        "plc_input_monitoring",
+        "no_response_power_path_check"
+      ],
       "steps": [
         {
           "id": "S1",
           "prompt": "气缸不动作时，应该如何分层？",
-          "ability_ids": ["input_no_response_fault_scope"],
+          "ability_ids": [
+            "input_no_response_fault_scope"
+          ],
           "options": [
             {
               "id": "A",
