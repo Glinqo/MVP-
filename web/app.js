@@ -1347,6 +1347,8 @@ function renderKnowledge(items) {
     </div>
   `).join("");
   attachAskButtons($("knowledgeRefs"));
+  var ka = document.getElementById("knowledgeAlert");
+  if (ka) ka.style.display = "block";
 }
 
 function renderTasks(items) {
@@ -1494,6 +1496,7 @@ function setWorkspacePanel(panel) {
   document.querySelectorAll(".workspace-panel").forEach((section) => {
     section.classList.toggle("active", section.id === `workspace${panel.charAt(0).toUpperCase()}${panel.slice(1)}`);
   });
+  if (panel === "knowledge") { var ka = document.getElementById("knowledgeAlert"); if (ka) ka.style.display = "none"; }
   if (panel === "jobAdmin") loadJobAdmin();
   if (panel === "plan") loadTrainingPlans("staged");
   if (panel === "scenario") loadScenarios();
@@ -2094,6 +2097,7 @@ async function applyChatResult(data) {
   if (data.student_graph) renderGraph(data.student_graph, "student");
   await loadGraphUpdates();
   state.knowledgeGaps = data.knowledge_refs || [];
+  try { localStorage.setItem("mcp_knowledge_gaps", JSON.stringify(data.knowledge_refs || [])); } catch (_) {}
   renderKnowledge(data.knowledge_refs || []);
   renderTasks(data.remediation_cards || []);
 }
@@ -2559,6 +2563,7 @@ function showAssessmentResult(result) {
       var refsEl = document.getElementById("knowledgeRefs");
       if (unique.length > 0) {
         var h = renderKnowledgeCards(unique);
+          var ka3 = document.getElementById("knowledgeAlert"); if (ka3) ka3.style.display = "block";
         if (gapEl) { gapEl.innerHTML = h; gapEl.classList.remove("muted"); attachAskButtons(gapEl); }
         if (refsEl) { refsEl.innerHTML = h; refsEl.classList.remove("muted"); attachAskButtons(refsEl); }
       }
@@ -2640,7 +2645,18 @@ async function boot() {
     renderSuggestedQuestions(start.suggested_questions || []);
     renderQuiz(quiz.questions);
     renderGraph(jobGraph, "job");
-    renderJobProposals(jobGraph.pending_proposals || []);
+      // Restore persisted knowledge gaps
+  try {
+    var saved_gaps = localStorage.getItem("mcp_knowledge_gaps");
+    if (saved_gaps) {
+      var gaps = JSON.parse(saved_gaps);
+      if (gaps && gaps.length) {
+        state.knowledgeGaps = gaps;
+        renderKnowledge(gaps);
+      }
+    }
+  } catch (_) {}
+  renderJobProposals(jobGraph.pending_proposals || []);
     renderGraph(studentBootstrap.student_graph, "student");
   // renderGraphUpdateLog(studentBootstrap.student_graph?.update_log || []);
   } catch (error) {
