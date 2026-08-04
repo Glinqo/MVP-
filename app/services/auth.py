@@ -29,12 +29,15 @@ def _ensure_tables():
                 password_hash TEXT NOT NULL,
                 nickname TEXT NOT NULL,
                 role TEXT NOT NULL DEFAULT 'student',
+                identity TEXT NOT NULL DEFAULT "",
+                job_role TEXT NOT NULL DEFAULT "",
                 created_at REAL NOT NULL,
                 updated_at REAL NOT NULL
             )
         """)
         conn.commit()
 _ensure_tables()
+
 
 def hash_password(pw: str) -> str:
     salt = os.urandom(16)
@@ -65,6 +68,8 @@ def login(username: str, password: str) -> Dict[str, Any]:
     if not verify_password(password, row["password_hash"]): return {"ok": False, "error": "密码错误"}
     user = {"id": row["id"], "username": row["username"], "nickname": row["nickname"], "role": row["role"],
             "identity": row["identity"] or "", "job_role": row["job_role"] or ""}
+    token = create_token(user)
+    return {"ok": True, "user": user, "token": token}
 
 
 def save_identity(username: str, identity: str, job_role: str) -> Dict[str, Any]:
@@ -76,6 +81,8 @@ def save_identity(username: str, identity: str, job_role: str) -> Dict[str, Any]
     user = {"id": row["id"], "username": row["username"], "nickname": row["nickname"], "role": row["role"],
             "identity": row["identity"] or "", "job_role": row["job_role"] or ""}
     return {"ok": True, "user": user}
+
+
 def get_user(user_id: int) -> Optional[Dict]:
     with _conn() as conn:
         row = conn.execute("SELECT id, username, nickname, role FROM users WHERE id = ?", (user_id,)).fetchone()
@@ -84,3 +91,19 @@ def get_user(user_id: int) -> Optional[Dict]:
 def list_users() -> list:
     with _conn() as conn:
         return [dict(r) for r in conn.execute("SELECT id, username, nickname, role FROM users ORDER BY id").fetchall()]
+def _seed_users():
+    """Seed 1000 users (000-999) with password 123456 if table is empty."""
+    with _conn() as conn:
+        count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        if count > 0:
+            return
+        now = __import__("time").time()
+        pw = hash_password("123456")
+        rows = [(f"{i:03d}", pw, f"User_{i:03d}", "student", now, now) for i in range(1000)]
+        conn.executemany(
+            "INSERT INTO users (username, password_hash, nickname, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+            rows
+        )
+        conn.commit()
+
+_seed_users()
