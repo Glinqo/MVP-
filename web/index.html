@@ -322,8 +322,6 @@
       </div>
       <div class="top-actions">
         <button onclick="switchAccount()" title="切换账号">切换账号</button>
-        <div class="status" id="healthStatus">连接中</div>
-        <div class="status" id="llmStatus">模型检测中</div>
       </div>
     </header>
 
@@ -351,50 +349,6 @@
           </div>
         </details>
 
-        <details open>
-          <summary>现场状态</summary>
-          <div class="context-grid">
-            <label>
-              传感器动作灯
-              <select id="sensorLed">
-                <option value="unknown">未确认</option>
-                <option value="on">亮</option>
-                <option value="off">不亮</option>
-                <option value="unstable">闪烁/不稳定</option>
-              </select>
-            </label>
-            <label>
-              PLC 输入灯
-              <select id="plcInputLed">
-                <option value="unknown">未确认</option>
-                <option value="on">亮</option>
-                <option value="off">不亮</option>
-              </select>
-            </label>
-            <label>
-              在线监控
-              <select id="onlineMonitor">
-                <option value="unknown">未确认</option>
-                <option value="on">有变化</option>
-                <option value="off">无变化</option>
-              </select>
-            </label>
-            <label>
-              传感器类型
-              <select id="sensorType">
-                <option value="unknown">未确认</option>
-                <option value="known">已确认</option>
-              </select>
-            </label>
-            <label>
-              公共端接法
-              <select id="commonTerminal">
-                <option value="unknown">未确认</option>
-                <option value="known">已确认</option>
-              </select>
-            </label>
-          </div>
-        </details>
 
         <section class="launcher-panel">
           <h2>功能工作台</h2>
