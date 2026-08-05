@@ -1138,15 +1138,15 @@ button:active{transform:translateY(0)}
 .stage-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06)}
 .stage-actions button{padding:4px 10px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:transparent;color:#94a3b8;font-size:11px;cursor:pointer}
 .stage-actions button:hover{background:rgba(255,255,255,0.06);color:#e2e8f0}
-.gantt-chart{display:flex;flex-direction:column;gap:4px}
-.gantt-row{display:flex;gap:10px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:8px;align-items:center}
-.gantt-head{display:flex;align-items:center;gap:8px;flex:0 0 140px}
-.gantt-day-num{width:24px;height:24px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.gantt-day-title{font-size:12px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gantt-chart{display:flex;flex-direction:column;gap:6px}
+.gantt-row{display:flex;gap:12px;padding:12px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:8px;align-items:center}
+.gantt-head{display:flex;align-items:center;gap:10px;flex:0 0 170px}
+.gantt-day-num{width:32px;height:32px;border-radius:50%;color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.gantt-day-title{font-size:14px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gantt-body{flex:1;display:flex;flex-direction:column;gap:2px}
-.gantt-bar{height:20px;border-radius:5px;display:flex;align-items:center;padding:0 8px}
-.gantt-bar-text{color:#fff;font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gantt-meta{font-size:9px;padding-left:2px;color:#64748b}
+.gantt-bar{height:28px;border-radius:6px;display:flex;align-items:center;padding:0 12px}
+.gantt-bar-text{color:#fff;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gantt-meta{font-size:11px;padding-left:2px;color:#64748b}
 .goal-floating-badge{position:fixed;bottom:24px;right:24px;z-index:99999;cursor:pointer;user-select:none}
 .goal-floating-badge .goal-badge-main{background:#2563eb;color:#ffffff;padding:10px 18px;border-radius:22px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(37,99,235,0.4);display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,0.2)}
 
