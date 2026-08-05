@@ -48,6 +48,7 @@ def chat_completion(messages, temperature=0.2, timeout=60):
         "model": cfg["model"],
         "messages": messages,
         "temperature": temperature,
+        "max_tokens": 1500,
     }
 
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -111,6 +112,7 @@ def chat_completion_stream(messages, temperature=0.2, timeout=90):
         "messages": messages,
         "temperature": temperature,
         "stream": True,
+        "max_tokens": 1500,
     }
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     url = chat_completions_url(cfg["base_url"])
