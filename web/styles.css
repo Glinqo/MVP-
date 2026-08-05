@@ -802,7 +802,7 @@ button:active{transform:translateY(0)}
 .kbci-actions button{font-size:12px;padding:4px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel-solid);color:var(--text);cursor:pointer}
 .kbci-actions button:hover{background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.4)}
 
-#workspaceKnowledge .kb-card-inline{max-width:100%!important}
+#workspaceKnowledge .kb-card-inline{max-width:880px}
 
 /* ===================================================================
    Phase 5: Response Experience Optimization
