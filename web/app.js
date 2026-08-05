@@ -2376,6 +2376,15 @@ function planButtonText(planMode) {
 }
 
 // ---- Training Plans (from static JSON) ----
+function _getStartDate() {
+  var v = localStorage.getItem("mcp_training_start");
+  if (v) {
+    var d = new Date(parseInt(v));
+    if (!isNaN(d.getTime())) return d;
+  }
+  return new Date();
+}
+
 function _getDayOffset() {
   var v = localStorage.getItem("mcp_training_offset");
   return v ? parseInt(v) : 0;
@@ -3178,6 +3187,8 @@ document.addEventListener("DOMContentLoaded", function() {
 // ---- End Assessment ----
 async function boot() {
   try {
+    var dbg = document.getElementById("debugInfo");
+    if (dbg) dbg.style.display = "none";
     const health = await api("/api/health");
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
     $("healthStatus").classList.add("ok");
