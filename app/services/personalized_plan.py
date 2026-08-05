@@ -217,8 +217,10 @@ def build_seven_day_plan(stages):
         ("复盘并生成下一轮训练单", "反馈闭环", "记录已掌握/仍不会反馈"),
     ]
     plan = []
+    # 7-day plan is derived ONLY from the first stage (stage 1)
+    first_stage = stages[0]
     for index, (title, focus, graph_goal) in enumerate(templates):
-        stage = stages[min(index // 2, len(stages) - 1)]
+        stage = first_stage
         knowledge_topics = [item.get("topic") for item in stage.get("knowledge_cards", []) if item.get("topic")]
         task = (stage.get("practice_tasks") or [{}])[0]
         checkpoint = (stage.get("checkpoint_questions") or [{}])[0]

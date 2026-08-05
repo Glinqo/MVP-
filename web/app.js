@@ -2376,6 +2376,61 @@ function planButtonText(planMode) {
 }
 
 // ---- Training Plans (from static JSON) ----
+function _getDayOffset() {
+  var v = localStorage.getItem("mcp_training_offset");
+  return v ? parseInt(v) : 0;
+}
+function _setDayOffset(off) {
+  localStorage.setItem("mcp_training_offset", off);
+}
+function getTrainingDay() {
+  var start = _getStartDate();
+  var now = new Date();
+  var cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 4, 0, 0);
+  if (now < cutoff) cutoff.setDate(cutoff.getDate() - 1);
+  var elapsed = Math.floor((cutoff.getTime() - start.getTime()) / (24 * 3600 * 1000));
+  var offset = _getDayOffset();
+  var rawDay = Math.max(1, elapsed + 1 + offset);
+  return ((rawDay - 1) % 7) + 1;
+}
+function setTrainingDay(d) {
+  var start = _getStartDate();
+  var now = new Date();
+  var cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 4, 0, 0);
+  if (now < cutoff) cutoff.setDate(cutoff.getDate() - 1);
+  var elapsed = Math.floor((cutoff.getTime() - start.getTime()) / (24 * 3600 * 1000));
+  var curDay = elapsed + 1;
+  var offset = d - curDay;
+  _setDayOffset(offset);
+  state.trainingDayCounter = ((d - 1) % 7) + 1;
+}
+function advanceTrainingDay() { setTrainingDay(getTrainingDay() + 1); }
+function retreatTrainingDay() { var d = getTrainingDay() - 1; if (d < 1) d = 7; setTrainingDay(d); }
+function adjustDayAndRefresh(amount) {
+  if (amount > 0) advanceTrainingDay(); else retreatTrainingDay();
+  loadTrainingPlans("today");
+}
+
+// ---- Training Plans (from static JSON) ----
+function generateSevenDayFromStage(stage) {
+  if (!stage) return [];
+  var sn = (stage.name || '').split('：')[1] || stage.name || '';
+  var goal = stage.goal || '';
+  var tasks = stage.tasks || '';
+  var knowledge = (stage.knowledge || []).join('、');
+  var courses = stage.courses || '';
+  var templates = [
+    ('建立安全口令和现场证据表|' + sn + ' · ' + goal + '|登记安全状态与现场证据'),
+    ('补知识卡并画接线判断表|知识：' + knowledge + '|' + (courses || '查阅课程资料')),
+    ('完成接线/公共端判断训练|实训：' + tasks + '|提交任务完成证据'),
+    ('做一次错题讲解和追问|讲题 + 追问|讲解事件写入个人图谱'),
+    ('进入排故角色扮演|场景判断|至少完成一个正确步骤'),
+    ('做预设自测或个性化练习|复测验证：' + sn + '|更新确定性评分证据'),
+    ('复盘并生成下一轮训练单|反馈闭环|记录已掌握/仍不会反馈')
+  ];
+  return templates;
+}
+
 async function fetchTrainingPlans(jobName) {
   if (!jobName) jobName = state.jobName || '';
   try {
@@ -2417,32 +2472,40 @@ function renderTrainingPlanStages(planData) {
   });h+='</div>';return h;
 }
 
-function renderTrainingPlanToday(planData) {
-    if (!planData || !planData.seven_day || !planData.seven_day.length) return '<div class=\"muted\">暂无今日训练任务</div>';
-    var todayTask = planData.seven_day[0];
-   var parts = todayTask.split('|');
-   var steps = [];
+function renderTrainingPlanToday(planData, dayIndex) {
+    if (!planData || !planData.seven_day || !planData.seven_day.length) return '<div class="muted">' + '暂无今日训练任务' + '</div>';
+    var di = (dayIndex === undefined) ? getTrainingDay() : dayIndex;
+    di = ((di - 1 + 7) % 7);
+    var todayTask = planData.seven_day[di];
+    if (!todayTask) return '<div class="muted">' + '该日暂无训练数据' + '</div>';
+    var parts = todayTask.split('|');
+    var dayTitle = (parts[0] || 'Day ' + (di + 1)).trim();
+    var dayCore = (parts[1] || '').trim();
+    var dayTask = (parts[2] || '').trim();
+    var steps = [];
     var stepBase = (state.jobName || 'default').replace(/\s+/g, '_');
-    parts.forEach(function(p, i) { steps.push({id: stepBase + '-step-' + i, title: p.trim()}); });
-   var doneSteps = state.completedSteps || [];
+    steps.push({id: stepBase + '-step-0', title: dayCore || dayTitle});
+    if (dayTask) steps.push({id: stepBase + '-step-1', title: dayTask});
+    parts.slice(3).forEach(function(p, i) { if (p.trim()) steps.push({id: stepBase + '-step-' + (i + 2), title: p.trim()}); });
+    var doneSteps = state.completedSteps || [];
     var done = doneSteps.length ? steps.filter(function(s){return doneSteps.indexOf(s.id)>=0}).length : 0;
-    var html = '<div class=\"checklist-progress\">进度：' + done + '/' + steps.length + ' 步已完成</div>';
-    html += '<div class=\"checklist\">';
+    var html = '<div class="day-counter-bar"><button onclick="adjustDayAndRefresh(-1)" title="\u4e0a\u4e00\u5929">\u25c0</button><span class="day-counter-label">Day ' + (di + 1) + '/7</span><button onclick="adjustDayAndRefresh(1)" title="\u4e0b\u4e00\u5929">\u25b6</button></div>';
+    html += '<div class="checklist-progress">' + '进度：' + done + '/' + steps.length + ' ' + '步已完成' + '</div>';
+    html += '<div class="checklist">';
     steps.forEach(function(step) {
       var checked = doneSteps.indexOf(step.id) >= 0;
-      html += '<label class=\"checklist-item'+(checked?' done':'')+'\">';
-      html += '<input type=\"checkbox\" class=\"checklist-cb\" data-step-id=\"'+step.id+'\"'+(checked?' checked':'')+'>';
+      html += '<label class="checklist-item'+(checked?' done':'')+'">';
+      html += '<input type="checkbox" class="checklist-cb" data-step-id="'+step.id+'"'+(checked?' checked':'')+'>';
       html += '<span>'+escapeHtml(step.title)+'</span>';
       html += '</label>';
     });
     html += '</div>';
-    html += '<div style=\"margin-top:14px\"><h4 style=\"color:#94a3b8;margin:0 0 8px\">全部阶段实训任务</h4>';
-    if (planData.stages) {
-      planData.stages.forEach(function(stage, idx) {
-        var sn = (stage.name.split('：')[1] || stage.name);
-        html += '<div style=\"font-size:0.78rem;color:#cbd5e1;margin-bottom:6px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px\">';
-        html += '<strong style=\"color:#38bdf8\">'+(idx+1)+'. '+escapeHtml(sn)+'：</strong>'+escapeHtml(stage.tasks||'')+'</div>';
-      });
+    html += '<div style="margin-top:14px"><h4 style="color:#94a3b8;margin:0 0 8px">' + '第一阶段详情' + '</h4>';
+    if (planData.stages && planData.stages.length) {
+      var s = planData.stages[0];
+      var sn = (s.name.split('：')[1] || s.name);
+      html += '<div style="font-size:0.78rem;color:#cbd5e1;margin-bottom:6px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px">';
+      html += '<strong style="color:#38bdf8">'+escapeHtml(sn)+'：</strong>'+escapeHtml(s.tasks||'')+'</div>';
     }
     html += '</div>';
     return html;
@@ -2500,11 +2563,15 @@ async function loadTrainingPlans(planMode) {
       try { var parsed = JSON.parse(savedOrder); if (parsed.length === planData.stages.length) planData.stages = parsed; } catch(e) {}
     }
   }
+  // Always generate seven_day from first stage
+  if (planData && planData.stages && planData.stages.length) {
+    planData.seven_day = generateSevenDayFromStage(planData.stages[0]);
+  }
  if (planMode === 'staged') {
     document.getElementById('personalizedPlan').innerHTML = renderTrainingPlanStages(planData);
     addStageReorderHandlers(planData);
   } else if (planMode === 'today') {
-    document.getElementById('personalizedPlan').innerHTML = renderTrainingPlanToday(planData);
+    document.getElementById('personalizedPlan').innerHTML = renderTrainingPlanToday(planData, getTrainingDay());
     renderWorkspaceTasks(planData);
   } else if (planMode === '7_day') {
     document.getElementById('personalizedPlan').innerHTML = renderTrainingPlan7Day(planData);

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
@@ -6,10 +6,10 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>机电岗位培训 AI</title>
-    <link rel="stylesheet" href="/styles.css?v=20260731" />
+    <link rel="stylesheet" href="/styles.css?v=20260804" />
     <link rel="stylesheet" href="/scenario.css">
   </head>
-  <body>
+  <body><div id="debugInfo" style="position:fixed;top:0;left:0;z-index:99999;background:#000;color:#0f0;padding:6px 12px;font-size:12px;font-family:monospace">JS loading...</div>
     <!-- ── Identity & Job Selection Overlay ── -->
     
   
@@ -323,6 +323,8 @@
       </div>
       <div class="top-actions">
         <button onclick="switchAccount()" title="切换账号">切换账号</button>
+        <div class="status" id="healthStatus">连接中</div>
+        <div class="status" id="llmStatus">模型检测中</div>
       </div>
     </header>
 
@@ -419,7 +421,7 @@
 
         <div class="workspace-body">
 
-          <section id="workspaceGraph" class="workspace-panel active">
+          <section id="workspaceGraph" class="workspace-panel">
             <div class="graph-tabs">
               <button class="active" data-graph-view="job" type="button">岗位能力图谱</button>
               <button data-graph-view="student" type="button">个人能力图谱</button>
@@ -484,7 +486,7 @@
               <div id="jobProposalList" class="section-block muted">加载中</div>
             </div>
           </section>
-          <section id="workspaceKnowledge" class="workspace-panel">
+          <section id="workspaceKnowledge" class="workspace-panel active">
             <h3>知识缺口</h3>
             <div id="knowledgeRefs" class="section-block muted">暂无</div>
             <h3>测评薄弱知识点</h3>
@@ -496,7 +498,7 @@
             <div id="taskRefs" class="section-block muted">暂无</div>
           </section>
 
-          <<section id="workspaceScenario" class="workspace-panel">
+          <section id="workspaceScenario" class="workspace-panel">
               <section id="scenarioCatalogView" class="scenario-catalog"></section>
               <section id="scenarioTrainingView" class="scenario-workbench scenario-workbench-hidden">
                 <div class="scenario-header" id="scenarioHeader"></div>
@@ -531,8 +533,8 @@
               <h3>个人培养方案</h3>
               <div class="plan-actions">
                 <button id="loadPersonalizedPlan" type="button">阶段方案</button>
-                <button id="loadTodayPlan" type="button">今日训练单</button>
                 <button id="loadSevenDayPlan" type="button">7 天补强计划</button>
+                <button id="loadTodayPlan" type="button">今日训练单</button>
               </div>
             </div>
             <div id="personalizedPlan" class="section-block muted">尚未生成培养方案。</div>
@@ -570,7 +572,7 @@ window.addEventListener("error", function(e) {
   if (lm) lm.textContent = "";
 });
 </script>
-<script src="/app.js?v=20260801"></script>
+<script src="/app.js?v=20260804"></script>
   
 <script>
 function myKey(k) { var u = localStorage.getItem("mcp_login_user")||""; return u?k+"_"+u:k; }
@@ -650,8 +652,11 @@ function switchAccount() {
           state.selectedJobId = pj;
           state.jobName = localStorage.getItem("mcp_job_name_" + u) || "";
         }
-        if (typeof startAssessment === "function") { startAssessment(pj); }
-        else if (typeof boot === "function") boot();
+        if (typeof boot === "function") { boot(); }
+        if (typeof startAssessment === "function") {
+          var s = localStorage.getItem("mcp_assess_status") || "";
+          if (s !== "completed") { startAssessment(pj); }
+        }
       });
     }
   }

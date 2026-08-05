@@ -1419,3 +1419,26 @@ button:active{transform:translateY(0)}
 
 /* 閳光偓閳光偓 Drawers 閳光偓閳光偓 */
 
+
+
+/* Day counter bar */
+.day-counter-bar {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 10px 14px; margin-bottom: 14px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 8px;
+}
+.day-counter-label {
+  font-size: 1rem; font-weight: 700;
+  color: #38bdf8;
+}
+.day-counter-bar button {
+  padding: 4px 12px; font-size: 0.78rem;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #e2e8f0; border-radius: 6px; cursor: pointer;
+}
+.day-counter-bar button:hover {
+  background: rgba(56, 189, 248, 0.25);
+}

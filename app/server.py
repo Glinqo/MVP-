@@ -98,6 +98,15 @@ def _compute_job_gap(session_id):
 
 
 
+
+def _load_training_plans():
+    import json
+    plan_path = ROOT / "web" / "training-plans.json"
+    if plan_path.exists():
+        with open(plan_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
 class MVPHandler(BaseHTTPRequestHandler):
     server_version = "MechatronicsMVP/0.1"
 
