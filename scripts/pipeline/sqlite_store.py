@@ -1,20 +1,50 @@
 # -*- coding: utf-8 -*-
-"""SQLite storage layer for evidence-driven ability graph.
-Replaces JSON-file evidence_store with structured database.
-4 tables: evidence_events, proposals, snapshots, audit_log
-"""
-import json, os, time, hashlib, threading
+"""SQLite storage layer for evidence-driven ability graph."""
+import hashlib
+import json
+import os
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DB_DIR = ROOT / "data" / "evidence"
-DB_PATH = DB_DIR / "evidence.db"
+DB_PATH = Path(os.environ.get("MVP_EVIDENCE_DB_PATH", ROOT / "data" / "evidence" / "evidence.db"))
+DB_DIR = DB_PATH.parent
 
 _lock = threading.Lock()
 _connection = None
 
 _SCHEMA = [
+    """
+    CREATE TABLE IF NOT EXISTS raw_documents (
+        document_id TEXT PRIMARY KEY,
+        source_type TEXT NOT NULL DEFAULT 'unknown',
+        source TEXT DEFAULT '',
+        source_url TEXT DEFAULT '',
+        content_hash TEXT NOT NULL,
+        raw_text TEXT NOT NULL,
+        ingested_at TEXT NOT NULL,
+        metadata TEXT DEFAULT '{}'
+    )""",
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_doc_dedup ON raw_documents(content_hash, source_url)",
+    "CREATE INDEX IF NOT EXISTS idx_doc_source ON raw_documents(source_type)",
+    """
+    CREATE TABLE IF NOT EXISTS job_posts (
+        job_post_id TEXT PRIMARY KEY,
+        document_id TEXT NOT NULL,
+        job_role TEXT NOT NULL,
+        raw_title TEXT DEFAULT '',
+        normalized_title TEXT DEFAULT '',
+        company TEXT DEFAULT '',
+        responsibilities TEXT DEFAULT '[]',
+        skills TEXT DEFAULT '[]',
+        requirements TEXT DEFAULT '[]',
+        source_type TEXT NOT NULL DEFAULT 'unknown',
+        source_url TEXT DEFAULT '',
+        created_at TEXT NOT NULL
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_post_role ON job_posts(job_role)",
+    "CREATE INDEX IF NOT EXISTS idx_post_doc ON job_posts(document_id)",
     """
     CREATE TABLE IF NOT EXISTS evidence_events (
         event_id TEXT PRIMARY KEY,
@@ -116,6 +146,130 @@ def _next_proposal_id():
     return f"PRP-{date_str}-{seq:04d}"
 
 
+def _next_document_id():
+    date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+    db = _get_db()
+    row = db.execute("SELECT COUNT(*) FROM raw_documents WHERE document_id LIKE ?", (f"DOC-{date_str}%",)).fetchone()
+    seq = (row[0] if row else 0) + 1
+    return f"DOC-{date_str}-{seq:04d}"
+
+
+def _next_job_post_id():
+    date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+    db = _get_db()
+    row = db.execute("SELECT COUNT(*) FROM job_posts WHERE job_post_id LIKE ?", (f"JOB-{date_str}%",)).fetchone()
+    seq = (row[0] if row else 0) + 1
+    return f"JOB-{date_str}-{seq:04d}"
+
+
+def add_raw_document(raw_text, source_type="unknown", source="", source_url="", metadata=None):
+    """Store a raw imported or collected job document."""
+    db = _get_db()
+    text = raw_text or ""
+    content_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    existing = db.execute(
+        "SELECT document_id FROM raw_documents WHERE content_hash = ? AND source_url = ?",
+        (content_hash, source_url),
+    ).fetchone()
+    if existing:
+        return {"document_id": existing[0], "deduplicated": True}
+
+    document_id = _next_document_id()
+    ingested_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    with _lock:
+        db.execute(
+            """INSERT INTO raw_documents
+               (document_id, source_type, source, source_url, content_hash, raw_text, ingested_at, metadata)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                document_id,
+                source_type,
+                source,
+                source_url,
+                content_hash,
+                text,
+                ingested_at,
+                json.dumps(metadata or {}, ensure_ascii=False),
+            ),
+        )
+        db.commit()
+    _log("raw_document_created", document_id, {"source_type": source_type, "source": source})
+    return {"document_id": document_id, "deduplicated": False}
+
+
+def list_raw_documents(source_type=None, limit=50):
+    """List raw documents without returning the full raw text."""
+    db = _get_db()
+    if source_type:
+        rows = db.execute(
+            """SELECT document_id, source_type, source, source_url, content_hash, ingested_at
+               FROM raw_documents WHERE source_type = ? ORDER BY ingested_at DESC LIMIT ?""",
+            (source_type, limit),
+        ).fetchall()
+    else:
+        rows = db.execute(
+            """SELECT document_id, source_type, source, source_url, content_hash, ingested_at
+               FROM raw_documents ORDER BY ingested_at DESC LIMIT ?""",
+            (limit,),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def add_job_post(document_id, job_role, fields, source_type="unknown", source_url=""):
+    """Store normalized job fields extracted from a raw document."""
+    db = _get_db()
+    existing = db.execute("SELECT job_post_id FROM job_posts WHERE document_id = ?", (document_id,)).fetchone()
+    if existing:
+        return {"job_post_id": existing[0], "deduplicated": True}
+
+    job_post_id = _next_job_post_id()
+    created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    with _lock:
+        db.execute(
+            """INSERT INTO job_posts
+               (job_post_id, document_id, job_role, raw_title, normalized_title, company,
+                responsibilities, skills, requirements, source_type, source_url, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                job_post_id,
+                document_id,
+                job_role,
+                fields.get("title", ""),
+                fields.get("normalized_title", ""),
+                fields.get("company", ""),
+                json.dumps(fields.get("responsibilities", []), ensure_ascii=False),
+                json.dumps(fields.get("skills", []), ensure_ascii=False),
+                json.dumps(fields.get("requirements", []), ensure_ascii=False),
+                source_type,
+                source_url,
+                created_at,
+            ),
+        )
+        db.commit()
+    _log("job_post_created", job_post_id, {"document_id": document_id, "job_role": job_role})
+    return {"job_post_id": job_post_id, "deduplicated": False}
+
+
+def list_job_posts(job_role=None, limit=50):
+    """List normalized job posts."""
+    db = _get_db()
+    params = []
+    query = ["SELECT * FROM job_posts WHERE 1=1"]
+    if job_role:
+        query.append("AND job_role = ?")
+        params.append(job_role)
+    query.append("ORDER BY created_at DESC LIMIT ?")
+    params.append(limit)
+    rows = db.execute(" ".join(query), params).fetchall()
+    posts = []
+    for row in rows:
+        item = dict(row)
+        for key in ("responsibilities", "skills", "requirements"):
+            item[key] = json.loads(item.get(key) or "[]")
+        posts.append(item)
+    return posts
+
+
 # ── Evidence Events ──────────────────────────────────────────────
 
 def add_event(job_role, ability_id, evidence_text, source_type="unknown",
@@ -123,10 +277,11 @@ def add_event(job_role, ability_id, evidence_text, source_type="unknown",
               confidence=0.5, metadata=None):
     """Add an evidence event with dedup"""
     db = _get_db()
-    dedup_key = hashlib.md5(f"{source_url}:{evidence_text[:100]}".encode()).hexdigest()[:16]
     existing = db.execute(
-        "SELECT event_id FROM evidence_events WHERE substr(event_id,1,16) = ?",
-        (dedup_key,)
+        """SELECT event_id FROM evidence_events
+           WHERE job_role = ? AND ability_id = ? AND source_url = ? AND evidence_text = ?
+           LIMIT 1""",
+        (job_role, ability_id, source_url, evidence_text)
     ).fetchone()
     if existing:
         return {"event_id": existing[0], "deduplicated": True}
@@ -141,7 +296,7 @@ def add_event(job_role, ability_id, evidence_text, source_type="unknown",
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (event_id, job_role, ability_id, evidence_text, source_url,
              source_type, extraction_method, round(confidence, 2),
-             extracted_at, json.dumps(metadata or {}))
+             extracted_at, json.dumps(metadata or {}, ensure_ascii=False))
         )
         db.commit()
     _log("event_created", event_id, {"job_role": job_role, "ability_id": ability_id})
@@ -269,17 +424,22 @@ def confirm_proposal(proposal_id, confirmed_by="teacher"):
         )
         db.commit()
     _log("proposal_confirmed", proposal_id, {"confirmed_by": confirmed_by})
-    return dict(row)
+    updated = db.execute("SELECT * FROM proposals WHERE proposal_id=?", (proposal_id,)).fetchone()
+    return dict(updated)
 
 
 def reject_proposal(proposal_id):
     """Reject a proposal"""
     db = _get_db()
+    row = db.execute("SELECT * FROM proposals WHERE proposal_id=?", (proposal_id,)).fetchone()
+    if not row:
+        return {"error": "proposal not found"}
     with _lock:
         db.execute("UPDATE proposals SET status='rejected' WHERE proposal_id=?", (proposal_id,))
         db.commit()
     _log("proposal_rejected", proposal_id, {})
-    return {"proposal_id": proposal_id, "status": "rejected"}
+    updated = db.execute("SELECT * FROM proposals WHERE proposal_id=?", (proposal_id,)).fetchone()
+    return dict(updated)
 
 
 def get_proposal_history(ability_id, limit=20):
@@ -324,11 +484,11 @@ def list_versions(job_role=None):
     db = _get_db()
     if job_role:
         rows = db.execute(
-            "SELECT * FROM snapshots WHERE job_role=? ORDER BY created_at DESC",
+            "SELECT * FROM snapshots WHERE job_role=? ORDER BY created_at DESC, version DESC",
             (job_role,)
         ).fetchall()
     else:
-        rows = db.execute("SELECT * FROM snapshots ORDER BY created_at DESC").fetchall()
+        rows = db.execute("SELECT * FROM snapshots ORDER BY created_at DESC, version DESC").fetchall()
     return [{"version": r["version"], "job_role": r["job_role"],
              "created_at": r["created_at"], "node_count": r["node_count"],
              "source": r["source"], "parent_version": r["parent_version"]}

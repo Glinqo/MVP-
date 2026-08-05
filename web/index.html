@@ -1,23 +1,49 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <script src="/d3.min.js"></script>
+    <script src="/d3.min.js?v=20260730-2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>机电岗位培训 AI</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=20260804" />
+    <link rel="stylesheet" href="/scenario.css">
   </head>
-  <body>
+  <body><div id="debugInfo" style="position:fixed;top:0;left:0;z-index:99999;background:#000;color:#0f0;padding:6px 12px;font-size:12px;font-family:monospace">JS loading...</div>
     <!-- ── Identity & Job Selection Overlay ── -->
+    
+  
+
+
     <div id="landingOverlay" class="landing-overlay">
       <div class="landing-bg"></div>
-      <div class="landing-container">
+  <div class="landing-container">
 
         <!-- Step 1: Identity -->
-        <div id="landingStepIdentity" class="landing-step active">
+        <div id="landingStepLogin" class="landing-step active">
           <div class="landing-header">
             <h1>机电岗位培训 AI</h1>
             <p class="landing-subtitle">Mechatronics Training AI</p>
+          </div>
+          <div class="landing-cards" style="flex-direction:column;max-width:400px;margin:0 auto">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;text-align:left">
+              <strong style="font-size:1.1rem;display:block;margin-bottom:16px">账号登录</strong>
+              <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:4px">用户名 (000-999)</label>
+              <input id="loginUsername" type="text" placeholder="例如 000" style="margin-bottom:12px;font-size:1rem;padding:10px 14px" maxlength="3" inputmode="numeric" />
+              <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:4px">密码</label>
+              <input id="loginPassword" type="password" placeholder="" style="margin-bottom:16px;font-size:1rem;padding:10px 14px" />
+              <button type="button" onclick="doLogin()" style="width:100%;background:#0f766e;color:#fff;border:none;border-radius:10px;padding:12px;font-size:1rem;font-weight:600;cursor:pointer">登录</button>
+              <p style="font-size:0.75rem;color:#64748b;margin:4px 0 0">密码默认 123456</p>
+              <p id="loginError" style="color:#ef4444;font-size:0.8rem;margin:8px 0 0;display:none"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Job Selection (unchanged) --><!-- Step 2: Identity Selection -->
+        <div id="landingStepIdentity" class="landing-step">
+          <div class="landing-header">
+            <h2>选择身份</h2>
+            <p class="landing-subtitle">登录成功，请选择你的身份</p>
           </div>
           <div class="landing-cards">
             <button class="landing-card" data-identity="student" onclick="selectIdentity('student')">
@@ -56,7 +82,7 @@
           </div>
         </div>
 
-        <!-- Step 2: Job Position -->
+        <!-- Step 3: Job Position -->
         <div id="landingStepJob" class="landing-step">
           <div class="landing-header">
             <button class="landing-back" onclick="backToIdentity()">
@@ -69,7 +95,7 @@
             <p class="landing-subtitle">当前为你匹配以下岗位能力图谱</p>
           </div>
           <div class="landing-cards">
-            <button class="landing-card job-card-lg" onclick="selectJob('automation_line_technician')">
+            <button class="landing-card job-card-lg" onclick="selectJob('automation_line_commissioning_maintenance_newcomer',event)" data-job-name="自动化生产线装调与运维技术员">
               <div class="landing-card-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
@@ -90,10 +116,205 @@
                 </svg>
               </div>
             </button>
-          </div>
+
+            <button class="landing-card job-card-lg" onclick="selectJob('mechanical_electrical_maintenance_worker',event)" data-job-name="机电设备维修工">
+              <div class="landing-card-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>机电设备维修工</strong>
+                <span>机械装配 · 电气识图 · 设备点检 · 故障维修 · 20 个能力节点</span>
+                <div class="job-meta">
+                  <span class="job-tag">机械装配</span>
+                  <span class="job-tag core">岗位核心</span>
+                  <span class="job-tag">20 个节点</span>
+                </div>
+              </div>
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+
+            <button class="landing-card job-card-lg" onclick="selectJob('automation_equipment_debugger',event)" data-job-name="自动化设备调试员">
+              <div class="landing-card-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>自动化设备调试员</strong>
+                <span>传感器信号 · PLC 调试 · 执行机构联动 · 运行验证 · 20 个节点</span>
+                <div class="job-meta">
+                  <span class="job-tag">传感器信号</span>
+                  <span class="job-tag core">PLC调试</span>
+                  <span class="job-tag">20 节点</span>
+                </div>
+              </div>
+            
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+</button>
+
+            <button class="landing-card job-card-lg" onclick="selectJob('industrial_robot_maintenance',event)" data-job-name="工业机器人系统运维员">
+              <div class="landing-card-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="2" width="16" height="8" rx="1"/><rect x="2" y="12" width="20" height="10" rx="1"/><circle cx="8" cy="6" r="1"/><circle cx="16" cy="6" r="1"/><line x1="12" y1="10" x2="12" y2="12"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>工业机器人系统运维员</strong>
+                <span>机器人操作 · I/O 通信 · 工作站安全 · 故障排查 · 20 个节点</span>
+                <div class="job-meta">
+                  <span class="job-tag">机器人</span>
+                  <span class="job-tag core">I/O通信</span>
+                  <span class="job-tag">20 节点</span>
+                </div>
+              </div>
+            
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+</button>
+
+            <button class="landing-card job-card-lg" onclick="selectJob('plc_electrical_control_technician',event)" data-job-name="PLC电气控制技术员">
+              <div class="landing-card-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="6" rx="1"/><rect x="2" y="15" width="20" height="6" rx="1"/><line x1="6" y1="9" x2="6" y2="15"/><line x1="12" y1="9" x2="12" y2="15"/><line x1="18" y1="9" x2="18" y2="15"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>PLC 电气控制技术员</strong>
+                <span>低压电器 · PLC 编程 · I/O 映射 · 电气控制逻辑 · 20 个节点</span>
+                <div class="job-meta">
+                  <span class="job-tag">PLC编程</span>
+                  <span class="job-tag core">控制逻辑</span>
+                  <span class="job-tag">20 节点</span>
+                </div>
+              </div>
+            
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+</button>
+
+            <button class="landing-card job-card-lg" onclick="selectJob('sensor_industrial_network_debugger',event)" data-job-name="传感器与工业网络调试员">
+              <div class="landing-card-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><line x1="12" y1="7" x2="12" y2="10"/><path d="M10 11 6 18"/><path d="M14 11 18 18"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>传感器与工业网络调试员</strong>
+                <span>传感器接线 · 信号采集 · 工业通信 · 数据采集 · 20 个节点</span>
+                <div class="job-meta">
+                  <span class="job-tag">传感器</span>
+                  <span class="job-tag core">工业网络</span>
+                  <span class="job-tag">20 节点</span>
+                </div>
+              </div>
+            
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+</button>
+
+            <button class="landing-card job-card-lg" onclick="selectJob('servo_step_drive_debugger',event)" data-job-name="伺服/步进驱动调试员">
+              <div class="landing-card-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="0" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="24"/><line x1="0" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="24" y2="12"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>伺服/步进驱动调试员</strong>
+                <span>电机驱动 · 参数设置 · 运动控制 · 定位异常排查 · 20 个节点</span>
+                <div class="job-meta">
+                  <span class="job-tag">伺服驱动</span>
+                  <span class="job-tag core">运动控制</span>
+                  <span class="job-tag">20 节点</span>
+                </div>
+              </div>
+            
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+</button>
+
+            <button class="landing-card job-card-lg" onclick="selectJob('cnc_maintenance_worker',event)" data-job-name="数控设备维护员">
+              <div class="landing-card-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 1v3"/><path d="M15 1v3"/><path d="M9 20v3"/><path d="M15 20v3"/><path d="M20 9h3"/><path d="M20 14h3"/><path d="M1 9h3"/><path d="M1 14h3"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>数控设备维护员</strong>
+                <span>机械传动 · 电气检查 · 报警诊断 · 设备维护 · 20 个节点</span>
+                <div class="job-meta">
+                  <span class="job-tag">数控维护</span>
+                  <span class="job-tag core">报警诊断</span>
+                  <span class="job-tag">20 节点</span>
+                </div>
+              </div>
+            
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+</button>
+</div>
         </div>
       </div>
     </div>
+  <!-- Assessment Overlay (independent from landing overlay) -->
+  <div id="assessmentOverlay" class="assessment-overlay" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;">
+    <div class="assessment-container">
+      <div class="assessment-header">
+        <h2>初始能力测评</h2>
+        <p class="assessment-subtitle">完成测评后，系统将为您生成个性化的学习路径</p>
+      </div>
+      <div id="assessmentProgress" class="assessment-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+        <span class="progress-text">0 / 0</span>
+      </div>
+      <div id="assessmentStatus" class="assessment-status" role="status" aria-live="polite"></div>
+      <div id="assessmentQuestionCard" class="assessment-question-card">
+        <div class="question-dimension"></div>
+        <h3 class="question-text"></h3>
+        <div class="question-options"></div>
+      </div>
+      <div class="assessment-actions">
+        <button id="assessmentSkipBtn" class="btn-secondary" type="button">暂时跳过</button>
+        <button id="assessmentRetryBtn" class="btn-secondary" type="button" hidden>重试</button>
+        <button id="assessmentNextBtn" class="btn-primary" type="button" disabled>确认并继续</button>
+      </div>
+    </div>
+    <div id="assessmentResult" class="assessment-result" style="display:none;">
+      <div class="result-header">
+        <h2>测评完成</h2>
+        <p class="result-total-score">总分：<strong id="resultScore"></strong></p>
+      </div>
+      <div class="result-dimensions" id="resultDimensions"></div>
+      <div class="result-recommendations" id="resultRecommendations"></div>
+      <div class="result-next-steps" id="resultNextSteps"></div>
+      <button id="assessmentDoneBtn" class="btn-primary">进入学习</button>
+    </div>
+  </div>
+
 
     <header class="topbar">
       <div>
@@ -101,7 +322,7 @@
         <h1>机电岗位培训 AI</h1>
       </div>
       <div class="top-actions">
-        <button onclick="newSession()" title="清除对话记录，开始新会话">新对话</button>
+        <button onclick="switchAccount()" title="切换账号">切换账号</button>
         <div class="status" id="healthStatus">连接中</div>
         <div class="status" id="llmStatus">模型检测中</div>
       </div>
@@ -131,69 +352,27 @@
           </div>
         </details>
 
-        <details open>
-          <summary>现场状态</summary>
-          <div class="context-grid">
-            <label>
-              传感器动作灯
-              <select id="sensorLed">
-                <option value="unknown">未确认</option>
-                <option value="on">亮</option>
-                <option value="off">不亮</option>
-                <option value="unstable">闪烁/不稳定</option>
-              </select>
-            </label>
-            <label>
-              PLC 输入灯
-              <select id="plcInputLed">
-                <option value="unknown">未确认</option>
-                <option value="on">亮</option>
-                <option value="off">不亮</option>
-              </select>
-            </label>
-            <label>
-              在线监控
-              <select id="onlineMonitor">
-                <option value="unknown">未确认</option>
-                <option value="on">有变化</option>
-                <option value="off">无变化</option>
-              </select>
-            </label>
-            <label>
-              传感器类型
-              <select id="sensorType">
-                <option value="unknown">未确认</option>
-                <option value="known">已确认</option>
-              </select>
-            </label>
-            <label>
-              公共端接法
-              <select id="commonTerminal">
-                <option value="unknown">未确认</option>
-                <option value="known">已确认</option>
-              </select>
-            </label>
-          </div>
-        </details>
 
         <section class="launcher-panel">
           <h2>功能工作台</h2>
           <div class="tool-launcher">
-            <button data-open-tool="dashboard" type="button">
-              <strong>学习驾驶舱</strong>
-              <span>下一步先做什么</span>
-            </button>
-            <button data-open-tool="graph" data-graph-view="job" type="button">
-              <strong>岗位能力图谱</strong>
-              <span>行业需求与岗位链路</span>
-            </button>
-            <button data-open-tool="graph" data-graph-view="student" type="button">
-              <strong>个人能力图谱</strong>
-              <span>问答与自测动态更新</span>
-            </button>
-            <button data-open-tool="knowledge" type="button">
+            <button data-open-tool="knowledge" type="button" style="position:relative">
               <strong>知识缺口</strong>
               <span>NPN/PNP、公共端、I/O 地址</span>
+              <span id="knowledgeAlert" style="display:none;position:absolute;top:-6px;right:-6px;width:18px;height:18px;background:#ef4444;color:#fff;border-radius:50%;font-size:11px;line-height:18px;text-align:center;font-weight:bold">!</span>
+            </button>
+            <button data-open-tool="graph" type="button">
+              <strong>能力图谱</strong>
+              <span>岗位需求与个人能力可视化</span>
+            </button>
+            <button data-open-tool="jobAdmin" type="button">
+              <strong>岗位数据</strong>
+              <span>JD 导入与图谱提案审核</span>
+            </button>
+
+            <button data-open-tool="plan" type="button">
+              <strong>个人培养方案</strong>
+              <span>分阶段补强计划</span>
             </button>
             <button data-open-tool="tasks" type="button">
               <strong>实训任务</strong>
@@ -207,8 +386,6 @@
               <strong>自测验证 <span id="quizCount">加载中</span></strong>
               <span>8 题确定性评分</span>
             </button>
-            <button data-open-tool="plan" type="button">
-              <strong>个人培养方案</strong>
           </div>
             </button>
         </section>
@@ -233,23 +410,16 @@
         </header>
 
         <nav class="workspace-tabs" aria-label="功能工作台">
-          <button class="active" data-workspace-panel="dashboard" type="button">学习驾驶舱</button>
+          <button class="active" data-workspace-panel="knowledge" type="button">知识缺口</button>
           <button data-workspace-panel="graph" type="button">能力图谱</button>
-          <button data-workspace-panel="knowledge" type="button">知识缺口</button>
+          <button data-workspace-panel="jobAdmin" type="button">岗位数据</button>
+          <button data-workspace-panel="plan" type="button">培养方案</button>
           <button data-workspace-panel="tasks" type="button">实训任务</button>
           <button data-workspace-panel="scenario" type="button">角色扮演</button>
           <button data-workspace-panel="quiz" type="button">自测</button>
-          <button data-workspace-panel="plan" type="button">培养方案</button>
         </nav>
 
         <div class="workspace-body">
-          <section id="workspaceDashboard" class="workspace-panel active">
-            <div class="plan-toolbar">
-              <h3>学生学习驾驶舱</h3>
-              <button id="refreshDashboard" type="button">刷新驾驶舱</button>
-            </div>
-            <div id="studentDashboard" class="dashboard-panel muted">驾驶舱加载中</div>
-          </section>
 
           <section id="workspaceGraph" class="workspace-panel">
             <div class="graph-tabs">
@@ -258,58 +428,69 @@
             </div>
 
             <div id="graphViewJob" class="graph-view active">
-              <div id="jobGraphDiagram" class="graph-diagram force-graph-container" aria-label="岗位能力图谱可视化"></div>
-              <div class="proposal-box">
-                <h3>岗位图谱更新建议</h3>
-                <textarea id="jobMaterialInput" rows="3" placeholder="粘贴企业岗位描述、招聘 JD、行业要求或教师材料，生成待确认的岗位能力更新建议。"></textarea>
-                <div class="question-actions">
-                  <button id="generateJobProposals" type="button">生成更新建议</button>
-                  <button id="confirmJobProposals" type="button">确认全部待处理建议</button>
-                </div>
-                <div id="jobProposalList" class="section-block muted">暂无待确认建议</div>
-              </div>
-              <div class="workspace-grid">
-                <div>
-                  <h3>岗位能力节点</h3>
-                  <div id="jobGraphList" class="graph-list"></div>
-                </div>
-                <div>
-                  <h3>企业/行业需求来源</h3>
-                  <div id="jobDemandSources" class="section-block muted">加载中</div>
-                </div>
-              </div>
-              <pre id="jobMermaidOutput" class="mermaid-box">加载中</pre>
+                            <div id="jobGraphDiagram" class="graph-diagram force-graph-container" aria-label="?????????"></div>
+              
             </div>
-
             <div id="graphViewStudent" class="graph-view">
-              <div id="studentGraphDiagram" class="graph-diagram force-graph-container" aria-label="学生个人能力图谱可视化"></div>
-              <div class="workspace-grid">
-                <div>
-                  <h3>学生个人能力节点</h3>
-                  <div id="studentGraphList" class="graph-list"></div>
-                </div>
-                <div>
-                  <h3>图谱依据</h3>
-                  <div id="studentGraphEvidence" class="section-block muted">等待问答或自测记录</div>
-                </div>
-              </div>
-              <div class="workspace-grid">
-                <div>
-                  <h3>更新日志</h3>
-                  <div id="graphUpdateLog" class="section-block muted">暂无更新日志</div>
-                </div>
-                <div>
-                  <h3>证据解释</h3>
-                  <div id="graphEvidencePanel" class="section-block muted">点击图谱节点查看证据。</div>
-                </div>
-              </div>
-              <pre id="studentMermaidOutput" class="mermaid-box">加载中</pre>
+            <div id="graphViewStudent" class="graph-view">
+              <div id="studentDimensionOverview" class="dimension-overview"></div>
+              <div id="studentGraphDiagram" class="graph-diagram force-graph-container" aria-label="???????????"></div>
+              
             </div>
-
           </section>
-          <section id="workspaceKnowledge" class="workspace-panel">
+
+          <section id="workspaceJobAdmin" class="workspace-panel">
+            <div class="plan-toolbar">
+              <div>
+                <h3>岗位数据导入与提案审核</h3>
+                <p class="muted">从授权岗位资料生成证据与待审核提案，确认后才更新正式岗位能力图谱。</p>
+              </div>
+              <button id="refreshJobAdmin" type="button">刷新数据</button>
+            </div>
+            <div class="job-admin-grid">
+              <div class="job-admin-card">
+                <h3>导入岗位材料</h3>
+                <div class="job-admin-form">
+                  <label>目标岗位<input id="jobAdminRole" type="text" value="自动化生产线装调与运维技术员" /></label>
+                  <label>来源名称<input id="jobAdminSource" type="text" value="manual_admin_import" /></label>
+                  <label>来源类型
+                    <select id="jobAdminSourceType">
+                      <option value="teacher_material">教师/课程材料</option>
+                      <option value="enterprise_official">企业官网招聘页</option>
+                      <option value="job_platform">公开招聘平台</option>
+                      <option value="local_file">本地授权文件</option>
+                    </select>
+                  </label>
+                  <label class="inline-check"><input id="jobAdminUseLlm" type="checkbox" /> 使用已配置 LLM 辅助抽取</label>
+                  <textarea id="jobAdminText" rows="8" placeholder="粘贴岗位 JD、企业招聘页正文或课程/标准材料。"></textarea>
+                  <div class="question-actions">
+                    <button id="ingestJobMaterial" class="primary" type="button">导入并生成提案</button>
+                    <button id="collectJobSources" type="button">运行授权来源采集</button>
+                    <button id="batchConfirmProposals" type="button">批量确认当前岗位提案</button>
+                  </div>
+                  <div id="jobAdminStatus" class="muted">等待操作。</div>
+                </div>
+              </div>
+              <div class="job-admin-card">
+                <h3>数据概览</h3>
+                <div id="jobAdminSummary" class="job-admin-summary muted">加载中</div>
+                <h3>最近岗位数据</h3>
+                <div id="jobDataRecords" class="section-block muted">加载中</div>
+              </div>
+            </div>
+            <div class="job-admin-card">
+              <div class="plan-toolbar compact-toolbar">
+                <h3>待审核图谱提案</h3>
+                <span class="muted">确认后生成新快照；驳回只改变提案状态。</span>
+              </div>
+              <div id="jobProposalList" class="section-block muted">加载中</div>
+            </div>
+          </section>
+          <section id="workspaceKnowledge" class="workspace-panel active">
             <h3>知识缺口</h3>
             <div id="knowledgeRefs" class="section-block muted">暂无</div>
+            <h3>测评薄弱知识点</h3>
+            <div id="knowledgeGapCards" class="section-block muted">尚未完成测评</div>
           </section>
 
           <section id="workspaceTasks" class="workspace-panel">
@@ -318,13 +499,20 @@
           </section>
 
           <section id="workspaceScenario" class="workspace-panel">
-            <div class="plan-toolbar">
-              <h3>排故角色扮演</h3>
-              <button id="startScenario" type="button">开始场景</button>
-            </div>
-            <div id="scenarioList" class="section-block muted">场景加载中</div>
-            <div id="scenarioStage" class="section-block muted">选择一个场景后开始。</div>
-          </section>
+              <section id="scenarioCatalogView" class="scenario-catalog"></section>
+              <section id="scenarioTrainingView" class="scenario-workbench scenario-workbench-hidden">
+                <div class="scenario-header" id="scenarioHeader"></div>
+                <div class="scenario-body">
+                  <div class="scenario-status-col" id="scenarioStatusCol"></div>
+                  <div class="scenario-actions-col" id="scenarioActionsCol"></div>
+                  <div class="scenario-right-col" id="scenarioRightCol"></div>
+                </div>
+                <div class="scenario-timeline" id="scenarioTimeline">
+                  <h4>操作记录</h4>
+                  <div class="scenario-timeline-list" id="scenarioTimelineList"></div>
+                </div>
+              </section>
+            </section>
 
           <section id="workspaceQuiz" class="workspace-panel">
             <h3>自测验证</h3>
@@ -345,8 +533,8 @@
               <h3>个人培养方案</h3>
               <div class="plan-actions">
                 <button id="loadPersonalizedPlan" type="button">阶段方案</button>
-                <button id="loadTodayPlan" type="button">今日训练单</button>
                 <button id="loadSevenDayPlan" type="button">7 天补强计划</button>
+                <button id="loadTodayPlan" type="button">今日训练单</button>
               </div>
             </div>
             <div id="personalizedPlan" class="section-block muted">尚未生成培养方案。</div>
@@ -375,7 +563,104 @@
       </div>
     </aside>
 
-    <script src="/graph-renderer.js"></script>
-    <script src="/app.js"></script>
-  </body>
+    <script src="/graph-renderer.js?v=20260731"></script>
+    <script>
+window.addEventListener("error", function(e) {
+  var hs = document.getElementById("healthStatus");
+  if (hs) hs.textContent = "JS错误: " + (e.message || e.filename || "未知");
+  var lm = document.getElementById("llmStatus");
+  if (lm) lm.textContent = "";
+});
+</script>
+<script src="/app.js?v=20260804"></script>
+  
+<script>
+function myKey(k) { var u = localStorage.getItem("mcp_login_user")||""; return u?k+"_"+u:k; }
+
+async function doLogin() {
+  var u = document.getElementById("loginUsername"), p = document.getElementById("loginPassword"), e = document.getElementById("loginError");
+  if (!u||!p||!e) return;
+  var un = u.value.trim(), pw = p.value.trim();
+  if (!un) { e.textContent = "请输入用户名"; e.style.display = "block"; return; }
+  if (!pw) { e.textContent = "请输入密码"; e.style.display = "block"; return; }
+  e.style.display = "none";
+  try {
+    var r = await fetch("/api/auth/login", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({username:un,password:pw}) });
+    var d = await r.json();
+    if (!d.ok) { e.textContent = d.error; e.style.display = "block"; return; }
+    localStorage.setItem("mcp_auth_token", d.token);
+    localStorage.setItem("mcp_login_user", d.user.username);
+    var prevJob = localStorage.getItem(myKey("mcp_job_id"));
+    if (prevJob) {
+      localStorage.setItem("mcp_session_id", d.user.username + "-session");
+      location.reload();
+      return;
+    }
+    var ls = document.getElementById("landingStepLogin");
+    var is = document.getElementById("landingStepIdentity");
+    if (ls) ls.classList.remove("active");
+    if (is) is.classList.add("active");
+  } catch(x) { e.textContent = "登录失败: " + (x.message||"网络错误"); e.style.display = "block"; }
+}
+
+function selectIdentity(identity) {
+  localStorage.setItem(myKey("mcp_identity"), identity);
+  document.getElementById("landingStepIdentity").classList.remove("active");
+  document.getElementById("landingStepJob").classList.add("active");
+}
+
+function selectJob(jobId, event) {
+  var identity = localStorage.getItem(myKey("mcp_identity")) || "";
+  var jobName = event && event.currentTarget ? event.currentTarget.getAttribute("data-job-name") || "" : "";
+  localStorage.setItem(myKey("mcp_job_id"), jobId);
+  localStorage.setItem(myKey("mcp_job_name"), jobName);
+  var un = localStorage.getItem("mcp_login_user") || "000";
+  localStorage.setItem("mcp_session_id", un + "-session");
+  location.reload();
+}
+
+function dismissLanding() {
+  return new Promise(function(resolve) {
+    var o = document.getElementById("landingOverlay");
+    o.classList.add("fade-out");
+    setTimeout(function() { o.style.display = "none"; document.body.style.overflow = ""; resolve(); }, 400);
+  });
+}
+
+function switchAccount() {
+  localStorage.removeItem("mcp_auth_token");
+  localStorage.removeItem("mcp_login_user");
+  location.reload();
+}
+</script>
+
+
+<script>
+(function() {
+  var t = localStorage.getItem("mcp_auth_token");
+  var u = localStorage.getItem("mcp_login_user");
+  if (t && u) {
+    var pj = localStorage.getItem("mcp_job_id_" + u);
+    if (pj) {
+      localStorage.setItem("mcp_session_id", u + "-session");
+      var lo = document.getElementById("landingOverlay");
+      if (lo) { lo.style.display = "none"; }
+      document.body.style.overflow = "";
+      // Boot after all scripts loaded
+      window.addEventListener("load", function() {
+        if (typeof state !== "undefined") {
+          state.selectedJobId = pj;
+          state.jobName = localStorage.getItem("mcp_job_name_" + u) || "";
+        }
+        if (typeof boot === "function") { boot(); }
+        if (typeof startAssessment === "function") {
+          var s = localStorage.getItem("mcp_assess_status") || "";
+          if (s !== "completed") { startAssessment(pj); }
+        }
+      });
+    }
+  }
+})();
+</script>
+</body>
 </html>

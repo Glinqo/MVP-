@@ -1,0 +1,371 @@
+{
+  "title": "Phase 6 Eval Report",
+  "timestamp": "20260718_074640",
+  "total_elapsed_ms": 523.8730907440186,
+  "layers": {
+    "L1": {
+      "layer": "L1",
+      "name": "State Correctness",
+      "total_cases": 7,
+      "passed_cases": 7,
+      "failed_cases": 0,
+      "total_checks": 9,
+      "passed_checks": 9,
+      "accuracy": 1.0,
+      "elapsed_ms": 217.38266944885254,
+      "cases": [
+        {
+          "passed": [
+            "slot:sensor_led=on",
+            "slot:plc_input_led=off"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 2,
+          "case_id": "STATE-001",
+          "category": "slot_extraction"
+        },
+        {
+          "passed": [
+            "slot:online_monitor=changed",
+            "pending_slot=None"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 2,
+          "case_id": "STATE-002",
+          "category": "short_answer"
+        },
+        {
+          "passed": [
+            "slot:sensor_type_source=None"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "STATE-003",
+          "category": "user_correction"
+        },
+        {
+          "passed": [
+            "slot_preserved:plc_input_led"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "STATE-004",
+          "category": "slot_retention"
+        },
+        {
+          "passed": [
+            "active_task_changed=True"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "case_id": "STATE-005",
+          "category": "new_task_reset"
+        },
+        {
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "case_id": "STATE-006",
+          "category": "clarify_max"
+        },
+        {
+          "passed": [
+            "slot:sensor_led=on",
+            "slot:plc_input_led=off"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 2,
+          "case_id": "STATE-007",
+          "category": "multi_slot_extraction"
+        }
+      ]
+    },
+    "L2": {
+      "layer": "L2",
+      "name": "Conversation Policy",
+      "total_cases": 10,
+      "elapsed_ms": 155.88831901550293,
+      "metrics": {
+        "total_cases": 10,
+        "passed": 9,
+        "failed": 1,
+        "exact_tool_match": 10,
+        "tool_recall_sum": 10.0,
+        "forbidden_tool_rate_sum": 0.0,
+        "task_preservation_sum": 9.0,
+        "avg_tool_recall": 1.0,
+        "avg_forbidden_rate": 0.0,
+        "avg_task_preservation": 0.9,
+        "exact_tool_match_rate": 1.0
+      },
+      "cases": [
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [
+            "task_preservation expected=None got=False"
+          ],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0,
+            "task_preservation": 0.0
+          },
+          "score": 0.75,
+          "case_id": "POL-001",
+          "category": "knowledge",
+          "actual_tools": [
+            "search_knowledge"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-002",
+          "category": "diagnosis",
+          "actual_tools": [
+            "search_knowledge"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-003",
+          "category": "mixed",
+          "actual_tools": [
+            "search_knowledge"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "no_forbidden_tools",
+            "task_preserved=True"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0,
+            "task_preservation": 1.0
+          },
+          "score": 1.0,
+          "case_id": "POL-004",
+          "category": "active_task_question",
+          "actual_tools": [],
+          "policy_mode": "defer_to_planner"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-005",
+          "category": "explicit_quiz",
+          "actual_tools": [
+            "generate_quiz"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-006",
+          "category": "learning_plan",
+          "actual_tools": [
+            "generate_learning_plan"
+          ],
+          "policy_mode": "tool_actions"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-007",
+          "category": "clarify",
+          "actual_tools": [],
+          "policy_mode": "defer_to_planner"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "full_tool_recall",
+            "no_forbidden_tools",
+            "task_preserved=True"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0,
+            "task_preservation": 1.0
+          },
+          "score": 1.0,
+          "case_id": "POL-008",
+          "category": "diagnosis_continuation",
+          "actual_tools": [
+            "run_diagnosis"
+          ],
+          "policy_mode": "continue_task"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-009",
+          "category": "safety_keyword",
+          "actual_tools": [],
+          "policy_mode": "defer_to_planner"
+        },
+        {
+          "passed": [
+            "exact_tool_match",
+            "no_forbidden_tools"
+          ],
+          "failed": [],
+          "metrics": {
+            "required_tool_recall": 1.0,
+            "forbidden_tool_rate": 0.0
+          },
+          "score": 1.0,
+          "case_id": "POL-010",
+          "category": "unknown",
+          "actual_tools": [],
+          "policy_mode": "defer_to_planner"
+        }
+      ]
+    },
+    "L3": {
+      "layer": "L3",
+      "name": "Multi-turn Continuity",
+      "total_cases": 5,
+      "passed_cases": 4,
+      "failed_cases": 1,
+      "elapsed_ms": 150.6021022796631,
+      "cases": [
+        {
+          "case_id": "MULTI-001",
+          "category": "coreference",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": false
+        },
+        {
+          "case_id": "MULTI-002",
+          "category": "context_loss",
+          "passed": [],
+          "failed": [
+            "context_lost:sensor_led",
+            "context_lost:plc_input_led"
+          ],
+          "score": 0.0,
+          "total": 2,
+          "repeated_questions": 0,
+          "has_duplicates": false
+        },
+        {
+          "case_id": "MULTI-003",
+          "category": "repeat_question_detection",
+          "passed": [
+            "repeated_question_detected"
+          ],
+          "failed": [],
+          "score": 1.0,
+          "total": 1,
+          "repeated_questions": 1,
+          "has_duplicates": true
+        },
+        {
+          "case_id": "MULTI-004",
+          "category": "topic_switch",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": false
+        },
+        {
+          "case_id": "MULTI-005",
+          "category": "long_context",
+          "passed": [],
+          "failed": [],
+          "score": 0.0,
+          "total": 0,
+          "repeated_questions": 0,
+          "has_duplicates": true
+        }
+      ]
+    }
+  },
+  "hard_gates": {
+    "passed": true,
+    "failures": []
+  },
+  "summary": {
+    "total_cases": 22,
+    "total_passed": 11,
+    "total_failed": 1
+  }
+}

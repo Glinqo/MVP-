@@ -3,6 +3,7 @@
 Backward-compatible API for existing code.
 Keeps all original function names (create_event, list_snapshots, etc.)"""
 from scripts.pipeline.sqlite_store import (
+    add_raw_document, list_raw_documents, add_job_post, list_job_posts,
     add_event as sqlite_add_event,
     query_events as sqlite_query_events,
     ability_evidence_summary,
@@ -62,8 +63,15 @@ def get_snapshot(version, job_role=None):
 
 def compute_confidence(source_type, match_count, total_sources):
     """Compute confidence from source type and coverage (old API)"""
-    ratio = match_count / max(total_sources, 1)
-    return compute_proposal_score(source_type, 0.7 + ratio * 0.2, match_count, 30)
+    base = {
+        "enterprise_official": 0.85,
+        "job_platform": 0.65,
+        "government_standard": 0.90,
+        "local_file": 0.70,
+        "education_standard": 0.80,
+        "industry_report": 0.60,
+    }
+    return min(0.95, base.get(source_type, 0.5) + (match_count / max(total_sources, 1)) * 0.15)
 
 
 def audit_log(date_str=None, action=None, limit=100):
@@ -76,21 +84,15 @@ def close():
     sqlite_close()
 
 
-# ── Auto-migrate old JSON data ──────────────────────────────────
+def migrate_existing_json_events():
+    """Explicit migration hook for old JSON events.
 
-def _auto_migrate():
-    import json
-    from pathlib import Path
-    ROOT = Path(__file__).resolve().parents[2]
-    old_dir = ROOT / "data" / "evidence" / "events"
-    if old_dir.exists() and any(old_dir.glob("*.json")):
-        result = migrate_from_json()
-        for f in old_dir.glob("*.json"):
-            f.rename(f.with_suffix(".json.migrated"))
-        return result
-    return {"migrated": False}
+    This is intentionally not called at import time. Importing the storage
+    wrapper must not mutate or rename user data.
+    """
+    return migrate_from_json()
 
-_auto_migrate()
+
 def version_diff(v1, v2, job_role=None):
     """Alias for get_version_diff"""
     from scripts.pipeline.sqlite_store import get_version_diff as gvd
