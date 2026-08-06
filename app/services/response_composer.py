@@ -149,16 +149,16 @@ def _compose_knowledge(message, results_list, knowledge_refs=None):
 
 
 def _compose_diagnosis(message, results_list, active_task):
-    """diagnosis_progress: known state -> judgment -> next step."""
+    """diagnosis_progress: expand rule-based result into detailed 5-layer response via LLM."""
     data = _get_tool_data_s(results_list, "run_diagnosis")
     direct = data.get("direct_answer", "")
     pattern = data.get("matched_pattern", {})
     title = pattern.get("title", "") if isinstance(pattern, dict) else ""
     checks = data.get("first_checks", [])
+    abilities = data.get("highlighted_abilities", [])
+    gaps = data.get("knowledge_gaps", [])
 
-    lines = []
-
-    # Known state
+    ctx_parts = []
     if active_task:
         slots = active_task.get("slots", {})
         known = []
@@ -166,25 +166,54 @@ def _compose_diagnosis(message, results_list, active_task):
             if isinstance(v, dict) and v.get("value", "unknown") != "unknown":
                 known.append("- %s: %s" % (_slot_label(k), v["value"]))
         if known:
-            lines.append("**Current status:**")
-            lines.extend(known)
-            lines.append("")
-
-    # Judgment
+            ctx_parts.append("[Current Status]\n" + "\n".join(known))
+    if title:
+        ctx_parts.append("[Matched Pattern]\n%s" % title)
     if direct:
-        lines.append(direct)
-    elif title:
-        lines.append("This matches: **%s**" % title)
-        lines.append("")
-
-    # Next step: only ONE primary action
+        ctx_parts.append("[Direct Answer from Rules]\n%s" % direct)
     if checks:
-        lines.append("**Next step:** %s" % checks[0])
-    elif data.get("clarifying_questions"):
-        q = data["clarifying_questions"][0]
-        lines.append("**To proceed, I need to know:** %s" % q.get("question", ""))
-
-    return "\n".join(lines)
+        ctx_parts.append("[First Checks]\n%s" % "; ".join(checks[:3]))
+    if abilities:
+        ctx_parts.append("[Highlighted Abilities]\n" + "; ".join(a.get("name", a.get("id", "")) for a in abilities[:5]))
+    if gaps:
+        ctx_parts.append("[Knowledge Gaps]\n" + "; ".join(g.get("topic", g.get("id", "")) for g in gaps[:5]))
+    rule_context = "\n\n".join(ctx_parts)
+    user_msg = ("Student asked: %s\n\n" % message) if message else ""
+    user_msg += rule_context
+    system_prompt = (
+        "You are a mechatronics training AI assistant.\n\n"
+        "FORMAT YOUR RESPONSE AS A DETAILED 5-LAYER STRUCTURED ANSWER:\n"
+        "1) Direct Judgment: Clearly answer the core question with a definitive conclusion\n"
+        "2) Diagnostic Analysis: Expand with inspection steps, possible causes, and reasoning\n"
+        "3) Ability Mapping: Point out which job competency nodes and knowledge gaps are exposed\n"
+        "4) Safety Reminder: Always remind safety first for wiring/power-up/equipment operations\n"
+        "5) Next Steps: Give concrete, actionable training tasks or field verification directions\n\n"
+        "End with 3-4 follow-up question suggestions.\n\n"
+        "IMPORTANT: Your response MUST be detailed - at least 300 Chinese characters. "
+        "Expand on the rule data, do not just repeat it. "
+        "Write like an experienced vocational trainer teaching an apprentice."
+    )
+    try:
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_msg},
+        ]
+        llm_answer = chat_completion(messages, temperature=0.5)
+        return llm_answer
+    except (LLMError, Exception):
+        lines = []
+        if active_task:
+            slots = active_task.get("slots", {})
+            for k, v in slots.items():
+                if isinstance(v, dict) and v.get("value", "unknown") != "unknown":
+                    lines.append("- %s: %s" % (_slot_label(k), v["value"]))
+        if direct:
+            lines.append(direct)
+        elif title:
+            lines.append("This matches: **%s**" % title)
+        if checks:
+            lines.append("**Next step:** %s" % checks[0])
+        return "\n".join(lines)
 
 
 def _compose_clarification(message, results_list, active_task):
@@ -209,33 +238,56 @@ def _compose_clarification(message, results_list, active_task):
 
 
 def _compose_mixed(message, results_list, active_task, knowledge_refs=None):
-    """mixed_knowledge_diagnosis: answer knowledge, then relate to current task."""
+    """mixed_knowledge_diagnosis: expand rule result + knowledge into detailed 5-layer response via LLM."""
     kn_data = _get_kn_data(results_list)
     dx_data = _get_tool_data_s(results_list, "run_diagnosis")
-
     items = kn_data.get("items", [])
-    lines = []
-
-    # Knowledge part
+    ctx_parts = []
     if items:
         top = items[0]
-        content = top.get("content", "")
-        sentences = content.replace("\n", " ").split("?")
-        core = "?".join(sentences[:2]) + "?" if len(sentences) > 2 else content[:300]
-        lines.append(core)
-        lines.append("")
-
-    # Relate to current task
-    if active_task:
-        lines.append("This relates to your current issue. ")
-        checks = dx_data.get("first_checks", [])
-        if checks:
-            lines.append("**Next step:** %s" % checks[0])
-        elif dx_data.get("clarifying_questions"):
-            q = dx_data["clarifying_questions"][0]
-            lines.append("**To continue:** %s" % q.get("question", ""))
-
-    return "\n".join(lines)
+        ctx_parts.append("[Knowledge Base Entry]\n%s" % top.get("content", "")[:500])
+    pattern = dx_data.get("matched_pattern", {})
+    title = pattern.get("title", "") if isinstance(pattern, dict) else ""
+    if title:
+        ctx_parts.append("[Matched Pattern]\n%s" % title)
+    direct = dx_data.get("direct_answer", "")
+    if direct:
+        ctx_parts.append("[Direct Answer]\n%s" % direct)
+    checks = dx_data.get("first_checks", [])
+    if checks:
+        ctx_parts.append("[First Checks]\n%s" % "; ".join(checks[:3]))
+    rule_context = "\n\n".join(ctx_parts)
+    user_msg = ("Student asked: %s\n\n" % message) if message else ""
+    user_msg += rule_context
+    system_prompt = (
+        "You are a mechatronics training AI assistant.\n\n"
+        "FORMAT YOUR RESPONSE AS A DETAILED 5-LAYER STRUCTURED ANSWER:\n"
+        "1) Direct Judgment: Clearly answer the core question with a definitive conclusion\n"
+        "2) Diagnostic Analysis: Expand with inspection steps, possible causes, and reasoning\n"
+        "3) Ability Mapping: Point out which job competency nodes and knowledge gaps are exposed\n"
+        "4) Safety Reminder: Always remind safety first for wiring/power-up/equipment operations\n"
+        "5) Next Steps: Give concrete, actionable training tasks or field verification directions\n\n"
+        "End with 3-4 follow-up question suggestions.\n\n"
+        "IMPORTANT: Your response MUST be detailed - at least 300 Chinese characters. "
+        "Expand on the rule data, do not just repeat it. "
+        "Write like an experienced vocational trainer teaching an apprentice."
+    )
+    try:
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_msg},
+        ]
+        return chat_completion(messages, temperature=0.5)
+    except (LLMError, Exception):
+        lines = []
+        if items:
+            top = items[0]
+            lines.append(top.get("content", "")[:300])
+        if active_task:
+            lines.append("This relates to your current issue.")
+            if checks:
+                lines.append("**Next step:** %s" % checks[0])
+        return "\n".join(lines)
 
 
 def _compose_quiz(results_list):
