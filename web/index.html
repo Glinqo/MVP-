@@ -374,10 +374,6 @@
               <strong>个人培养方案</strong>
               <span>分阶段补强计划</span>
             </button>
-            <button data-open-tool="tasks" type="button">
-              <strong>实训任务</strong>
-              <span>一节课内可完成的补救训练</span>
-            </button>
             <button data-open-tool="scenario" type="button">
               <strong>排故角色扮演</strong>
               <span>像师傅带教一样练现场判断</span>
@@ -414,7 +410,6 @@
           <button data-workspace-panel="graph" type="button">能力图谱</button>
           <button data-workspace-panel="jobAdmin" type="button">岗位数据</button>
           <button data-workspace-panel="plan" type="button">培养方案</button>
-          <button data-workspace-panel="tasks" type="button">实训任务</button>
           <button data-workspace-panel="scenario" type="button">角色扮演</button>
           <button data-workspace-panel="quiz" type="button">自测</button>
         </nav>
@@ -493,12 +488,13 @@
             <div id="knowledgeGapCards" class="section-block muted">尚未完成测评</div>
           </section>
 
-          <section id="workspaceTasks" class="workspace-panel">
-            <h3>实训任务</h3>
-            <div id="taskRefs" class="section-block muted">暂无</div>
-          </section>
-
           <section id="workspaceScenario" class="workspace-panel">
+            <div class="scenario-layout">
+              <aside id="scenarioTaskPanel">
+                <h3>实训任务清单</h3>
+                <div id="scenarioTaskRefs" class="section-block muted">暂无实训任务</div>
+              </aside>
+              <div class="scenario-main">
               <section id="scenarioCatalogView" class="scenario-catalog"></section>
               <section id="scenarioTrainingView" class="scenario-workbench scenario-workbench-hidden">
                 <div class="scenario-header" id="scenarioHeader"></div>

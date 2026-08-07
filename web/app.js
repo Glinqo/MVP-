@@ -2063,6 +2063,7 @@ async function openWorkspace(panel, graphView) {
   $("workspaceOverlay").classList.add("open");
   $("workspaceOverlay").setAttribute("aria-hidden", "false");
   setWorkspacePanel(panel || "graph");
+  if (panel === "scenario") { loadScenarioTasks(); }
   if (panel === "graph" || graphView) {
     setGraphView(graphView || state.activeGraphView || "job");
     if ((graphView || state.activeGraphView) === "student") {
@@ -2544,8 +2545,24 @@ function renderTrainingPlan7Day(planData) {
   });h+='</div>';return h;
 }
 
+async function loadScenarioTasks() {
+  var el = document.getElementById('scenarioTaskRefs');
+  if (!el) return;
+  el.innerHTML = '<div class="muted">加载中...</div>';
+  var jobName = state.jobName || (state.jobProfile && state.jobProfile.role_name) || '';
+  if (!jobName) { el.innerHTML = '<div class="muted">请先选择岗位</div>'; return; }
+  try {
+    var r = await fetch('/training-plans.json');
+    var allPlans = await r.json();
+    var planData = allPlans[jobName] || {};
+    renderWorkspaceTasks(planData);
+  } catch (e) {
+    el.innerHTML = '<div class="muted">加载失败</div>';
+  }
+}
+
 function renderWorkspaceTasks(planData) {
-  var el = document.getElementById('taskRefs');
+  var el = document.getElementById('scenarioTaskRefs');
   if (!el) return;
   if (!planData || !planData.stages) { el.innerHTML = '<div class="muted">暂无实训任务</div>'; return; }
   var html = '';
@@ -2581,10 +2598,8 @@ async function loadTrainingPlans(planMode) {
     addStageReorderHandlers(planData);
   } else if (planMode === 'today') {
     document.getElementById('personalizedPlan').innerHTML = renderTrainingPlanToday(planData, getTrainingDay());
-    renderWorkspaceTasks(planData);
   } else if (planMode === '7_day') {
     document.getElementById('personalizedPlan').innerHTML = renderTrainingPlan7Day(planData);
-    renderWorkspaceTasks(planData);
   }
   renderWorkspaceTasks(planData);
 }
