@@ -3210,7 +3210,6 @@ async function boot() {
     const health = await api("/api/health");
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
     $("healthStatus").classList.add("ok");
-    const jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
     // Fallback to per-user key when bare key is stale (e.g., another account overrode it)
     const username = localStorage.getItem("mcp_login_user") || "";
     const jobId = localStorage.getItem("mcp_job_id")
