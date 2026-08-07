@@ -59,6 +59,7 @@ from app.middleware import find_authed_user  # noqa: E402
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.teacher_students import list_teacher_students, get_teacher_student_detail  # noqa: E402
 from app.services.class_insights import get_class_ability_graph, get_common_issues, get_class_overview  # noqa: E402
+from app.services.teacher_comments import list_comments, get_comment, save_comment, review_comment, publish_comment, generate_comment, generate_comments_batch, review_comments_batch, publish_comments_batch, get_student_published_comments  # noqa: E402
 from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
 from app.services.transfer_engine import suggest_transfer_tasks  # noqa: E402
 
@@ -287,6 +288,22 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(list_sessions())
 
         
+        if path == "/api/teacher/comments":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            query = parse_qs(parsed.query)
+            return self.send_json(list_comments(
+                student_id=query.get("student_id", [None])[0],
+                status=query.get("status", [None])[0],
+                job_role=query.get("job_role", [None])[0],
+            ))
+
+        if path.startswith("/api/teacher/comments/") and "/generate" not in path:
+            cid_str = path[len("/api/teacher/comments/"):]
+            if cid_str.isdigit():
+                return self.send_json(get_comment(int(cid_str)))
+
         if path == "/api/teacher/class/ability-graph":
             user = find_authed_user(self)
             if not user or not teacher_required(user):
@@ -347,6 +364,16 @@ class MVPHandler(BaseHTTPRequestHandler):
             if not session_id:
                 return self.send_error_json(400, "session_id is required")
             return self.send_json(generate_individual_report(session_id))
+        if path == "/api/student/teacher-comments":
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
+            query = parse_qs(parsed.query)
+            return self.send_json(get_student_published_comments(
+                student_id=user.get("username", ""),
+                job_role=query.get("job_role", [None])[0],
+            ))
+
         if path == "/api/student/ability-state":
             session_id = query_params.get("session_id", ["default"])[0]
             ability_id = query_params.get("ability_id", [None])[0]
@@ -456,6 +483,60 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(list_conversation_sessions(job_role=job_role))
                 job_role = query_params.get("job_role", [None])[0]
                 return self.send_json(list_conversation_sessions(job_role=job_role))
+            # ---- Teacher Comments (Stage 4) ----
+            if path == "/api/teacher/comments/generate":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                return self.send_json(generate_comment(
+                    student_id=payload.get("student_id", ""),
+                    teacher_id=str(user.get("id", "")),
+                    job_role=payload.get("job_role"),
+                ))
+
+            if path == "/api/teacher/comments/generate-batch":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                return self.send_json(generate_comments_batch(
+                    student_ids=payload.get("student_ids", []),
+                    teacher_id=str(user.get("id", "")),
+                    job_role=payload.get("job_role"),
+                ))
+
+            if path.startswith("/api/teacher/comments/") and path.endswith("/update"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                cid = int(path.split("/")[3])
+                return self.send_json(save_comment(cid, payload.get("content", "")))
+
+            if path.startswith("/api/teacher/comments/") and path.endswith("/review"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                cid = int(path.split("/")[3])
+                return self.send_json(review_comment(cid))
+
+            if path.startswith("/api/teacher/comments/") and path.endswith("/publish"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                cid = int(path.split("/")[3])
+                return self.send_json(publish_comment(cid))
+
+            if path == "/api/teacher/comments/review-batch":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                return self.send_json(review_comments_batch(payload.get("comment_ids", [])))
+
+            if path == "/api/teacher/comments/publish-batch":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                return self.send_json(publish_comments_batch(payload.get("comment_ids", [])))
+
             # ---- Auth routes ----
             if path == "/api/auth/login":
                 return self.send_json(login(payload.get("username", ""), payload.get("password", "")))

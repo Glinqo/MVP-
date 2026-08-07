@@ -2001,6 +2001,7 @@ function setWorkspacePanel(panel) {
   if (panel === "scenario") loadScenarios();
   if (panel === "studentMgmt" && typeof loadStudentList === "function") loadStudentList();
   if (panel === "classInsights" && typeof loadClassInsights === "function") loadClassInsights();
+  if (panel === "teacherComments" && typeof loadComments === "function") loadComments();
   // Reset scroll position when switching panels
   var body = document.querySelector(".workspace-body");
   if (body) body.scrollTop = 0;
@@ -3977,5 +3978,220 @@ document.addEventListener("DOMContentLoaded", function() {
 // Init state
 document.addEventListener("DOMContentLoaded", function() {
   ciState = ciState || { activeTab: "graph", currentNode: null };
+});
+
+// ── 阶段四：教学评语 ──
+
+var commentState = { selectedIds: [] };
+
+async function loadComments() {
+  commentState.selectedIds = [];
+  var status = document.getElementById("commentStatusFilter")?.value || "";
+  try {
+    var params = [];
+    if (status) params.push("status=" + encodeURIComponent(status));
+    var url = "/api/teacher/comments" + (params.length ? "?" + params.join("&") : "");
+    var resp = await fetch(url, {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (!resp.ok) { document.getElementById("commentListContainer").innerHTML = '<div class="muted">加载失败</div>'; return; }
+    var data = await resp.json();
+    renderCommentStats(data.stats);
+    renderCommentList(data.comments);
+  } catch (e) {
+    document.getElementById("commentListContainer").innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
+  }
+}
+
+function renderCommentStats(stats) {
+  var el = document.getElementById("commentStats");
+  if (!el) return;
+  el.innerHTML =
+    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value">' + (stats.total || 0) + '</span><span class="metric-label">总计</span></div>' +
+    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value" style="color:#f59e0b;">' + (stats.draft || 0) + '</span><span class="metric-label">草稿</span></div>' +
+    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value" style="color:#38bdf8;">' + (stats.reviewed || 0) + '</span><span class="metric-label">已审核</span></div>' +
+    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value" style="color:#22c55e;">' + (stats.published || 0) + '</span><span class="metric-label">已发布</span></div>';
+}
+
+function renderCommentList(comments) {
+  var container = document.getElementById("commentListContainer");
+  if (!container) return;
+  if (!comments || !comments.length) {
+    container.innerHTML = '<div class="muted" style="padding:40px;text-align:center;">暂无评语</div>';
+    return;
+  }
+  var statusBadge = {"draft": '<span style="color:#f59e0b;">草稿</span>', "reviewed": '<span style="color:#38bdf8;">已审核</span>', "published": '<span style="color:#22c55e;">已发布</span>'};
+  var html = '<table class="student-table"><thead><tr><th style="width:30px;"><input type="checkbox" id="commentSelectAll" /></th><th>学生</th><th>岗位</th><th>周期</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+  for (var i = 0; i < comments.length; i++) {
+    var c = comments[i];
+    html += '<tr>' +
+      '<td><input type="checkbox" class="comment-cb" value="' + c.id + '" /></td>' +
+      '<td><strong>' + escapeHtml(c.student_id) + '</strong></td>' +
+      '<td>' + escapeHtml(c.job_role || "-") + '</td>' +
+      '<td>' + escapeHtml((c.period_start || "").substring(0, 10)) + '</td>' +
+      '<td>' + (statusBadge[c.status] || c.status) + '</td>' +
+      '<td><button type="button" onclick="showCommentDetail(' + c.id + ')" class="btn-small">查看</button></td>' +
+      '</tr>';
+  }
+  html += '</tbody></table>';
+  container.innerHTML = html;
+  // Select all handler
+  var sa = document.getElementById("commentSelectAll");
+  if (sa) sa.addEventListener("change", function() {
+    var cbs = document.querySelectorAll(".comment-cb");
+    commentState.selectedIds = [];
+    cbs.forEach(function(cb) {
+      cb.checked = sa.checked;
+      if (sa.checked) commentState.selectedIds.push(parseInt(cb.value));
+    });
+  });
+  document.querySelectorAll(".comment-cb").forEach(function(cb) {
+    cb.addEventListener("change", function() {
+      var vid = parseInt(cb.value);
+      if (cb.checked) { if (commentState.selectedIds.indexOf(vid) === -1) commentState.selectedIds.push(vid); }
+      else { commentState.selectedIds = commentState.selectedIds.filter(function(x) { return x !== vid; }); }
+    });
+  });
+}
+
+async function showCommentDetail(cid) {
+  var panel = document.getElementById("commentDetailPanel");
+  var content = document.getElementById("commentDetailContent");
+  var title = document.getElementById("commentDetailTitle");
+  if (!panel || !content) return;
+  panel.style.display = "block";
+  if (title) title.textContent = "评语详情 #" + cid;
+  content.innerHTML = '<div class="muted">加载中...</div>';
+  try {
+    var resp = await fetch("/api/teacher/comments/" + cid, {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (!resp.ok) { content.innerHTML = '<div class="muted">加载失败</div>'; return; }
+    var c = await resp.json();
+    var statusColor = { "draft": "#f59e0b", "reviewed": "#38bdf8", "published": "#22c55e" }[c.status] || "var(--text)";
+    var evidenceHtml = (c.evidence || []).map(function(ev) { return '<li>' + escapeHtml(ev.summary || JSON.stringify(ev)) + '</li>'; }).join("") || '<li class="muted">无</li>';
+    var html = '<div class="student-detail-grid">' +
+      '<div class="student-detail-card"><h4>基本信息</h4>' +
+      '<div class="metric"><span class="metric-label">学生</span><span class="metric-value">' + escapeHtml(c.student_id) + '</span></div>' +
+      '<div class="metric"><span class="metric-label">岗位</span><span class="metric-value">' + escapeHtml(c.job_role || "-") + '</span></div>' +
+      '<div class="metric"><span class="metric-label">周期</span><span class="metric-value">' + escapeHtml((c.period_start || "").substring(0, 10)) + ' ~ ' + escapeHtml((c.period_end || "").substring(0, 10)) + '</span></div>' +
+      '<div class="metric"><span class="metric-label">状态</span><span class="metric-value" style="color:' + statusColor + ';font-weight:bold;">' + c.status + '</span></div>' +
+      '</div>' +
+      '<div class="student-detail-card"><h4>AI 草稿</h4><div style="white-space:pre-wrap;font-size:13px;">' + escapeHtml(c.ai_draft || "(无)") + '</div></div>' +
+      '</div>' +
+      '<div class="student-detail-card" style="margin-top:12px;"><h4>当前教师评语</h4>' +
+      '<textarea id="commentEditContent" style="width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:13px;">' + escapeHtml(c.content || "") + '</textarea>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;">' +
+      '<button type="button" onclick="saveCommentContent(' + c.id + ')" class="btn-small">保存</button>' +
+      (c.status === "draft" ? '<button type="button" onclick="reviewComment(' + c.id + ')" class="btn-small" style="color:#38bdf8;">审核</button>' : "") +
+      (c.status === "reviewed" ? '<button type="button" onclick="publishComment(' + c.id + ')" class="btn-small" style="color:#22c55e;">发布</button>' : "") +
+      '</div></div>' +
+      '<div class="student-detail-card" style="margin-top:12px;"><h4>AI 生成依据</h4><ul style="font-size:12px;">' + evidenceHtml + '</ul></div>';
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
+  }
+}
+
+async function saveCommentContent(cid) {
+  var textarea = document.getElementById("commentEditContent");
+  if (!textarea) return;
+  var content = textarea.value;
+  try {
+    var resp = await fetch("/api/teacher/comments/" + cid + "/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ content: content })
+    });
+    var data = await resp.json();
+    if (data.ok) { loadComments(); showCommentDetail(cid); }
+    else { alert("保存失败: " + (data.error || "未知错误")); }
+  } catch (e) {
+    alert("保存失败: " + (e.message || "网络错误"));
+  }
+}
+
+async function reviewComment(cid) {
+  try {
+    var resp = await fetch("/api/teacher/comments/" + cid + "/review", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    var data = await resp.json();
+    if (data.ok) { loadComments(); showCommentDetail(cid); }
+    else { alert("审核失败: " + (data.error || "未知错误")); }
+  } catch (e) { alert("审核失败: " + (e.message || "网络错误")); }
+}
+
+async function publishComment(cid) {
+  if (!confirm("确认发布此评语？发布后学生将可见。")) return;
+  try {
+    var resp = await fetch("/api/teacher/comments/" + cid + "/publish", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    var data = await resp.json();
+    if (data.ok) { loadComments(); showCommentDetail(cid); }
+    else { alert("发布失败: " + (data.error || "未知错误")); }
+  } catch (e) { alert("发布失败: " + (e.message || "网络错误")); }
+}
+
+async function batchGenerate() {
+  var ids = commentState.selectedIds.length > 0 ? commentState.selectedIds : prompt("输入 student_id（逗号分隔）:", "001,002,003");
+  if (!ids) return;
+  try {
+    var resp = await fetch("/api/teacher/comments/generate-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ student_ids: String(ids).split(",").map(function(s) { return s.trim(); }) })
+    });
+    var data = await resp.json();
+    alert("批量生成完成: " + data.total + " 条");
+    loadComments();
+  } catch (e) { alert("批量生成失败: " + (e.message || "网络错误")); }
+}
+
+async function batchReview() {
+  if (!commentState.selectedIds.length) { alert("请先选择评语"); return; }
+  try {
+    var resp = await fetch("/api/teacher/comments/review-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ comment_ids: commentState.selectedIds })
+    });
+    alert("批量审核完成");
+    loadComments();
+  } catch (e) { alert("批量审核失败: " + (e.message || "网络错误")); }
+}
+
+async function batchPublish() {
+  if (!confirm("仅发布\"已审核\"状态的评语。确认继续？")) return;
+  try {
+    var resp = await fetch("/api/teacher/comments/publish-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ comment_ids: commentState.selectedIds.length > 0 ? commentState.selectedIds : [] })
+    });
+    alert("批量发布完成（仅已审核评语被发布）");
+    loadComments();
+  } catch (e) { alert("批量发布失败: " + (e.message || "网络错误")); }
+}
+
+// Wire up
+document.addEventListener("DOMContentLoaded", function() {
+  var rf = document.getElementById("refreshComments");
+  if (rf) rf.addEventListener("click", loadComments);
+  var sf = document.getElementById("commentStatusFilter");
+  if (sf) sf.addEventListener("change", loadComments);
+  var bg = document.getElementById("batchGenerateComments");
+  if (bg) bg.addEventListener("click", batchGenerate);
+  var br = document.getElementById("batchReviewComments");
+  if (br) br.addEventListener("click", batchReview);
+  var bp = document.getElementById("batchPublishReviewed");
+  if (bp) bp.addEventListener("click", batchPublish);
+  var cc = document.getElementById("closeCommentDetail");
+  if (cc) cc.addEventListener("click", function() {
+    document.getElementById("commentDetailPanel").style.display = "none";
+  });
 });
 
