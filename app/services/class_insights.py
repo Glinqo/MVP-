@@ -210,12 +210,18 @@ def get_common_issues(job_role=None, ability_id=None, min_students=3):
     except Exception:
         pass
 
+    # Batch collect events (limit to 50 per session, max 500 total)
+    total = 0
     for sess in sessions:
+        if total >= 500:
+            break
         try:
             events = get_events(sess, limit=50) or []
         except Exception:
             events = []
+            continue
 
+        total += len(events)
         for ev in events:
             aid = ev.get("ability_id", "") or ev.get("ability", "")
             if not aid:
