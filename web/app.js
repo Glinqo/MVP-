@@ -1996,7 +1996,10 @@ function setWorkspacePanel(panel) {
     section.classList.toggle("active", section.id === "workspace" + domPanel.charAt(0).toUpperCase() + domPanel.slice(1));
   });
   if (panel === "knowledge") { var ka = document.getElementById("knowledgeAlert"); if (ka) ka.style.display = "none"; }
-  if (panel === "jobAdmin" || panel === "teacherJobGraph") loadJobAdmin();
+  if (panel === "jobAdmin" || panel === "teacherJobGraph") {
+    loadJobAdmin();
+    if (typeof loadJobGraphWorkspace === "function") loadJobGraphWorkspace();
+  }
   if (panel === "plan") loadTrainingPlans("staged");
   if (panel === "scenario") loadScenarios();
   if (panel === "studentMgmt" && typeof loadStudentList === "function") loadStudentList();
@@ -4328,4 +4331,201 @@ function setUIContext(module, view, data) {
     if (data.comment_id) state.uiContext.comment_id = data.comment_id;
   }
 }
+
+// ── 阶段六：岗位图谱管理完善 ──
+
+var jgState = { activeTab: "graph", versions: [] };
+
+function loadJobGraphWorkspace() {
+  jgState.activeTab = "graph";
+  // Load graph tab by default
+  loadJobGraphDiagram();
+  // Wire up tab switching
+  document.querySelectorAll("[data-jg-tab]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      jgState.activeTab = this.dataset.jgTab;
+      document.querySelectorAll("[data-jg-tab]").forEach(function(b) { b.classList.remove("active"); });
+      this.classList.add("active");
+      document.querySelectorAll(".jg-tab").forEach(function(t) { t.style.display = "none"; });
+      var target = document.getElementById("jgTab" + jgState.activeTab.charAt(0).toUpperCase() + jgState.activeTab.slice(1));
+      if (target) target.style.display = "";
+      // Auto-load data for each tab
+      if (jgState.activeTab === "graph") loadJobGraphDiagram();
+      if (jgState.activeTab === "data") loadJobAdmin();
+      if (jgState.activeTab === "review") loadJobAdmin();
+      if (jgState.activeTab === "versions") { /* manual load */ }
+    });
+  });
+}
+
+async function loadJobGraphDiagram() {
+  var container = document.getElementById("jobGraphDiagram");
+  if (!container) return;
+  container.innerHTML = '<div class="muted">加载图谱中...</div>';
+  try {
+    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var resp = await fetch("/api/graph/job?job_role=" + encodeURIComponent(jobRole));
+    if (!resp.ok) { container.innerHTML = '<div class="muted">加载失败</div>'; return; }
+    var graph = await resp.json();
+    if (!graph.nodes || !graph.nodes.length) {
+      container.innerHTML = '<div class="muted">暂无岗位图谱数据</div>';
+      return;
+    }
+    if (typeof renderGraphDiagram === "function") {
+      renderGraphDiagram(graph, null, container);
+    }
+    document.getElementById("jobGraphLegend").innerHTML =
+      '<span style="font-size:12px;color:var(--text-secondary);">节点大小=岗位重要度 | 点击节点查看详情</span>';
+  } catch (e) {
+    container.innerHTML = '<div class="muted">加载失败: ' + (e.message || "") + '</div>';
+  }
+}
+
+async function loadVersionHistory() {
+  var container = document.getElementById("versionHistoryList");
+  if (!container) return;
+  container.innerHTML = '<div class="muted">加载中...</div>';
+  try {
+    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var resp = await fetch("/api/graph/job/versions?job_role=" + encodeURIComponent(jobRole));
+    if (!resp.ok) { container.innerHTML = '<div class="muted">加载失败</div>'; return; }
+    var data = await resp.json();
+    var versions = data.versions || [];
+    jgState.versions = versions;
+    if (!versions.length) {
+      container.innerHTML = '<div class="muted">暂无版本历史</div>';
+      return;
+    }
+    var html = '<table class="student-table"><thead><tr><th>版本</th><th>时间</th><th>岗位</th><th>节点数</th><th>操作</th></tr></thead><tbody>';
+    for (var i = 0; i < versions.length; i++) {
+      var v = versions[i];
+      var vId = v.version || v.snapshot_id || v.id || ("v" + i);
+      var vTime = v.created_at || v.timestamp || v.generated_at || "";
+      var vRole = v.job_role || v.role || "";
+      var vNodes = v.node_count || (v.nodes ? v.nodes.length : "-");
+      html += '<tr><td><strong>' + escapeHtml(String(vId)) + '</strong></td>' +
+        '<td>' + escapeHtml(String(vTime).substring(0, 16)) + '</td>' +
+        '<td>' + escapeHtml(vRole) + '</td>' +
+        '<td>' + vNodes + '</td>' +
+        '<td>';
+      if (i > 0) {
+        html += '<button type="button" class="btn-small" onclick="showVersionDiff(\'' + escapeHtml(String(vId)) + '\',\'' + escapeHtml(String(versions[i-1].version || versions[i-1].snapshot_id || versions[i-1].id || ("v"+(i-1)))) + '\')">比较</button> ';
+      }
+      if (i > 0) {
+        html += '<button type="button" class="btn-small" style="color:#ef4444;" onclick="confirmRollback(\'' + escapeHtml(String(vId)) + '\')">回滚到此</button>';
+      }
+      html += '</td></tr>';
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<div class="muted">加载失败: ' + (e.message || "") + '</div>';
+  }
+}
+
+async function showVersionDiff(v1, v2) {
+  var panel = document.getElementById("versionDiffPanel");
+  var content = document.getElementById("versionDiffContent");
+  if (!panel || !content) return;
+  panel.style.display = "block";
+  content.innerHTML = '<div class="muted">加载 Diff...</div>';
+  try {
+    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var resp = await fetch("/api/graph/job/versions/diff?v1=" + encodeURIComponent(v1) + "&v2=" + encodeURIComponent(v2) + "&job_role=" + encodeURIComponent(jobRole));
+    if (!resp.ok) { content.innerHTML = '<div class="muted">Diff 加载失败</div>'; return; }
+    var diff = await resp.json();
+    var added = diff.added_nodes || diff.added || [];
+    var removed = diff.removed_nodes || diff.removed || [];
+    var changed = diff.changed_nodes || diff.modified || diff.changed || [];
+    var html = '<div class="student-stats-row" style="margin-bottom:12px;">' +
+      '<div class="metric" style="flex:1;min-width:80px;"><span class="metric-value" style="color:#22c55e;">' + (added.length || 0) + '</span><span class="metric-label">新增节点</span></div>' +
+      '<div class="metric" style="flex:1;min-width:80px;"><span class="metric-value" style="color:#f59e0b;">' + (changed.length || 0) + '</span><span class="metric-label">修改节点</span></div>' +
+      '<div class="metric" style="flex:1;min-width:80px;"><span class="metric-value" style="color:#ef4444;">' + (removed.length || 0) + '</span><span class="metric-label">删除节点</span></div>' +
+      '</div>';
+    if (added.length) {
+      html += '<div class="section-block"><h4>新增能力</h4>';
+      added.forEach(function(n) { html += '<div style="padding:4px 0;color:#22c55e;">+ ' + escapeHtml(n.label || n.name || n.id || JSON.stringify(n)) + '</div>'; });
+      html += '</div>';
+    }
+    if (changed.length) {
+      html += '<div class="section-block"><h4>修改能力</h4>';
+      changed.forEach(function(n) { html += '<div style="padding:4px 0;color:#f59e0b;">~ ' + escapeHtml(n.label || n.name || n.id || JSON.stringify(n)) + '</div>'; });
+      html += '</div>';
+    }
+    if (removed.length) {
+      html += '<div class="section-block"><h4>删除能力</h4>';
+      removed.forEach(function(n) { html += '<div style="padding:4px 0;color:#ef4444;">- ' + escapeHtml(n.label || n.name || n.id || JSON.stringify(n)) + '</div>'; });
+      html += '</div>';
+    }
+    if (!added.length && !changed.length && !removed.length) {
+      html += '<div class="muted">两个版本之间无变化。</div>';
+    }
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = '<div class="muted">Diff 加载失败: ' + (e.message || "") + '</div>';
+  }
+}
+
+function confirmRollback(targetVersion) {
+  var panel = document.getElementById("versionRollbackPanel");
+  var content = document.getElementById("versionRollbackContent");
+  if (!panel || !content) return;
+  panel.style.display = "block";
+  content.innerHTML =
+    '<div style="padding:16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;">' +
+    '<p style="color:#ef4444;font-weight:bold;">⚠ 即将回滚岗位图谱至版本 ' + escapeHtml(String(targetVersion)) + '</p>' +
+    '<p class="muted">回滚将修改当前正式岗位能力图谱，可能影响后续学生能力评价和岗位差距分析。</p>' +
+    '<p class="muted">回滚后仍然保留全部历史版本记录。</p>' +
+    '<div style="margin-top:12px;display:flex;gap:8px;">' +
+    '<button type="button" onclick="executeRollback(\'' + escapeHtml(String(targetVersion)) + '\')" style="padding:8px 20px;background:#ef4444;color:#fff;border:none;border-radius:8px;cursor:pointer;">确认回滚</button>' +
+    '<button type="button" onclick="document.getElementById(\'versionRollbackPanel\').style.display=\'none\'" style="padding:8px 20px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;cursor:pointer;">取消</button>' +
+    '</div></div>';
+}
+
+async function executeRollback(targetVersion) {
+  var content = document.getElementById("versionRollbackContent");
+  if (!content) return;
+  try {
+    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var resp = await fetch("/api/graph/job/versions/rollback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ version: targetVersion, job_role: jobRole })
+    });
+    var data = await resp.json();
+    if (resp.ok) {
+      content.innerHTML = '<div style="color:#22c55e;padding:12px;">回滚成功！岗位图谱已恢复至版本 ' + escapeHtml(String(targetVersion)) + '。</div>';
+      loadJobGraphDiagram();
+      loadVersionHistory();
+    } else {
+      content.innerHTML = '<div style="color:#ef4444;padding:12px;">回滚失败：' + escapeHtml(data.error || JSON.stringify(data)) + '</div>';
+    }
+  } catch (e) {
+    content.innerHTML = '<div style="color:#ef4444;padding:12px;">回滚失败：' + (e.message || "网络错误") + '</div>';
+  }
+}
+
+// Wire up version management
+document.addEventListener("DOMContentLoaded", function() {
+  var loadBtn = document.getElementById("loadVersionHistory");
+  if (loadBtn) loadBtn.addEventListener("click", loadVersionHistory);
+  var closeDiff = document.getElementById("closeVersionDiff");
+  if (closeDiff) closeDiff.addEventListener("click", function() { document.getElementById("versionDiffPanel").style.display = "none"; });
+  var closeRollback = document.getElementById("closeRollbackPanel");
+  if (closeRollback) closeRollback.addEventListener("click", function() { document.getElementById("versionRollbackPanel").style.display = "none"; });
+
+  // Init tab switching on first click
+  document.querySelectorAll("[data-jg-tab]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      jgState.activeTab = this.dataset.jgTab;
+      document.querySelectorAll("[data-jg-tab]").forEach(function(b) { b.classList.remove("active"); });
+      this.classList.add("active");
+      document.querySelectorAll(".jg-tab").forEach(function(t) { t.style.display = "none"; });
+      var target = document.getElementById("jgTab" + jgState.activeTab.charAt(0).toUpperCase() + jgState.activeTab.slice(1));
+      if (target) target.style.display = "";
+      if (jgState.activeTab === "graph") loadJobGraphDiagram();
+      if (jgState.activeTab === "data" || jgState.activeTab === "review") { if (typeof loadJobAdmin === "function") loadJobAdmin(); }
+    });
+  });
+});
 

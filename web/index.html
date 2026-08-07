@@ -454,9 +454,7 @@
             </div>
           </section>
 
-          <section id="workspaceJobAdmin" class="workspace-panel role-teacher" style="display:none">
-
-          <section id="workspaceTeacherPlaceholder" class="workspace-panel active role-teacher" style="display:none">
+                    <section id="workspaceTeacherPlaceholder" class="workspace-panel active role-teacher" style="display:none">
             <div class="plan-toolbar">
               <div>
                 <h3>教师工作台</h3>
@@ -464,53 +462,98 @@
               </div>
             </div>
           </section>
+<section id="workspaceJobAdmin" class="workspace-panel active role-teacher" style="display:none">
             <div class="plan-toolbar">
               <div>
-                <h3>岗位数据导入与提案审核</h3>
-                <p class="muted">从授权岗位资料生成证据与待审核提案，确认后才更新正式岗位能力图谱。</p>
+                <h3>岗位图谱管理</h3>
+                <p class="muted">正式图谱 · 岗位数据 · 更新审核 · 版本管理</p>
               </div>
-              <button id="refreshJobAdmin" type="button">刷新数据</button>
+              <div style="display:flex;gap:6px;">
+                <input id="jobAdminRole" type="text" value="自动化生产线装调与运维技术员" style="padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);width:200px;" />
+                <button id="refreshJobAdmin" type="button">刷新</button>
+              </div>
             </div>
-            <div class="job-admin-grid">
-              <div class="job-admin-card">
-                <h3>导入岗位材料</h3>
-                <div class="job-admin-form">
-                  <label>目标岗位<input id="jobAdminRole" type="text" value="自动化生产线装调与运维技术员" /></label>
-                  <label>来源名称<input id="jobAdminSource" type="text" value="manual_admin_import" /></label>
-                  <label>来源类型
-                    <select id="jobAdminSourceType">
+            <nav class="workspace-tabs" style="margin-bottom:12px;">
+              <button class="active" data-jg-tab="graph" type="button">当前图谱</button>
+              <button data-jg-tab="data" type="button">岗位数据</button>
+              <button data-jg-tab="review" type="button">更新审核</button>
+              <button data-jg-tab="versions" type="button">版本管理</button>
+            </nav>
+
+            <!-- Tab: 当前图谱 -->
+            <div id="jgTabGraph" class="jg-tab">
+              <div id="jobGraphDiagram" class="graph-diagram force-graph-container" style="min-height:400px;">
+                <div class="muted">加载图谱中...</div>
+              </div>
+              <div id="jobGraphLegend" style="margin-top:8px;font-size:12px;color:var(--text-secondary);"></div>
+            </div>
+
+            <!-- Tab: 岗位数据 -->
+            <div id="jgTabData" class="jg-tab" style="display:none;">
+              <div class="job-admin-grid">
+                <div class="job-admin-card">
+                  <h3>导入岗位材料</h3>
+                  <div class="job-admin-form">
+                    <label>来源名称<input id="jobAdminSource" type="text" value="manual_admin_import" /></label>
+                    <label>来源类型<select id="jobAdminSourceType">
                       <option value="teacher_material">教师/课程材料</option>
                       <option value="enterprise_official">企业官网招聘页</option>
                       <option value="job_platform">公开招聘平台</option>
                       <option value="local_file">本地授权文件</option>
-                    </select>
-                  </label>
-                  <label class="inline-check"><input id="jobAdminUseLlm" type="checkbox" /> 使用已配置 LLM 辅助抽取</label>
-                  <textarea id="jobAdminText" rows="8" placeholder="粘贴岗位 JD、企业招聘页正文或课程/标准材料。"></textarea>
-                  <div class="question-actions">
-                    <button id="ingestJobMaterial" class="primary" type="button">导入并生成提案</button>
-                    <button id="collectJobSources" type="button">运行授权来源采集</button>
-                    <button id="batchConfirmProposals" type="button">批量确认当前岗位提案</button>
+                    </select></label>
+                    <label class="inline-check"><input id="jobAdminUseLlm" type="checkbox" /> 使用已配置 LLM 辅助抽取</label>
+                    <textarea id="jobAdminText" rows="8" placeholder="粘贴岗位 JD、企业招聘页正文或课程/标准材料。"></textarea>
+                    <div class="question-actions">
+                      <button id="ingestJobMaterial" class="primary" type="button">导入并生成提案</button>
+                      <button id="collectJobSources" type="button">运行授权来源采集</button>
+                    </div>
+                    <div id="jobAdminStatus" class="muted">等待操作。</div>
                   </div>
-                  <div id="jobAdminStatus" class="muted">等待操作。</div>
+                </div>
+                <div class="job-admin-card">
+                  <h3>数据概览</h3>
+                  <div id="jobAdminSummary" class="job-admin-summary muted">加载中</div>
+                  <h3>最近岗位数据</h3>
+                  <div id="jobDataRecords" class="section-block muted">加载中</div>
                 </div>
               </div>
-              <div class="job-admin-card">
-                <h3>数据概览</h3>
-                <div id="jobAdminSummary" class="job-admin-summary muted">加载中</div>
-                <h3>最近岗位数据</h3>
-                <div id="jobDataRecords" class="section-block muted">加载中</div>
+            </div>
+
+            <!-- Tab: 更新审核 -->
+            <div id="jgTabReview" class="jg-tab" style="display:none;">
+              <div class="job-admin-card" style="margin-bottom:12px;">
+                <div class="plan-toolbar compact-toolbar">
+                  <h3>待审核图谱提案</h3>
+                  <span class="muted">确认后生成新快照；驳回只改变提案状态。</span>
+                </div>
+                <button id="batchConfirmProposals" type="button" class="btn-small" style="margin-top:8px;">批量确认当前岗位提案</button>
+                <div id="jobProposalList" class="section-block muted" style="margin-top:12px;">加载中</div>
               </div>
             </div>
-            <div class="job-admin-card">
+
+            <!-- Tab: 版本管理 -->
+            <div id="jgTabVersions" class="jg-tab" style="display:none;">
               <div class="plan-toolbar compact-toolbar">
-                <h3>待审核图谱提案</h3>
-                <span class="muted">确认后生成新快照；驳回只改变提案状态。</span>
+                <h3>图谱版本历史</h3>
+                <button id="loadVersionHistory" type="button" class="btn-small">加载版本历史</button>
               </div>
-              <div id="jobProposalList" class="section-block muted">加载中</div>
+              <div id="versionHistoryList" class="section-block muted" style="margin-top:12px;">点击加载版本历史</div>
+              <div id="versionDiffPanel" style="display:none;margin-top:12px;">
+                <div class="plan-toolbar compact-toolbar">
+                  <h3>版本比较</h3>
+                  <button id="closeVersionDiff" type="button" class="btn-small">关闭</button>
+                </div>
+                <div id="versionDiffContent" class="section-block muted"></div>
+              </div>
+              <div id="versionRollbackPanel" style="display:none;margin-top:12px;">
+                <div class="plan-toolbar compact-toolbar">
+                  <h3>回滚确认</h3>
+                  <button id="closeRollbackPanel" type="button" class="btn-small">取消</button>
+                </div>
+                <div id="versionRollbackContent" class="section-block"></div>
+              </div>
             </div>
-          </section>
-          <section id="workspaceTeacherDashboard" class="workspace-panel role-teacher" style="display:none">
+          </section><section id="workspaceTeacherDashboard" class="workspace-panel role-teacher" style="display:none">
             <div class="plan-toolbar">
               <div>
                 <h3>教师工作台</h3>
