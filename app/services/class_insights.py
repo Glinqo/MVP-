@@ -35,7 +35,7 @@ def _query_db(db_path: Path, sql: str, params=()) -> List[Dict]:
 def _get_student_sessions(job_role: str) -> List[str]:
     """获取该岗位下所有有测评记录的学生 session_id 列表。"""
     rows = _query_db(ASSESS_DB,
-        "SELECT session_id FROM assessments WHERE job_role = ? AND completed = 1",
+        "SELECT session_id FROM assessments WHERE job_role = ? AND state = 'completed'",
         (job_role,))
     return [r["session_id"] for r in rows]
 

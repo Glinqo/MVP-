@@ -55,7 +55,7 @@ def list_teacher_students(
         return {"students": [], "total": 0, "stats": {"total": 0, "assessed": 0, "not_assessed": 0}}
 
     assess_rows = _query_assess_db(
-        "SELECT session_id, job_role, state AS assess_state, completed, result_json, completed_at FROM assessments"
+        "SELECT session_id, job_role, state, result_json, completed_at FROM assessments"
     )
     assess_map = {}
     for row in assess_rows:
@@ -89,7 +89,7 @@ def list_teacher_students(
         if assess:
             overall_score = _parse_score(assess.get("result_json"))
             assess_state = assess.get("assess_state", "not_started")
-            completed = bool(assess.get("completed"))
+            completed = (assess.get("state", "") == "completed")
             completed_at = assess.get("completed_at")
 
         status = _student_status(overall_score, completed)
@@ -137,7 +137,7 @@ def get_teacher_student_detail(username: str, job_role=None):
         sess_id = DEFAULT_JOB + "-" + username
 
     assess_rows = _query_assess_db(
-        "SELECT session_id, job_role, state AS assess_state, completed, result_json, completed_at, answers_json FROM assessments WHERE session_id = ?",
+        "SELECT session_id, job_role, state, result_json, completed_at, answers_json FROM assessments WHERE session_id = ?",
         (sess_id,)
     )
     assess = assess_rows[0] if assess_rows else None
@@ -160,7 +160,7 @@ def get_teacher_student_detail(username: str, job_role=None):
                 dimension_scores = result.get("dimension_scores", {})
             except Exception:
                 pass
-        completed = bool(assess.get("completed"))
+        completed = (assess.get("state", "") == "completed")
         completed_at = assess.get("completed_at")
 
     actual_job_role = (assess and assess.get("job_role")) or user_job_role or "未选择岗位"
