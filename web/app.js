@@ -1974,22 +1974,29 @@ function workspaceTitle(panel) {
     scenario: "排故演练",
     jobAdmin: "岗位管理",
     knowledge: "知识缺口",
-    tasks: "实训任务"
+    tasks: "实训任务",
+    teacherDashboard: "教师工作台",
+    classInsights: "班级洞察",
+    studentMgmt: "学生管理",
+    teacherComments: "教学评语",
+    teacherJobGraph: "岗位图谱"
   };
   return titles[panel] || panel;
 }
 
 function setWorkspacePanel(panel) {
   state.activeWorkspace = panel;
+  // Teacher job graph reuses job admin workspace
+  var domPanel = panel === "teacherJobGraph" ? "jobAdmin" : panel;
   $("workspaceTitle").textContent = workspaceTitle(panel);
   document.querySelectorAll("[data-workspace-panel]").forEach((button) => {
     button.classList.toggle("active", button.dataset.workspacePanel === panel);
   });
   document.querySelectorAll(".workspace-panel").forEach((section) => {
-    section.classList.toggle("active", section.id === `workspace${panel.charAt(0).toUpperCase()}${panel.slice(1)}`);
+    section.classList.toggle("active", section.id === "workspace" + domPanel.charAt(0).toUpperCase() + domPanel.slice(1));
   });
   if (panel === "knowledge") { var ka = document.getElementById("knowledgeAlert"); if (ka) ka.style.display = "none"; }
-  if (panel === "jobAdmin") loadJobAdmin();
+  if (panel === "jobAdmin" || panel === "teacherJobGraph") loadJobAdmin();
   if (panel === "plan") loadTrainingPlans("staged");
   if (panel === "scenario") loadScenarios();
   // Reset scroll position when switching panels
@@ -2785,7 +2792,8 @@ var appBootStarted = false;
 var appBootPromise = null;
 
 function bootOnce() {
-  if (appBootStarted) return appBootPromise;
+
+  showRoleUI();  if (appBootStarted) return appBootPromise;
   appBootStarted = true;
   try {
     appBootPromise = typeof boot === "function"
@@ -3201,7 +3209,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // ---- End Assessment ----
 async function boot() {
-  try {
+
+  showRoleUI();  try {
     var dbg = document.getElementById("debugInfo");
     if (dbg) dbg.style.display = "none";
     const health = await api("/api/health");
@@ -3431,12 +3440,21 @@ async function doLogin() {
       }, 400);
       return;
     }
-    localStorage.setItem(userKey("mcp_identity"), "student");
-    // Switch steps
-    var loginStep = document.getElementById("landingStepLogin");
-    var identityStep = document.getElementById("landingStepIdentity");
-    if (loginStep) loginStep.classList.remove("active");
-    if (identityStep) identityStep.classList.add("active");
+    // Check server-returned role: teacher skips identity pick
+    var serverRole = (data.user && data.user.role) || "student";
+    if (serverRole === "teacher") {
+      localStorage.setItem(userKey("mcp_identity"), "teacher");
+      var loginStep2 = document.getElementById("landingStepLogin");
+      var jobStep2 = document.getElementById("landingStepJob");
+      if (loginStep2) loginStep2.classList.remove("active");
+      if (jobStep2) jobStep2.classList.add("active");
+    } else {
+      localStorage.setItem(userKey("mcp_identity"), "student");
+      var loginStep = document.getElementById("landingStepLogin");
+      var identityStep = document.getElementById("landingStepIdentity");
+      if (loginStep) loginStep.classList.remove("active");
+      if (identityStep) identityStep.classList.add("active");
+    }
   } catch (e) {
     errEl.textContent = "登录失败: " + (e.message || "网络错误");
     errEl.style.display = "block";
@@ -3472,10 +3490,10 @@ function selectJob(jobId, event) {
     if (jobName) state.jobName = jobName;
   }
 
-  // Admin bypass: no assessment, boot app directly
+  // Teacher bypass: no assessment, boot app directly
   if (identity !== "student") {
     state.selectedJobId = jobId;
-    state.sessionId = jobId + "-admin";
+    state.sessionId = jobId + "-teacher";
     state.messages = [];
     state.jobProfile = { id: jobId, role_name: state.jobName || jobId };
     const overlay = document.getElementById("landingOverlay");
@@ -3519,3 +3537,28 @@ if (typeof state !== "undefined" && state.authToken) {
   var j2 = localStorage.getItem("mcp_job_id_" + u2);
   if (j2) { state.selectedJobId = j2; state.jobName = localStorage.getItem("mcp_job_name_" + u2) || ""; if (typeof boot === "function") boot(); }
 }
+
+function showRoleUI() {
+  var identity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
+  var isTeacher = identity === "teacher";
+  // Toggle tool drawer sections
+  var studentPanels = document.querySelectorAll(".role-student");
+  var teacherPanels = document.querySelectorAll(".role-teacher");
+  for (var i = 0; i < studentPanels.length; i++) {
+    studentPanels[i].style.display = isTeacher ? "none" : "";
+  }
+  for (var i = 0; i < teacherPanels.length; i++) {
+    teacherPanels[i].style.display = isTeacher ? "" : "none";
+  }
+  // Update topbar title for teacher
+  var h1 = document.querySelector(".topbar h1");
+  if (h1) {
+    h1.textContent = isTeacher ? "机电岗位培训 AI · 教师端" : "机电岗位培训 AI";
+  }
+  // Update chat placeholder for teacher
+  var chatInput = document.getElementById("chatInput");
+  if (chatInput && isTeacher) {
+    chatInput.placeholder = "直接问：本班现在最薄弱的三个能力是什么？";
+  }
+}
+

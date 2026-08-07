@@ -54,7 +54,7 @@ from app.services.device_state_handler import record_device_state  # noqa: E402
 
 from app.services.initial_assessment import start_assessment as ia_start, submit_answer as ia_submit_answer, get_assessment_summary as ia_get_summary  # noqa: E402
 from app.services.action_planner import plan_initial_learning  # noqa: E402
-from app.services.auth import login, get_user, save_identity
+from app.services.auth import login, get_user, save_identity, teacher_required
 from app.middleware import find_authed_user  # noqa: E402
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
@@ -234,6 +234,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json({"query": query, "results": search_knowledge(query)})
 
         if path == "/api/teacher/summary":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
             return self.send_json(teacher_summary())
 
         if path == "/api/graph/job/proposals/pending":
@@ -408,10 +411,18 @@ class MVPHandler(BaseHTTPRequestHandler):
                 if not user:
                     return self.send_error_json(401, "请先登录")
                 return self.send_json({"ok": True, "user": user})
+            if path == "/api/user/role":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
+                return self.send_json({"ok": True, "role": user.get("role", "student"), "username": user.get("username", "")})
             if path == "/api/identity":
-                if not find_authed_user(self):
-                    return self.send_error_json(401, "????")
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
                 result = save_identity(payload.get("username", ""), payload.get("identity", "student"), payload.get("job_role", ""))
+                # Always include the server-side role from JWT
+                result["role"] = user.get("role", "student")
                 return self.send_json(result)
 
             if path == "/api/chat/start":
@@ -449,6 +460,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/graph/job/proposals":
                 return self.send_json(generate_job_graph_proposals(payload))
             if path == "/api/job-data/collect":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 from scripts.job_intelligence_update import DEFAULT_RUN_LOG, DEFAULT_SOURCES, run_update
 
                 def optional_int(value):
@@ -493,9 +507,15 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/graph/job/proposals/confirm-sqlite-batch":
                 return self.send_json(confirm_sqlite_job_graph_proposals(payload))
             if path == "/api/graph/job/proposals/confirm":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 result = confirm_job_graph_proposals(payload)
                 return self.send_json({**result, "job_graph": build_job_ability_graph()})
             if path == "/api/graph/job/versions/rollback":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 return self.send_json(version_rollback(payload.get("version"), payload.get("job_role")))
             if path == "/api/assist":
                 return self.send_json(assist(payload))

@@ -63,15 +63,15 @@
                 </svg>
               </div>
             </button>
-            <button class="landing-card" data-identity="admin" onclick="selectIdentity('admin')">
+            <button class="landing-card" data-identity="teacher" onclick="selectIdentity('teacher')">
               <div class="landing-card-icon">
                 <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>
               </div>
               <div class="landing-card-body">
-                <strong>管理入口</strong>
-                <span>管理岗位图谱、查看教学摘要与反馈</span>
+                <strong>教师入口</strong>
+                <span>教学管理，班级洞察，岗位图谱治理</span>
               </div>
               <div class="landing-card-arrow">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -353,7 +353,7 @@
         </details>
 
 
-        <section class="launcher-panel">
+        <section class="launcher-panel role-student">
           <h2>功能工作台</h2>
           <div class="tool-launcher">
             <button data-open-tool="knowledge" type="button" style="position:relative">
@@ -365,11 +365,6 @@
               <strong>能力图谱</strong>
               <span>岗位需求与个人能力可视化</span>
             </button>
-            <button data-open-tool="jobAdmin" type="button">
-              <strong>岗位数据</strong>
-              <span>JD 导入与图谱提案审核</span>
-            </button>
-
             <button data-open-tool="plan" type="button">
               <strong>个人培养方案</strong>
               <span>分阶段补强计划</span>
@@ -383,7 +378,32 @@
               <span>8 题确定性评分</span>
             </button>
           </div>
+        </section>
+
+        <section class="launcher-panel role-teacher" style="display:none">
+          <h2>教师工作台</h2>
+          <div class="tool-launcher">
+            <button data-open-tool="teacherDashboard" type="button">
+              <strong>教师工作台</strong>
+              <span>今日关注、待处理事项</span>
             </button>
+            <button data-open-tool="classInsights" type="button">
+              <strong>班级洞察</strong>
+              <span>平均能力图谱与共性问题</span>
+            </button>
+            <button data-open-tool="studentMgmt" type="button">
+              <strong>学生管理</strong>
+              <span>学生列表、画像与学习证据</span>
+            </button>
+            <button data-open-tool="teacherComments" type="button">
+              <strong>教学评语</strong>
+              <span>AI 撰写、审核与发布</span>
+            </button>
+            <button data-open-tool="teacherJobGraph" type="button">
+              <strong>岗位图谱</strong>
+              <span>岗位数据、提案审核、版本治理</span>
+            </button>
+          </div>
         </section>
 
         <div class="feedback-row">
@@ -408,7 +428,7 @@
         <nav class="workspace-tabs" aria-label="功能工作台">
           <button class="active" data-workspace-panel="knowledge" type="button">知识缺口</button>
           <button data-workspace-panel="graph" type="button">能力图谱</button>
-          <button data-workspace-panel="jobAdmin" type="button">岗位数据</button>
+          <button data-workspace-panel="jobAdmin" type="button" class="role-teacher" style="display:none">岗位数据</button>
           <button data-workspace-panel="plan" type="button">培养方案</button>
           <button data-workspace-panel="scenario" type="button">角色扮演</button>
           <button data-workspace-panel="quiz" type="button">自测</button>
@@ -434,7 +454,16 @@
             </div>
           </section>
 
-          <section id="workspaceJobAdmin" class="workspace-panel">
+          <section id="workspaceJobAdmin" class="workspace-panel role-teacher" style="display:none">
+
+          <section id="workspaceTeacherPlaceholder" class="workspace-panel active role-teacher" style="display:none">
+            <div class="plan-toolbar">
+              <div>
+                <h3>教师工作台</h3>
+                <p class="muted">该功能将在后续阶段开放。教师工作台将展示今日关注、待处理评语、共性问题提醒等。</p>
+              </div>
+            </div>
+          </section>
             <div class="plan-toolbar">
               <div>
                 <h3>岗位数据导入与提案审核</h3>
@@ -479,6 +508,41 @@
                 <span class="muted">确认后生成新快照；驳回只改变提案状态。</span>
               </div>
               <div id="jobProposalList" class="section-block muted">加载中</div>
+            </div>
+          </section>
+          <section id="workspaceTeacherDashboard" class="workspace-panel role-teacher" style="display:none">
+            <div class="plan-toolbar">
+              <div>
+                <h3>教师工作台</h3>
+                <p class="muted">该功能将在后续阶段开放。教师工作台将展示今日关注、待处理评语、班级概览等。</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="workspaceClassInsights" class="workspace-panel role-teacher" style="display:none">
+            <div class="plan-toolbar">
+              <div>
+                <h3>班级洞察</h3>
+                <p class="muted">该功能将在后续阶段开放。班级洞察将展示平均能力图谱和共性问题。</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="workspaceStudentMgmt" class="workspace-panel role-teacher" style="display:none">
+            <div class="plan-toolbar">
+              <div>
+                <h3>学生管理</h3>
+                <p class="muted">该功能将在后续阶段开放。学生管理将支持学生列表、筛选和个人画像查看。</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="workspaceTeacherComments" class="workspace-panel role-teacher" style="display:none">
+            <div class="plan-toolbar">
+              <div>
+                <h3>教学评语</h3>
+                <p class="muted">该功能将在后续阶段开放。教学评语将支持 AI 撰写、教师审核和发布。</p>
+              </div>
             </div>
           </section>
           <section id="workspaceKnowledge" class="workspace-panel active">
