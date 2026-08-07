@@ -3419,13 +3419,6 @@ function selectJob(jobId, event) {
     if (typeof startAssessment === "function") startAssessment(jobId);
   }, 400);
 }
-    startAssessment(jobId);
-  });
-}
-
-  });
-}
-
 function toggleDrawer() {
   document.querySelector(".chat-layout").classList.toggle("drawer-collapsed");
 }
