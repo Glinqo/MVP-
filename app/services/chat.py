@@ -75,7 +75,8 @@ def welcome_questions():
 
 def chat_start(payload=None):
     payload = payload or {}
-    profile = primary_job_profile()
+    job_role = payload.get("job_role", "")
+    profile = job_profile_by_id(job_role) if job_role else primary_job_profile()
     role_name = profile.get("role_name", "自动化生产线装调与运维技术员")
     learner_stage = profile.get("learner_stage", "职业新人")
     focus_task = profile.get("mvp_focus_task", "传感器 NPN/PNP 接线与 PLC 输入信号排查")
@@ -283,7 +284,8 @@ def chat_message(payload):
     message = payload.get("message") or payload.get("user_input") or ""
     context = payload.get("context", {}) or {}
     session_id = payload.get("session_id")
-    profile = primary_job_profile()
+    job_role = payload.get("target_job_profile_id", "") or payload.get("job_role", "")
+    profile = job_profile_by_id(job_role) if job_role else primary_job_profile()
     learner_context = learner_context_pack(session_id)
 
     # ---- Phase 2 Step 0: Record user message ----
@@ -623,3 +625,4 @@ def _finalize(result, session_id):
         result["student_graph"] = build_student_ability_graph(session_id)
         result["learner_context"] = learner_context_pack(session_id)
     return result
+from .data_loader import job_profile_by_id, primary_job_profile

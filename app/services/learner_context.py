@@ -153,9 +153,12 @@ def bootstrap_questions(context_pack):
 
 def student_bootstrap(session_id=None):
     context_pack = learner_context_pack(session_id)
+    record = load_session_record(session_id) if session_id else {}
+    job_role = record.get("metadata", {}).get("job_role", "") if isinstance(record, dict) else ""
+    profile = job_profile_by_id(job_role) if job_role else primary_job_profile()
     return {
         "session_id": context_pack.get("session_id"),
-        "job_profile": primary_job_profile(),
+        "job_profile": profile,
         "learner_context": context_pack,
         "student_graph": build_student_ability_graph(context_pack.get("session_id")),
         "suggested_questions": bootstrap_questions(context_pack),
@@ -167,3 +170,4 @@ def student_bootstrap(session_id=None):
         ],
         "source": "borrowed_feature: Inno Agent learner context pack; local session graph",
     }
+from .data_loader import job_profile_by_id, load_data, primary_job_profile
