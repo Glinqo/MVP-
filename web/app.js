@@ -2816,6 +2816,7 @@ var assessmentState = {
 };
 
 function selectedJobRole() {
+  if (typeof assessmentState === "undefined") return "";
   return assessmentState.jobRole
     || state.selectedJobId
     || localStorage.getItem("mcp_job_id")
