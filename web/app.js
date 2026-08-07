@@ -40,7 +40,7 @@ const DEFAULT_JOB_ROLE = "自动化生产线装调与运维技术员";
 // ── Persistence helpers ──────────────────────────────────────────
 function userKey(key) {
   if (typeof state === "undefined") return key;
-  var uname = (state.currentUser && state.currentUser.username) || "";
+  var uname = localStorage.getItem("mcp_login_user") || "";
   return uname ? (key + "_" + uname) : key;
 }
 
@@ -77,15 +77,6 @@ function createNewChat() {
   renderMessages();
 }
 
-function switchAccount() {
-  // Clear auth and reload to show login page
-  localStorage.removeItem("mcp_auth_token");
-  localStorage.removeItem("mcp_session_id");
-  localStorage.removeItem(userKey("mcp_identity")); localStorage.removeItem("mcp_identity");
-  state.authToken = null;
-  state.currentUser = null;
-  location.reload();
-}
 
 const $_raw = (id) => document.getElementById(id);
 const $ = (id) => {
@@ -3398,131 +3389,45 @@ function stageColor(idx){var c=["#38bdf8","#818cf8","#34d399","#fbbf24","#f472b6
 
 // ── Landing / Identity & Job Selection ──
 
-async function doLogin() {
-  var username = document.getElementById("loginUsername");
-  var password = document.getElementById("loginPassword");
-  var errEl = document.getElementById("loginError");
-  if (!username || !password || !errEl) { alert("页面加载异常，请刷新"); return; }
-  var u = username.value.trim();
-  var p = password.value.trim();
-  if (!u) { errEl.textContent = "请输入用户名"; errEl.style.display = "block"; return; }
-  if (!p) { errEl.textContent = "请输入密码"; errEl.style.display = "block"; return; }
-  errEl.style.display = "none";
-  try {
-    var resp = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: u, password: p })
-    });
-    var data = await resp.json();
-    if (!data.ok) { errEl.textContent = data.error; errEl.style.display = "block"; return; }
-    state.currentUser = data.user;
-    localStorage.setItem("mcp_auth_token", data.token);
-    localStorage.setItem("mcp_login_user", data.user.username);
-    // If identity already chosen, skip to main page
-    if (data.user.job_role) {
-      localStorage.setItem("mcp_job_id", data.user.job_role);
-      localStorage.setItem("mcp_job_id_" + data.user.username, data.user.job_role);
-      localStorage.setItem(userKey("mcp_identity"), data.user.identity || "student");
-      state.selectedJobId = data.user.job_role;
-      state.jobName = data.user.job_role;
-      state.sessionId = data.user.job_role + "-s";
-      state.messages = [];
-      state.jobProfile = { id: data.user.job_role, role_name: data.user.job_role };
-      var overlay = document.getElementById("landingOverlay");
-      overlay.classList.add("fade-out");
-      setTimeout(function() {
-        overlay.style.display = "none";
-        document.body.style.overflow = "";
-        boot();
-      }, 400);
-      return;
-    }
-    localStorage.setItem(userKey("mcp_identity"), "student");
-    // Switch steps
-    var loginStep = document.getElementById("landingStepLogin");
-    var identityStep = document.getElementById("landingStepIdentity");
-    if (loginStep) loginStep.classList.remove("active");
-    if (identityStep) identityStep.classList.add("active");
-  } catch (e) {
-    errEl.textContent = "登录失败: " + (e.message || "网络错误");
-    errEl.style.display = "block";
-  }
-}
 
-
-function selectIdentity(identity) {
-  localStorage.setItem(userKey("mcp_identity"), identity);
-  document.getElementById("landingStepIdentity").classList.remove("active");
-  document.getElementById("landingStepJob").classList.add("active");
-}
-
-function backToIdentity() {
-  document.getElementById("landingStepJob").classList.remove("active");
-  document.getElementById("landingStepIdentity").classList.add("active");
-}
 
 function selectJob(jobId, event) {
-  var identity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "";
+  // No-auth job selection - set all keys and proceed
+  var username = "demo";
   localStorage.setItem("mcp_job_id", jobId);
-  var loginUser = localStorage.getItem("mcp_login_user") || "";
-  localStorage.setItem("mcp_job_id_" + loginUser, jobId);
-  // Persist identity to server
-  var identity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
-  fetch("/api/identity", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: loginUser, identity: identity, job_role: jobId })
-  }).catch(function() { /* non-blocking */ });
+  localStorage.setItem("mcp_job_id_" + username, jobId);
+  localStorage.setItem("mcp_login_user", username);
   if (event && event.currentTarget) {
     var jobName = event.currentTarget.getAttribute("data-job-name");
-    if (jobName) state.jobName = jobName;
+    if (jobName) {
+      localStorage.setItem("mcp_job_name", jobName);
+      localStorage.setItem("mcp_job_name_" + username, jobName);
+      state.jobName = jobName;
+    }
   }
-
-  // Admin bypass: no assessment, boot app directly
-  if (identity !== "student") {
-    state.selectedJobId = jobId;
-    state.sessionId = jobId + "-admin";
-    state.messages = [];
-    state.jobProfile = { id: jobId, role_name: state.jobName || jobId };
-    const overlay = document.getElementById("landingOverlay");
-    overlay.classList.add("fade-out");
-    setTimeout(function() {
-      overlay.style.display = "none";
-      document.body.style.overflow = "";
-      bootOnce();
-    }, 400);
-    return;
-  }
-
-  // Student: use assessment flow
   state.selectedJobId = jobId;
   state.sessionId = "demo-" + Date.now();
   localStorage.setItem("mcp_session_id", state.sessionId);
   state.messages = [];
   state.jobProfile = { id: jobId, role_name: state.jobName || jobId };
-  dismissLanding().then(function() {
+  // Dismiss landing and start
+  var overlay = document.getElementById("landingOverlay");
+  overlay.classList.add("fade-out");
+  setTimeout(function() {
+    overlay.style.display = "none";
+    document.body.style.overflow = "";
+    if (typeof startAssessment === "function") startAssessment(jobId);
+  }, 400);
+}
     startAssessment(jobId);
   });
 }
 
-function dismissLanding() {
-  return new Promise(function(resolve) {
-    var overlay = document.getElementById("landingOverlay");
-    overlay.classList.add("fade-out");
-    setTimeout(function() {
-      overlay.style.display = "none";
-      document.body.style.overflow = "";
-      resolve();
-    }, 400);
   });
 }
 
 function toggleDrawer() {
   document.querySelector(".chat-layout").classList.toggle("drawer-collapsed");
 }
-if (typeof state !== "undefined" && state.authToken) {
-  var u2 = localStorage.getItem("mcp_login_user") || "";
-  var j2 = localStorage.getItem("mcp_job_id_" + u2);
-  if (j2) { state.selectedJobId = j2; state.jobName = localStorage.getItem("mcp_job_name_" + u2) || ""; if (typeof boot === "function") boot(); }
-}
+// No-auth: always boot if job selected
+{ var u2 = localStorage.getItem("mcp_login_user") || ""; var j2 = localStorage.getItem("mcp_job_id_" + u2); if (j2) { state.selectedJobId = j2; state.jobName = localStorage.getItem("mcp_job_name_" + u2) || ""; if (typeof boot === "function") boot(); } }

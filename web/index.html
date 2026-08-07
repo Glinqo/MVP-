@@ -19,78 +19,10 @@
       <div class="landing-bg"></div>
   <div class="landing-container">
 
-        <!-- Step 1: Identity -->
-        <div id="landingStepLogin" class="landing-step active">
+        <!-- Job Position -->
+        <div id="landingStepJob" class="landing-step active">
           <div class="landing-header">
-            <h1>机电岗位培训 AI</h1>
-            <p class="landing-subtitle">Mechatronics Training AI</p>
-          </div>
-          <div class="landing-cards" style="flex-direction:column;max-width:400px;margin:0 auto">
-            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;text-align:left">
-              <strong style="font-size:1.1rem;display:block;margin-bottom:16px">账号登录</strong>
-              <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:4px">用户名 (000-999)</label>
-              <input id="loginUsername" type="text" placeholder="例如 000" style="margin-bottom:12px;font-size:1rem;padding:10px 14px" maxlength="3" inputmode="numeric" />
-              <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:4px">密码</label>
-              <input id="loginPassword" type="password" placeholder="" style="margin-bottom:16px;font-size:1rem;padding:10px 14px" />
-              <button type="button" onclick="doLogin()" style="width:100%;background:#0f766e;color:#fff;border:none;border-radius:10px;padding:12px;font-size:1rem;font-weight:600;cursor:pointer">登录</button>
-              <p style="font-size:0.75rem;color:#64748b;margin:4px 0 0">密码默认 123456</p>
-              <p id="loginError" style="color:#ef4444;font-size:0.8rem;margin:8px 0 0;display:none"></p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 2: Job Selection (unchanged) --><!-- Step 2: Identity Selection -->
-        <div id="landingStepIdentity" class="landing-step">
-          <div class="landing-header">
-            <h2>选择身份</h2>
-            <p class="landing-subtitle">登录成功，请选择你的身份</p>
-          </div>
-          <div class="landing-cards">
-            <button class="landing-card" data-identity="student" onclick="selectIdentity('student')">
-              <div class="landing-card-icon">
-                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                  <path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/>
-                </svg>
-              </div>
-              <div class="landing-card-body">
-                <strong>学生入口</strong>
-                <span>进入学习模式，完成岗位实训与能力评估</span>
-              </div>
-              <div class="landing-card-arrow">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
-                </svg>
-              </div>
-            </button>
-            <button class="landing-card" data-identity="admin" onclick="selectIdentity('admin')">
-              <div class="landing-card-icon">
-                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                </svg>
-              </div>
-              <div class="landing-card-body">
-                <strong>管理入口</strong>
-                <span>管理岗位图谱、查看教学摘要与反馈</span>
-              </div>
-              <div class="landing-card-arrow">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
-                </svg>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <!-- Step 3: Job Position -->
-        <div id="landingStepJob" class="landing-step">
-          <div class="landing-header">
-            <button class="landing-back" onclick="backToIdentity()">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m15 18-6-6 6-6"/>
-              </svg>
-              返回
-            </button>
+            
             <h2>选择目标岗位</h2>
             <p class="landing-subtitle">当前为你匹配以下岗位能力图谱</p>
           </div>
@@ -322,7 +254,7 @@
         <h1>机电岗位培训 AI</h1>
       </div>
       <div class="top-actions">
-        <button onclick="switchAccount()" title="切换账号">切换账号</button>
+        
         <div class="status" id="healthStatus">连接中</div>
         <div class="status" id="llmStatus">模型检测中</div>
       </div>
@@ -570,92 +502,14 @@ window.addEventListener("error", function(e) {
 </script>
 <script src="/app.js?v=20260804"></script>
   
-<script>
-function myKey(k) { var u = localStorage.getItem("mcp_login_user")||""; return u?k+"_"+u:k; }
 
-async function doLogin() {
-  var u = document.getElementById("loginUsername"), p = document.getElementById("loginPassword"), e = document.getElementById("loginError");
-  if (!u||!p||!e) return;
-  var un = u.value.trim(), pw = p.value.trim();
-  if (!un) { e.textContent = "请输入用户名"; e.style.display = "block"; return; }
-  if (!pw) { e.textContent = "请输入密码"; e.style.display = "block"; return; }
-  e.style.display = "none";
-  try {
-    var r = await fetch("/api/auth/login", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({username:un,password:pw}) });
-    var d = await r.json();
-    if (!d.ok) { e.textContent = d.error; e.style.display = "block"; return; }
-    localStorage.setItem("mcp_auth_token", d.token);
-    localStorage.setItem("mcp_login_user", d.user.username);
-    var prevJob = localStorage.getItem(myKey("mcp_job_id"));
-    if (prevJob) {
-      localStorage.setItem("mcp_session_id", d.user.username + "-session");
-      location.reload();
-      return;
-    }
-    var ls = document.getElementById("landingStepLogin");
-    var is = document.getElementById("landingStepIdentity");
-    if (ls) ls.classList.remove("active");
-    if (is) is.classList.add("active");
-  } catch(x) { e.textContent = "登录失败: " + (x.message||"网络错误"); e.style.display = "block"; }
-}
-
-function selectIdentity(identity) {
-  localStorage.setItem(myKey("mcp_identity"), identity);
-  document.getElementById("landingStepIdentity").classList.remove("active");
-  document.getElementById("landingStepJob").classList.add("active");
-}
-
-function selectJob(jobId, event) {
-  var identity = localStorage.getItem(myKey("mcp_identity")) || "";
-  var jobName = event && event.currentTarget ? event.currentTarget.getAttribute("data-job-name") || "" : "";
-  localStorage.setItem(myKey("mcp_job_id"), jobId);
-  localStorage.setItem(myKey("mcp_job_name"), jobName);
-  var un = localStorage.getItem("mcp_login_user") || "000";
-  localStorage.setItem("mcp_session_id", un + "-session");
-  location.reload();
-}
-
-function dismissLanding() {
-  return new Promise(function(resolve) {
-    var o = document.getElementById("landingOverlay");
-    o.classList.add("fade-out");
-    setTimeout(function() { o.style.display = "none"; document.body.style.overflow = ""; resolve(); }, 400);
-  });
-}
-
-function switchAccount() {
-  localStorage.removeItem("mcp_auth_token");
-  localStorage.removeItem("mcp_login_user");
-  location.reload();
-}
-</script>
 
 
 <script>
+// Always show job selection on page load
 (function() {
-  var t = localStorage.getItem("mcp_auth_token");
-  var u = localStorage.getItem("mcp_login_user");
-  if (t && u) {
-    var pj = localStorage.getItem("mcp_job_id_" + u);
-    if (pj) {
-      localStorage.setItem("mcp_session_id", u + "-session");
-      var lo = document.getElementById("landingOverlay");
-      if (lo) { lo.style.display = "none"; }
-      document.body.style.overflow = "";
-      // Boot after all scripts loaded
-      window.addEventListener("load", function() {
-        if (typeof state !== "undefined") {
-          state.selectedJobId = pj;
-          state.jobName = localStorage.getItem("mcp_job_name_" + u) || "";
-        }
-        if (typeof boot === "function") { boot(); }
-        if (typeof startAssessment === "function") {
-          var s = localStorage.getItem("mcp_assess_status") || "";
-          if (s !== "completed") { startAssessment(pj); }
-        }
-      });
-    }
-  }
+  var lo = document.getElementById("landingOverlay");
+  // job overlay is visible by default
 })();
 </script>
 </body>
