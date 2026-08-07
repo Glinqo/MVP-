@@ -58,6 +58,7 @@ from app.services.auth import login, get_user, save_identity, teacher_required
 from app.middleware import find_authed_user  # noqa: E402
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.teacher_students import list_teacher_students, get_teacher_student_detail  # noqa: E402
+from app.services.class_insights import get_class_ability_graph, get_common_issues, get_class_overview  # noqa: E402
 from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
 from app.services.transfer_engine import suggest_transfer_tasks  # noqa: E402
 
@@ -286,6 +287,35 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(list_sessions())
 
         
+        if path == "/api/teacher/class/ability-graph":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            query = parse_qs(parsed.query)
+            return self.send_json(get_class_ability_graph(
+                job_role=query.get("job_role", [None])[0],
+                ability_id=query.get("ability_id", [None])[0],
+            ))
+
+        if path == "/api/teacher/class/common-issues":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            query = parse_qs(parsed.query)
+            return self.send_json({"issues": get_common_issues(
+                job_role=query.get("job_role", [None])[0],
+                ability_id=query.get("ability_id", [None])[0],
+            )})
+
+        if path == "/api/teacher/class/overview":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            query = parse_qs(parsed.query)
+            return self.send_json(get_class_overview(
+                job_role=query.get("job_role", [None])[0],
+            ))
+
         if path == "/api/teacher/students":
             user = find_authed_user(self)
             if not user or not teacher_required(user):
