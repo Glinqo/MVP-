@@ -2707,19 +2707,36 @@ async function sendChat(message) {
       .filter((item) => item.role === "user" || item.role === "assistant")
       .slice(-8)
       .map((item) => ({ role: item.role, content: item.content }));
-    const data = await api("/api/chat/message", {
-      method: "POST",
-      body: JSON.stringify({
-        session_id: state.sessionId,
-        message: text,
-        learner_role: "职业新人",
-        job_role: state.jobProfile?.id,
-        target_job_profile_id: state.jobProfile?.id,
-        history,
-        context: collectContext()
-      })
-    });
-    applyChatResult(data);
+    // Route: teacher -> AI assistant, student -> normal chat
+    var identity2 = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
+    var isTeacher2 = identity2 === "teacher";
+    if (isTeacher2) {
+      var data = await api("/api/teacher/assistant/message", {
+        method: "POST",
+        body: JSON.stringify({
+          message: text,
+          job_role: state.jobProfile?.id,
+          history: history,
+          ui_context: state.uiContext || {},
+          context: state.teacherContext || {}
+        })
+      });
+      applyTeacherChatResult(data, text);
+    } else {
+      var data = await api("/api/chat/message", {
+        method: "POST",
+        body: JSON.stringify({
+          session_id: state.sessionId,
+          message: text,
+          learner_role: "职业新人",
+          job_role: state.jobProfile?.id,
+          target_job_profile_id: state.jobProfile?.id,
+          history,
+          context: collectContext()
+        })
+      });
+      applyChatResult(data);
+    }
   } catch (error) {
     addMessage("assistant", `请求失败：${error.message}`);
   } finally {
@@ -3558,10 +3575,11 @@ function showRoleUI() {
   if (h1) {
     h1.textContent = isTeacher ? "机电岗位培训 AI · 教师端" : "机电岗位培训 AI";
   }
-  // Update chat placeholder for teacher
+  // Update chat for teacher
   var chatInput = document.getElementById("chatInput");
   if (chatInput && isTeacher) {
     chatInput.placeholder = "直接问：本班现在最薄弱的三个能力是什么？";
+    setTeacherWelcome();
   }
 }
 
@@ -4194,4 +4212,120 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("commentDetailPanel").style.display = "none";
   });
 });
+
+// ── 阶段五：AI 教学助教 ──
+
+function applyTeacherChatResult(data, userMsg) {
+  var answer = data.answer || "";
+  var evidence = data.evidence || [];
+  var dataCards = data.data_cards || [];
+  var actions = data.actions || [];
+  var contextUpdate = data.context_update || {};
+
+  // Store context for next messages
+  state.teacherContext = state.teacherContext || {};
+  for (var k in contextUpdate) {
+    if (contextUpdate.hasOwnProperty(k)) state.teacherContext[k] = contextUpdate[k];
+  }
+
+  var meta = { evidence: evidence, data_cards: dataCards, actions: actions, intent: data.intent };
+  addTeacherMessage("assistant", answer, meta);
+}
+
+function addTeacherMessage(role, content, meta) {
+  if (typeof addMessage !== "function") return;
+  addMessage(role, content, meta);
+}
+
+// Override addMessage to render teacher AI actions
+var _origAddMessage = addMessage;
+addMessage = function(role, content, meta) {
+  _origAddMessage(role, content, meta);
+  // After the message is rendered, attach action buttons to the last message
+  setTimeout(function() {
+    var actions = meta && meta.actions;
+    var messages = document.getElementById("chatMessages");
+    if (!messages || !actions || !actions.length) return;
+    var lastMsg = messages.lastElementChild;
+    if (!lastMsg) return;
+    // Find or create actions container
+    var existing = lastMsg.querySelector(".ai-actions-row");
+    if (existing) existing.remove();
+    var html = '<div class="ai-actions-row" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">';
+    for (var i = 0; i < actions.length; i++) {
+      var a = actions[i];
+      if (!a) continue;
+      html += '<button type="button" class="btn-small ai-action-btn" data-action-type="' + escapeHtml(a.type || "") + '"';
+      if (a.module) html += ' data-action-module="' + escapeHtml(a.module) + '"';
+      if (a.view) html += ' data-action-view="' + escapeHtml(a.view) + '"';
+      if (a.student_id) html += ' data-action-student="' + escapeHtml(a.student_id) + '"';
+      if (a.comment_id) html += ' data-action-comment="' + escapeHtml(String(a.comment_id)) + '"';
+      html += '>' + escapeHtml(a.label || a.type) + '</button>';
+    }
+    html += '</div>';
+    var body = lastMsg.querySelector(".message-body");
+    if (body) body.insertAdjacentHTML("beforeend", html);
+  }, 100);
+};
+
+// Attach action click handlers
+document.addEventListener("click", function(e) {
+  var btn = e.target.closest(".ai-action-btn");
+  if (!btn) return;
+  var type = btn.dataset.actionType;
+  var module = btn.dataset.actionModule;
+  var view = btn.dataset.actionView;
+  var studentId = btn.dataset.actionStudent;
+  var commentId = btn.dataset.actionComment;
+
+  if (type === "navigate" && module && typeof openWorkspace === "function") {
+    openWorkspace(module);
+  }
+  if (type === "open_student" && studentId && typeof showStudentDetail === "function") {
+    if (typeof openWorkspace === "function") openWorkspace("studentMgmt");
+    setTimeout(function() { showStudentDetail(studentId); }, 500);
+  }
+  if (type === "generate_comment" && studentId) {
+    fetch("/api/teacher/comments/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ student_id: studentId })
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      if (d.ok) { addMessage("assistant", "已为 " + studentId + " 生成评语草稿。"); }
+      else { addMessage("assistant", "生成失败: " + (d.error || "未知错误")); }
+    });
+  }
+  if (type === "open_comment" && commentId && typeof showCommentDetail === "function") {
+    if (typeof openWorkspace === "function") openWorkspace("teacherComments");
+    setTimeout(function() { showCommentDetail(parseInt(commentId)); }, 500);
+  }
+});
+
+// Teacher welcome message
+function setTeacherWelcome() {
+  state.messages = state.messages || [];
+  if (state.messages.length === 0) {
+    addMessage("assistant", "我是 AI 教学助教。可以帮你：快速查看班级学情、定位学生问题、发现共性问题、总结学习证据，并协助生成教师评语。请直接问我问题，例如：\u201C本班目前最薄弱的能力是什么？\u201D");
+  }
+  // Set teacher suggested questions
+  var sq = document.getElementById("suggestedQuestions");
+  if (sq) {
+    sq.innerHTML = '<button type="button" onclick="sendChat(\u2018本班目前最薄弱的能力是什么？\u2019)">本班薄弱能力</button>' +
+      '<button type="button" onclick="sendChat(\u2018有哪些共性问题？\u2019)">共性问题</button>' +
+      '<button type="button" onclick="sendChat(\u2018查看待审核评语\u2019)">待审核评语</button>' +
+      '<button type="button" onclick="sendChat(\u2018当前岗位有多少待审核提案？\u2019)">岗位提案</button>';
+  }
+}
+
+// UI Context helper
+function setUIContext(module, view, data) {
+  state.uiContext = { module: module, view: view };
+  if (data) {
+    if (data.job_role) state.uiContext.job_role = data.job_role;
+    if (data.ability_id) state.uiContext.ability_id = data.ability_id;
+    if (data.student_id) state.uiContext.student_id = data.student_id;
+    if (data.issue_id) state.uiContext.issue_id = data.issue_id;
+    if (data.comment_id) state.uiContext.comment_id = data.comment_id;
+  }
+}
 

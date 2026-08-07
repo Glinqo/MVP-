@@ -60,6 +60,7 @@ from app.services.student_assessment_report import list_student_sessions, genera
 from app.services.teacher_students import list_teacher_students, get_teacher_student_detail  # noqa: E402
 from app.services.class_insights import get_class_ability_graph, get_common_issues, get_class_overview  # noqa: E402
 from app.services.teacher_comments import list_comments, get_comment, save_comment, review_comment, publish_comment, generate_comment, generate_comments_batch, review_comments_batch, publish_comments_batch, get_student_published_comments  # noqa: E402
+from app.services.teacher_ai import handle_teacher_message  # noqa: E402
 from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
 from app.services.transfer_engine import suggest_transfer_tasks  # noqa: E402
 
@@ -483,6 +484,20 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(list_conversation_sessions(job_role=job_role))
                 job_role = query_params.get("job_role", [None])[0]
                 return self.send_json(list_conversation_sessions(job_role=job_role))
+            # ---- Teacher AI Assistant (Stage 5) ----
+            if path == "/api/teacher/assistant/message":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                return self.send_json(handle_teacher_message(
+                    message=payload.get("message", ""),
+                    job_role=payload.get("job_role"),
+                    teacher_id=str(user.get("id", "")),
+                    history=payload.get("history", []),
+                    ui_context=payload.get("ui_context"),
+                    context=payload.get("context"),
+                ))
+
             # ---- Teacher Comments (Stage 4) ----
             if path == "/api/teacher/comments/generate":
                 user = find_authed_user(self)
