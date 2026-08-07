@@ -57,6 +57,7 @@ from app.services.action_planner import plan_initial_learning  # noqa: E402
 from app.services.auth import login, get_user, save_identity, teacher_required
 from app.middleware import find_authed_user  # noqa: E402
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
+from app.services.teacher_students import list_teacher_students, get_teacher_student_detail  # noqa: E402
 from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
 from app.services.transfer_engine import suggest_transfer_tasks  # noqa: E402
 
@@ -285,6 +286,28 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(list_sessions())
 
         
+        if path == "/api/teacher/students":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            query = parse_qs(parsed.query)
+            return self.send_json(list_teacher_students(
+                job_role=query.get("job_role", [None])[0],
+                search=query.get("search", [None])[0],
+                has_assessment=query.get("has_assessment", [None])[0],
+            ))
+
+        if path.startswith("/api/teacher/students/") and path != "/api/teacher/students/assessments" and path != "/api/teacher/students/assessment":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            student_id = path[len("/api/teacher/students/"):]
+            query = parse_qs(parsed.query)
+            return self.send_json(get_teacher_student_detail(
+                student_id,
+                job_role=query.get("job_role", [None])[0],
+            ))
+
         if path == "/api/teacher/students/assessments":
             return self.send_json(list_student_sessions())
 

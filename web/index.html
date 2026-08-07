@@ -528,12 +528,38 @@
             </div>
           </section>
 
-          <section id="workspaceStudentMgmt" class="workspace-panel role-teacher" style="display:none">
+          <section id="workspaceStudentMgmt" class="workspace-panel active role-teacher" style="display:none">
             <div class="plan-toolbar">
               <div>
                 <h3>学生管理</h3>
-                <p class="muted">该功能将在后续阶段开放。学生管理将支持学生列表、筛选和个人画像查看。</p>
+                <p class="muted">查看、搜索和管理学生</p>
               </div>
+            </div>
+            <div class="student-mgmt-toolbar">
+              <div class="search-row">
+                <input id="studentSearch" type="text" placeholder="搜索学生账号或姓名..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);" />
+                <select id="studentJobFilter" style="padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);">
+                  <option value="">所有岗位</option>
+                  <option value="automation_line_commissioning_maintenance_newcomer">自动化生产线</option>
+                </select>
+                <select id="studentAssessFilter" style="padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);">
+                  <option value="">所有状态</option>
+                  <option value="true">已测评</option>
+                  <option value="false">未测评</option>
+                </select>
+                <button id="refreshStudentList" type="button" style="padding:8px 16px;">刷新</button>
+              </div>
+            </div>
+            <div id="studentStats" class="student-stats-row" style="display:flex;gap:16px;margin:12px 0;flex-wrap:wrap;"></div>
+            <div id="studentListContainer" class="student-list">
+              <div class="muted">加载中...</div>
+            </div>
+            <div id="studentDetailPanel" class="student-detail" style="display:none;margin-top:16px;">
+              <div class="plan-toolbar compact-toolbar">
+                <h3 id="studentDetailName">学生详情</h3>
+                <button id="closeStudentDetail" type="button">返回列表</button>
+              </div>
+              <div id="studentDetailContent" class="section-block"></div>
             </div>
           </section>
 
