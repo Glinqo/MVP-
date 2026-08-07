@@ -2817,10 +2817,12 @@ var assessmentState = {
 
 function selectedJobRole() {
   if (typeof assessmentState === "undefined") return "";
+  var u = localStorage.getItem("mcp_login_user") || "";
   return assessmentState.jobRole
-    || state.selectedJobId
-    || localStorage.getItem("mcp_job_id")
-    || "";
+      || state.selectedJobId
+      || localStorage.getItem("mcp_job_id")
+      || (u ? localStorage.getItem("mcp_job_id_" + u) : "")
+      || "";
 }
 
 // ---- Overlay helpers ----
@@ -3209,6 +3211,11 @@ async function boot() {
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
     $("healthStatus").classList.add("ok");
     const jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
+    // Fallback to per-user key when bare key is stale (e.g., another account overrode it)
+    const username = localStorage.getItem("mcp_login_user") || "";
+    const jobId = localStorage.getItem("mcp_job_id")
+        || (username ? localStorage.getItem("mcp_job_id_" + username) : "")
+        || "automation_line_commissioning_maintenance_newcomer";
     const [start, quiz, jobGraph, studentBootstrap] = await Promise.all([
       api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId, job_role: jobId }) }),
       api(`/api/quiz?job_role=${encodeURIComponent(jobId)}`),
