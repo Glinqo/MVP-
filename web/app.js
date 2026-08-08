@@ -1,3 +1,19 @@
+// localStorage fallback for sandboxed environments
+(function() {
+  try { if (typeof localStorage !== 'undefined' && localStorage !== null) { return; } } catch(e) {}
+  var store = {};
+  var mock = {
+    getItem: function(k) { return Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null; },
+    setItem: function(k, v) { store[k] = String(v); },
+    removeItem: function(k) { delete store[k]; },
+    clear: function() { store = {}; },
+    get length() { return Object.keys(store).length; },
+    key: function(i) { return Object.keys(store)[i] || null; }
+  };
+  try { Object.defineProperty(window, 'localStorage', { value: mock, writable: true, configurable: true }); }
+  catch(e) { try { window.localStorage = mock; } catch(e2) {} }
+})();
+
 var state = {
   questions: [],
   jobProfile: null,
@@ -40,7 +56,7 @@ const DEFAULT_JOB_ROLE = "自动化生产线装调与运维技术员";
 // ── Persistence helpers ──────────────────────────────────────────
 function userKey(key) {
   if (typeof state === "undefined") return key;
-  var uname = localStorage.getItem("mcp_login_user") || "";
+  var uname = (state.currentUser && state.currentUser.username) || "";
   return uname ? (key + "_" + uname) : key;
 }
 
@@ -77,6 +93,15 @@ function createNewChat() {
   renderMessages();
 }
 
+function switchAccount() {
+  // Clear auth and reload to show login page
+  localStorage.removeItem("mcp_auth_token");
+  localStorage.removeItem("mcp_session_id");
+  localStorage.removeItem(userKey("mcp_identity")); localStorage.removeItem("mcp_identity");
+  state.authToken = null;
+  state.currentUser = null;
+  location.reload();
+}
 
 const $_raw = (id) => document.getElementById(id);
 const $ = (id) => {
@@ -1965,24 +1990,38 @@ function workspaceTitle(panel) {
     scenario: "排故演练",
     jobAdmin: "岗位管理",
     knowledge: "知识缺口",
-    tasks: "实训任务"
+    tasks: "实训任务",
+    teacherDashboard: "教师工作台",
+    classInsights: "班级洞察",
+    studentMgmt: "学生管理",
+    teacherComments: "教学评语",
+    teacherJobGraph: "岗位图谱"
   };
   return titles[panel] || panel;
 }
 
 function setWorkspacePanel(panel) {
   state.activeWorkspace = panel;
+  // Teacher job graph reuses job admin workspace
+  var domPanel = panel === "teacherJobGraph" ? "jobAdmin" : panel;
   $("workspaceTitle").textContent = workspaceTitle(panel);
   document.querySelectorAll("[data-workspace-panel]").forEach((button) => {
     button.classList.toggle("active", button.dataset.workspacePanel === panel);
   });
   document.querySelectorAll(".workspace-panel").forEach((section) => {
-    section.classList.toggle("active", section.id === `workspace${panel.charAt(0).toUpperCase()}${panel.slice(1)}`);
+    section.classList.toggle("active", section.id === "workspace" + domPanel.charAt(0).toUpperCase() + domPanel.slice(1));
   });
   if (panel === "knowledge") { var ka = document.getElementById("knowledgeAlert"); if (ka) ka.style.display = "none"; }
-  if (panel === "jobAdmin") loadJobAdmin();
+  if (panel === "teacherDashboard" && typeof loadTeacherDashboard === "function") loadTeacherDashboard();
+  if (panel === "jobAdmin" || panel === "teacherJobGraph") {
+    loadJobAdmin();
+    if (typeof loadJobGraphWorkspace === "function") loadJobGraphWorkspace();
+  }
   if (panel === "plan") loadTrainingPlans("staged");
   if (panel === "scenario") loadScenarios();
+  if (panel === "studentMgmt" && typeof loadStudentList === "function") loadStudentList();
+  if (panel === "classInsights" && typeof loadClassInsights === "function") loadClassInsights();
+  if (panel === "teacherComments" && typeof loadComments === "function") loadComments();
   // Reset scroll position when switching panels
   var body = document.querySelector(".workspace-body");
   if (body) body.scrollTop = 0;
@@ -2688,19 +2727,36 @@ async function sendChat(message) {
       .filter((item) => item.role === "user" || item.role === "assistant")
       .slice(-8)
       .map((item) => ({ role: item.role, content: item.content }));
-    const data = await api("/api/chat/message", {
-      method: "POST",
-      body: JSON.stringify({
-        session_id: state.sessionId,
-        message: text,
-        learner_role: "职业新人",
-        job_role: state.jobProfile?.id,
-        target_job_profile_id: state.jobProfile?.id,
-        history,
-        context: collectContext()
-      })
-    });
-    applyChatResult(data);
+    // Route: teacher -> AI assistant, student -> normal chat
+    var identity2 = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
+    var isTeacher2 = identity2 === "teacher";
+    if (isTeacher2) {
+      var data = await api("/api/teacher/assistant/message", {
+        method: "POST",
+        body: JSON.stringify({
+          message: text,
+          job_role: state.jobProfile?.id,
+          history: history,
+          ui_context: state.uiContext || {},
+          context: state.teacherContext || {}
+        })
+      });
+      applyTeacherChatResult(data, text);
+    } else {
+      var data = await api("/api/chat/message", {
+        method: "POST",
+        body: JSON.stringify({
+          session_id: state.sessionId,
+          message: text,
+          learner_role: "职业新人",
+          job_role: state.jobProfile?.id,
+          target_job_profile_id: state.jobProfile?.id,
+          history,
+          context: collectContext()
+        })
+      });
+      applyChatResult(data);
+    }
   } catch (error) {
     addMessage("assistant", `请求失败：${error.message}`);
   } finally {
@@ -2776,7 +2832,8 @@ var appBootStarted = false;
 var appBootPromise = null;
 
 function bootOnce() {
-  if (appBootStarted) return appBootPromise;
+
+  showRoleUI();  if (appBootStarted) return appBootPromise;
   appBootStarted = true;
   try {
     appBootPromise = typeof boot === "function"
@@ -2807,13 +2864,10 @@ var assessmentState = {
 };
 
 function selectedJobRole() {
-  if (typeof assessmentState === "undefined") return "";
-  var u = localStorage.getItem("mcp_login_user") || "";
   return assessmentState.jobRole
-      || state.selectedJobId
-      || localStorage.getItem("mcp_job_id")
-      || (u ? localStorage.getItem("mcp_job_id_" + u) : "")
-      || "";
+    || state.selectedJobId
+    || localStorage.getItem("mcp_job_id")
+    || "";
 }
 
 // ---- Overlay helpers ----
@@ -3195,17 +3249,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // ---- End Assessment ----
 async function boot() {
-  try {
+
+  showRoleUI();  try {
     var dbg = document.getElementById("debugInfo");
     if (dbg) dbg.style.display = "none";
     const health = await api("/api/health");
     $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
     $("healthStatus").classList.add("ok");
-    // Fallback to per-user key when bare key is stale (e.g., another account overrode it)
-    const username = localStorage.getItem("mcp_login_user") || "";
-    const jobId = localStorage.getItem("mcp_job_id")
-        || (username ? localStorage.getItem("mcp_job_id_" + username) : "")
-        || "automation_line_commissioning_maintenance_newcomer";
+    const jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
     const [start, quiz, jobGraph, studentBootstrap] = await Promise.all([
       api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId, job_role: jobId }) }),
       api(`/api/quiz?job_role=${encodeURIComponent(jobId)}`),
@@ -3389,203 +3440,1175 @@ function stageColor(idx){var c=["#38bdf8","#818cf8","#34d399","#fbbf24","#f472b6
 
 // ── Landing / Identity & Job Selection ──
 
+async function doLogin() {
+  var username = document.getElementById("loginUsername");
+  var password = document.getElementById("loginPassword");
+  var errEl = document.getElementById("loginError");
+  if (!username || !password || !errEl) { alert("页面加载异常，请刷新"); return; }
+  var u = username.value.trim();
+  var p = password.value.trim();
+  if (!u) { errEl.textContent = "请输入用户名"; errEl.style.display = "block"; return; }
+  if (!p) { errEl.textContent = "请输入密码"; errEl.style.display = "block"; return; }
+  errEl.style.display = "none";
+  try {
+    var resp = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: u, password: p })
+    });
+    var data = await resp.json();
+    if (!data.ok) { errEl.textContent = data.error; errEl.style.display = "block"; return; }
+    state.currentUser = data.user;
+    localStorage.setItem("mcp_auth_token", data.token);
+    localStorage.setItem("mcp_login_user", data.user.username);
+    // If identity already chosen, skip to main page
+    if (data.user.job_role) {
+      localStorage.setItem("mcp_job_id", data.user.job_role);
+      localStorage.setItem("mcp_job_id_" + data.user.username, data.user.job_role);
+      localStorage.setItem(userKey("mcp_identity"), data.user.identity || "student");
+      state.selectedJobId = data.user.job_role;
+      state.jobName = data.user.job_role;
+      state.sessionId = data.user.job_role + "-s";
+      state.messages = [];
+      state.jobProfile = { id: data.user.job_role, role_name: data.user.job_role };
+      var overlay = document.getElementById("landingOverlay");
+      overlay.classList.add("fade-out");
+      setTimeout(function() {
+        overlay.style.display = "none";
+        document.body.style.overflow = "";
+        boot();
+      }, 400);
+      return;
+    }
+    // Check server-returned role: teacher skips identity pick
+    var serverRole = (data.user && data.user.role) || "student";
+    if (serverRole === "teacher") {
+      localStorage.setItem(userKey("mcp_identity"), "teacher");
+      localStorage.setItem("mcp_identity", "teacher");
+      var loginStep2 = document.getElementById("landingStepLogin");
+      var jobStep2 = document.getElementById("landingStepJob");
+      if (loginStep2) loginStep2.classList.remove("active");
+      if (jobStep2) jobStep2.classList.add("active");
+    } else {
+      localStorage.setItem(userKey("mcp_identity"), "student");
+      localStorage.setItem("mcp_identity", "student");
+      var loginStep = document.getElementById("landingStepLogin");
+      var identityStep = document.getElementById("landingStepIdentity");
+      if (loginStep) loginStep.classList.remove("active");
+      if (identityStep) identityStep.classList.add("active");
+    }
+  } catch (e) {
+    errEl.textContent = "登录失败: " + (e.message || "网络错误");
+    errEl.style.display = "block";
+  }
+}
 
+
+function selectIdentity(identity) {
+  localStorage.setItem(userKey("mcp_identity"), identity);
+  document.getElementById("landingStepIdentity").classList.remove("active");
+  document.getElementById("landingStepJob").classList.add("active");
+}
+
+function backToIdentity() {
+  document.getElementById("landingStepJob").classList.remove("active");
+  document.getElementById("landingStepIdentity").classList.add("active");
+}
 
 function selectJob(jobId, event) {
-  // No-auth job selection - set all keys and proceed
-  var username = "demo";
+  var identity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "";
   localStorage.setItem("mcp_job_id", jobId);
-  localStorage.setItem("mcp_job_id_" + username, jobId);
-  localStorage.setItem("mcp_login_user", username);
+  var loginUser = localStorage.getItem("mcp_login_user") || "";
+  localStorage.setItem("mcp_job_id_" + loginUser, jobId);
+  // Persist identity to server
+  var identity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || (state.currentUser && state.currentUser.role) || "student";
+  fetch("/api/identity", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: loginUser, identity: identity, job_role: jobId })
+  }).catch(function() { /* non-blocking */ });
   if (event && event.currentTarget) {
     var jobName = event.currentTarget.getAttribute("data-job-name");
-    if (jobName) {
-      localStorage.setItem("mcp_job_name", jobName);
-      localStorage.setItem("mcp_job_name_" + username, jobName);
-      state.jobName = jobName;
-    }
+    if (jobName) state.jobName = jobName;
   }
+
+  // Teacher bypass: no assessment, boot app directly
+  if (identity !== "student") {
+    state.selectedJobId = jobId;
+    state.sessionId = jobId + "-teacher";
+    state.messages = [];
+    state.jobProfile = { id: jobId, role_name: state.jobName || jobId };
+    const overlay = document.getElementById("landingOverlay");
+    overlay.classList.add("fade-out");
+    setTimeout(function() {
+      overlay.style.display = "none";
+      document.body.style.overflow = "";
+      bootOnce();
+    }, 400);
+    return;
+  }
+
+  // Student: use assessment flow
   state.selectedJobId = jobId;
   state.sessionId = "demo-" + Date.now();
   localStorage.setItem("mcp_session_id", state.sessionId);
   state.messages = [];
   state.jobProfile = { id: jobId, role_name: state.jobName || jobId };
-  // Dismiss landing and start
-  var overlay = document.getElementById("landingOverlay");
-  overlay.classList.add("fade-out");
-  setTimeout(function() {
-    overlay.style.display = "none";
-    document.body.style.overflow = "";
-    if (typeof startAssessment === "function") startAssessment(jobId);
-  }, 400);
+  dismissLanding().then(function() {
+    startAssessment(jobId);
+  });
 }
+
+function dismissLanding() {
+  return new Promise(function(resolve) {
+    var overlay = document.getElementById("landingOverlay");
+    overlay.classList.add("fade-out");
+    setTimeout(function() {
+      overlay.style.display = "none";
+      document.body.style.overflow = "";
+      resolve();
+    }, 400);
+  });
+}
+
 function toggleDrawer() {
   document.querySelector(".chat-layout").classList.toggle("drawer-collapsed");
 }
-// No-auth: always boot if job selected
-
-// === Per-question quiz feedback (runtime override) ===
-state.quizFeedback = {};
-
-function renderQuizV2(questions) {
-  state.questions = questions;
-  state.quizFeedback = {};
-  var total = questions.length;
-  $("quizCount").textContent = total + " 题";
-  $("quizForm").innerHTML = questions.map(function(q) { return renderQuestionV2(q); }).join("");
-  attachAskButtons($("quizForm"));
+if (typeof state !== "undefined" && state.authToken) {
+  var u2 = localStorage.getItem("mcp_login_user") || "";
+  var j2 = localStorage.getItem("mcp_job_id_" + u2);
+  if (j2) { state.selectedJobId = j2; state.jobName = localStorage.getItem("mcp_job_name_" + u2) || ""; if (typeof boot === "function") boot(); }
 }
 
-function renderQuestionV2(question) {
-  var options = question.options || [];
-  var title = '<div class="question-title">' + question.id + '. ' + escapeHtml(question.question) + '</div>';
-  var submitBtn = '<div class="quiz-submit-row"><button type="button" class="quiz-submit-btn" data-qid="' + question.id + '">提交本题</button><span class="quiz-feedback" data-feedback-qid="' + question.id + '"></span></div>';
-  var fbDiv = '<div class="quiz-feedback-detail" data-feedback-detail="' + question.id + '" style="display:none"></div>';
-  if (question.type === "multiple_choice") {
-    return '<fieldset class="question" data-question-id="' + question.id + '" data-question-type="' + question.type + '">' + title + options.map(function(opt) { return '<label class="option"><input type="checkbox" name="' + question.id + '" value="' + opt.id + '" /> ' + opt.id + '. ' + escapeHtml(opt.text) + '</label>'; }).join("") + questionAskActions(question) + submitBtn + fbDiv + '</fieldset>';
+function showRoleUI() {
+  var identity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
+  var isTeacher = identity === "teacher";
+  // Toggle tool drawer sections
+  var studentPanels = document.querySelectorAll(".role-student");
+  var teacherPanels = document.querySelectorAll(".role-teacher");
+  for (var i = 0; i < studentPanels.length; i++) {
+    studentPanels[i].style.display = isTeacher ? "none" : "";
   }
-  if (question.type === "ordering") {
-    return '<fieldset class="question" data-question-id="' + question.id + '" data-question-type="' + question.type + '">' + title + options.map(function(opt) { return '<div class="option">' + opt.id + '. ' + escapeHtml(opt.text) + '</div>'; }).join("") + '<input type="text" name="' + question.id + '" placeholder="例如：A,B,C,D,E,F" />' + questionAskActions(question) + submitBtn + fbDiv + '</fieldset>';
+  for (var i = 0; i < teacherPanels.length; i++) {
+    teacherPanels[i].style.display = isTeacher ? "" : "none";
   }
-  return '<fieldset class="question" data-question-id="' + question.id + '" data-question-type="' + question.type + '">' + title + options.map(function(opt) { return '<label class="option"><input type="radio" name="' + question.id + '" value="' + opt.id + '" /> ' + opt.id + '. ' + escapeHtml(opt.text) + '</label>'; }).join("") + questionAskActions(question) + submitBtn + fbDiv + '</fieldset>';
+  // Update topbar title for teacher
+  var h1 = document.querySelector(".topbar h1");
+  if (h1) {
+    h1.textContent = isTeacher ? "机电岗位培训 AI · 教师端" : "机电岗位培训 AI";
+  }
+  // Update chat for teacher
+  var chatInput = document.getElementById("chatInput");
+  if (chatInput && isTeacher) {
+    chatInput.placeholder = "直接问：本班现在最薄弱的三个能力是什么？";
+    setTeacherWelcome();
+  }
 }
 
-function checkQuizAnswer(qid) {
-  var q = (state.questions || []).find(function(q) { return q.id === qid; });
-  if (!q) return;
-  var answer = selectedAnswerForQuestion(qid);
-  if (!answer || (Array.isArray(answer) && answer.length === 0)) {
-    var fbSpan = document.querySelector('[data-feedback-qid="' + qid + '"]');
-    if (fbSpan) { fbSpan.textContent = "请先选择答案"; fbSpan.className = "quiz-feedback no-answer"; }
+// ── 阶段二：学生管理 ──
+
+async function loadStudentList() {
+  var container = document.getElementById("studentListContainer");
+  if (!container) return;
+  container.innerHTML = '<div class="muted">加载中...</div>';
+  try {
+    var search = (document.getElementById("studentSearch")?.value || "").trim();
+    var jobRole = document.getElementById("studentJobFilter")?.value || "";
+    var hasAssess = document.getElementById("studentAssessFilter")?.value || "";
+    var params = new URLSearchParams();
+    if (search) params.append("search", search);
+    if (jobRole) params.append("job_role", jobRole);
+    if (hasAssess) params.append("has_assessment", hasAssess);
+    var url = "/api/teacher/students" + (params.toString() ? "?" + params.toString() : "");
+    var resp = await fetch(url, {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (!resp.ok) {
+      container.innerHTML = '<div class="muted">加载失败: ' + resp.status + '</div>';
+      return;
+    }
+    var data = await resp.json();
+    renderStudentStats(data.stats);
+    renderStudentList(data);
+  } catch (e) {
+    container.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
+  }
+}
+
+function renderStudentStats(stats) {
+  var el = document.getElementById("studentStats");
+  if (!el) return;
+  var items = [
+    { label: "学生总数", value: stats.total || 0 },
+    { label: "已完成测评", value: stats.assessed || 0 },
+    { label: "未测评", value: stats.not_assessed || 0 }
+  ];
+  el.innerHTML = items.map(function(i) {
+    return '<div class="metric" style="flex:1;min-width:120px;">' +
+      '<span class="metric-value">' + i.value + '</span>' +
+      '<span class="metric-label">' + i.label + '</span></div>';
+  }).join("");
+}
+
+function renderStudentList(data) {
+  var container = document.getElementById("studentListContainer");
+  if (!container) return;
+  var students = data.students || [];
+  if (!students.length) {
+    container.innerHTML = '<div class="muted">暂无学生数据</div>';
     return;
   }
-  var isCorrect = checkCorrectV2(answer, q);
-  var fbSpan = document.querySelector('[data-feedback-qid="' + qid + '"]');
-  var fbDiv = document.querySelector('[data-feedback-detail="' + qid + '"]');
-  if (isCorrect) {
-    if (fbSpan) { fbSpan.innerHTML = '<span class="correct-mark">✓ 正确</span>'; fbSpan.className = "quiz-feedback correct"; }
-    if (fbDiv) { fbDiv.innerHTML = '<div class="fb-card correct"><strong>✓ 回答正确</strong><p>' + escapeHtml(q.explanation || "") + '</p></div>'; fbDiv.style.display = "block"; }
+  var statusClass = { "良好": "status-good", "正常": "status-normal", "需关注": "status-warn", "高风险": "status-danger", "未测评": "status-muted" };
+  var html = '<table class="student-table"><thead><tr>' +
+    '<th>账号</th><th>昵称</th><th>岗位</th><th>测评得分</th><th>状态</th><th>操作</th>' +
+    '</tr></thead><tbody>';
+  for (var i = 0; i < students.length; i++) {
+    var s = students[i];
+    var sc = statusClass[s.status] || "status-muted";
+    html += '<tr>' +
+      '<td><strong>' + escapeHtml(s.username) + '</strong></td>' +
+      '<td>' + escapeHtml(s.nickname) + '</td>' +
+      '<td>' + escapeHtml(s.job_role || "-") + '</td>' +
+      '<td>' + (s.completed ? s.overall_score + "分" : "-") + '</td>' +
+      '<td><span class="status-badge ' + sc + '">' + s.status + '</span></td>' +
+      '<td><button type="button" onclick="showStudentDetail(\'' + escapeHtml(s.username) + '\')" class="btn-small">查看</button></td>' +
+      '</tr>';
+  }
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+async function showStudentDetail(username) {
+  var panel = document.getElementById("studentDetailPanel");
+  var content = document.getElementById("studentDetailContent");
+  var nameEl = document.getElementById("studentDetailName");
+  if (!panel || !content) return;
+  panel.style.display = "block";
+  if (nameEl) nameEl.textContent = "学生详情: " + username;
+  content.innerHTML = '<div class="muted">加载中...</div>';
+  try {
+    var resp = await fetch("/api/teacher/students/" + encodeURIComponent(username), {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (!resp.ok) {
+      content.innerHTML = '<div class="muted">加载失败: ' + resp.status + '</div>';
+      return;
+    }
+    var data = await resp.json();
+    renderStudentDetail(data);
+  } catch (e) {
+    content.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
+  }
+}
+
+function renderStudentDetail(data) {
+  var content = document.getElementById("studentDetailContent");
+  if (!content) return;
+  var statusColor = data.overall_score >= 60 ? "var(--accent-green, #22c55e)" : "var(--warning, #f59e0b)";
+  var weakHtml = (data.weak_abilities || []).map(function(a) {
+    return '<li>' + escapeHtml(typeof a === "string" ? a : (a.name || a.ability_name || a.id || JSON.stringify(a))) + '</li>';
+  }).join("") || '<li class="muted">暂无数据</li>';
+  var strongHtml = (data.strong_abilities || []).map(function(a) {
+    return '<li>' + escapeHtml(typeof a === "string" ? a : (a.name || a.ability_name || a.id || JSON.stringify(a))) + '</li>';
+  }).join("") || '<li class="muted">暂无数据</li>';
+  var eventsHtml = "";
+  if (data.recent_events && data.recent_events.length > 0) {
+    eventsHtml = '<div class="section-block"><h4>最近学习证据</h4>';
+    for (var i = 0; i < Math.min(data.recent_events.length, 10); i++) {
+      var ev = data.recent_events[i];
+      var ts = ev.timestamp || ev.time || ev.created_at || "";
+      var desc = ev.description || ev.event_type || ev.type || ev.category || JSON.stringify(ev).substring(0, 60);
+      eventsHtml += '<div class="evidence-item" style="padding:6px 0;border-bottom:1px solid var(--line);">' +
+        '<span class="muted" style="font-size:12px;">' + escapeHtml(String(ts).substring(0, 16)) + '</span> ' +
+        '<span>' + escapeHtml(String(desc)) + '</span></div>';
+    }
+    eventsHtml += '</div>';
   } else {
-    var correctDisplay = Array.isArray(q.correct_answer) ? q.correct_answer.join(", ") : String(q.correct_answer);
-    var userDisplay = Array.isArray(answer) ? answer.join(", ") : String(answer);
-    if (fbSpan) { fbSpan.innerHTML = '<span class="wrong-mark">✗ 错误</span>'; fbSpan.className = "quiz-feedback wrong"; }
-    if (fbDiv) { fbDiv.innerHTML = '<div class="fb-card wrong"><strong>✗ 回答错误</strong><div class="fb-compare"><span class="fb-yours">你的答案：' + escapeHtml(userDisplay) + '</span><span class="fb-correct">正确答案：' + escapeHtml(correctDisplay) + '</span></div><p>' + escapeHtml(q.explanation || q.wrong_feedback || "") + '</p></div>'; fbDiv.style.display = "block"; }
+    eventsHtml = '<div class="section-block muted">暂无学习证据</div>';
   }
-  var fs = document.querySelector('[data-question-id="' + qid + '"]');
-  if (fs) { fs.querySelectorAll("input").forEach(function(inp) { inp.disabled = true; }); fs.classList.add("quiz-answered"); }
-  var btn = document.querySelector('.quiz-submit-btn[data-qid="' + qid + '"]');
-  if (btn) { btn.disabled = true; btn.textContent = "已提交"; }
-  state.quizFeedback[qid] = isCorrect;
-  updateQuizProgressV2();
+  content.innerHTML =
+    '<div class="student-detail-grid">' +
+    '<div class="student-detail-card">' +
+    '<h4>基本信息</h4>' +
+    '<div class="metric"><span class="metric-label">账号</span><span class="metric-value" style="font-size:16px;">' + escapeHtml(data.username) + '</span></div>' +
+    '<div class="metric"><span class="metric-label">昵称</span><span class="metric-value" style="font-size:16px;">' + escapeHtml(data.nickname) + '</span></div>' +
+    '<div class="metric"><span class="metric-label">岗位</span><span class="metric-value" style="font-size:16px;">' + escapeHtml(data.job_role || "-") + '</span></div>' +
+    '</div>' +
+    '<div class="student-detail-card">' +
+    '<h4>测评概况</h4>' +
+    '<div class="metric"><span class="metric-label">状态</span><span class="metric-value" style="font-size:16px;color:' + statusColor + '">' + escapeHtml(data.status) + '</span></div>' +
+    '<div class="metric"><span class="metric-label">总得分</span><span class="metric-value" style="font-size:16px;">' + (data.completed ? data.overall_score + " 分" : "未测评") + '</span></div>' +
+    '</div>' +
+    '<div class="student-detail-card">' +
+    '<h4>薄弱能力</h4><ul>' + weakHtml + '</ul>' +
+    '</div>' +
+    '<div class="student-detail-card">' +
+    '<h4>优势能力</h4><ul>' + strongHtml + '</ul>' +
+    '</div>' +
+    '</div>' +
+    eventsHtml +
+    '<div style="margin-top:12px">' +
+    '<button type="button" onclick="showStudentAbilityGraph(\'' + escapeHtml(data.username) + '\',\'' + escapeHtml(data.job_role || "automation_line_commissioning_maintenance_newcomer") + '\')" class="btn-small">查看个人能力图谱</button>' +
+    '</div>';
 }
 
-function updateQuizProgressV2() {
-  var total = (state.questions || []).length;
-  var answered = Object.keys(state.quizFeedback || {}).length;
-  var correct = Object.values(state.quizFeedback || {}).filter(function(v) { return v; }).length;
-  var el = document.getElementById("quizProgress");
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "quizProgress";
-    el.className = "quiz-progress-bar";
-    var form = document.getElementById("quizForm");
-    if (form) { form.parentNode.insertBefore(el, form.nextSibling); }
+async function showStudentAbilityGraph(username, jobRole) {
+  var content = document.getElementById("studentDetailContent");
+  if (!content) return;
+  var graphDiv = content.querySelector(".student-graph-container");
+  if (!graphDiv) {
+    graphDiv = document.createElement("div");
+    graphDiv.className = "student-graph-container graph-diagram force-graph-container";
+    graphDiv.style.cssText = "margin-top:16px;min-height:400px;";
+    content.appendChild(graphDiv);
   }
-  el.innerHTML = '<span>进度：' + answered + '/' + total + ' 题</span><span>正确：' + correct + '/' + answered + '</span>' + (answered === total ? '<button type="button" class="quiz-submit-all" onclick="submitAnswers()">提交全部评分</button>' : '');
+  graphDiv.innerHTML = '<div class="muted">加载图谱中...</div>';
+  try {
+    var sessId = jobRole + "-" + username;
+    var resp = await fetch("/api/graph/student?session_id=" + encodeURIComponent(sessId), {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (!resp.ok) {
+      graphDiv.innerHTML = '<div class="muted">图谱加载失败: ' + resp.status + '</div>';
+      return;
+    }
+    var graph = await resp.json();
+    if (typeof renderGraphDiagram === "function") {
+      renderGraphDiagram(graph, null, graphDiv);
+    } else {
+      graphDiv.innerHTML = '<div class="muted">图谱组件不可用</div>';
+    }
+  } catch (e) {
+    graphDiv.innerHTML = '<div class="muted">图谱加载失败: ' + (e.message || "网络错误") + '</div>';
+  }
 }
 
-function checkCorrectV2(answer, question) {
-  if (!answer) return false;
-  if (question.type === "multiple_choice") {
-    var u = Array.isArray(answer) ? answer.map(String) : String(answer).split(/[,，\s>]+/).filter(Boolean);
-    var c = Array.isArray(question.correct_answer) ? question.correct_answer.map(String) : [String(question.correct_answer)];
-    u.sort(); c.sort();
-    return u.join(",") === c.join(",");
+// Wire up student management event handlers
+document.addEventListener("DOMContentLoaded", function() {
+  var searchInput = document.getElementById("studentSearch");
+  if (searchInput) {
+    var debounceTimer;
+    searchInput.addEventListener("input", function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(loadStudentList, 300);
+    });
   }
-  if (question.type === "ordering") {
-    var u2 = Array.isArray(answer) ? answer.map(String) : String(answer).split(/[,，\s>]+/).filter(Boolean);
-    var c2 = Array.isArray(question.correct_answer) ? question.correct_answer.map(String) : [String(question.correct_answer)];
-    return JSON.stringify(u2) === JSON.stringify(c2);
-  }
-  return String(answer) === String(question.correct_answer);
-}
-
-// Delegate quiz submit button clicks
-document.addEventListener("click", function(e) {
-  var btn = e.target.closest(".quiz-submit-btn");
-  if (btn && btn.dataset.qid) { checkQuizAnswer(btn.dataset.qid); }
+  var jobFilter = document.getElementById("studentJobFilter");
+  if (jobFilter) jobFilter.addEventListener("change", loadStudentList);
+  var assessFilter = document.getElementById("studentAssessFilter");
+  if (assessFilter) assessFilter.addEventListener("change", loadStudentList);
+  var refreshBtn = document.getElementById("refreshStudentList");
+  if (refreshBtn) refreshBtn.addEventListener("click", loadStudentList);
+  var closeBtn = document.getElementById("closeStudentDetail");
+  if (closeBtn) closeBtn.addEventListener("click", function() {
+    var panel = document.getElementById("studentDetailPanel");
+    if (panel) panel.style.display = "none";
+  });
 });
 
-// Override renderQuiz at boot time
-var _bootV2 = boot;
-boot = function() {
-  var result = _bootV2 ? _bootV2.apply(this, arguments) : undefined;
-  var resolve = function() {
-    renderQuiz = renderQuizV2;
-    renderQuestion = renderQuestionV2;
-  };
-  if (result && typeof result.then === "function") { result.then(resolve); }
-  else { resolve(); }
-  return result;
-};
+// Trigger load when student management workspace is opened
+// (hooked via setWorkspacePanel)
 
-// Immediately override renderQuiz at module load time
-var _renderQuizOrig = renderQuiz;
-var _renderQuestionOrig = renderQuestion;
-renderQuiz = renderQuizV2;
-renderQuestion = renderQuestionV2;
+// ── 阶段三：班级洞察 ──
 
-async function submitAnswers() {
-  var answers = collectAnswers();
+var ciState = { activeTab: "graph", currentNode: null };
+
+async function loadClassInsights() {
+  ciState.activeTab = "graph";
+  var jobRole = (document.getElementById("classJobFilter")?.value) || "automation_line_commissioning_maintenance_newcomer";
+  await Promise.all([loadClassAbilityGraph(jobRole), loadCommonIssues(jobRole)]);
+  renderClassOverview();
+}
+
+async function loadClassAbilityGraph(jobRole) {
+  var container = document.getElementById("classGraphDiagram");
+  if (!container) return;
+  container.innerHTML = '<div class="muted">加载图谱中...</div>';
   try {
-    var resp = await api("/api/score", {
-      method: "POST",
-      body: JSON.stringify({ answers: answers, session_id: state.sessionId })
+    var resp = await fetch("/api/teacher/class/ability-graph?job_role=" + encodeURIComponent(jobRole), {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
     });
-    if (resp) {
-      renderScore({ score_result: resp });
+    if (!resp.ok) { container.innerHTML = '<div class="muted">加载失败: ' + resp.status + '</div>'; return; }
+    var data = await resp.json();
+    if (!data.overview || !data.overview.has_data) {
+      container.innerHTML = '<div class="muted" style="padding:60px;text-align:center;">暂无有效能力数据<br/><small>学生尚未完成测评或尚无学习证据</small></div>';
+      document.getElementById("classGraphLegend").innerHTML = "";
+      return;
     }
+    renderClassGraph(data);
   } catch (e) {
-    console.error("submitAnswers error:", e);
+    container.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
   }
 }
 
-// Fix: override collectAnswers with debug
-var _collectOrig = collectAnswers;
-collectAnswers = function() {
-  var result = {};
-  document.querySelectorAll(".question").forEach(function(fs) {
-    var id = fs.dataset.questionId;
-    if (!id) return;
-    var checked = fs.querySelectorAll("input:checked");
-    if (checked.length > 0) {
-      var type = fs.dataset.questionType;
-      if (type === "multiple_choice") {
-        result[id] = Array.from(checked).map(function(i) { return i.value; });
-      } else {
-        result[id] = checked[0].value;
-      }
-    }
+function renderClassGraph(data) {
+  var container = document.getElementById("classGraphDiagram");
+  if (!container) return;
+  // Color nodes by mean mastery
+  data.nodes.forEach(function(n) {
+    var cs = n.class_stats || {};
+    if (cs.mean_mastery === null) {
+      n._color = "var(--muted)";
+      n._statusLabel = "无数据";
+    } else if (cs.mean_mastery >= 75) { n._color = "#22c55e"; n._statusLabel = "良好"; }
+    else if (cs.mean_mastery >= 55) { n._color = "#38bdf8"; n._statusLabel = "正常"; }
+    else if (cs.mean_mastery >= 35) { n._color = "#f59e0b"; n._statusLabel = "薄弱"; }
+    else { n._color = "#ef4444"; n._statusLabel = "严重薄弱"; }
+    // Size by job importance
+    n._radius = 8 + (n.demand_weight || 0.3) * 18;
+    n._label = (n.label || n.name || n.id || "");
+    // On click: show node detail
+    n._onClick = function(node) { showClassNodeDetail(node.id); };
   });
-  console.log("collectAnswers result:", result);
-  return result;
-};
+  if (typeof renderGraphDiagram === "function") {
+    renderGraphDiagram(data, null, container);
+  } else {
+    container.innerHTML = '<div class="muted">图谱组件不可用</div>';
+  }
+  document.getElementById("classGraphLegend").innerHTML =
+    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#22c55e;margin-right:4px;"></span>良好 ' +
+    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#38bdf8;margin-right:4px;margin-left:8px;"></span>正常 ' +
+    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#f59e0b;margin-right:4px;margin-left:8px;"></span>薄弱 ' +
+    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ef4444;margin-right:4px;margin-left:8px;"></span>严重 ' +
+    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--muted);margin-right:4px;margin-left:8px;"></span>无数据';
+}
 
-// Debug submitAnswers
-var _submitOrig = submitAnswers;
-submitAnswers = async function() {
-  var answers = collectAnswers();
-  console.log("submitAnswers collected:", answers, "sending...");
+async function loadCommonIssues(jobRole) {
+  var container = document.getElementById("commonIssuesList");
+  if (!container) return;
+  container.innerHTML = '<div class="muted">加载中...</div>';
   try {
-    var resp = await fetch("/api/score", {
+    var resp = await fetch("/api/teacher/class/common-issues?job_role=" + encodeURIComponent(jobRole), {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (!resp.ok) { container.innerHTML = '<div class="muted">加载失败</div>'; return; }
+    var data = await resp.json();
+    var issues = data.issues || [];
+    if (!issues.length) {
+      container.innerHTML = '<div class="muted" style="padding:40px;text-align:center;">暂无共性问题<br/><small>学生数据积累不足或未发现明显共性薄弱</small></div>';
+      return;
+    }
+    renderCommonIssues(issues);
+  } catch (e) {
+    container.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
+  }
+}
+
+function renderCommonIssues(issues) {
+  var container = document.getElementById("commonIssuesList");
+  if (!container) return;
+  var html = "";
+  for (var i = 0; i < issues.length; i++) {
+    var iss = issues[i];
+    var priColor = iss.priority >= 0.7 ? "#ef4444" : iss.priority >= 0.4 ? "#f59e0b" : "#38bdf8";
+    html += '<div class="dashboard-card" style="margin-bottom:12px;cursor:pointer;" onclick="showIssueDetail(' + JSON.stringify(iss.issue_id) + ')">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
+      '<div><strong>' + escapeHtml(iss.title) + '</strong>' +
+      '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">' +
+      '关联: ' + escapeHtml(iss.ability_name || iss.ability_id) + ' | 影响: ' + iss.affected_student_count + ' 名学生 (' + Math.round(iss.affected_ratio * 100) + '%)' +
+      '</div></div>' +
+      '<div style="text-align:right;">' +
+      '<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;background:' + priColor + '20;color:' + priColor + ';">优先级 ' + Math.round(iss.priority * 100) + '%</span>' +
+      '</div></div>' +
+      '<div style="font-size:12px;color:var(--muted);margin-top:8px;">' +
+      '证据: ' + (iss.evidence_summary ? iss.evidence_summary.total_events + ' 条' : '暂无') +
+      ' | 可信度: ' + Math.round(iss.confidence * 100) + '%' +
+      '</div></div>';
+  }
+  container.innerHTML = html;
+}
+
+function renderClassOverview() {
+  var el = document.getElementById("classOverview");
+  if (!el) return;
+  // Get stats from the graph data
+  var graphContainer = document.getElementById("classGraphDiagram");
+  var hasData = graphContainer && graphContainer.innerHTML.indexOf("暂无有效") === -1 && graphContainer.innerHTML.indexOf("加载中") === -1;
+  var issuesContainer = document.getElementById("commonIssuesList");
+  var issueCards = issuesContainer ? issuesContainer.querySelectorAll(".dashboard-card").length : 0;
+  el.innerHTML =
+    '<div class="metric" style="flex:1;min-width:120px;"><span class="metric-value">' + (hasData ? "" : "0") + '</span><span class="metric-label">有数据学生</span></div>' +
+    '<div class="metric" style="flex:1;min-width:120px;"><span class="metric-value">' + issueCards + '</span><span class="metric-label">共性问题</span></div>';
+}
+
+async function showClassNodeDetail(abilityId) {
+  ciState.currentNode = abilityId;
+  var panel = document.getElementById("classNodeDetail");
+  var title = document.getElementById("classNodeTitle");
+  var content = document.getElementById("classNodeContent");
+  if (!panel || !content) return;
+  panel.style.display = "block";
+  if (title) title.textContent = "节点详情: " + abilityId;
+  content.innerHTML = '<div class="muted">加载中...</div>';
+  try {
+    var jobRole = (document.getElementById("classJobFilter")?.value) || "automation_line_commissioning_maintenance_newcomer";
+    var resp = await fetch("/api/teacher/class/ability-graph?job_role=" + encodeURIComponent(jobRole) + "&ability_id=" + encodeURIComponent(abilityId), {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (!resp.ok) { content.innerHTML = '<div class="muted">加载失败</div>'; return; }
+    var data = await resp.json();
+    var node = (data.nodes || [])[0];
+    if (!node) { content.innerHTML = '<div class="muted">节点数据不存在</div>'; return; }
+    var cs = node.class_stats || {};
+    var html = '<div class="student-detail-grid">' +
+      '<div class="student-detail-card"><h4>基本信息</h4>' +
+      '<div class="metric"><span class="metric-label">能力名称</span><span class="metric-value" style="font-size:14px;">' + escapeHtml(node.label || node.name || node.id) + '</span></div>' +
+      '<div class="metric"><span class="metric-label">岗位重要度</span><span class="metric-value" style="font-size:14px;">' + Math.round((node.demand_weight || 0) * 100) + '%</span></div>' +
+      '</div>' +
+      '<div class="student-detail-card"><h4>班级统计</h4>';
+    if (cs.mean_mastery === null) {
+      html += '<div class="muted">暂无有效能力数据</div>';
+    } else {
+      html += '<div class="metric"><span class="metric-label">平均掌握度</span><span class="metric-value" style="font-size:14px;">' + cs.mean_mastery + '%</span></div>' +
+        '<div class="metric"><span class="metric-label">中位掌握度</span><span class="metric-value" style="font-size:14px;">' + cs.median_mastery + '%</span></div>' +
+        '<div class="metric"><span class="metric-label">统计学生</span><span class="metric-value" style="font-size:14px;">' + cs.evidence_student_count + ' / ' + cs.student_count + '</span></div>' +
+        '<div class="metric"><span class="metric-label">证据覆盖率</span><span class="metric-value" style="font-size:14px;">' + Math.round(cs.evidence_coverage * 100) + '%</span></div>';
+    }
+    html += '</div>' +
+      '<div class="student-detail-card"><h4>状态分布</h4>' +
+      '<div class="metric"><span class="metric-label">薄弱</span><span class="metric-value" style="font-size:14px;color:#ef4444;">' + (cs.weak_count || 0) + ' (' + Math.round((cs.weak_ratio || 0) * 100) + '%)</span></div>' +
+      '<div class="metric"><span class="metric-label">提升中</span><span class="metric-value" style="font-size:14px;color:#38bdf8;">' + (cs.improving_count || 0) + ' (' + Math.round((cs.improving_ratio || 0) * 100) + '%)</span></div>' +
+      '<div class="metric"><span class="metric-label">已掌握</span><span class="metric-value" style="font-size:14px;color:#22c55e;">' + (cs.mastered_count || 0) + ' (' + Math.round((cs.mastered_ratio || 0) * 100) + '%)</span></div>' +
+      '</div></div>';
+    if (cs.weak_count > 0) {
+      html += '<div style="margin-top:12px;"><button type="button" onclick="navigateToStudentMgmt(\'' + escapeHtml(abilityId) + '\')" class="btn-small">查看薄弱学生</button></div>';
+    }
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
+  }
+}
+
+function navigateToStudentMgmt(abilityId) {
+  // Navigate to student management workspace with ability filter
+  if (typeof openWorkspace === "function") {
+    openWorkspace("studentMgmt");
+  }
+  // Could extend to filter by ability_id if student management supports it
+}
+
+function showIssueDetail(issueId) {
+  alert("Issue detail: " + issueId + " (detail drawer will be implemented as needed)");
+}
+
+// Wire up class insights events
+document.addEventListener("DOMContentLoaded", function() {
+  var refreshBtn = document.getElementById("refreshClassInsights");
+  if (refreshBtn) refreshBtn.addEventListener("click", function() { loadClassInsights(); });
+  var jobFilter = document.getElementById("classJobFilter");
+  if (jobFilter) jobFilter.addEventListener("change", function() { loadClassInsights(); });
+  var closeBtn = document.getElementById("closeClassNode");
+  if (closeBtn) closeBtn.addEventListener("click", function() {
+    var panel = document.getElementById("classNodeDetail");
+    if (panel) panel.style.display = "none";
+    ciState.currentNode = null;
+  });
+  // Tab switching
+  document.querySelectorAll("[data-ci-tab]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      ciState.activeTab = this.dataset.ciTab;
+      document.querySelectorAll("[data-ci-tab]").forEach(function(b) { b.classList.remove("active"); });
+      this.classList.add("active");
+      document.getElementById("ciGraphPanel").style.display = ciState.activeTab === "graph" ? "" : "none";
+      document.getElementById("ciIssuesPanel").style.display = ciState.activeTab === "issues" ? "" : "none";
+    });
+  });
+});
+
+// Init state
+document.addEventListener("DOMContentLoaded", function() {
+  ciState = ciState || { activeTab: "graph", currentNode: null };
+});
+
+// ── 阶段四：教学评语 ──
+
+var commentState = { selectedIds: [] };
+
+async function loadComments() {
+  commentState.selectedIds = [];
+  var status = document.getElementById("commentStatusFilter")?.value || "";
+  try {
+    var params = [];
+    if (status) params.push("status=" + encodeURIComponent(status));
+    var url = "/api/teacher/comments" + (params.length ? "?" + params.join("&") : "");
+    var resp = await fetch(url, {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (!resp.ok) { document.getElementById("commentListContainer").innerHTML = '<div class="muted">加载失败</div>'; return; }
+    var data = await resp.json();
+    renderCommentStats(data.stats);
+    renderCommentList(data.comments);
+  } catch (e) {
+    document.getElementById("commentListContainer").innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
+  }
+}
+
+function renderCommentStats(stats) {
+  var el = document.getElementById("commentStats");
+  if (!el) return;
+  el.innerHTML =
+    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value">' + (stats.total || 0) + '</span><span class="metric-label">总计</span></div>' +
+    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value" style="color:#f59e0b;">' + (stats.draft || 0) + '</span><span class="metric-label">草稿</span></div>' +
+    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value" style="color:#38bdf8;">' + (stats.reviewed || 0) + '</span><span class="metric-label">已审核</span></div>' +
+    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value" style="color:#22c55e;">' + (stats.published || 0) + '</span><span class="metric-label">已发布</span></div>';
+}
+
+function renderCommentList(comments) {
+  var container = document.getElementById("commentListContainer");
+  if (!container) return;
+  if (!comments || !comments.length) {
+    container.innerHTML = '<div class="muted" style="padding:40px;text-align:center;">暂无评语</div>';
+    return;
+  }
+  var statusBadge = {"draft": '<span style="color:#f59e0b;">草稿</span>', "reviewed": '<span style="color:#38bdf8;">已审核</span>', "published": '<span style="color:#22c55e;">已发布</span>'};
+  var html = '<table class="student-table"><thead><tr><th style="width:30px;"><input type="checkbox" id="commentSelectAll" /></th><th>学生</th><th>岗位</th><th>周期</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+  for (var i = 0; i < comments.length; i++) {
+    var c = comments[i];
+    html += '<tr>' +
+      '<td><input type="checkbox" class="comment-cb" value="' + c.id + '" /></td>' +
+      '<td><strong>' + escapeHtml(c.student_id) + '</strong></td>' +
+      '<td>' + escapeHtml(c.job_role || "-") + '</td>' +
+      '<td>' + escapeHtml((c.period_start || "").substring(0, 10)) + '</td>' +
+      '<td>' + (statusBadge[c.status] || c.status) + '</td>' +
+      '<td><button type="button" onclick="showCommentDetail(' + c.id + ')" class="btn-small">查看</button></td>' +
+      '</tr>';
+  }
+  html += '</tbody></table>';
+  container.innerHTML = html;
+  // Select all handler
+  var sa = document.getElementById("commentSelectAll");
+  if (sa) sa.addEventListener("change", function() {
+    var cbs = document.querySelectorAll(".comment-cb");
+    commentState.selectedIds = [];
+    cbs.forEach(function(cb) {
+      cb.checked = sa.checked;
+      if (sa.checked) commentState.selectedIds.push(parseInt(cb.value));
+    });
+  });
+  document.querySelectorAll(".comment-cb").forEach(function(cb) {
+    cb.addEventListener("change", function() {
+      var vid = parseInt(cb.value);
+      if (cb.checked) { if (commentState.selectedIds.indexOf(vid) === -1) commentState.selectedIds.push(vid); }
+      else { commentState.selectedIds = commentState.selectedIds.filter(function(x) { return x !== vid; }); }
+    });
+  });
+}
+
+async function showCommentDetail(cid) {
+  var panel = document.getElementById("commentDetailPanel");
+  var content = document.getElementById("commentDetailContent");
+  var title = document.getElementById("commentDetailTitle");
+  if (!panel || !content) return;
+  panel.style.display = "block";
+  if (title) title.textContent = "评语详情 #" + cid;
+  content.innerHTML = '<div class="muted">加载中...</div>';
+  try {
+    var resp = await fetch("/api/teacher/comments/" + cid, {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (!resp.ok) { content.innerHTML = '<div class="muted">加载失败</div>'; return; }
+    var c = await resp.json();
+    var statusColor = { "draft": "#f59e0b", "reviewed": "#38bdf8", "published": "#22c55e" }[c.status] || "var(--text)";
+    var evidenceHtml = (c.evidence || []).map(function(ev) { return '<li>' + escapeHtml(ev.summary || JSON.stringify(ev)) + '</li>'; }).join("") || '<li class="muted">无</li>';
+    var html = '<div class="student-detail-grid">' +
+      '<div class="student-detail-card"><h4>基本信息</h4>' +
+      '<div class="metric"><span class="metric-label">学生</span><span class="metric-value">' + escapeHtml(c.student_id) + '</span></div>' +
+      '<div class="metric"><span class="metric-label">岗位</span><span class="metric-value">' + escapeHtml(c.job_role || "-") + '</span></div>' +
+      '<div class="metric"><span class="metric-label">周期</span><span class="metric-value">' + escapeHtml((c.period_start || "").substring(0, 10)) + ' ~ ' + escapeHtml((c.period_end || "").substring(0, 10)) + '</span></div>' +
+      '<div class="metric"><span class="metric-label">状态</span><span class="metric-value" style="color:' + statusColor + ';font-weight:bold;">' + c.status + '</span></div>' +
+      '</div>' +
+      '<div class="student-detail-card"><h4>AI 草稿</h4><div style="white-space:pre-wrap;font-size:13px;">' + escapeHtml(c.ai_draft || "(无)") + '</div></div>' +
+      '</div>' +
+      '<div class="student-detail-card" style="margin-top:12px;"><h4>当前教师评语</h4>' +
+      '<textarea id="commentEditContent" style="width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:13px;">' + escapeHtml(c.content || "") + '</textarea>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;">' +
+      '<button type="button" onclick="saveCommentContent(' + c.id + ')" class="btn-small">保存</button>' +
+      (c.status === "draft" ? '<button type="button" onclick="reviewComment(' + c.id + ')" class="btn-small" style="color:#38bdf8;">审核</button>' : "") +
+      (c.status === "reviewed" ? '<button type="button" onclick="publishComment(' + c.id + ')" class="btn-small" style="color:#22c55e;">发布</button>' : "") +
+      '</div></div>' +
+      '<div class="student-detail-card" style="margin-top:12px;"><h4>AI 生成依据</h4><ul style="font-size:12px;">' + evidenceHtml + '</ul></div>';
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
+  }
+}
+
+async function saveCommentContent(cid) {
+  var textarea = document.getElementById("commentEditContent");
+  if (!textarea) return;
+  var content = textarea.value;
+  try {
+    var resp = await fetch("/api/teacher/comments/" + cid + "/update", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answers: answers, session_id: state.sessionId })
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ content: content })
     });
     var data = await resp.json();
-    console.log("submitAnswers response:", data);
-    if (data) renderScore({ score_result: data });
+    if (data.ok) { loadComments(); showCommentDetail(cid); }
+    else { alert("保存失败: " + (data.error || "未知错误")); }
   } catch (e) {
-    console.error("submitAnswers error:", e);
+    alert("保存失败: " + (e.message || "网络错误"));
   }
+}
+
+async function reviewComment(cid) {
+  try {
+    var resp = await fetch("/api/teacher/comments/" + cid + "/review", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    var data = await resp.json();
+    if (data.ok) { loadComments(); showCommentDetail(cid); }
+    else { alert("审核失败: " + (data.error || "未知错误")); }
+  } catch (e) { alert("审核失败: " + (e.message || "网络错误")); }
+}
+
+async function publishComment(cid) {
+  if (!confirm("确认发布此评语？发布后学生将可见。")) return;
+  try {
+    var resp = await fetch("/api/teacher/comments/" + cid + "/publish", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    var data = await resp.json();
+    if (data.ok) { loadComments(); showCommentDetail(cid); }
+    else { alert("发布失败: " + (data.error || "未知错误")); }
+  } catch (e) { alert("发布失败: " + (e.message || "网络错误")); }
+}
+
+async function batchGenerate() {
+  var ids = commentState.selectedIds.length > 0 ? commentState.selectedIds : prompt("输入 student_id（逗号分隔）:", "001,002,003");
+  if (!ids) return;
+  try {
+    var resp = await fetch("/api/teacher/comments/generate-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ student_ids: String(ids).split(",").map(function(s) { return s.trim(); }) })
+    });
+    var data = await resp.json();
+    alert("批量生成完成: " + data.total + " 条");
+    loadComments();
+  } catch (e) { alert("批量生成失败: " + (e.message || "网络错误")); }
+}
+
+async function batchReview() {
+  if (!commentState.selectedIds.length) { alert("请先选择评语"); return; }
+  try {
+    var resp = await fetch("/api/teacher/comments/review-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ comment_ids: commentState.selectedIds })
+    });
+    alert("批量审核完成");
+    loadComments();
+  } catch (e) { alert("批量审核失败: " + (e.message || "网络错误")); }
+}
+
+async function batchPublish() {
+  if (!confirm("仅发布\"已审核\"状态的评语。确认继续？")) return;
+  try {
+    var resp = await fetch("/api/teacher/comments/publish-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ comment_ids: commentState.selectedIds.length > 0 ? commentState.selectedIds : [] })
+    });
+    alert("批量发布完成（仅已审核评语被发布）");
+    loadComments();
+  } catch (e) { alert("批量发布失败: " + (e.message || "网络错误")); }
+}
+
+// Wire up
+document.addEventListener("DOMContentLoaded", function() {
+  var rf = document.getElementById("refreshComments");
+  if (rf) rf.addEventListener("click", loadComments);
+  var sf = document.getElementById("commentStatusFilter");
+  if (sf) sf.addEventListener("change", loadComments);
+  var bg = document.getElementById("batchGenerateComments");
+  if (bg) bg.addEventListener("click", batchGenerate);
+  var br = document.getElementById("batchReviewComments");
+  if (br) br.addEventListener("click", batchReview);
+  var bp = document.getElementById("batchPublishReviewed");
+  if (bp) bp.addEventListener("click", batchPublish);
+  var cc = document.getElementById("closeCommentDetail");
+  if (cc) cc.addEventListener("click", function() {
+    document.getElementById("commentDetailPanel").style.display = "none";
+  });
+});
+
+// ── 阶段五：AI 教学助教 ──
+
+function applyTeacherChatResult(data, userMsg) {
+  var answer = data.answer || "";
+  var evidence = data.evidence || [];
+  var dataCards = data.data_cards || [];
+  var actions = data.actions || [];
+  var contextUpdate = data.context_update || {};
+
+  // Store context for next messages
+  state.teacherContext = state.teacherContext || {};
+  for (var k in contextUpdate) {
+    if (contextUpdate.hasOwnProperty(k)) state.teacherContext[k] = contextUpdate[k];
+  }
+
+  var meta = { evidence: evidence, data_cards: dataCards, actions: actions, intent: data.intent };
+  addTeacherMessage("assistant", answer, meta);
+}
+
+function addTeacherMessage(role, content, meta) {
+  if (typeof addMessage !== "function") return;
+  addMessage(role, content, meta);
+}
+
+// Override addMessage to render teacher AI actions
+var _origAddMessage = addMessage;
+addMessage = function(role, content, meta) {
+  _origAddMessage(role, content, meta);
+  // After the message is rendered, attach action buttons to the last message
+  setTimeout(function() {
+    var actions = meta && meta.actions;
+    var messages = document.getElementById("chatMessages");
+    if (!messages || !actions || !actions.length) return;
+    var lastMsg = messages.lastElementChild;
+    if (!lastMsg) return;
+    // Find or create actions container
+    var existing = lastMsg.querySelector(".ai-actions-row");
+    if (existing) existing.remove();
+    var html = '<div class="ai-actions-row" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">';
+    for (var i = 0; i < actions.length; i++) {
+      var a = actions[i];
+      if (!a) continue;
+      html += '<button type="button" class="btn-small ai-action-btn" data-action-type="' + escapeHtml(a.type || "") + '"';
+      if (a.module) html += ' data-action-module="' + escapeHtml(a.module) + '"';
+      if (a.view) html += ' data-action-view="' + escapeHtml(a.view) + '"';
+      if (a.student_id) html += ' data-action-student="' + escapeHtml(a.student_id) + '"';
+      if (a.comment_id) html += ' data-action-comment="' + escapeHtml(String(a.comment_id)) + '"';
+      html += '>' + escapeHtml(a.label || a.type) + '</button>';
+    }
+    html += '</div>';
+    var body = lastMsg.querySelector(".message-body");
+    if (body) body.insertAdjacentHTML("beforeend", html);
+  }, 100);
 };
+
+// Attach action click handlers
+document.addEventListener("click", function(e) {
+  var btn = e.target.closest(".ai-action-btn");
+  if (!btn) return;
+  var type = btn.dataset.actionType;
+  var module = btn.dataset.actionModule;
+  var view = btn.dataset.actionView;
+  var studentId = btn.dataset.actionStudent;
+  var commentId = btn.dataset.actionComment;
+
+  if (type === "navigate" && module && typeof openWorkspace === "function") {
+    openWorkspace(module);
+  }
+  if (type === "open_student" && studentId && typeof showStudentDetail === "function") {
+    if (typeof openWorkspace === "function") openWorkspace("studentMgmt");
+    setTimeout(function() { showStudentDetail(studentId); }, 500);
+  }
+  if (type === "generate_comment" && studentId) {
+    fetch("/api/teacher/comments/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ student_id: studentId })
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      if (d.ok) { addMessage("assistant", "已为 " + studentId + " 生成评语草稿。"); }
+      else { addMessage("assistant", "生成失败: " + (d.error || "未知错误")); }
+    });
+  }
+  if (type === "open_comment" && commentId && typeof showCommentDetail === "function") {
+    if (typeof openWorkspace === "function") openWorkspace("teacherComments");
+    setTimeout(function() { showCommentDetail(parseInt(commentId)); }, 500);
+  }
+});
+
+// Teacher welcome message
+function setTeacherWelcome() {
+  state.messages = state.messages || [];
+  if (state.messages.length === 0) {
+    addMessage("assistant", "我是 AI 教学助教。可以帮你：快速查看班级学情、定位学生问题、发现共性问题、总结学习证据，并协助生成教师评语。请直接问我问题，例如：\u201C本班目前最薄弱的能力是什么？\u201D");
+  }
+  // Set teacher suggested questions
+  var sq = document.getElementById("suggestedQuestions");
+  if (sq) {
+    sq.innerHTML = '<button type="button" onclick="sendChat(\u2018本班目前最薄弱的能力是什么？\u2019)">本班薄弱能力</button>' +
+      '<button type="button" onclick="sendChat(\u2018有哪些共性问题？\u2019)">共性问题</button>' +
+      '<button type="button" onclick="sendChat(\u2018查看待审核评语\u2019)">待审核评语</button>' +
+      '<button type="button" onclick="sendChat(\u2018当前岗位有多少待审核提案？\u2019)">岗位提案</button>';
+  }
+}
+
+// UI Context helper
+function setUIContext(module, view, data) {
+  state.uiContext = { module: module, view: view };
+  if (data) {
+    if (data.job_role) state.uiContext.job_role = data.job_role;
+    if (data.ability_id) state.uiContext.ability_id = data.ability_id;
+    if (data.student_id) state.uiContext.student_id = data.student_id;
+    if (data.issue_id) state.uiContext.issue_id = data.issue_id;
+    if (data.comment_id) state.uiContext.comment_id = data.comment_id;
+  }
+}
+
+// ── 阶段六：岗位图谱管理完善 ──
+
+var jgState = { activeTab: "graph", versions: [] };
+
+function loadJobGraphWorkspace() {
+  jgState.activeTab = "graph";
+  // Load graph tab by default
+  loadJobGraphDiagram();
+  // Wire up tab switching
+  document.querySelectorAll("[data-jg-tab]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      jgState.activeTab = this.dataset.jgTab;
+      document.querySelectorAll("[data-jg-tab]").forEach(function(b) { b.classList.remove("active"); });
+      this.classList.add("active");
+      document.querySelectorAll(".jg-tab").forEach(function(t) { t.style.display = "none"; });
+      var target = document.getElementById("jgTab" + jgState.activeTab.charAt(0).toUpperCase() + jgState.activeTab.slice(1));
+      if (target) target.style.display = "";
+      // Auto-load data for each tab
+      if (jgState.activeTab === "graph") loadJobGraphDiagram();
+      if (jgState.activeTab === "data") loadJobAdmin();
+      if (jgState.activeTab === "review") loadJobAdmin();
+      if (jgState.activeTab === "versions") { /* manual load */ }
+    });
+  });
+}
+
+async function loadJobGraphDiagram() {
+  var container = document.getElementById("jobGraphDiagram");
+  if (!container) return;
+  container.innerHTML = '<div class="muted">加载图谱中...</div>';
+  try {
+    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var resp = await fetch("/api/graph/job?job_role=" + encodeURIComponent(jobRole));
+    if (!resp.ok) { container.innerHTML = '<div class="muted">加载失败</div>'; return; }
+    var graph = await resp.json();
+    if (!graph.nodes || !graph.nodes.length) {
+      container.innerHTML = '<div class="muted">暂无岗位图谱数据</div>';
+      return;
+    }
+    if (typeof renderGraphDiagram === "function") {
+      renderGraphDiagram(graph, null, container);
+    }
+    document.getElementById("jobGraphLegend").innerHTML =
+      '<span style="font-size:12px;color:var(--text-secondary);">节点大小=岗位重要度 | 点击节点查看详情</span>';
+  } catch (e) {
+    container.innerHTML = '<div class="muted">加载失败: ' + (e.message || "") + '</div>';
+  }
+}
+
+async function loadVersionHistory() {
+  var container = document.getElementById("versionHistoryList");
+  if (!container) return;
+  container.innerHTML = '<div class="muted">加载中...</div>';
+  try {
+    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var resp = await fetch("/api/graph/job/versions?job_role=" + encodeURIComponent(jobRole));
+    if (!resp.ok) { container.innerHTML = '<div class="muted">加载失败</div>'; return; }
+    var data = await resp.json();
+    var versions = data.versions || [];
+    jgState.versions = versions;
+    if (!versions.length) {
+      container.innerHTML = '<div class="muted">暂无版本历史</div>';
+      return;
+    }
+    var html = '<table class="student-table"><thead><tr><th>版本</th><th>时间</th><th>岗位</th><th>节点数</th><th>操作</th></tr></thead><tbody>';
+    for (var i = 0; i < versions.length; i++) {
+      var v = versions[i];
+      var vId = v.version || v.snapshot_id || v.id || ("v" + i);
+      var vTime = v.created_at || v.timestamp || v.generated_at || "";
+      var vRole = v.job_role || v.role || "";
+      var vNodes = v.node_count || (v.nodes ? v.nodes.length : "-");
+      html += '<tr><td><strong>' + escapeHtml(String(vId)) + '</strong></td>' +
+        '<td>' + escapeHtml(String(vTime).substring(0, 16)) + '</td>' +
+        '<td>' + escapeHtml(vRole) + '</td>' +
+        '<td>' + vNodes + '</td>' +
+        '<td>';
+      if (i > 0) {
+        html += '<button type="button" class="btn-small" onclick="showVersionDiff(\'' + escapeHtml(String(vId)) + '\',\'' + escapeHtml(String(versions[i-1].version || versions[i-1].snapshot_id || versions[i-1].id || ("v"+(i-1)))) + '\')">比较</button> ';
+      }
+      if (i > 0) {
+        html += '<button type="button" class="btn-small" style="color:#ef4444;" onclick="confirmRollback(\'' + escapeHtml(String(vId)) + '\')">回滚到此</button>';
+      }
+      html += '</td></tr>';
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<div class="muted">加载失败: ' + (e.message || "") + '</div>';
+  }
+}
+
+async function showVersionDiff(v1, v2) {
+  var panel = document.getElementById("versionDiffPanel");
+  var content = document.getElementById("versionDiffContent");
+  if (!panel || !content) return;
+  panel.style.display = "block";
+  content.innerHTML = '<div class="muted">加载 Diff...</div>';
+  try {
+    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var resp = await fetch("/api/graph/job/versions/diff?v1=" + encodeURIComponent(v1) + "&v2=" + encodeURIComponent(v2) + "&job_role=" + encodeURIComponent(jobRole));
+    if (!resp.ok) { content.innerHTML = '<div class="muted">Diff 加载失败</div>'; return; }
+    var diff = await resp.json();
+    var added = diff.added_nodes || diff.added || [];
+    var removed = diff.removed_nodes || diff.removed || [];
+    var changed = diff.changed_nodes || diff.modified || diff.changed || [];
+    var html = '<div class="student-stats-row" style="margin-bottom:12px;">' +
+      '<div class="metric" style="flex:1;min-width:80px;"><span class="metric-value" style="color:#22c55e;">' + (added.length || 0) + '</span><span class="metric-label">新增节点</span></div>' +
+      '<div class="metric" style="flex:1;min-width:80px;"><span class="metric-value" style="color:#f59e0b;">' + (changed.length || 0) + '</span><span class="metric-label">修改节点</span></div>' +
+      '<div class="metric" style="flex:1;min-width:80px;"><span class="metric-value" style="color:#ef4444;">' + (removed.length || 0) + '</span><span class="metric-label">删除节点</span></div>' +
+      '</div>';
+    if (added.length) {
+      html += '<div class="section-block"><h4>新增能力</h4>';
+      added.forEach(function(n) { html += '<div style="padding:4px 0;color:#22c55e;">+ ' + escapeHtml(n.label || n.name || n.id || JSON.stringify(n)) + '</div>'; });
+      html += '</div>';
+    }
+    if (changed.length) {
+      html += '<div class="section-block"><h4>修改能力</h4>';
+      changed.forEach(function(n) { html += '<div style="padding:4px 0;color:#f59e0b;">~ ' + escapeHtml(n.label || n.name || n.id || JSON.stringify(n)) + '</div>'; });
+      html += '</div>';
+    }
+    if (removed.length) {
+      html += '<div class="section-block"><h4>删除能力</h4>';
+      removed.forEach(function(n) { html += '<div style="padding:4px 0;color:#ef4444;">- ' + escapeHtml(n.label || n.name || n.id || JSON.stringify(n)) + '</div>'; });
+      html += '</div>';
+    }
+    if (!added.length && !changed.length && !removed.length) {
+      html += '<div class="muted">两个版本之间无变化。</div>';
+    }
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = '<div class="muted">Diff 加载失败: ' + (e.message || "") + '</div>';
+  }
+}
+
+function confirmRollback(targetVersion) {
+  var panel = document.getElementById("versionRollbackPanel");
+  var content = document.getElementById("versionRollbackContent");
+  if (!panel || !content) return;
+  panel.style.display = "block";
+  content.innerHTML =
+    '<div style="padding:16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;">' +
+    '<p style="color:#ef4444;font-weight:bold;">⚠ 即将回滚岗位图谱至版本 ' + escapeHtml(String(targetVersion)) + '</p>' +
+    '<p class="muted">回滚将修改当前正式岗位能力图谱，可能影响后续学生能力评价和岗位差距分析。</p>' +
+    '<p class="muted">回滚后仍然保留全部历史版本记录。</p>' +
+    '<div style="margin-top:12px;display:flex;gap:8px;">' +
+    '<button type="button" onclick="executeRollback(\'' + escapeHtml(String(targetVersion)) + '\')" style="padding:8px 20px;background:#ef4444;color:#fff;border:none;border-radius:8px;cursor:pointer;">确认回滚</button>' +
+    '<button type="button" onclick="document.getElementById(\'versionRollbackPanel\').style.display=\'none\'" style="padding:8px 20px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;cursor:pointer;">取消</button>' +
+    '</div></div>';
+}
+
+async function executeRollback(targetVersion) {
+  var content = document.getElementById("versionRollbackContent");
+  if (!content) return;
+  try {
+    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var resp = await fetch("/api/graph/job/versions/rollback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
+      body: JSON.stringify({ version: targetVersion, job_role: jobRole })
+    });
+    var data = await resp.json();
+    if (resp.ok) {
+      content.innerHTML = '<div style="color:#22c55e;padding:12px;">回滚成功！岗位图谱已恢复至版本 ' + escapeHtml(String(targetVersion)) + '。</div>';
+      loadJobGraphDiagram();
+      loadVersionHistory();
+    } else {
+      content.innerHTML = '<div style="color:#ef4444;padding:12px;">回滚失败：' + escapeHtml(data.error || JSON.stringify(data)) + '</div>';
+    }
+  } catch (e) {
+    content.innerHTML = '<div style="color:#ef4444;padding:12px;">回滚失败：' + (e.message || "网络错误") + '</div>';
+  }
+}
+
+// Wire up version management
+document.addEventListener("DOMContentLoaded", function() {
+  var loadBtn = document.getElementById("loadVersionHistory");
+  if (loadBtn) loadBtn.addEventListener("click", loadVersionHistory);
+  var closeDiff = document.getElementById("closeVersionDiff");
+  if (closeDiff) closeDiff.addEventListener("click", function() { document.getElementById("versionDiffPanel").style.display = "none"; });
+  var closeRollback = document.getElementById("closeRollbackPanel");
+  if (closeRollback) closeRollback.addEventListener("click", function() { document.getElementById("versionRollbackPanel").style.display = "none"; });
+
+  // Init tab switching on first click
+  document.querySelectorAll("[data-jg-tab]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      jgState.activeTab = this.dataset.jgTab;
+      document.querySelectorAll("[data-jg-tab]").forEach(function(b) { b.classList.remove("active"); });
+      this.classList.add("active");
+      document.querySelectorAll(".jg-tab").forEach(function(t) { t.style.display = "none"; });
+      var target = document.getElementById("jgTab" + jgState.activeTab.charAt(0).toUpperCase() + jgState.activeTab.slice(1));
+      if (target) target.style.display = "";
+      if (jgState.activeTab === "graph") loadJobGraphDiagram();
+      if (jgState.activeTab === "data" || jgState.activeTab === "review") { if (typeof loadJobAdmin === "function") loadJobAdmin(); }
+    });
+  });
+});
+
+// ── 阶段七：教师工作台仪表板 ──
+
+async function loadTeacherDashboard() {
+  var jobRole = (document.getElementById("jobAdminRole")?.value) || "automation_line_commissioning_maintenance_newcomer";
+  try {
+    // Fetch comments stats
+    var resp1 = await fetch("/api/teacher/comments?job_role=" + encodeURIComponent(jobRole), {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (resp1.ok) {
+      var cd = await resp1.json();
+      var cs = cd.stats || {};
+      ["tdCommentsDraft","tdCommentsReviewed"].forEach(function(id) { var el = document.getElementById(id); if (el) el.querySelector(".metric-value").textContent = "-"; });
+      var el1 = document.getElementById("tdCommentsDraft"); if (el1) el1.querySelector(".metric-value").textContent = cs.draft || 0;
+      var el2 = document.getElementById("tdCommentsReviewed"); if (el2) el2.querySelector(".metric-value").textContent = cs.reviewed || 0;
+    }
+  } catch(e) {}
+
+  try {
+    // Fetch class overview
+    var resp2 = await fetch("/api/teacher/class/overview?job_role=" + encodeURIComponent(jobRole), {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (resp2.ok) {
+      var ov = await resp2.json();
+      var el3 = document.getElementById("tdClassIssues"); if (el3) el3.querySelector(".metric-value").textContent = ov.common_issue_count || 0;
+      var el4 = document.getElementById("tdClassWeakNodes"); if (el4) el4.querySelector(".metric-value").textContent = ov.weak_node_count || 0;
+    }
+  } catch(e) {}
+
+  try {
+    // Fetch students
+    var resp3 = await fetch("/api/teacher/students?job_role=" + encodeURIComponent(jobRole), {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (resp3.ok) {
+      var sd = await resp3.json();
+      var ss = sd.stats || {};
+      var el5 = document.getElementById("tdStudentTotal"); if (el5) el5.querySelector(".metric-value").textContent = ss.total || 0;
+      var el6 = document.getElementById("tdStudentAssessed"); if (el6) el6.querySelector(".metric-value").textContent = ss.assessed || 0;
+    }
+  } catch(e) {}
+
+  try {
+    // Fetch job proposals
+    var resp4 = await fetch("/api/graph/job/proposals/pending?job_role=" + encodeURIComponent(jobRole), {
+      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
+    });
+    if (resp4.ok) {
+      var pd = await resp4.json();
+      var proposals = pd.proposals || [];
+      var el7 = document.getElementById("tdJobProposals"); if (el7) el7.querySelector(".metric-value").textContent = proposals.length;
+    }
+  } catch(e) {}
+
+  var statsEl = document.getElementById("teacherDashboardStats");
+  if (statsEl) statsEl.innerHTML = "";
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  var refreshBtn = document.getElementById("refreshTeacherDashboard");
+  if (refreshBtn) refreshBtn.addEventListener("click", loadTeacherDashboard);
+});
+
