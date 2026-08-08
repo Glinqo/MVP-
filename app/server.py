@@ -55,7 +55,7 @@ from app.services.device_state_handler import record_device_state  # noqa: E402
 from app.services.initial_assessment import start_assessment as ia_start, submit_answer as ia_submit_answer, get_assessment_summary as ia_get_summary  # noqa: E402
 from app.services.action_planner import plan_initial_learning  # noqa: E402
 from app.services.auth import login, get_user, save_identity, teacher_required
-from app.middleware import find_authed_user  # noqa: E402
+from app.middleware import find_authed_user  # noqa: E402 verify_student_ownership
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.teacher_students import list_teacher_students, get_teacher_student_detail  # noqa: E402
 from app.services.class_insights import get_class_ability_graph, get_common_issues, get_class_overview  # noqa: E402
@@ -209,6 +209,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(build_job_ability_graph(job_role))
 
         if path == "/api/graph/student":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(build_student_ability_graph(session_id))
 
@@ -219,10 +222,16 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(build_student_job_gap(session_id, limit=limit))
 
         if path == "/api/student/bootstrap":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(student_bootstrap(session_id))
 
         if path == "/api/student/dashboard":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(build_student_dashboard(session_id))
 
@@ -249,12 +258,18 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json({"proposals": get_pending_proposals(job_role)})
 
         if path == "/api/student/diagnostic-traces":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             if not session_id:
                 return self.send_error_json(400, "session_id is required")
             return self.send_json(build_diagnostic_trace(session_id, parse_qs(parsed.query).get("scenario_id", [""])[0]))
 
         if path == "/api/student/strategy-profile":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             if not session_id:
                 return self.send_error_json(400, "session_id is required")
@@ -275,10 +290,16 @@ class MVPHandler(BaseHTTPRequestHandler):
             ))
 
         if path == "/api/student/events/timeline":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = query_params.get("session_id", ["default"])[0]
             return self.send_json(get_event_timeline(session_id))
 
         if path == "/api/student/ability-evidence":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = query_params.get("session_id", ["default"])[0]
             ability_id = query_params.get("ability_id", [None])[0]
             if not ability_id:
@@ -366,6 +387,9 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_error_json(400, "session_id is required")
             return self.send_json(generate_individual_report(session_id))
         if path == "/api/student/teacher-comments":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             user = find_authed_user(self)
             if not user:
                 return self.send_error_json(401, "请先登录")
@@ -376,20 +400,32 @@ class MVPHandler(BaseHTTPRequestHandler):
             ))
 
         if path == "/api/student/ability-state":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = query_params.get("session_id", ["default"])[0]
             ability_id = query_params.get("ability_id", [None])[0]
             return self.send_json(compute_ability_state(session_id, ability_id))
 
         if path == "/api/student/next-actions":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = query_params.get("session_id", ["default"])[0]
             count = int(query_params.get("count", ["5"])[0])
             return self.send_json(recommend_next_actions(session_id, count))
 
         if path == "/api/student/job-gap":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = query_params.get("session_id", ["default"])[0]
             return self.send_json(_compute_job_gap(session_id))
 
         if path == "/api/student/assess/summary":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             query = parse_qs(parsed.query)
             session_id = query.get("session_id", [None])[0]
             if not session_id:
@@ -421,6 +457,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(result)
 
         if path == "/api/student/cognitive-twin":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             if not session_id:
                 return self.send_error_json(400, "session_id is required")
@@ -440,6 +479,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(version_diff(v1, v2, job_role))
 
         if path == "/api/student/job-match":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(compute_match(session_id))
         if path == "/api/training-plans":
@@ -569,7 +611,7 @@ class MVPHandler(BaseHTTPRequestHandler):
                 user = find_authed_user(self)
                 if not user:
                     return self.send_error_json(401, "请先登录")
-                result = save_identity(payload.get("username", ""), payload.get("identity", "student"), payload.get("job_role", ""))
+                result = save_identity(user.get("username", ""), payload.get("identity", "student"), payload.get("job_role", ""))
                 # Always include the server-side role from JWT
                 result["role"] = user.get("role", "student")
                 return self.send_json(result)
@@ -587,6 +629,9 @@ class MVPHandler(BaseHTTPRequestHandler):
                         result["knowledge_refs"] = list(kg)
                 return self.send_json(result)
             if path == "/api/student/bootstrap":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
                 return self.send_json(student_bootstrap(payload.get("session_id")))
             if path == "/api/quiz/personalized":
                 return self.send_json(personalized_quiz(payload))
@@ -601,6 +646,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/scenario/action":
                 return self.send_json(action_scenario(payload))
             if path == "/api/student/device-state":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
                 return self.send_json(record_device_state(payload))
 
             if path == "/api/graph/student/event":
@@ -685,11 +733,17 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/diagnose":
                 return self.send_json(diagnose(payload))
             if path == "/api/student/assess/start":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
                 return self.send_json(ia_start(payload.get("session_id", ""), payload.get("job_role")))
                 job_role = payload.get("job_role", None)
                 return self.send_json(ia_start(session_id, job_role))
 
             if path == "/api/student/assess/answer":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
                 session_id = payload.get("session_id", "")
                 if not session_id:
                     return self.send_error_json(400, "session_id is required")
@@ -705,6 +759,9 @@ class MVPHandler(BaseHTTPRequestHandler):
 
 
             if path == "/api/student/plan/from-assessment":
+            user, err = verify_student_ownership(self)
+            if err:
+                return self.send_error_json(err[0], err[1])
                 session_id = payload.get("session_id", "")
                 if not session_id:
                     return self.send_error_json(400, "session_id is required")
