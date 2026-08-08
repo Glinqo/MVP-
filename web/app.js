@@ -649,25 +649,9 @@ function statusLabel(status) {
 }
 
 function peerDistributionData(node) {
-  var seed = 0;
-  var s = String(node.id || node.label || "node");
-  for (var i = 0; i < s.length; i++) { seed = (seed * 31 + s.charCodeAt(i)) >>> 0; }
-  function rand() {
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    return seed / 4294967296;
-  }
-  var userScore = Math.max(0, Math.min(100, Number(node.mastery_score ?? node.cognitive_mastery_score ?? 50)));
-  var groupMean = Math.max(35, Math.min(75, 62 - (node.demand_weight || 0) * 2));
-  var scores = [];
-  for (var k = 0; k < 48; k++) {
-    var v = groupMean + (rand() + rand() + rand() - 1.5) * 14;
-    scores.push(Math.max(2, Math.min(100, Math.round(v))));
-  }
-  scores.sort(function(a, b) { return b - a; });
-  var below = 0;
-  scores.forEach(function(sc) { if (sc < userScore) below++; });
-  var percentile = Math.round(below / scores.length * 100);
-  return { scores: scores, userScore: userScore, percentile: percentile, total: scores.length };
+  // TF-4: Remove fake 48-person peer distribution.
+  // Backend ClassProjection is required for real percentile data.
+  return { scores: [], groupMean: 0, insufficient: true };
 }
 
 function renderPeerDistribution(node, compact) {
@@ -2054,10 +2038,9 @@ function applyAssessmentScoresToGraph(scores) {
     ids.forEach(function(tid) {
       var node = nodeMap[tid];
       if (node) {
-        // Blend: 30% current mastery + 70% assessment score, clamp to [0.1, 0.85]
-        var current = node.mastery_score || 0.3;
-        var blended = current * 0.3 + score * 0.7;
-        node.mastery_score = parseFloat(Math.max(0.1, Math.min(0.85, blended)).toFixed(2));
+        // TF-4: Frontend no longer mutates mastery_score.
+        // Assessment submission produces a LearningEvent on the backend;
+        // LearnerState projection is the single source of truth.
         updated++;
       }
     });

@@ -1545,3 +1545,26 @@ body[data-role="teacher"] .student-layout { display: none; }
 
 /* Summary strip (for class overview) */
 .summary-strip { display: flex; gap: 16px; padding: 12px 16px; font-size: 0.85rem; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.04); }
+
+/* === TF-5: Unified state colors === */
+.state-critical { color: #ef4444; }
+.state-attention { color: #f59e0b; }
+.state-normal { color: #3b82f6; }
+.state-improving { color: #14b8a6; }
+.state-mastered { color: #22c55e; }
+.state-unknown { color: #6b7280; }
+
+/* Reduce card density: simpler workspace panels */
+.teacher-workspace-panel { padding: 12px; }
+.issue-card { border-radius: 8px; padding: 12px; margin: 0 0 8px 0; }
+.issue-card-header { margin-bottom: 4px; }
+
+/* Responsive: ensure teacher layout works at 1280+ */
+@media (max-width: 1280px) {
+  .teacher-copilot { flex: 0 0 300px; min-width: 280px; }
+}
+@media (max-width: 1024px) {
+  .teacher-layout { flex-direction: column; }
+  .teacher-copilot { flex: none; max-width: 100%; height: 40vh; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .teacher-workspace { flex: 1; }
+}
