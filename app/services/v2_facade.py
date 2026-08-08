@@ -72,11 +72,39 @@ def discover_issues(job_role: str = "", student_states: List[Dict] = None,
                     patterns: List[Dict] = None) -> List[Dict[str, Any]]:
     from app.services.issues.issue_discovery import IssueDiscoveryEngine
     engine = IssueDiscoveryEngine()
+    # Auto-populate from EventStore when called without args
+    if not student_states:
+        from app.services.state.learner_state import LearnerState
+        from app.services.evidence.event_query import EventQuery
+        q = EventQuery()
+        student_states = []
+        for sid in q.active_students(limit=50):
+            st = LearnerState(student_id=sid, job_role=job_role)
+            student_states.append(st.to_dict())
+    if not patterns:
+        from app.services.diagnosis.diagnostic_patterns import PatternClassifier
+        from app.services.diagnosis.expert_graph import get_expert_graph
+        from app.services.evidence.event_query import EventQuery
+        patterns = []
+        g = get_expert_graph("SCN_PLC_INPUT_NO_RESPONSE")
+        pc = PatternClassifier(g)
+        q2 = EventQuery()
+        for sid in q2.active_students(limit=20):
+            for ev in q2.by_student(sid, limit=30):
+                sid2 = ev.get("state_id", "") or ev.get("current_state", "")
+                aid = ev.get("action_id", "") or ev.get("action", "")
+                if sid2 and aid:
+                    pat = pc.classify(sid2, aid, [], sid, ev.get("scenario_id", ""))
+                    if pat: patterns.append(pat.to_dict())
     issues = engine.discover_from_states(student_states or [], patterns or [])
     return [i.to_dict() for i in issues]
 
 def get_issue(issue_id: str) -> Dict[str, Any]:
-    return {"issue_id": issue_id, "status": "pending"}
+    issues = discover_issues()
+    for i in issues:
+        if i.get("issue_id") == issue_id:
+            return i
+    return {"issue_id": issue_id, "title": issue_id, "status": "unknown", "priority": "low", "affected_students": [], "primary_ability_id": ""}
 
 # --- Intervention Policy ---
 def generate_candidates(issue_id: str, student_ids: List[str],
