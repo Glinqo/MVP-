@@ -347,6 +347,60 @@
       </div>
     </header>
 
+    <!-- === TF-3 Teacher Layout: Copilot + Decision Workspace === -->
+    <div class="teacher-layout">
+      <!-- Left: Teacher Copilot -->
+      <div class="teacher-copilot">
+        <div class="copilot-chat">
+          <div class="summary-strip">
+            <span id="teacherScope">当前范围：岗位聚合</span>
+          </div>
+          <div class="copilot-chat-messages" id="teacherChatMessages">
+            <div class="chat-message assistant">
+              <div class="chat-bubble">欢迎使用教学决策工作台。请提问或查看左侧教学问题。</div>
+            </div>
+          </div>
+          <div class="copilot-chat-input">
+            <form id="teacherChatForm" onsubmit="event.preventDefault();TeacherUI.sendCopilotMessage()" style="display:flex;gap:8px">
+              <input type="text" id="copilotInput" placeholder="直接提问，请教学助手帮你分析..." style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:0.9rem" />
+              <button type="submit" style="background:#14b8a6;color:#fff;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;font-size:0.9rem">发送</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- Right: Decision Workspace -->
+      <div class="teacher-workspace">
+        <nav class="teacher-nav">
+          <button class="teacher-nav-tab active" data-tab="today">今日教学</button>
+          <button class="teacher-nav-tab" data-tab="insights">班级洞察</button>
+          <button class="teacher-nav-tab" data-tab="students">学生</button>
+          <button class="teacher-nav-tab" data-tab="feedback">教学反馈</button>
+          <button class="teacher-nav-tab" data-tab="standards">岗位标准</button>
+        </nav>
+        <section id="tw-today" class="teacher-workspace-panel active">
+          <div id="todayTeachingContent"></div>
+        </section>
+        <section id="tw-insights" class="teacher-workspace-panel">
+          <div id="classInsightsContent"></div>
+        </section>
+        <section id="tw-students" class="teacher-workspace-panel">
+          <div id="studentListContainer"></div>
+        </section>
+        <section id="tw-feedback" class="teacher-workspace-panel">
+          <div id="feedbackContent"></div>
+        </section>
+        <section id="tw-standards" class="teacher-workspace-panel">
+          <div id="standardsContent"></div>
+        </section>
+      </div>
+    </div>
+    <!-- Issue Detail Drawer -->
+    <div id="issueDetailDrawer" class="issue-drawer">
+      <button class="issue-drawer-close">&times;</button>
+      <div class="issue-drawer-title"></div>
+      <div class="issue-drawer-content"></div>
+    </div>
+
     <main class="chat-layout">
       <section class="chat-main">
         <div id="jobStrip" class="job-strip">
@@ -898,5 +952,7 @@ function switchAccount() {
   }
 })();
 </script>
+
+  <script src="/teacher-ui.js?v=20260808"></script>
 </body>
 </html>

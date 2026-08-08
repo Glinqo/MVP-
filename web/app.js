@@ -2889,33 +2889,41 @@ async function teacherBoot() {
     var dbg = document.getElementById("debugInfo");
     if (dbg) dbg.style.display = "none";
     var jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
-
-    // Health check
     try {
       var health = await api("/api/health");
       var healthEl = document.getElementById("healthStatus");
       if (healthEl) { healthEl.textContent = health.status === "ok" ? "正常" : "异常"; healthEl.classList.add("ok"); }
     } catch (_) {}
-
-    // Load job graph
+    // TF-3: Initialize teacher navigation
+    if (typeof TeacherUI !== "undefined" && TeacherUI.initNav) { TeacherUI.initNav(); }
+    // Load job graph (for standards tab)
     try { var jobGraph = await api("/api/graph/job?job_role=" + encodeURIComponent(jobId)); renderGraph(jobGraph, "job"); renderJobProposals(jobGraph.pending_proposals || []); } catch (_) {}
-
-    // Load teacher data
+    // Load student list
     try { loadStudentList(); } catch (_) {}
-    try { setTeacherWelcome(); } catch (_) {}
-
-    // Teacher chat - only register listener ONCE (TF-1.6)
+    // Register chat listener
     if (!window._chatListenerRegistered) {
       window._chatListenerRegistered = true;
-      var chatForm = document.getElementById("chatForm");
-      if (chatForm) {
-        chatForm.addEventListener("submit", function(ev) { ev.preventDefault(); sendChat(); });
-      }
+      var chatForm = document.getElementById("teacherChatForm") || document.getElementById("chatForm");
+      if (chatForm) { chatForm.addEventListener("submit", function(ev) { ev.preventDefault(); sendChat(); }); }
     }
-  } catch (error) {
-    console.warn("Teacher boot error:", error.message);
-  }
+  } catch (error) { console.warn("Teacher boot error:", error.message); }
 }
+
+TeacherUI.sendCopilotMessage = function() {
+  var input = document.getElementById("copilotInput");
+  if (!input || !input.value.trim()) return;
+  var msg = input.value.trim();
+  addMessage("user", msg);
+  input.value = "";
+  var token = localStorage.getItem("mcp_auth_token") || "";
+  fetch("/api/teacher/assistant/message", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+    body: JSON.stringify({ message: msg, job_role: localStorage.getItem("mcp_job_id") || "" })
+  }).then(function(r) { return r.json(); })
+  .then(function(data) { addMessage("assistant", data.reply || data.message || "收到回复"); })
+  .catch(function(e) { addMessage("assistant", "提问失败"); });
+};
 
 // ---- Assessment Functions ----
 
