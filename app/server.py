@@ -151,7 +151,7 @@ class MVPHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
         self.wfile.write(body)
 
@@ -172,7 +172,7 @@ class MVPHandler(BaseHTTPRequestHandler):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
 
     def do_GET(self):
@@ -764,11 +764,6 @@ class MVPHandler(BaseHTTPRequestHandler):
 
             if path == "/api/feedback":
                 return self.send_json(save_feedback(payload))
-        except ValueError as exc:
-            return self.send_error_json(400, str(exc))
-        except Exception as exc:  # pragma: no cover - defensive boundary for demo server
-            return self.send_error_json(500, str(exc))
-
             # ---- V2 Engine API (via Facade) ----
             if path == "/api/v2/events/emit":
                 user = find_authed_user(self)
@@ -805,6 +800,10 @@ class MVPHandler(BaseHTTPRequestHandler):
                 result = evaluate_intervention(payload.get("intervention_id", ""),
                                                 payload.get("pre_states", []), payload.get("post_states", []))
                 return self.send_json(result)
+        except ValueError as exc:
+            return self.send_error_json(400, str(exc))
+        except Exception as exc:  # pragma: no cover - defensive boundary for demo server
+            return self.send_error_json(500, str(exc))
         return self.send_error_json(404, "API endpoint not found")
 
     def serve_static(self, request_path):
