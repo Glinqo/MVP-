@@ -80,7 +80,7 @@ def _dispatch(intent, msg, jr, tid, ctx, ui):
         r["actions"] = [{"type":"navigate","module":"teacherComments","label":"教学评语"}]
     elif intent in ("student_lookup", "student_summary"):
         m = re.search(r"(\d{3}|[\u4e00-\u9fff]{2,4})", msg)
-        sid = m.group(0) if m else (conv_ctx.get("last_students",[None])[0] if conv_ctx else None)
+        sid = m.group(0) if m else (ctx.get("last_students",[None])[0] if ctx else None)
         if sid:
             try: from app.services.teacher_students import get_teacher_student_detail; d = get_teacher_student_detail(str(sid), jr)
             except: d = {}
