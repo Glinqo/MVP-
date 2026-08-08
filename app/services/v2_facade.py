@@ -73,29 +73,38 @@ def discover_issues(job_role: str = "", student_states: List[Dict] = None,
     from app.services.issues.issue_discovery import IssueDiscoveryEngine
     engine = IssueDiscoveryEngine()
     # Auto-populate from EventStore when called without args
+    _DEMO_STUDENTS = ["001", "002", "003", "004", "005"]
     if not student_states:
         from app.services.state.learner_state import LearnerState
-        from app.services.evidence.event_query import EventQuery
-        q = EventQuery()
         student_states = []
-        for sid in q.active_students(limit=50):
-            st = LearnerState(student_id=sid, job_role=job_role)
-            student_states.append(st.to_dict())
+        for sid in _DEMO_STUDENTS:
+            try:
+                st = LearnerState(student_id=sid, job_role=job_role)
+                student_states.append(st.to_dict())
+            except Exception:
+                pass
     if not patterns:
         from app.services.diagnosis.diagnostic_patterns import PatternClassifier
         from app.services.diagnosis.expert_graph import get_expert_graph
         from app.services.evidence.event_query import EventQuery
         patterns = []
-        g = get_expert_graph("SCN_PLC_INPUT_NO_RESPONSE")
-        pc = PatternClassifier(g)
-        q2 = EventQuery()
-        for sid in q2.active_students(limit=20):
-            for ev in q2.by_student(sid, limit=30):
-                sid2 = ev.get("state_id", "") or ev.get("current_state", "")
-                aid = ev.get("action_id", "") or ev.get("action", "")
-                if sid2 and aid:
-                    pat = pc.classify(sid2, aid, [], sid, ev.get("scenario_id", ""))
-                    if pat: patterns.append(pat.to_dict())
+        try:
+            g = get_expert_graph("SCN_PLC_INPUT_NO_RESPONSE")
+            pc = PatternClassifier(g)
+            q2 = EventQuery()
+            for sid in _DEMO_STUDENTS:
+                events = q2.by_student(sid, limit=30)
+                for ev in (events or []):
+                    sid2 = ev.get("state_id", "") or ev.get("current_state", "")
+                    aid = ev.get("action_id", "") or ev.get("action", "")
+                    if sid2 and aid:
+                        try:
+                            pat = pc.classify(sid2, aid, [], sid, ev.get("scenario_id", ""))
+                            if pat: patterns.append(pat.to_dict())
+                        except Exception:
+                            pass
+        except Exception:
+            pass
     issues = engine.discover_from_states(student_states or [], patterns or [])
     return [i.to_dict() for i in issues]
 
