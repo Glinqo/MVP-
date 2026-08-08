@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "description": "Old Ability ID -> V2 Canonical ID mapping for backward compatibility",
+  "mappings": [
+    {
+      "old_id": "electrical_safety_check",
+      "canonical_id": "es_safety_rules"
+    },
+    {
+      "old_id": "power_isolation",
+      "canonical_id": "es_power_isolation"
+    },
+    {
+      "old_id": "sensor_wiring_judgement",
+      "canonical_id": "sn_wiring_diag"
+    },
+    {
+      "old_id": "sensor_type_identification",
+      "canonical_id": "sn_type_identify"
+    },
+    {
+      "old_id": "sensor_led_observation",
+      "canonical_id": "sn_state_read"
+    },
+    {
+      "old_id": "dc24v_power_check",
+      "canonical_id": "es_power_check"
+    },
+    {
+      "old_id": "plc_input_common_terminal",
+      "canonical_id": "pl_common_terminal"
+    },
+    {
+      "old_id": "plc_input_monitoring",
+      "canonical_id": "pl_monitoring"
+    },
+    {
+      "old_id": "plc_io_address_mapping",
+      "canonical_id": "pl_io_mapping"
+    },
+    {
+      "old_id": "program_variable_lookup",
+      "canonical_id": "pl_var_lookup"
+    },
+    {
+      "old_id": "input_no_response_fault_scope",
+      "canonical_id": "rt_scope_check"
+    },
+    {
+      "old_id": "no_response_power_path_check",
+      "canonical_id": "es_path_check"
+    }
+  ]
+}
