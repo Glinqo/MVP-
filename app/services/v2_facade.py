@@ -39,9 +39,24 @@ def get_student_patterns(student_id: str, scenario_id: str = "",
                          limit: int = 20) -> List[Dict[str, Any]]:
     from app.services.diagnosis.diagnostic_patterns import PatternClassifier
     from app.services.diagnosis.expert_graph import get_expert_graph
+    from app.services.evidence.event_query import EventQuery
     g = get_expert_graph(scenario_id or "SCN_SENSOR_LED_ON_PLC_LED_OFF")
     pc = PatternClassifier(g)
-    return []
+    q = EventQuery()
+    events = q.by_student(student_id, limit)
+    if not events:
+        return []
+    patterns = []
+    for ev in events:
+        sid = ev.get("state_id", "") or ev.get("current_state", "")
+        aid = ev.get("action_id", "") or ev.get("action", "")
+        if not sid or not aid:
+            continue
+        hist = [h.get("action_id", "") for h in ev.get("history", []) if isinstance(h, dict)]
+        pat = pc.classify(sid, aid, hist, student_id, scenario_id)
+        if pat:
+            patterns.append(pat.to_dict())
+    return patterns
 
 def classify_scenario_action(student_id: str, state_id: str, action_id: str,
                               scenario_id: str = "", history: List[str] = None) -> Optional[Dict[str, Any]]:
@@ -66,10 +81,16 @@ def get_issue(issue_id: str) -> Dict[str, Any]:
 # --- Intervention Policy ---
 def generate_candidates(issue_id: str, student_ids: List[str],
                         completed: List[str] = None) -> List[Dict[str, Any]]:
+    issue = get_issue(issue_id)
+    ability_id = issue.get("primary_ability_id", "") if issue else ""
+    if not ability_id:
+        ability_id = "PLC_INPUT_NO_RESPONSE"
     from app.services.policy.intervention_policy import InterventionPolicyEngine
     engine = InterventionPolicyEngine()
-    candidates = engine.process({"issue_id": issue_id, "primary_ability_id": "test"},
-                                 student_ids, completed)
+    candidates = engine.process(
+        {"issue_id": issue_id, "primary_ability_id": ability_id, "issue_title": issue.get("title", "") if issue else ""},
+        student_ids, completed
+    )
     return [c.to_dict() for c in candidates]
 
 def group_students(student_ids: List[str], patterns: List[Dict] = None) -> Dict[str, List[str]]:
@@ -90,7 +111,13 @@ def create_intervention(issue_id: str, candidate_id: str, student_ids: List[str]
     return {"intervention_id": wf.intervention_id, "status": wf.status}
 
 def review_intervention(intervention_id: str, approved: bool, teacher_id: str) -> Dict[str, Any]:
-    return {"intervention_id": intervention_id, "status": "reviewed" if approved else "draft"}
+    from app.services.workflow.workflow_fsm import InterventionWorkflow
+    wf = InterventionWorkflow(intervention_id=intervention_id, teacher_id=teacher_id)
+    if approved:
+        ok = wf.transition("reviewed", teacher_id)
+    else:
+        ok = wf.transition("draft", teacher_id)
+    return {"intervention_id": intervention_id, "status": wf.status, "transition_ok": ok}
 
 def assign_intervention(intervention_id: str, candidate_id: str,
                         student_ids: List[str], teacher_id: str) -> Dict[str, Any]:
