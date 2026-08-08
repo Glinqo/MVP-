@@ -57,6 +57,9 @@ def handle_teacher_message(message, job_role=None, teacher_id="", history=None, 
 
 def _dispatch(intent, msg, jr, tid, ctx, ui):
     r = {"answer": "OK", "evidence": [], "data_cards": [], "actions": [], "context_update": {}}
+    # V2 Engine available for all intents
+    try: from app.services.v2_facade import discover_issues
+    except: discover_issues = None
     if intent == "class_overview":
         try: from app.services.class_insights import get_class_overview; ov = get_class_overview(jr); r["answer"] = f"该岗位共有{ov.get('total_students',0)}名有测评记录的学生。" if ov.get("has_data") else "暂无有效测评数据。"
         except: pass
