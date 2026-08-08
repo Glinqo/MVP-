@@ -122,20 +122,46 @@ def feedback_level(score, weak_abilities, rules):
     return "需要补基础"
 
 
+
+def _load_v2_questions():
+    """Load questions from diagnostic_questions_v2.json."""
+    try:
+        root = Path(__file__).resolve().parent.parent
+        v2 = read_json(root / "diagnosis" / "diagnostic_questions_v2.json")
+        return _build_v2_map(v2)
+    except Exception:
+        return {}
+
+def _build_v2_map(v2_data):
+    result = {}
+    for job_set in (v2_data.get("job_question_sets") or {}).values():
+        if isinstance(job_set, list):
+            for q in job_set:
+                result[q.get("id", "")] = q
+    return result
+
 def score_diagnostic(input_data, data=None):
     loaded = data or load_default_data()
     question_data = loaded["questions"]
     rules = loaded["rules"]
     answers = (input_data or {}).get("answers", {})
     questions = build_question_maps(question_data)
+    # Also load v2 questions for Qian branch compatibility
+    _v2_questions = _load_v2_questions()
+    questions.update(_v2_questions)
     weak_abilities = []
     weak_seen = set()
     recommended_path = []
     path_seen = set()
     correct_count = 0
+    total_count = 0
 
-    for question_id, question in questions.items():
-        answer = answers.get(question_id, answers.get(question["id"]))
+    # Iterate over answers (from front-end) instead of questions, to support v2 QIDs
+    for qid, answer in answers.items():
+        question = questions.get(qid) or questions.get(short_question_id(qid)) or questions.get(long_question_id(qid))
+        if not question:
+            continue
+        total_count += 1
 
         if is_correct(answer, question):
             correct_count += 1
@@ -150,7 +176,6 @@ def score_diagnostic(input_data, data=None):
         for item in rule.get("recommended_path", []):
             add_unique(recommended_path, path_seen, item)
 
-    total_count = len(questions)
     score = round((correct_count / total_count) * 100) if total_count else 0
 
     return {

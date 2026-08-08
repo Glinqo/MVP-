@@ -429,13 +429,13 @@ def rebuild_cache(session_id):
 
 def compute_node_metrics(ability_id, bucket):
     evidence_count = bucket["chat"] + bucket["weak"] + bucket["improving"] + bucket["mastered"] + bucket["recommended"]
-    score = 35 + bucket["chat"] * 8 + bucket["improving"] * 14 + bucket["mastered"] * 35 + bucket["recommended"] * 4 - bucket["weak"] * 22
+    score = 10 + bucket["chat"] * 1 + bucket["improving"] * 3 + bucket["mastered"] * 5 + bucket["recommended"] * 1 - bucket["weak"] * 3
     if evidence_count == 0:
-        score = 30
+        score = 0
     if ability_id in SAFETY_REVIEW_ABILITIES and bucket["mastered"]:
         score = min(score, 80)
     score = max(0, min(100, int(score)))
-    confidence = round(min(0.95, 0.2 + evidence_count * 0.13), 2)
+    confidence = round(min(0.95, 0.15 + evidence_count * 0.06), 2)
 
     if bucket["mastered"] and not bucket["weak"] and ability_id not in SAFETY_REVIEW_ABILITIES:
         status = "mastered"
