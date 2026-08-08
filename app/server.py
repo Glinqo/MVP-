@@ -56,6 +56,7 @@ from app.services.initial_assessment import start_assessment as ia_start, submit
 from app.services.action_planner import plan_initial_learning  # noqa: E402
 from app.services.auth import login, get_user, save_identity, teacher_required
 from app.middleware import find_authed_user  # noqa: E402
+from app.services.v2_facade import *  # V2 Engine Facade
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.teacher_students import list_teacher_students, get_teacher_student_detail  # noqa: E402
 from app.services.class_insights import get_class_ability_graph, get_common_issues, get_class_overview  # noqa: E402
@@ -767,6 +768,43 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_error_json(400, str(exc))
         except Exception as exc:  # pragma: no cover - defensive boundary for demo server
             return self.send_error_json(500, str(exc))
+
+            # ---- V2 Engine API (via Facade) ----
+            if path == "/api/v2/events/emit":
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "请先登录")
+                try:
+                    result = emit_event(payload)
+                    return self.send_json(result)
+                except ValueError as e:
+                    return self.send_error_json(400, str(e))
+            if path == "/api/v2/events/query":
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "请先登录")
+                events = get_events(payload.get("student_id", ""))
+                return self.send_json({"events": events, "total": len(events)})
+            if path == "/api/v2/student/state":
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "请先登录")
+                return self.send_json(get_student_state(payload.get("student_id", "")))
+            if path == "/api/v2/teacher/issues":
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "请先登录")
+                if user.get("role") != "teacher": return self.send_error_json(403, "教师专属功能")
+                return self.send_json({"issues": discover_issues()})
+            if path == "/api/v2/teacher/issues/candidates":
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "请先登录")
+                if user.get("role") != "teacher": return self.send_error_json(403, "教师专属功能")
+                cands = generate_candidates(payload.get("issue_id", ""), payload.get("student_ids", []))
+                return self.send_json({"candidates": cands})
+            if path == "/api/v2/teacher/interventions/evaluate":
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "请先登录")
+                if user.get("role") != "teacher": return self.send_error_json(403, "教师专属功能")
+                result = evaluate_intervention(payload.get("intervention_id", ""),
+                                                payload.get("pre_states", []), payload.get("post_states", []))
+                return self.send_json(result)
         return self.send_error_json(404, "API endpoint not found")
 
     def serve_static(self, request_path):
