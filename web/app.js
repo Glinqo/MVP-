@@ -3249,57 +3249,62 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // ---- End Assessment ----
 async function boot() {
-
-  showRoleUI();  try {
+  showRoleUI();
+  var bootIdentity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
+  var isTeacherBoot = bootIdentity === "teacher";
+  try {
     var dbg = document.getElementById("debugInfo");
     if (dbg) dbg.style.display = "none";
-    const health = await api("/api/health");
-    $("healthStatus").textContent = health.status === "ok" ? "已连接" : "异常";
-    $("healthStatus").classList.add("ok");
-    const jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
-    const [start, quiz, jobGraph, studentBootstrap] = await Promise.all([
-      api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId, job_role: jobId }) }),
-      api(`/api/quiz?job_role=${encodeURIComponent(jobId)}`),
-      api(`/api/graph/job?job_role=${encodeURIComponent(jobId)}`),
-      api(`/api/student/bootstrap?session_id=${encodeURIComponent(state.sessionId)}`),
-    ]);
-    state.learnerContext = studentBootstrap.learner_context || start.learner_context || null;
-    renderJobProfile(start.job_profile || {});
-    $("llmStatus").textContent = start.llm_configured ? "模型已配置" : "规则兜底";
-    $("llmStatus").classList.toggle("ok", Boolean(start.llm_configured));
+    var jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
 
-    // Restore previous messages if available, otherwise show welcome
-    const saved = restoreMessages();
-    if (saved.length > 0) {
-      state.messages = saved;
-      renderMessages();
+    var health = await api("/api/health");
+    var healthEl = document.getElementById("healthStatus");
+    if (healthEl) { healthEl.textContent = health.status === "ok" ? "正常" : "异常"; healthEl.classList.add("ok"); }
+
+    if (!isTeacherBoot) {
+      const [start, quiz, jobGraph, studentBootstrap] = await Promise.all([
+        api("/api/chat/start", { method: "POST", body: JSON.stringify({ session_id: state.sessionId, job_role: jobId }) }),
+        api("/api/quiz?job_role=" + encodeURIComponent(jobId)),
+        api("/api/graph/job?job_role=" + encodeURIComponent(jobId)),
+        api("/api/student/bootstrap?session_id=" + encodeURIComponent(state.sessionId)),
+      ]);
+      state.learnerContext = studentBootstrap.learner_context || start.learner_context || null;
+      renderJobProfile(start.job_profile || {});
+      var llmEl = document.getElementById("llmStatus");
+      if (llmEl) { llmEl.textContent = start.llm_configured ? "模型已连接" : "本地兆底"; llmEl.classList.toggle("ok", Boolean(start.llm_configured)); }
+      var saved = restoreMessages();
+      if (saved.length > 0) { state.messages = saved; renderMessages(); }
+      else { addMessage("assistant", start.welcome || ""); }
+      renderSuggestedQuestions(start.suggested_questions || []);
+      renderQuiz(quiz.questions);
+      renderGraph(jobGraph, "job");
+      try {
+        var saved_gaps = localStorage.getItem("mcp_knowledge_gaps");
+        if (saved_gaps) {
+          var gaps = JSON.parse(saved_gaps);
+          if (gaps && gaps.length) { state.knowledgeGaps = gaps; renderKnowledge(gaps); }
+        }
+      } catch (_) {}
+      renderJobProposals(jobGraph.pending_proposals || []);
+      renderGraph(studentBootstrap.student_graph, "student");
     } else {
-      addMessage("assistant", start.welcome || "");
-    }
-    renderSuggestedQuestions(start.suggested_questions || []);
-    renderQuiz(quiz.questions);
-    renderGraph(jobGraph, "job");
-      // Restore persisted knowledge gaps
-  try {
-    var saved_gaps = localStorage.getItem("mcp_knowledge_gaps");
-    if (saved_gaps) {
-      var gaps = JSON.parse(saved_gaps);
-      if (gaps && gaps.length) {
-        state.knowledgeGaps = gaps;
-        renderKnowledge(gaps);
+      try { var jobGraph = await api("/api/graph/job?job_role=" + encodeURIComponent(jobId)); renderGraph(jobGraph, "job"); renderJobProposals(jobGraph.pending_proposals || []); } catch (_) {}
+      try { loadStudentList(); } catch (_) {}
+      try { setTeacherWelcome(); } catch (_) {}
+      var chatForm = document.getElementById("chatForm");
+      if (chatForm) {
+        chatForm.addEventListener("submit", function(ev) { ev.preventDefault(); sendChat(); });
       }
     }
-  } catch (_) {}
-  renderJobProposals(jobGraph.pending_proposals || []);
-    renderGraph(studentBootstrap.student_graph, "student");
-  // renderGraphUpdateLog(studentBootstrap.student_graph?.update_log || []);
   } catch (error) {
-    $("healthStatus").textContent = "未连接";
-    $("healthStatus").classList.remove("ok");
-    $("quizCount").textContent = "加载失败";
-    addMessage("assistant", `服务连接失败：${error.message}`);
+    var healthEl2 = document.getElementById("healthStatus");
+    if (healthEl2) { healthEl2.textContent = "未连接"; healthEl2.classList.remove("ok"); }
+    var qc2 = document.getElementById("quizCount");
+    if (qc2) qc2.textContent = "加载失败";
+    console.warn("Boot error:", error.message);
   }
 }
+
 
 $("chatForm").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -3588,9 +3593,10 @@ function showRoleUI() {
   var teacherPanels = document.querySelectorAll(".role-teacher");
   for (var i = 0; i < studentPanels.length; i++) {
     studentPanels[i].style.display = isTeacher ? "none" : "";
+    if (!isTeacher) studentPanels[i].style.display = studentPanels[i].tagName === "BUTTON" ? "inline-block" : "flex";
   }
   for (var i = 0; i < teacherPanels.length; i++) {
-    teacherPanels[i].style.display = isTeacher ? "" : "none";
+    teacherPanels[i].style.display = isTeacher ? (teacherPanels[i].tagName === "BUTTON" ? "inline-block" : "flex") : "none";
   }
   // Update topbar title for teacher
   var h1 = document.querySelector(".topbar h1");
