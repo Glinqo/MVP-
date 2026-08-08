@@ -1487,3 +1487,7 @@ button:active{transform:translateY(0)}
 .fb-card p { color: #334155 !important; }
 .fb-card strong { color: #1e293b !important; }
 .fb-compare span { font-weight: 600; }
+
+/* TF-1: Role visibility via body[data-role] */
+body[data-role="teacher"] .role-student { display: none !important; }
+body[data-role="student"] .role-teacher { display: none !important; }

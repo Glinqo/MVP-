@@ -2831,20 +2831,90 @@ function assessmentCompletedKey() {
 var appBootStarted = false;
 var appBootPromise = null;
 
-function bootOnce() {
+/*
+ * TF-1: Unified application bootstrap with boot-once guard.
+ * Flow: token -> /api/auth/me -> restore role -> setRoleVisibility -> student OR teacher bootstrap
+ */
+var _appBootDone = false;
+var _appBootPromise = null;
 
-  showRoleUI();  if (appBootStarted) return appBootPromise;
-  appBootStarted = true;
+async function bootstrapApplication() {
+  if (_appBootDone) return _appBootPromise;
+  _appBootDone = true;
+
   try {
-    appBootPromise = typeof boot === "function"
-      ? Promise.resolve(boot())
-      : Promise.resolve();
+    var token = localStorage.getItem("mcp_auth_token");
+    var role = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
+
+    // Try to get fresh server role if token exists
+    if (token) {
+      try {
+        var resp = await fetch("/api/auth/me", { headers: { "Authorization": "Bearer " + token } });
+        if (resp.ok) {
+          var data = await resp.json();
+          if (data.ok && data.user) {
+            role = data.user.role || role;
+            localStorage.setItem(userKey("mcp_identity"), role);
+            localStorage.setItem("mcp_identity", role);
+          }
+        }
+      } catch (_) {}
+    }
+
+    setRoleVisibility(role);
+
+    if (role === "teacher") {
+      _appBootPromise = Promise.resolve(teacherBoot());
+    } else {
+      _appBootPromise = Promise.resolve(studentBoot());
+    }
+    return _appBootPromise;
   } catch (error) {
-    appBootStarted = false;
-    appBootPromise = null;
+    _appBootDone = false;
+    _appBootPromise = null;
+    console.warn("bootstrapApplication error:", error.message);
     throw error;
   }
-  return appBootPromise;
+}
+
+// Backward compatibility
+function bootOnce() { return bootstrapApplication(); }
+
+
+/*
+ * TF-1: Teacher bootstrap - no student API calls, no assessment.
+ */
+async function teacherBoot() {
+  try {
+    var dbg = document.getElementById("debugInfo");
+    if (dbg) dbg.style.display = "none";
+    var jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
+
+    // Health check
+    try {
+      var health = await api("/api/health");
+      var healthEl = document.getElementById("healthStatus");
+      if (healthEl) { healthEl.textContent = health.status === "ok" ? "正常" : "异常"; healthEl.classList.add("ok"); }
+    } catch (_) {}
+
+    // Load job graph
+    try { var jobGraph = await api("/api/graph/job?job_role=" + encodeURIComponent(jobId)); renderGraph(jobGraph, "job"); renderJobProposals(jobGraph.pending_proposals || []); } catch (_) {}
+
+    // Load teacher data
+    try { loadStudentList(); } catch (_) {}
+    try { setTeacherWelcome(); } catch (_) {}
+
+    // Teacher chat - only register listener ONCE (TF-1.6)
+    if (!window._chatListenerRegistered) {
+      window._chatListenerRegistered = true;
+      var chatForm = document.getElementById("chatForm");
+      if (chatForm) {
+        chatForm.addEventListener("submit", function(ev) { ev.preventDefault(); sendChat(); });
+      }
+    }
+  } catch (error) {
+    console.warn("Teacher boot error:", error.message);
+  }
 }
 
 // ---- Assessment Functions ----
@@ -3248,7 +3318,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ---- End Assessment ----
-async function boot() {
+async function studentBoot() {
   showRoleUI();
   var bootIdentity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
   var isTeacherBoot = bootIdentity === "teacher";
@@ -3306,10 +3376,7 @@ async function boot() {
 }
 
 
-$("chatForm").addEventListener("submit", (event) => {
-  event.preventDefault();
-  sendChat();
-});
+
 $("submitDiagnosis").addEventListener("click", submitDiagnosis);
 $("loadPersonalizedQuiz").addEventListener("click", loadPersonalizedQuiz);
 $("loadPersonalizedPlan").addEventListener("click", () => loadTrainingPlans("staged"));
@@ -3485,23 +3552,14 @@ async function doLogin() {
       }, 400);
       return;
     }
-    // Check server-returned role: teacher skips identity pick
+    // TF-1.8: Server decides role; no more user identity selection
     var serverRole = (data.user && data.user.role) || "student";
-    if (serverRole === "teacher") {
-      localStorage.setItem(userKey("mcp_identity"), "teacher");
-      localStorage.setItem("mcp_identity", "teacher");
-      var loginStep2 = document.getElementById("landingStepLogin");
-      var jobStep2 = document.getElementById("landingStepJob");
-      if (loginStep2) loginStep2.classList.remove("active");
-      if (jobStep2) jobStep2.classList.add("active");
-    } else {
-      localStorage.setItem(userKey("mcp_identity"), "student");
-      localStorage.setItem("mcp_identity", "student");
-      var loginStep = document.getElementById("landingStepLogin");
-      var identityStep = document.getElementById("landingStepIdentity");
-      if (loginStep) loginStep.classList.remove("active");
-      if (identityStep) identityStep.classList.add("active");
-    }
+    localStorage.setItem(userKey("mcp_identity"), serverRole);
+    localStorage.setItem("mcp_identity", serverRole);
+    var loginStepEl = document.getElementById("landingStepLogin");
+    var jobStepEl = document.getElementById("landingStepJob");
+    if (loginStepEl) loginStepEl.classList.remove("active");
+    if (jobStepEl) jobStepEl.classList.add("active");
   } catch (e) {
     errEl.textContent = "登录失败: " + (e.message || "网络错误");
     errEl.style.display = "block";
@@ -3585,31 +3643,22 @@ if (typeof state !== "undefined" && state.authToken) {
   if (j2) { state.selectedJobId = j2; state.jobName = localStorage.getItem("mcp_job_name_" + u2) || ""; if (typeof boot === "function") boot(); }
 }
 
-function showRoleUI() {
-  var identity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
-  var isTeacher = identity === "teacher";
-  // Toggle tool drawer sections
-  var studentPanels = document.querySelectorAll(".role-student");
-  var teacherPanels = document.querySelectorAll(".role-teacher");
-  for (var i = 0; i < studentPanels.length; i++) {
-    studentPanels[i].style.display = isTeacher ? "none" : "";
-    if (!isTeacher) studentPanels[i].style.display = studentPanels[i].tagName === "BUTTON" ? "inline-block" : "flex";
-  }
-  for (var i = 0; i < teacherPanels.length; i++) {
-    teacherPanels[i].style.display = isTeacher ? (teacherPanels[i].tagName === "BUTTON" ? "inline-block" : "flex") : "none";
-  }
-  // Update topbar title for teacher
+function setRoleVisibility(role) {
+  role = role || "student";
+  document.body.dataset.role = role;
   var h1 = document.querySelector(".topbar h1");
   if (h1) {
-    h1.textContent = isTeacher ? "机电岗位培训 AI · 教师端" : "机电岗位培训 AI";
+    h1.textContent = role === "teacher" ? "机电岗位培训 AI · 教师端" : "机电岗位培训 AI";
   }
-  // Update chat for teacher
   var chatInput = document.getElementById("chatInput");
-  if (chatInput && isTeacher) {
-    chatInput.placeholder = "直接问：本班现在最薄弱的三个能力是什么？";
-    setTeacherWelcome();
+  if (chatInput && role === "teacher") {
+    chatInput.placeholder = "直接提问，请教学助手帮你分析什么？";
+    try { setTeacherWelcome(); } catch (_) {}
   }
 }
+
+// Backward compatibility
+var showRoleUI = setRoleVisibility;
 
 // ── 阶段二：学生管理 ──
 
@@ -4384,7 +4433,7 @@ function loadJobGraphWorkspace() {
 }
 
 async function loadJobGraphDiagram() {
-  var container = document.getElementById("jobGraphDiagram");
+  var container = document.getElementById("mainJobGraphDiagram");
   if (!container) return;
   container.innerHTML = '<div class="muted">加载图谱中...</div>';
   try {
