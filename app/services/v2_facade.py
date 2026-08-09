@@ -138,27 +138,23 @@ def group_students(student_ids: List[str], patterns: List[Dict] = None) -> Dict[
 # --- Teaching Workflow ---
 def create_intervention(issue_id: str, candidate_id: str, student_ids: List[str],
                         teacher_id: str) -> Dict[str, Any]:
-    from app.services.workflow.workflow_fsm import InterventionWorkflow
-    wf = InterventionWorkflow(
-        intervention_id=f"INT_{issue_id}",
-        issue_id=issue_id, teacher_id=teacher_id,
-        approved_candidate_id=candidate_id,
-        assigned_students=student_ids,
-    )
-    return {"intervention_id": wf.intervention_id, "status": wf.status}
+    from app.services.workflow.workflow_store import create_intervention as ws_create
+    return ws_create(issue_id, candidate_id, student_ids, teacher_id)
 
 def review_intervention(intervention_id: str, approved: bool, teacher_id: str) -> Dict[str, Any]:
-    from app.services.workflow.workflow_fsm import InterventionWorkflow
-    wf = InterventionWorkflow(intervention_id=intervention_id, teacher_id=teacher_id)
-    if approved:
-        ok = wf.transition("reviewed", teacher_id)
-    else:
-        ok = wf.transition("draft", teacher_id)
-    return {"intervention_id": intervention_id, "status": wf.status, "transition_ok": ok}
+    from app.services.workflow.workflow_store import transition_intervention
+    result = transition_intervention(intervention_id, "reviewed" if approved else "draft", teacher_id)
+    if not result.get("ok"):
+        return {"intervention_id": intervention_id, "status": "draft", "transition_ok": False, "error": result.get("error")}
+    return result
 
 def assign_intervention(intervention_id: str, candidate_id: str,
                         student_ids: List[str], teacher_id: str) -> Dict[str, Any]:
-    return {"intervention_id": intervention_id, "status": "assigned"}
+    from app.services.workflow.workflow_store import transition_intervention
+    result = transition_intervention(intervention_id, "assigned", teacher_id)
+    if not result.get("ok"):
+        return {"intervention_id": intervention_id, "status": "draft", "transition_ok": False, "error": result.get("error")}
+    return result
 
 # --- Outcome ---
 def evaluate_intervention(intervention_id: str, pre_states: List[Dict] = None,
@@ -170,7 +166,8 @@ def evaluate_intervention(intervention_id: str, pre_states: List[Dict] = None,
             "summary": {"total": len(results)}}
 
 def get_outcome(intervention_id: str) -> Dict[str, Any]:
-    return {"intervention_id": intervention_id, "outcome": "pending"}
+    from app.services.workflow.workflow_store import get_outcome as ws_get_outcome
+    return ws_get_outcome(intervention_id)
 
 # --- Teacher AI V2 ---
 def get_teacher_ai():
