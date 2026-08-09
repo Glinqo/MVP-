@@ -1,9 +1,21 @@
-﻿# TF-6B: Browser E2E, Regression, Performance Baseline & V2 Release Freeze
+﻿# TF-6B: Browser E2E, Full Regression, Performance Baseline & V2 Release Freeze
 
-**Branch**: ix/teacher-frontend-boot-roleui
-**TF-6A Baseline**: d2d6984
-**Start SHA**: d2d6984
+**Branch**: fix/teacher-frontend-boot-roleui
+**Start SHA**: d2d6984 (TF-6A)
+**Final SHA**: daf5b7d
 **Date**: 2026-08-09
+
+---
+
+## TF-6B.1 Release Closure (daf5b7d)
+
+| Fix | Result |
+|-----|--------|
+| /api/graph/student/event JWT + ownership guard | FIXED |
+| /api/student/device-state JWT guard | FIXED |
+| /api/score JWT guard | FIXED |
+| /api/plan/task_feedback JWT guard | FIXED |
+| Duplicate DOM ID studentListContainer | FIXED (renamed to studentListContainerBottom) |
 
 ---
 
@@ -11,86 +23,82 @@
 
 | Gate | Result |
 |------|--------|
-| JS syntax (app.js) | PASS |
-| JS syntax (teacher-ui.js) | PASS |
-| JS syntax (graph-renderer.js) | PASS |
-| JS syntax (d3.min.js) | PASS |
+| JS syntax (all 4 .js files) | PASS |
 | Python compile (app/) | PASS |
-| JSON validation (2 core files) | PASS |
-| Duplicate DOM IDs | 1 found (studentListContainer) — non-blocking |
+| Duplicate DOM IDs | 0 — PASS |
 
-## Runtime Gates
+---
 
-| Gate | Result |
-|------|--------|
-| Server boot | PASS |
-| Health check | 200 OK |
-| V2 Facade init | PASS |
-| Workflow Store init | PASS (SQLite v2_workflow.db) |
-| Teacher AI V2 import | PASS |
-
-## API Smoke Test
-
-| Endpoint | Auth | Result |
-|----------|------|--------|
-| /api/health | None | 200 |
-| /api/auth/login | None | 200 + JWT |
-| /api/auth/me | JWT | 200 |
-| /api/user/role | JWT | 200 |
-| /api/v2/teacher/issues | JWT | 200 |
-| /api/v2/student/state | JWT | 200 |
-| /api/graph/student/event | None | 200 |
-
-## Automated Closed-loop E2E (Phase U)
-
-| Step | Result |
-|------|--------|
-| emit_events (3 students x 3 abilities) | PASS |
-| student_state query | PASS |
-| discover_issues | PASS (0 issues — expected with fresh events) |
-| Event → State → Issue chain | PASS (infrastructure verified) |
-
-## Security Gates
+## Runtime & API
 
 | Gate | Result |
 |------|--------|
-| Student ownership middleware | PASS (TF-6A verified) |
-| Teacher permission guards (6 governance endpoints) | PASS (TF-6A verified) |
-| Conversation ownership | PASS (TF-6A verified) |
-| Identity horizontal security | PASS (TF-6A verified) |
-| JWT required on private endpoints | PASS |
+| Server boot (health=200) | PASS |
+| V2 Facade + Workflow Store init | PASS |
+| API smoke (7 endpoints) | PASS |
+| Automated closed-loop E2E | PASS |
+| P0 issues | 0 |
+| P1 issues | 0 |
 
-## Browser E2E Status
+---
+
+## Security Gates (TF-6B.1)
+
+| Gate | Result |
+|------|--------|
+| /api/graph/student/event: no-auth → 401 | VERIFIED (code) |
+| /api/graph/student/event: student X → 200 | VERIFIED (code) |
+| /api/graph/student/event: student X writes Y → 403 | VERIFIED (code) |
+| /api/student/device-state: no-auth | Now 401 |
+| /api/score: no-auth | Now 401 |
+| /api/plan/task_feedback: no-auth | Now 401 |
+| Teacher governance write endpoints | All guarded (TF-6A) |
+| Governance read endpoints (Student) | 403 |
+| Conversation ownership | Enforced (TF-6A) |
+
+---
+
+## Performance Baseline (Local Dev)
+
+| Operation | Events | Median | per-event |
+|-----------|--------|--------|-----------|
+| emit_event | 100 | 0.32s total | 3.19ms |
+| emit_event | 1,000 | 2.97s total | 2.97ms |
+| student_state | - | <1ms | - |
+| discover_issues | - | 6.0ms | - |
+| get_issue | - | 6.0ms | - |
+| generate_candidates | - | 6.8ms | - |
+
+**Key finding**: Linear scaling (2.97ms/event at 1k events). No O(N^2) detected.
+
+---
+
+## Browser E2E
 
 | Phase | Result |
 |-------|--------|
-| Phase D (Login) | NOT RUN — browser interaction requires manual verification |
-| Phase E (Teacher Layout) | NOT RUN |
-| Phase F (Decision Workspace) | NOT RUN |
-| Phase G (Student Drill-down) | NOT RUN |
-| Phase H-J (Intervention/Student) | NOT RUN |
-| Phase N (Teacher AI) | NOT RUN |
+| Teacher login & Decision Workspace | NOT RUN — requires manual browser verification |
+| Teaching Issue → Candidate → Draft → Review → Assign | NOT RUN |
+| Refresh/restart persistence gate | NOT RUN |
+| Student login & task execution | NOT RUN |
+| Teacher AI Copilot grounding | NOT RUN |
+| Role isolation (Student A → Student B) | NOT RUN |
+| Qian regression (10 core functions) | NOT RUN |
 
-> Browser E2E was deferred because the automated testing infrastructure (Playwright) requires setup that is not available in the current environment. The API chain is verified. Manual browser verification is recommended.
+> Browser E2E was attempted via in-app browser automation but the browser had no open tabs at runtime. All API chains are verified. Manual browser verification is recommended.
 
-## Performance Baseline
-
-| Operation | NOT RUN |
-|-----------|---------|
-
-> Performance baseline deferred to post-browser-E2E phase. Engine infrastructure verified via Unit smoke test.
-
-## P0/P1 Issues
-
-- P0: 0
-- P1: 0
-- P2: 1 (duplicate DOM id studentListContainer)
-- P3: 0
+---
 
 ## Release Decision
 
 | Question | Answer |
 |----------|--------|
-| TF-6B hard gates | PARTIAL (API gates PASS; Browser E2E NOT RUN) |
-| V2 Release Candidate | CONDITIONAL — API chain verified, needs manual browser E2E |
-| Ready for 2/integration-baseline | NO — browser E2E pending |
+| API chain verified | YES |
+| Security gaps closed | YES (4 new guards) |
+| Performance baseline ok | YES (linear scaling) |
+| Static gates pass | YES |
+| Browser E2E | PENDING manual verification |
+| P0 = 0 | YES |
+| P1 = 0 | YES |
+| Ready for manual browser E2E | YES |
+| Ready for v2/integration-baseline | NOT YET — browser E2E pending |
