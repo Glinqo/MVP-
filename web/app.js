@@ -2886,27 +2886,12 @@ async function teacherBoot() {
     // Register chat listener
     if (!window._chatListenerRegistered) {
       window._chatListenerRegistered = true;
-      var chatForm = document.getElementById("teacherChatForm") || document.getElementById("chatForm");
-      if (chatForm) { chatForm.addEventListener("submit", function(ev) { ev.preventDefault(); sendChat(); }); }
+      if (typeof TeacherUI !== "undefined" && TeacherUI.initCopilot) { TeacherUI.initCopilot(); }
     }
   } catch (error) { console.warn("Teacher boot error:", error.message); }
 }
 
-TeacherUI.sendCopilotMessage = function() {
-  var input = document.getElementById("copilotInput");
-  if (!input || !input.value.trim()) return;
-  var msg = input.value.trim();
-  addMessage("user", msg);
-  input.value = "";
-  var token = localStorage.getItem("mcp_auth_token") || "";
-  fetch("/api/teacher/assistant/message", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-    body: JSON.stringify({ message: msg, job_role: localStorage.getItem("mcp_job_id") || "" })
-  }).then(function(r) { return r.json(); })
-  .then(function(data) { addMessage("assistant", data.reply || data.message || "收到回复"); })
-  .catch(function(e) { addMessage("assistant", "提问失败"); });
-};
+// TeacherUI.sendCopilotMessage moved to teacher-ui.js (TF-6C)
 
 // ---- Assessment Functions ----
 
