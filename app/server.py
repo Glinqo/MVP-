@@ -459,11 +459,25 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(all_plans.get(job, {}))
             return self.send_json(all_plans)
         if path == "/api/conversations":
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
+            user_role = user.get("role", "")
+            usr = user.get("username", "")
+            if user_role == "student":
+                return self.send_json(list_conversation_sessions(owner=usr))
             job_role = parse_qs(parsed.query).get("job_role", [None])[0]
             return self.send_json(list_conversation_sessions(job_role=job_role))
         if path.startswith("/api/conversation/") and path != "/api/conversations":
             sid = path[len("/api/conversation/"):]
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
             conv = load_conversation_state(sid)
+            owner = conv.get("metadata", {}).get("owner_user_id", "")
+            if owner and user.get("id") and str(owner) != str(user.get("id", "")):
+                if user.get("role") != "teacher":
+                    return self.send_error_json(403, "无权访问此会话")
             return self.send_json({"session_id": sid, "messages": conv.get("messages", []), "title": conv.get("metadata", {}).get("title", "")})
 
         return self.serve_static(path)
@@ -477,6 +491,15 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path.startswith("/api/conversation/") and path != "/api/conversations":
                 sid = path[len("/api/conversation/"):]
                 action = query_params.get("action", [""])[0]
+
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
+                conv = load_conversation_state(sid)
+                owner = conv.get("metadata", {}).get("owner_user_id", "")
+                if owner and user.get("id") and str(owner) != str(user.get("id", "")):
+                    if user.get("role") != "teacher":
+                        return self.send_error_json(403, "无权操作此会话")
 
                 if action == "delete":
                     return self.send_json(delete_conversation(sid))
@@ -499,15 +522,27 @@ class MVPHandler(BaseHTTPRequestHandler):
                 user = find_authed_user(self)
                 if not user or not teacher_required(user):
                     return self.send_error_json(403, "需要教师权限")
-                return self.send_json(handle_teacher_message(
+                # Route through V2 Facade for supported intents, fall back to V1
+                from app.services.teacher_ai_v2 import handle_teacher_message_v2
+                result = handle_teacher_message_v2(
                     message=payload.get("message", ""),
                     job_role=payload.get("job_role"),
                     teacher_id=str(user.get("id", "")),
                     history=payload.get("history", []),
                     ui_context=payload.get("ui_context"),
                     context=payload.get("context"),
-                ))
-
+                )
+                if result.get("engine") == "teacher_ai_v1":
+                    # V2 unsupported intent - delegate to V1
+                    return self.send_json(handle_teacher_message(
+                        message=payload.get("message", ""),
+                        job_role=payload.get("job_role"),
+                        teacher_id=str(user.get("id", "")),
+                        history=payload.get("history", []),
+                        ui_context=payload.get("ui_context"),
+                        context=payload.get("context"),
+                    ))
+                return self.send_json(result)
             # ---- Teacher Comments (Stage 4) ----
             if path == "/api/teacher/comments/generate":
                 user = find_authed_user(self)
@@ -648,6 +683,9 @@ class MVPHandler(BaseHTTPRequestHandler):
                 )
                 return self.send_json(run_update(args))
             if path == "/api/graph/job/ingest":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 text = (payload.get("text") or "").strip()
                 if not text:
                     return self.send_error_json(400, "text is required")
@@ -667,8 +705,14 @@ class MVPHandler(BaseHTTPRequestHandler):
                     max_abilities=max_abilities,
                 ))
             if path == "/api/graph/job/proposals/confirm-sqlite":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 return self.send_json(confirm_sqlite_job_graph_proposal(payload))
             if path == "/api/graph/job/proposals/confirm-sqlite-batch":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 return self.send_json(confirm_sqlite_job_graph_proposals(payload))
             if path == "/api/graph/job/proposals/confirm":
                 user = find_authed_user(self)

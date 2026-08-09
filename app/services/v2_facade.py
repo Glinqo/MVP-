@@ -1,4 +1,4 @@
-"""V2 API Facade - unified entry point for all V2 engines.
+﻿"""V2 API Facade - unified entry point for all V2 engines.
 
 server.py -> V2Facade -> Engine
 Never let server.py directly access engine internals.
@@ -113,7 +113,7 @@ def get_issue(issue_id: str) -> Dict[str, Any]:
     for i in issues:
         if i.get("issue_id") == issue_id:
             return i
-    return {"issue_id": issue_id, "title": issue_id, "status": "unknown", "priority": "low", "affected_students": [], "primary_ability_id": ""}
+    return {"issue_id": issue_id, "title": issue_id, "status": "not_found", "error": "ISSUE_NOT_FOUND", "message": "教学问题未找到"}
 
 # --- Intervention Policy ---
 def generate_candidates(issue_id: str, student_ids: List[str],
