@@ -56,6 +56,7 @@ from app.services.initial_assessment import start_assessment as ia_start, submit
 from app.services.action_planner import plan_initial_learning  # noqa: E402
 from app.services.auth import login, get_user, save_identity, teacher_required
 from app.middleware import find_authed_user  # noqa: E402
+from app.middleware import require_student_owner  # noqa: E402  # noqa: E402
 from app.services.v2_facade import *  # V2 Engine Facade
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.teacher_students import list_teacher_students, get_teacher_student_detail  # noqa: E402
@@ -210,7 +211,11 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(build_job_ability_graph(job_role))
 
         if path == "/api/graph/student":
+            user = find_authed_user(self)
+            if not user: return self.send_error_json(401, "\u8bf7\u5148\u767b\u5f55")
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
+            if not require_student_owner(user, requested_session_id=session_id):
+                return self.send_error_json(403, "\u65e0\u6743\u8bbf\u95ee\u5176\u4ed6\u5b66\u751f\u6570\u636e")
             return self.send_json(build_student_ability_graph(session_id))
 
         if path == "/api/graph/gap":
@@ -262,7 +267,11 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(build_cumulative_strategy_profile(session_id))
 
         if path == "/api/student/events":
+            user = find_authed_user(self)
+            if not user: return self.send_error_json(401, "\u8bf7\u5148\u767b\u5f55")
             session_id = query_params.get("session_id", ["default"])[0]
+            if not require_student_owner(user, requested_session_id=session_id):
+                return self.send_error_json(403, "\u65e0\u6743\u8bbf\u95ee\u5176\u4ed6\u5b66\u751f\u6570\u636e")
             event_type = query_params.get("event_type", [None])[0]
             ability_id = query_params.get("ability_id", [None])[0]
             scenario_id = query_params.get("scenario_id", [None])[0]
@@ -588,7 +597,12 @@ class MVPHandler(BaseHTTPRequestHandler):
                         result["knowledge_refs"] = list(kg)
                 return self.send_json(result)
             if path == "/api/student/bootstrap":
-                return self.send_json(student_bootstrap(payload.get("session_id")))
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "\u8bf7\u5148\u767b\u5f55")
+                session_id_val = payload.get("session_id")
+                if not require_student_owner(user, requested_session_id=session_id_val):
+                    return self.send_error_json(403, "\u65e0\u6743\u8bbf\u95ee\u5176\u4ed6\u5b66\u751f\u6570\u636e")
+                return self.send_json(student_bootstrap(session_id_val))
             if path == "/api/quiz/personalized":
                 return self.send_json(personalized_quiz(payload))
             if path == "/api/plan/personalized":

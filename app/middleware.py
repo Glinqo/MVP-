@@ -36,3 +36,31 @@ def verify_student_ownership(handler):
         if user.get("username") not in sid:
             return None, (403, "无权访问其他学生的数据")
     return user, (None, None)
+
+def require_student_owner(user: dict, requested_student_id: str = None, requested_session_id: str = None) -> bool:
+    """Student must only access their own resources. Teacher can access via Teacher API."""
+    if not user:
+        return False
+    role = user.get("role", "")
+    username = user.get("username", "")
+    # Teacher: not allowed through student private API; must use /api/teacher/*
+    if role == "teacher":
+        return False
+    # Student self: ok
+    if requested_student_id and requested_student_id == username:
+        return True
+    # Session-based: session_id format should contain student identifier
+    if requested_session_id:
+        # Try to derive student from session_id
+        parts = requested_session_id.split("-")
+        for p in parts:
+            if p.isdigit() and len(p) == 3:
+                if p == username:
+                    return True
+        # If session matches username pattern, allow
+        if requested_session_id.startswith(username + "-") or ("-" + username + "-") in requested_session_id:
+            return True
+    # Default: student only accesses self
+    if not requested_student_id and not requested_session_id:
+        return True  # General access (no specific resource requested)
+    return False
