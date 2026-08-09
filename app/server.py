@@ -651,9 +651,18 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/scenario/action":
                 return self.send_json(action_scenario(payload))
             if path == "/api/student/device-state":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
                 return self.send_json(record_device_state(payload))
 
             if path == "/api/graph/student/event":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
+                session_id_val = payload.get("session_id", "")
+                if not require_student_owner(user, requested_session_id=session_id_val):
+                    return self.send_error_json(403, "无权访问其他学生数据")
                 event_result = record_student_graph_event(payload)
                 return self.send_json({**event_result, "student_graph": build_student_ability_graph(payload.get("session_id"))})
             if path == "/api/graph/job/proposals":
@@ -728,6 +737,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/assist":
                 return self.send_json(assist(payload))
             if path == "/api/score":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
                 score_result = score_answers(payload)
                 if payload.get("session_id"):
                     append_session_event(
@@ -805,6 +817,9 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(data)
 
             if path == "/api/plan/task_feedback":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
                 session_id = payload.get("session_id", "")
                 if not session_id:
                     return self.send_error_json(400, "session_id is required")
