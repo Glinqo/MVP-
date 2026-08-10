@@ -1,4 +1,4 @@
-"""V2 API Facade - unified entry point for all V2 engines.
+﻿"""V2 API Facade - unified entry point for all V2 engines.
 
 server.py -> V2Facade -> Engine
 Never let server.py directly access engine internals.
@@ -39,9 +39,24 @@ def get_student_patterns(student_id: str, scenario_id: str = "",
                          limit: int = 20) -> List[Dict[str, Any]]:
     from app.services.diagnosis.diagnostic_patterns import PatternClassifier
     from app.services.diagnosis.expert_graph import get_expert_graph
+    from app.services.evidence.event_query import EventQuery
     g = get_expert_graph(scenario_id or "SCN_SENSOR_LED_ON_PLC_LED_OFF")
     pc = PatternClassifier(g)
-    return []
+    q = EventQuery()
+    events = q.by_student(student_id, limit)
+    if not events:
+        return []
+    patterns = []
+    for ev in events:
+        sid = ev.get("state_id", "") or ev.get("current_state", "")
+        aid = ev.get("action_id", "") or ev.get("action", "")
+        if not sid or not aid:
+            continue
+        hist = [h.get("action_id", "") for h in ev.get("history", []) if isinstance(h, dict)]
+        pat = pc.classify(sid, aid, hist, student_id, scenario_id)
+        if pat:
+            patterns.append(pat.to_dict())
+    return patterns
 
 def classify_scenario_action(student_id: str, state_id: str, action_id: str,
                               scenario_id: str = "", history: List[str] = None) -> Optional[Dict[str, Any]]:
@@ -57,19 +72,62 @@ def discover_issues(job_role: str = "", student_states: List[Dict] = None,
                     patterns: List[Dict] = None) -> List[Dict[str, Any]]:
     from app.services.issues.issue_discovery import IssueDiscoveryEngine
     engine = IssueDiscoveryEngine()
+    # Auto-populate from EventStore when called without args
+    _DEMO_STUDENTS = ["001", "002", "003", "004", "005"]
+    if not student_states:
+        from app.services.state.learner_state import LearnerState
+        student_states = []
+        for sid in _DEMO_STUDENTS:
+            try:
+                st = LearnerState(student_id=sid, job_role=job_role)
+                student_states.append(st.to_dict())
+            except Exception:
+                pass
+    if not patterns:
+        from app.services.diagnosis.diagnostic_patterns import PatternClassifier
+        from app.services.diagnosis.expert_graph import get_expert_graph
+        from app.services.evidence.event_query import EventQuery
+        patterns = []
+        try:
+            g = get_expert_graph("SCN_PLC_INPUT_NO_RESPONSE")
+            pc = PatternClassifier(g)
+            q2 = EventQuery()
+            for sid in _DEMO_STUDENTS:
+                events = q2.by_student(sid, limit=30)
+                for ev in (events or []):
+                    sid2 = ev.get("state_id", "") or ev.get("current_state", "")
+                    aid = ev.get("action_id", "") or ev.get("action", "")
+                    if sid2 and aid:
+                        try:
+                            pat = pc.classify(sid2, aid, [], sid, ev.get("scenario_id", ""))
+                            if pat: patterns.append(pat.to_dict())
+                        except Exception:
+                            pass
+        except Exception:
+            pass
     issues = engine.discover_from_states(student_states or [], patterns or [])
     return [i.to_dict() for i in issues]
 
 def get_issue(issue_id: str) -> Dict[str, Any]:
-    return {"issue_id": issue_id, "status": "pending"}
+    issues = discover_issues()
+    for i in issues:
+        if i.get("issue_id") == issue_id:
+            return i
+    return {"issue_id": issue_id, "title": issue_id, "status": "not_found", "error": "ISSUE_NOT_FOUND", "message": "教学问题未找到"}
 
 # --- Intervention Policy ---
 def generate_candidates(issue_id: str, student_ids: List[str],
                         completed: List[str] = None) -> List[Dict[str, Any]]:
+    issue = get_issue(issue_id)
+    ability_id = issue.get("primary_ability_id", "") if issue else ""
+    if not ability_id:
+        ability_id = "PLC_INPUT_NO_RESPONSE"
     from app.services.policy.intervention_policy import InterventionPolicyEngine
     engine = InterventionPolicyEngine()
-    candidates = engine.process({"issue_id": issue_id, "primary_ability_id": "test"},
-                                 student_ids, completed)
+    candidates = engine.process(
+        {"issue_id": issue_id, "primary_ability_id": ability_id, "issue_title": issue.get("title", "") if issue else ""},
+        student_ids, completed
+    )
     return [c.to_dict() for c in candidates]
 
 def group_students(student_ids: List[str], patterns: List[Dict] = None) -> Dict[str, List[str]]:
@@ -80,21 +138,23 @@ def group_students(student_ids: List[str], patterns: List[Dict] = None) -> Dict[
 # --- Teaching Workflow ---
 def create_intervention(issue_id: str, candidate_id: str, student_ids: List[str],
                         teacher_id: str) -> Dict[str, Any]:
-    from app.services.workflow.workflow_fsm import InterventionWorkflow
-    wf = InterventionWorkflow(
-        intervention_id=f"INT_{issue_id}",
-        issue_id=issue_id, teacher_id=teacher_id,
-        approved_candidate_id=candidate_id,
-        assigned_students=student_ids,
-    )
-    return {"intervention_id": wf.intervention_id, "status": wf.status}
+    from app.services.workflow.workflow_store import create_intervention as ws_create
+    return ws_create(issue_id, candidate_id, student_ids, teacher_id)
 
 def review_intervention(intervention_id: str, approved: bool, teacher_id: str) -> Dict[str, Any]:
-    return {"intervention_id": intervention_id, "status": "reviewed" if approved else "draft"}
+    from app.services.workflow.workflow_store import transition_intervention
+    result = transition_intervention(intervention_id, "reviewed" if approved else "draft", teacher_id)
+    if not result.get("ok"):
+        return {"intervention_id": intervention_id, "status": "draft", "transition_ok": False, "error": result.get("error")}
+    return result
 
 def assign_intervention(intervention_id: str, candidate_id: str,
                         student_ids: List[str], teacher_id: str) -> Dict[str, Any]:
-    return {"intervention_id": intervention_id, "status": "assigned"}
+    from app.services.workflow.workflow_store import transition_intervention
+    result = transition_intervention(intervention_id, "assigned", teacher_id)
+    if not result.get("ok"):
+        return {"intervention_id": intervention_id, "status": "draft", "transition_ok": False, "error": result.get("error")}
+    return result
 
 # --- Outcome ---
 def evaluate_intervention(intervention_id: str, pre_states: List[Dict] = None,
@@ -106,7 +166,8 @@ def evaluate_intervention(intervention_id: str, pre_states: List[Dict] = None,
             "summary": {"total": len(results)}}
 
 def get_outcome(intervention_id: str) -> Dict[str, Any]:
-    return {"intervention_id": intervention_id, "outcome": "pending"}
+    from app.services.workflow.workflow_store import get_outcome as ws_get_outcome
+    return ws_get_outcome(intervention_id)
 
 # --- Teacher AI V2 ---
 def get_teacher_ai():

@@ -56,6 +56,7 @@ from app.services.initial_assessment import start_assessment as ia_start, submit
 from app.services.action_planner import plan_initial_learning  # noqa: E402
 from app.services.auth import login, get_user, save_identity, teacher_required
 from app.middleware import find_authed_user  # noqa: E402
+from app.middleware import require_student_owner  # noqa: E402  # noqa: E402
 from app.services.v2_facade import *  # V2 Engine Facade
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.teacher_students import list_teacher_students, get_teacher_student_detail  # noqa: E402
@@ -151,7 +152,7 @@ class MVPHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
         self.wfile.write(body)
 
@@ -172,7 +173,7 @@ class MVPHandler(BaseHTTPRequestHandler):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
 
     def do_GET(self):
@@ -210,7 +211,11 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(build_job_ability_graph(job_role))
 
         if path == "/api/graph/student":
+            user = find_authed_user(self)
+            if not user: return self.send_error_json(401, "\u8bf7\u5148\u767b\u5f55")
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
+            if not require_student_owner(user, requested_session_id=session_id):
+                return self.send_error_json(403, "\u65e0\u6743\u8bbf\u95ee\u5176\u4ed6\u5b66\u751f\u6570\u636e")
             return self.send_json(build_student_ability_graph(session_id))
 
         if path == "/api/graph/gap":
@@ -262,7 +267,11 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(build_cumulative_strategy_profile(session_id))
 
         if path == "/api/student/events":
+            user = find_authed_user(self)
+            if not user: return self.send_error_json(401, "\u8bf7\u5148\u767b\u5f55")
             session_id = query_params.get("session_id", ["default"])[0]
+            if not require_student_owner(user, requested_session_id=session_id):
+                return self.send_error_json(403, "\u65e0\u6743\u8bbf\u95ee\u5176\u4ed6\u5b66\u751f\u6570\u636e")
             event_type = query_params.get("event_type", [None])[0]
             ability_id = query_params.get("ability_id", [None])[0]
             scenario_id = query_params.get("scenario_id", [None])[0]
@@ -450,11 +459,25 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(all_plans.get(job, {}))
             return self.send_json(all_plans)
         if path == "/api/conversations":
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
+            user_role = user.get("role", "")
+            usr = user.get("username", "")
+            if user_role == "student":
+                return self.send_json(list_conversation_sessions(owner=usr))
             job_role = parse_qs(parsed.query).get("job_role", [None])[0]
             return self.send_json(list_conversation_sessions(job_role=job_role))
         if path.startswith("/api/conversation/") and path != "/api/conversations":
             sid = path[len("/api/conversation/"):]
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
             conv = load_conversation_state(sid)
+            owner = conv.get("metadata", {}).get("owner_user_id", "")
+            if owner and user.get("id") and str(owner) != str(user.get("id", "")):
+                if user.get("role") != "teacher":
+                    return self.send_error_json(403, "无权访问此会话")
             return self.send_json({"session_id": sid, "messages": conv.get("messages", []), "title": conv.get("metadata", {}).get("title", "")})
 
         return self.serve_static(path)
@@ -468,6 +491,15 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path.startswith("/api/conversation/") and path != "/api/conversations":
                 sid = path[len("/api/conversation/"):]
                 action = query_params.get("action", [""])[0]
+
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
+                conv = load_conversation_state(sid)
+                owner = conv.get("metadata", {}).get("owner_user_id", "")
+                if owner and user.get("id") and str(owner) != str(user.get("id", "")):
+                    if user.get("role") != "teacher":
+                        return self.send_error_json(403, "无权操作此会话")
 
                 if action == "delete":
                     return self.send_json(delete_conversation(sid))
@@ -490,15 +522,27 @@ class MVPHandler(BaseHTTPRequestHandler):
                 user = find_authed_user(self)
                 if not user or not teacher_required(user):
                     return self.send_error_json(403, "需要教师权限")
-                return self.send_json(handle_teacher_message(
+                # Route through V2 Facade for supported intents, fall back to V1
+                from app.services.teacher_ai_v2 import handle_teacher_message_v2
+                result = handle_teacher_message_v2(
                     message=payload.get("message", ""),
                     job_role=payload.get("job_role"),
                     teacher_id=str(user.get("id", "")),
                     history=payload.get("history", []),
                     ui_context=payload.get("ui_context"),
                     context=payload.get("context"),
-                ))
-
+                )
+                if result.get("engine") == "teacher_ai_v1":
+                    # V2 unsupported intent - delegate to V1
+                    return self.send_json(handle_teacher_message(
+                        message=payload.get("message", ""),
+                        job_role=payload.get("job_role"),
+                        teacher_id=str(user.get("id", "")),
+                        history=payload.get("history", []),
+                        ui_context=payload.get("ui_context"),
+                        context=payload.get("context"),
+                    ))
+                return self.send_json(result)
             # ---- Teacher Comments (Stage 4) ----
             if path == "/api/teacher/comments/generate":
                 user = find_authed_user(self)
@@ -588,7 +632,12 @@ class MVPHandler(BaseHTTPRequestHandler):
                         result["knowledge_refs"] = list(kg)
                 return self.send_json(result)
             if path == "/api/student/bootstrap":
-                return self.send_json(student_bootstrap(payload.get("session_id")))
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "\u8bf7\u5148\u767b\u5f55")
+                session_id_val = payload.get("session_id")
+                if not require_student_owner(user, requested_session_id=session_id_val):
+                    return self.send_error_json(403, "\u65e0\u6743\u8bbf\u95ee\u5176\u4ed6\u5b66\u751f\u6570\u636e")
+                return self.send_json(student_bootstrap(session_id_val))
             if path == "/api/quiz/personalized":
                 return self.send_json(personalized_quiz(payload))
             if path == "/api/plan/personalized":
@@ -602,9 +651,18 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/scenario/action":
                 return self.send_json(action_scenario(payload))
             if path == "/api/student/device-state":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
                 return self.send_json(record_device_state(payload))
 
             if path == "/api/graph/student/event":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
+                session_id_val = payload.get("session_id", "")
+                if not require_student_owner(user, requested_session_id=session_id_val):
+                    return self.send_error_json(403, "无权访问其他学生数据")
                 event_result = record_student_graph_event(payload)
                 return self.send_json({**event_result, "student_graph": build_student_ability_graph(payload.get("session_id"))})
             if path == "/api/graph/job/proposals":
@@ -634,6 +692,9 @@ class MVPHandler(BaseHTTPRequestHandler):
                 )
                 return self.send_json(run_update(args))
             if path == "/api/graph/job/ingest":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 text = (payload.get("text") or "").strip()
                 if not text:
                     return self.send_error_json(400, "text is required")
@@ -653,8 +714,14 @@ class MVPHandler(BaseHTTPRequestHandler):
                     max_abilities=max_abilities,
                 ))
             if path == "/api/graph/job/proposals/confirm-sqlite":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 return self.send_json(confirm_sqlite_job_graph_proposal(payload))
             if path == "/api/graph/job/proposals/confirm-sqlite-batch":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 return self.send_json(confirm_sqlite_job_graph_proposals(payload))
             if path == "/api/graph/job/proposals/confirm":
                 user = find_authed_user(self)
@@ -670,6 +737,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/assist":
                 return self.send_json(assist(payload))
             if path == "/api/score":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
                 score_result = score_answers(payload)
                 if payload.get("session_id"):
                     append_session_event(
@@ -747,6 +817,9 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(data)
 
             if path == "/api/plan/task_feedback":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
                 session_id = payload.get("session_id", "")
                 if not session_id:
                     return self.send_error_json(400, "session_id is required")
@@ -764,11 +837,6 @@ class MVPHandler(BaseHTTPRequestHandler):
 
             if path == "/api/feedback":
                 return self.send_json(save_feedback(payload))
-        except ValueError as exc:
-            return self.send_error_json(400, str(exc))
-        except Exception as exc:  # pragma: no cover - defensive boundary for demo server
-            return self.send_error_json(500, str(exc))
-
             # ---- V2 Engine API (via Facade) ----
             if path == "/api/v2/events/emit":
                 user = find_authed_user(self)
@@ -805,6 +873,10 @@ class MVPHandler(BaseHTTPRequestHandler):
                 result = evaluate_intervention(payload.get("intervention_id", ""),
                                                 payload.get("pre_states", []), payload.get("post_states", []))
                 return self.send_json(result)
+        except ValueError as exc:
+            return self.send_error_json(400, str(exc))
+        except Exception as exc:  # pragma: no cover - defensive boundary for demo server
+            return self.send_error_json(500, str(exc))
         return self.send_error_json(404, "API endpoint not found")
 
     def serve_static(self, request_path):

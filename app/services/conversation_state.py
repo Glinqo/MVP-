@@ -148,8 +148,8 @@ def clear_active_task(session_id):
 
 # ---- Conversation management ---
 
-def list_conversation_sessions(limit=20):
-    """List all sessions sorted by updated_at desc."""
+def list_conversation_sessions(limit=20, owner=None, job_role=None):
+    """List sessions sorted by updated_at desc, optionally filtered by owner or job_role."""
     from .data_store import SESSIONS_DIR
     results = []
     if not SESSIONS_DIR.exists():
@@ -165,7 +165,13 @@ def list_conversation_sessions(limit=20):
             evts = record.get("events", [])
             if (not msgs or len(msgs) == 0) and (not evts or len(evts) == 0):
                 continue  # skip truly empty sessions
-            title = conv.get("metadata", {}).get("title", "")
+            # Filter by owner/job_role if specified
+            meta = conv.get("metadata", {})
+            if owner and str(meta.get("owner_user_id", "")) != str(owner):
+                continue
+            if job_role and meta.get("job_role", "") != job_role:
+                continue
+            title = meta.get("title", "")
             if not title:
                 for m in msgs:
                     if m.get("role") == "user":
