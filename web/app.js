@@ -667,7 +667,7 @@ function computeDimensionScores(graph) {
   if (!nodes.length) return { blocks: [] };
   var dims = [
     { id: "electrical_safety", label: "电气安全", color: "#f87171", match: function(ids) { return ids.some(function(d) { return d.indexOf("electrical_safety") === 0; }); } },
-    { id: "sensor_signal", label: "传感器/信号", color: "#fbbf24", match: function(ids) { return ids.some(function(d) { return d.indexOf("sensor_signal") === 0; }); } },
+    { id: "sensor_signal", label: "传感器诊断", color: "#fbbf24", match: function(ids) { return ids.some(function(d) { return d.indexOf("sensor_signal") === 0; }); } },
     { id: "plc_control", label: "PLC控制", color: "#60a5fa", match: function(ids) { return ids.some(function(d) { return d.indexOf("plc_control") === 0; }); } },
     { id: "troubleshooting", label: "排故诊断", color: "#34d399", match: function(ids) { return ids.some(function(d) { return d.indexOf("equipment_inspection") === 0 || d.indexOf("troubleshooting") >= 0; }); } }
   ];
@@ -776,7 +776,7 @@ function splitLabel(label, maxLength = 12) {
 function graphDimensionLegend() {
   return [
     { label: "电气安全", fill: "#fef2f2", stroke: "#dc2626" },
-    { label: "传感器/信号", fill: "#eff6ff", stroke: "#2563eb" },
+    { label: "传感器诊断", fill: "#eff6ff", stroke: "#2563eb" },
     { label: "PLC 控制", fill: "#ecfdf5", stroke: "#059669" },
     { label: "排故诊断", fill: "#f5f3ff", stroke: "#7c3aed" }
   ];
