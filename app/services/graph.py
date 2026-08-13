@@ -25,55 +25,28 @@ from .student_mastery_profile import augment_student_nodes
 
 CORE_CHAIN = [
 
-    "role_task_understanding",
-
-    "electrical_safety_check",
-
-    "power_isolation_confirmation",
-
-    "dc24v_power_check",
-
-    "multimeter_voltage_measurement",
-
-    "sensor_type_identification",
-
-    "sensor_nameplate_reading",
-
-    "sensor_output_logic",
-
-    "sensor_led_observation",
-
-    "sensor_wiring_color_code",
-
-    "sensor_wiring_judgement",
-
-    "plc_input_common_terminal",
-
-    "plc_input_grouping",
-
-    "plc_io_address_mapping",
-
-    "io_mapping_table_build",
-
-    "program_variable_lookup",
-
-    "plc_input_monitoring",
-
-    "input_led_compare",
-
-    "input_no_response_fault_scope",
-
-    "no_response_power_path_check",
-
-    "no_response_sensor_side_check",
-
-    "no_response_common_terminal_check",
-
-    "no_response_address_mapping_check",
-
-    "diagnosis_record_feedback",
-
-    "personalized_training_task_recommendation",
+    "rt_task_understanding",
+    "es_safety_rules",
+    "es_power_isolation",
+    "es_instrument_use",
+    "es_low_voltage",
+    "es_diagram_reading",
+    "sn_type_identify",
+    "sn_wiring_rules",
+    "sn_signal_acq",
+    "sn_fault_diag",
+    "sn_actuator_link",
+    "pl_io_mapping",
+    "pl_program_monitor",
+    "pl_logic_control",
+    "pl_fault_diag",
+    "pl_device_integration",
+    "tr_inspection",
+    "tr_fault_classify",
+    "tr_signal_chain",
+    "tr_system_diag",
+    "tr_record_feedback",
+    "rt_training_recommend",
 
 ]
 

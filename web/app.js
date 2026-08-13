@@ -3472,6 +3472,175 @@ function toggleDrawer() {
   document.querySelector(".chat-layout").classList.toggle("drawer-collapsed");
 }
 // No-auth: always boot if job selected
+
 { var u2 = localStorage.getItem("mcp_login_user") || ""; var j2 = localStorage.getItem("mcp_job_id_" + u2); if (j2) { state.selectedJobId = j2; state.jobName = localStorage.getItem("mcp_job_name_" + u2) || ""; if (typeof boot === "function") boot(); } }
 
+
+
+
+// === Per-question quiz feedback (runtime override) ===
+state.quizFeedback = {};
+
+function renderQuizV2(questions) {
+  state.questions = questions;
+  state.quizFeedback = {};
+  var total = questions.length;
+  $("quizCount").textContent = total + " 题";
+  $("quizForm").innerHTML = questions.map(function(q) { return renderQuestionV2(q); }).join("");
+  attachAskButtons($("quizForm"));
+}
+
+function renderQuestionV2(question) {
+  var options = question.options || [];
+  var title = '<div class="question-title">' + question.id + '. ' + escapeHtml(question.question) + '</div>';
+  var submitBtn = '<div class="quiz-submit-row"><button type="button" class="quiz-submit-btn" data-qid="' + question.id + '">提交本题</button><span class="quiz-feedback" data-feedback-qid="' + question.id + '"></span></div>';
+  var fbDiv = '<div class="quiz-feedback-detail" data-feedback-detail="' + question.id + '" style="display:none"></div>';
+  if (question.type === "multiple_choice") {
+    return '<fieldset class="question" data-question-id="' + question.id + '" data-question-type="' + question.type + '">' + title + options.map(function(opt) { return '<label class="option"><input type="checkbox" name="' + question.id + '" value="' + opt.id + '" /> ' + opt.id + '. ' + escapeHtml(opt.text) + '</label>'; }).join("") + questionAskActions(question) + submitBtn + fbDiv + '</fieldset>';
+  }
+  if (question.type === "ordering") {
+    return '<fieldset class="question" data-question-id="' + question.id + '" data-question-type="' + question.type + '">' + title + options.map(function(opt) { return '<div class="option">' + opt.id + '. ' + escapeHtml(opt.text) + '</div>'; }).join("") + '<input type="text" name="' + question.id + '" placeholder="例如：A,B,C,D,E,F" />' + questionAskActions(question) + submitBtn + fbDiv + '</fieldset>';
+  }
+  return '<fieldset class="question" data-question-id="' + question.id + '" data-question-type="' + question.type + '">' + title + options.map(function(opt) { return '<label class="option"><input type="radio" name="' + question.id + '" value="' + opt.id + '" /> ' + opt.id + '. ' + escapeHtml(opt.text) + '</label>'; }).join("") + questionAskActions(question) + submitBtn + fbDiv + '</fieldset>';
+}
+
+function checkQuizAnswer(qid) {
+  var q = (state.questions || []).find(function(q) { return q.id === qid; });
+  if (!q) return;
+  var answer = selectedAnswerForQuestion(qid);
+  if (!answer || (Array.isArray(answer) && answer.length === 0)) {
+    var fbSpan = document.querySelector('[data-feedback-qid="' + qid + '"]');
+    if (fbSpan) { fbSpan.textContent = "请先选择答案"; fbSpan.className = "quiz-feedback no-answer"; }
+    return;
+  }
+  var isCorrect = checkCorrectV2(answer, q);
+  var fbSpan = document.querySelector('[data-feedback-qid="' + qid + '"]');
+  var fbDiv = document.querySelector('[data-feedback-detail="' + qid + '"]');
+  if (isCorrect) {
+    if (fbSpan) { fbSpan.innerHTML = '<span class="correct-mark">✓ 正确</span>'; fbSpan.className = "quiz-feedback correct"; }
+    if (fbDiv) { fbDiv.innerHTML = '<div class="fb-card correct"><strong>✓ 回答正确</strong><p>' + escapeHtml(q.explanation || "") + '</p></div>'; fbDiv.style.display = "block"; }
+  } else {
+    var correctDisplay = Array.isArray(q.correct_answer) ? q.correct_answer.join(", ") : String(q.correct_answer);
+    var userDisplay = Array.isArray(answer) ? answer.join(", ") : String(answer);
+    if (fbSpan) { fbSpan.innerHTML = '<span class="wrong-mark">✗ 错误</span>'; fbSpan.className = "quiz-feedback wrong"; }
+    if (fbDiv) { fbDiv.innerHTML = '<div class="fb-card wrong"><strong>✗ 回答错误</strong><div class="fb-compare"><span class="fb-yours">你的答案：' + escapeHtml(userDisplay) + '</span><span class="fb-correct">正确答案：' + escapeHtml(correctDisplay) + '</span></div><p>' + escapeHtml(q.explanation || q.wrong_feedback || "") + '</p></div>'; fbDiv.style.display = "block"; }
+  }
+  var fs = document.querySelector('[data-question-id="' + qid + '"]');
+  if (fs) { fs.querySelectorAll("input").forEach(function(inp) { inp.disabled = true; }); fs.classList.add("quiz-answered"); }
+  var btn = document.querySelector('.quiz-submit-btn[data-qid="' + qid + '"]');
+  if (btn) { btn.disabled = true; btn.textContent = "已提交"; }
+  state.quizFeedback[qid] = isCorrect;
+  updateQuizProgressV2();
+}
+
+function updateQuizProgressV2() {
+  var total = (state.questions || []).length;
+  var answered = Object.keys(state.quizFeedback || {}).length;
+  var correct = Object.values(state.quizFeedback || {}).filter(function(v) { return v; }).length;
+  var el = document.getElementById("quizProgress");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "quizProgress";
+    el.className = "quiz-progress-bar";
+    var form = document.getElementById("quizForm");
+    if (form) { form.parentNode.insertBefore(el, form.nextSibling); }
+  }
+  el.innerHTML = '<span>进度：' + answered + '/' + total + ' 题</span><span>正确：' + correct + '/' + answered + '</span>' + (answered === total ? '<button type="button" class="quiz-submit-all" onclick="submitAnswers()">提交全部评分</button>' : '');
+}
+
+function checkCorrectV2(answer, question) {
+  if (!answer) return false;
+  if (question.type === "multiple_choice") {
+    var u = Array.isArray(answer) ? answer.map(String) : String(answer).split(/[,，\s>]+/).filter(Boolean);
+    var c = Array.isArray(question.correct_answer) ? question.correct_answer.map(String) : [String(question.correct_answer)];
+    u.sort(); c.sort();
+    return u.join(",") === c.join(",");
+  }
+  if (question.type === "ordering") {
+    var u2 = Array.isArray(answer) ? answer.map(String) : String(answer).split(/[,，\s>]+/).filter(Boolean);
+    var c2 = Array.isArray(question.correct_answer) ? question.correct_answer.map(String) : [String(question.correct_answer)];
+    return JSON.stringify(u2) === JSON.stringify(c2);
+  }
+  return String(answer) === String(question.correct_answer);
+}
+
+// Delegate quiz submit button clicks
+document.addEventListener("click", function(e) {
+  var btn = e.target.closest(".quiz-submit-btn");
+  if (btn && btn.dataset.qid) { checkQuizAnswer(btn.dataset.qid); }
+});
+
+// Override renderQuiz at boot time
+var _bootV2 = boot;
+boot = function() {
+  var result = _bootV2 ? _bootV2.apply(this, arguments) : undefined;
+  var resolve = function() {
+    renderQuiz = renderQuizV2;
+    renderQuestion = renderQuestionV2;
+  };
+  if (result && typeof result.then === "function") { result.then(resolve); }
+  else { resolve(); }
+  return result;
+};
+
+// Immediately override renderQuiz at module load time
+var _renderQuizOrig = renderQuiz;
+var _renderQuestionOrig = renderQuestion;
+renderQuiz = renderQuizV2;
+renderQuestion = renderQuestionV2;
+
+async function submitAnswers() {
+  var answers = collectAnswers();
+  try {
+    var resp = await api("/api/score", {
+      method: "POST",
+      body: JSON.stringify({ answers: answers, session_id: state.sessionId })
+    });
+    if (resp) {
+      renderScore({ score_result: resp });
+    }
+  } catch (e) {
+    console.error("submitAnswers error:", e);
+  }
+}
+
+// Fix: override collectAnswers with debug
+var _collectOrig = collectAnswers;
+collectAnswers = function() {
+  var result = {};
+  document.querySelectorAll(".question").forEach(function(fs) {
+    var id = fs.dataset.questionId;
+    if (!id) return;
+    var checked = fs.querySelectorAll("input:checked");
+    if (checked.length > 0) {
+      var type = fs.dataset.questionType;
+      if (type === "multiple_choice") {
+        result[id] = Array.from(checked).map(function(i) { return i.value; });
+      } else {
+        result[id] = checked[0].value;
+      }
+    }
+  });
+  console.log("collectAnswers result:", result);
+  return result;
+};
+
+// Debug submitAnswers
+var _submitOrig = submitAnswers;
+submitAnswers = async function() {
+  var answers = collectAnswers();
+  console.log("submitAnswers collected:", answers, "sending...");
+  try {
+    var resp = await fetch("/api/score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answers: answers, session_id: state.sessionId })
+    });
+    var data = await resp.json();
+    console.log("submitAnswers response:", data);
+    if (data) renderScore({ score_result: data });
+  } catch (e) {
+    console.error("submitAnswers error:", e);
+  }
+};
 

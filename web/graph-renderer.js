@@ -105,9 +105,10 @@ class ForceGraph {
             .velocityDecay(this.options.velocityDecay);
     }
 
-    _setupZoom() {
-        this.zoom = d3.zoom()
-            .scaleExtent([0.3, 4])
+   _setupZoom() {
+       this.zoom = d3.zoom()
+            .scaleExtent([0.5, 2.0])
+            .translateExtent([[-this.width * 0.3, -this.height * 0.3], [this.width * 1.3, this.height * 1.3]])
             .filter(function(ev){
                 if(ev.type==="wheel"||ev.type==="mousedown"||ev.type==="touchstart"){
                     var r=this.getBoundingClientRect();if(!r||r.width===0)return true;
@@ -116,7 +117,7 @@ class ForceGraph {
                 return true})
             .on("zoom", (ev) => { this.g.attr("transform", ev.transform); });
         this.svg.call(this.zoom);
-        this.svg.call(this.zoom.transform, d3.zoomIdentity.translate(-20, -20).scale(0.85));
+        this.svg.call(this.zoom.transform, d3.zoomIdentity.translate(this.width * 0.5, this.height * 0.5).scale(1.0));
     }
 
     _buildGraphData(graphData) {

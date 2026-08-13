@@ -91,6 +91,14 @@ def get_user(user_id: int) -> Optional[Dict]:
 def list_users() -> list:
     with _conn() as conn:
         return [dict(r) for r in conn.execute("SELECT id, username, nickname, role FROM users ORDER BY id").fetchall()]
+
+
+def teacher_required(user: dict) -> bool:
+    if not user:
+        return False
+    return user.get("role", "") == "teacher"
+
+
 def _seed_users():
     """Seed 1000 users (000-999) with password 123456 if table is empty."""
     with _conn() as conn:
@@ -99,7 +107,7 @@ def _seed_users():
             return
         now = __import__("time").time()
         pw = hash_password("123456")
-        rows = [(f"{i:03d}", pw, f"User_{i:03d}", "student", now, now) for i in range(1000)]
+        rows = [(f"{i:03d}", pw, f"User_{i:03d}", "teacher" if i == 0 else "student", now, now) for i in range(1000)]
         conn.executemany(
             "INSERT INTO users (username, password_hash, nickname, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
             rows

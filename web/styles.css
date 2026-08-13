@@ -1449,3 +1449,41 @@ button:active{transform:translateY(0)}
 .day-counter-bar button:hover {
   background: rgba(56, 189, 248, 0.25);
 }
+
+/* ── Quiz per-question feedback ── */
+.quiz-submit-row { display:flex; align-items:center; gap:10px; margin-top:10px; }
+.quiz-submit-btn { padding:5px 16px; background:#6366f1; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:13px; }
+.quiz-submit-btn:disabled { background:#64748b; cursor:not-allowed; }
+.quiz-submit-btn:hover:not(:disabled) { background:#4f46e5; }
+.quiz-feedback { font-size:13px; font-weight:600; }
+.quiz-feedback.correct { color:#22c55e; }
+.quiz-feedback.wrong { color:#ef4444; }
+.quiz-feedback.no-answer { color:#f59e0b; }
+.correct-mark, .wrong-mark { font-size:14px; }
+.quiz-feedback-detail { margin-top:8px; padding:12px; border-radius:8px; font-size:13px; line-height:1.6; }
+.fb-card.correct { background:#f0fdf4; border:1px solid #bbf7d0; }
+.fb-card.wrong { background:#fef2f2; border:1px solid #fecaca; }
+.fb-card strong { display:block; margin-bottom:6px; font-size:14px; }
+.fb-compare { display:flex; gap:16px; margin:8px 0; }
+.fb-yours { color:#ef4444; }
+.fb-correct { color:#22c55e; }
+.quiz-answered { opacity:0.65; }
+.quiz-progress-bar { display:flex; align-items:center; gap:12px; padding:10px 14px; background:#f8fafc; border-radius:8px; margin:12px 0; font-size:13px; }
+.quiz-progress-bar span { font-weight:500; }
+.quiz-submit-all { margin-left:auto; padding:6px 18px; background:#0ea5e9; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:13px; }
+.quiz-submit-all:hover { background:#0284c7; }
+.metrics-row { display:flex; gap:16px; flex-wrap:wrap; }
+.metrics-row .metric { flex:1; min-width:80px; }
+
+.fb-card.correct, .fb-card.wrong { color: #1e293b !important; }
+.fb-card.correct strong { color: #166534 !important; }
+.fb-card.wrong strong { color: #991b1b !important; }
+
+/* ── Fix: quiz progress bar & score area text clarity ── */
+.quiz-progress-bar,
+.quiz-progress-bar span { color: #334155 !important; }
+.quiz-progress-bar .quiz-submit-all { background: #6366f1; color: #fff; border: none; padding: 6px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.quiz-submit-all:hover { background: #4f46e5; }
+.fb-card p { color: #334155 !important; }
+.fb-card strong { color: #1e293b !important; }
+.fb-compare span { font-weight: 600; }
