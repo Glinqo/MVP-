@@ -15,7 +15,103 @@ JOB_CONFIRMED_PATH = ROOT / "data" / "job_graph_confirmed_snapshots.json"
 IMPROVING_EVENTS = {"question_explained", "practice_completed", "learning_plan_started", "learning_plan_checkpoint", "scenario_step_completed", "scenario_completed"}
 WEAK_EVENTS = {"scenario_step_mistake"}
 MASTERED_EVENTS = {"task_completed"}
-SAFETY_REVIEW_ABILITIES = {"electrical_safety_check", "power_isolation_confirmation", "multimeter_voltage_measurement"}
+SAFETY_REVIEW_ABILITIES = {"es_safety_rules", "es_power_isolation", "es_instrument_use"}
+
+# Legacy ability ids/names used by assessment questions, diagnosis rules and
+# job-specific question sets map to the current ability_nodes.json ids.
+LEGACY_ABILITY_ALIASES = {
+    # Initial assessment question ability_ids
+    "plc_basic_principle": "pl_program_monitor",
+    "sensor_selection": "sn_type_identify",
+    "input_common_terminal": "pl_io_mapping",
+    "electrical_safety": "es_safety_rules",
+    "troubleshoot_order": "tr_fault_classify",
+    "safety_ppe": "es_safety_rules",
+    "sensor_wiring": "sn_wiring_rules",
+    "plc_wiring": "pl_io_mapping",
+    "motor_control": "pl_logic_control",
+    "hmi_basic": "pl_device_integration",
+    "emergency_stop": "es_safety_rules",
+    "vfd_basic": "pl_device_integration",
+    # Legacy diagnosis/scoring rule ability keys
+    "electrical_safety_check": "es_safety_rules",
+    "power_isolation_confirmation": "es_power_isolation",
+    "dc24v_power_check": "es_low_voltage",
+    "multimeter_voltage_measurement": "es_instrument_use",
+    "sensor_type_identification": "sn_type_identify",
+    "sensor_nameplate_reading": "sn_type_identify",
+    "sensor_output_logic": "sn_signal_acq",
+    "sensor_led_observation": "sn_signal_acq",
+    "sensor_wiring_color_code": "sn_wiring_rules",
+    "sensor_wiring_judgement": "sn_wiring_rules",
+    "plc_input_common_terminal": "pl_io_mapping",
+    "plc_input_grouping": "pl_io_mapping",
+    "plc_io_address_mapping": "pl_io_mapping",
+    "io_mapping_table_build": "pl_io_mapping",
+    "program_variable_lookup": "pl_program_monitor",
+    "plc_input_monitoring": "pl_program_monitor",
+    "input_led_compare": "pl_program_monitor",
+    "input_no_response_fault_scope": "tr_fault_classify",
+    "no_response_power_path_check": "tr_signal_chain",
+    "no_response_sensor_side_check": "sn_fault_diag",
+    "no_response_common_terminal_check": "pl_io_mapping",
+    "no_response_address_mapping_check": "pl_io_mapping",
+    "diagnosis_record_feedback": "tr_record_feedback",
+    "personalized_training_task_recommendation": "rt_training_recommend",
+    "role_task_understanding": "rt_task_understanding",
+    # Old scoring_rules.json ability_catalog ids
+    "A01": "es_safety_rules",
+    "A02": "sn_type_identify",
+    "A03": "pl_io_mapping",
+    "A04": "pl_io_mapping",
+    "A05": "pl_program_monitor",
+    "A06": "pl_program_monitor",
+    "A07": "tr_fault_classify",
+    "A08": "sn_wiring_rules",
+    "A09": "sn_signal_acq",
+    "A10": "pl_io_mapping",
+    "A11": "pl_program_monitor",
+    "A12": "sn_fault_diag",
+    "A13": "tr_record_feedback",
+    "A14": "rt_training_recommend",
+    "A15": "pl_io_mapping",
+    # plc_electrical_control_technician question set
+    "pc_01": "es_low_voltage",
+    "pc_02": "es_low_voltage",
+    "pc_03": "es_low_voltage",
+    "pc_04": "es_low_voltage",
+    "pc_05": "es_safety_rules",
+    "pc_06": "pl_device_integration",
+    "pc_07": "pl_program_monitor",
+    "pc_08": "pl_program_monitor",
+    "pc_09": "pl_program_monitor",
+    "pc_10": "pl_program_monitor",
+    "pc_11": "pl_io_mapping",
+    "pc_12": "pl_io_mapping",
+    "pc_13": "pl_io_mapping",
+    "pc_14": "pl_program_monitor",
+    "pc_15": "pl_program_monitor",
+    "pc_16": "pl_logic_control",
+    "pc_17": "pl_logic_control",
+    "pc_18": "pl_logic_control",
+    "pc_19": "pl_logic_control",
+    "pc_20": "pl_logic_control",
+}
+
+# ── 掌握度证据模型 ─────────────────────────────────────────────
+# 证据类型权重 w_i（学生能力证据的可靠性权重）
+EVIDENCE_WEIGHTS = {
+    "diagnostic_test": 0.4,     # 诊断自测
+    "training_feedback": 0.3,   # 实训任务反馈
+    "judgment_qa": 0.2,         # 判断问答
+    "explanation_retell": 0.1,  # 讲题复述
+}
+
+# 时间衰减系数 λ = 0.98^d（d 为距今天数）
+TIME_DECAY_LAMBDA = 0.98
+
+# 置信度阈值：低于该值的节点视为证据不足，需推送验证题
+CONFIDENCE_THRESHOLD = 0.5
 
 # ── global lock for runtime JSON files ─────────────────────────────
 _global_runtime_lock = threading.Lock()
@@ -56,6 +152,8 @@ def normalize_ability_id(ability_id):
     raw = str(ability_id)
     if raw in data["ability_by_id"]:
         return raw
+    if raw in LEGACY_ABILITY_ALIASES:
+        return LEGACY_ABILITY_ALIASES[raw]
 
     catalog = data["rules_data"].get("ability_catalog", {})
     for internal_id, item in catalog.items():
@@ -108,6 +206,10 @@ def event_ability_ids(event):
     for ability_id in ability_ids:
         if ability_id in load_data()["ability_by_id"] and ability_id not in ordered:
             ordered.append(ability_id)
+    if event.get("event_type") in {"score", "diagnosis"}:
+        for ability_id in _score_event_ability_scores(event):
+            if ability_id not in ordered:
+                ordered.append(ability_id)
     return ordered
 
 
@@ -154,9 +256,98 @@ def ability_event_bucket():
     }
 
 
-def add_bucket_event(bucket, event, reason):
+def _days_since(created_at):
+    """返回证据距今天数，用于时间衰减 λ^d。"""
+    if not created_at:
+        return 0.0
+    try:
+        dt = datetime.fromisoformat(str(created_at))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        delta = datetime.now(timezone.utc) - dt
+        return max(0.0, delta.total_seconds() / 86400.0)
+    except (ValueError, TypeError, AttributeError):
+        return 0.0
+
+
+def _score_event_ability_scores(event):
+    """Return {current_ability_id: score_0_100} for a score/diagnosis event."""
+    ability_scores = event.get("score_result", {}).get("ability_scores", {})
+    if not ability_scores:
+        ability_scores = event.get("ability_scores", {})
+    if not isinstance(ability_scores, dict):
+        return {}
+
+    data = load_data()
+    result = {}
+    for legacy_id, score in ability_scores.items():
+        ability_id = normalize_ability_id(legacy_id)
+        if ability_id and ability_id in data["ability_by_id"]:
+            result[ability_id] = float_or_zero(score)
+    return result
+
+
+def _evidence_type_and_score(event, ability_id):
+    """把原始事件映射为 (evidence_type, score)，不能贡献时返回 (None, None)。
+
+    得分 s_i 统一采用 0-100 标尺。
+    """
+    event_type = event.get("event_type", "")
+
+    # 判断问答：学生围绕该能力提出或回答判断性问题
+    if event_type == "chat_message":
+        return "judgment_qa", 60.0
+
+    # 讲题复述：学生查看并尝试复述讲解
+    if event_type == "question_explained":
+        return "explanation_retell", 70.0
+
+    # 诊断自测
+    if event_type in {"score", "diagnosis"}:
+        ability_scores = _score_event_ability_scores(event)
+        if ability_scores and ability_id in ability_scores:
+            return "diagnostic_test", ability_scores[ability_id]
+        weak_ids = set(extract_ability_ids(event.get("weak_abilities", [])))
+        if ability_id in weak_ids:
+            return "diagnostic_test", 0.0
+        return None, None
+
+    if event_type == "initial_quiz_answered":
+        return "diagnostic_test", 100.0 if event.get("is_correct") else 0.0
+
+    if event_type == "initial_assessment_completed":
+        ability_scores = event.get("ability_scores", {})
+        if isinstance(ability_scores, dict):
+            for legacy_id, raw_score in ability_scores.items():
+                if normalize_ability_id(legacy_id) == ability_id:
+                    return "diagnostic_test", round(float_or_zero(raw_score) * 100.0, 1)
+        return "diagnostic_test", 0.0
+
+    # 实训任务反馈
+    if event_type == "feedback":
+        return "training_feedback", 100.0 if event.get("feedback") == "已掌握" else 0.0
+
+    if event_type == "task_completed":
+        outcome = event.get("outcome")
+        return "training_feedback", 100.0 if outcome in {None, "", "passed", "completed"} else 50.0
+
+    if event_type in {"practice_completed", "scenario_completed", "scenario_step_completed", "learning_plan_checkpoint"}:
+        return "training_feedback", 80.0
+
+    if event_type == "learning_plan_started":
+        return "training_feedback", 50.0
+
+    if event_type == "scenario_step_mistake":
+        return "training_feedback", 0.0
+
+    return None, None
+
+
+def add_bucket_event(bucket, event, reason, ability_id=None):
     bucket["last_updated_at"] = event.get("created_at") or bucket["last_updated_at"]
     bucket["reasons"].append(reason)
+    evidence_type, score = _evidence_type_and_score(event, ability_id)
+    weight = EVIDENCE_WEIGHTS.get(evidence_type, 0.0) if evidence_type else 0.0
     bucket["events"].append(
         {
             "event_id": event.get("event_id"),
@@ -168,6 +359,9 @@ def add_bucket_event(bucket, event, reason):
             "knowledge_id": event.get("knowledge_id"),
             "task_id": event.get("task_id"),
             "note": event.get("note", ""),
+            "evidence_type": evidence_type,
+            "score": score,
+            "weight": weight,
         }
     )
 
@@ -183,8 +377,19 @@ def personal_graph_state(session_id, core_chain):
     try:
         from .session_store import load_ability_cache
 
+        record = load_session_record(session_id)
+        complex_types = {
+            "score",
+            "diagnosis",
+            "feedback",
+            "initial_quiz_answered",
+            "initial_assessment_completed",
+        }
+        has_complex_events = any(
+            event.get("event_type") in complex_types for event in record.get("events", [])
+        )
         cached = load_ability_cache(safe_session_id(session_id))
-        if cached:
+        if cached and not has_complex_events:
             buckets, recommended_names = _buckets_from_cache_and_events(
                 session_id, core_chain, cached
             )
@@ -236,16 +441,12 @@ def _buckets_from_cache_and_events(session_id, core_chain, cached):
             recommended_names.extend(event.get("recommended_path", []))
             ability_ids = event_ability_ids(event) or extract_ability_ids(event.get("highlighted_abilities", []))
             for ability_id in ability_ids:
-                add_bucket_event(buckets[ability_id], event, "问答命中该能力")
+                add_bucket_event(buckets[ability_id], event, "问答命中该能力", ability_id)
             continue
 
         if event_type in {"score", "diagnosis"}:
-            weak_ids = extract_ability_ids(event.get("weak_abilities", []))
-            for ability_id in weak_ids:
-                add_bucket_event(buckets[ability_id], event, "确定性评分显示薄弱")
-            if event.get("score_result", {}).get("score") == 100:
-                for ability_id in core_chain:
-                    add_bucket_event(buckets[ability_id], event, "预设自测满分")
+            for ability_id in event_ability_ids(event):
+                add_bucket_event(buckets[ability_id], event, "确定性评分更新", ability_id)
             recommended_names.extend(event.get("recommended_path", []))
             continue
 
@@ -257,18 +458,18 @@ def _buckets_from_cache_and_events(session_id, core_chain, cached):
             )
             ability_ids = event_ability_ids(event)
             for ability_id in ability_ids:
-                add_bucket_event(buckets[ability_id], event, add_reason)
+                add_bucket_event(buckets[ability_id], event, add_reason, ability_id)
             recommended_names.extend(event.get("recommended_path", []))
             continue
 
         if event_type in IMPROVING_EVENTS:
             for ability_id in event_ability_ids(event):
-                add_bucket_event(buckets[ability_id], event, "讲题/练习产生改进证据")
+                add_bucket_event(buckets[ability_id], event, "讲题/练习产生改进证据", ability_id)
             continue
 
         if event_type in WEAK_EVENTS:
             for ability_id in event_ability_ids(event):
-                add_bucket_event(buckets[ability_id], event, "排故角色扮演选择错误，提示该能力需补强")
+                add_bucket_event(buckets[ability_id], event, "排故角色扮演选择错误，提示该能力需补强", ability_id)
             continue
 
         if event_type in MASTERED_EVENTS:
@@ -278,7 +479,7 @@ def _buckets_from_cache_and_events(session_id, core_chain, cached):
                 else "任务完成但仍需复核"
             )
             for ability_id in event_ability_ids(event):
-                add_bucket_event(buckets[ability_id], event, msg)
+                add_bucket_event(buckets[ability_id], event, msg, ability_id)
 
     # Handle record-level weak_abilities and feedback (post-processing)
     for ability_id in extract_ability_ids(record.get("weak_abilities", [])):
@@ -308,20 +509,43 @@ def _full_event_scan(session_id, core_chain):
             ability_ids = ability_ids or extract_ability_ids(event.get("highlighted_abilities", []))
             for ability_id in ability_ids:
                 buckets[ability_id]["chat"] += 1
-                add_bucket_event(buckets[ability_id], event, "问答命中该能力")
+                add_bucket_event(buckets[ability_id], event, "问答命中该能力", ability_id)
             recommended_names.extend(event.get("recommended_path", []))
             continue
 
         if event_type in {"score", "diagnosis"}:
-            weak_ids = extract_ability_ids(event.get("weak_abilities", []))
-            for ability_id in weak_ids:
-                buckets[ability_id]["weak"] += 1
-                add_bucket_event(buckets[ability_id], event, "确定性评分显示薄弱")
-            if event.get("score_result", {}).get("score") == 100:
-                for ability_id in core_chain:
+            score_map = _score_event_ability_scores(event)
+            for ability_id, score in score_map.items():
+                if score <= 0:
+                    buckets[ability_id]["weak"] += 1
+                elif score < 75:
+                    buckets[ability_id]["improving"] += 1
+                else:
                     buckets[ability_id]["mastered"] += 1
-                    add_bucket_event(buckets[ability_id], event, "预设自测满分")
+                add_bucket_event(buckets[ability_id], event, "确定性评分更新", ability_id)
             recommended_names.extend(event.get("recommended_path", []))
+            continue
+
+        if event_type == "initial_quiz_answered":
+            related_ids = event_ability_ids(event) or extract_ability_ids([event.get("ability_id")])
+            for ability_id in related_ids:
+                if event.get("is_correct"):
+                    buckets[ability_id]["improving"] += 1
+                else:
+                    buckets[ability_id]["weak"] += 1
+                add_bucket_event(buckets[ability_id], event, "初始能力测评答题", ability_id)
+            continue
+
+        if event_type == "initial_assessment_completed":
+            score_map = _score_event_ability_scores(event)
+            for ability_id, score in score_map.items():
+                if score <= 0:
+                    buckets[ability_id]["weak"] += 1
+                elif score < 75:
+                    buckets[ability_id]["improving"] += 1
+                else:
+                    buckets[ability_id]["mastered"] += 1
+                add_bucket_event(buckets[ability_id], event, "初始能力测评完成", ability_id)
             continue
 
         if event_type == "feedback":
@@ -331,33 +555,33 @@ def _full_event_scan(session_id, core_chain):
                 if feedback == "已掌握":
                     buckets[ability_id]["mastered"] += 1
                     buckets[ability_id]["weak"] = 0
-                    add_bucket_event(buckets[ability_id], event, "学生反馈已掌握")
+                    add_bucket_event(buckets[ability_id], event, "学生反馈已掌握", ability_id)
                 elif feedback in {"仍不会", "需要更基础讲解"}:
                     buckets[ability_id]["weak"] += 1
-                    add_bucket_event(buckets[ability_id], event, f"学生反馈{feedback}")
+                    add_bucket_event(buckets[ability_id], event, f"学生反馈{feedback}", ability_id)
             recommended_names.extend(event.get("recommended_path", []))
             continue
 
         if event_type in IMPROVING_EVENTS:
             for ability_id in ability_ids:
                 buckets[ability_id]["improving"] += 1
-                add_bucket_event(buckets[ability_id], event, "讲题/练习产生改进证据")
+                add_bucket_event(buckets[ability_id], event, "讲题/练习产生改进证据", ability_id)
             continue
 
         if event_type in WEAK_EVENTS:
             for ability_id in ability_ids:
                 buckets[ability_id]["weak"] += 1
-                add_bucket_event(buckets[ability_id], event, "排故角色扮演选择错误，提示该能力需补强")
+                add_bucket_event(buckets[ability_id], event, "排故角色扮演选择错误，提示该能力需补强", ability_id)
             continue
 
         if event_type in MASTERED_EVENTS:
             for ability_id in ability_ids:
                 if event.get("outcome") in {None, "", "passed", "completed"}:
                     buckets[ability_id]["mastered"] += 1
-                    add_bucket_event(buckets[ability_id], event, "任务完成产生掌握证据")
+                    add_bucket_event(buckets[ability_id], event, "任务完成产生掌握证据", ability_id)
                 else:
                     buckets[ability_id]["improving"] += 1
-                    add_bucket_event(buckets[ability_id], event, "任务完成但仍需复核")
+                    add_bucket_event(buckets[ability_id], event, "任务完成但仍需复核", ability_id)
 
     for ability_id in extract_ability_ids(record.get("weak_abilities", [])):
         buckets[ability_id]["weak"] += 1
@@ -428,14 +652,38 @@ def rebuild_cache(session_id):
 
 
 def compute_node_metrics(ability_id, bucket):
-    evidence_count = bucket["chat"] + bucket["weak"] + bucket["improving"] + bucket["mastered"] + bucket["recommended"]
-    score = 10 + bucket["chat"] * 1 + bucket["improving"] * 3 + bucket["mastered"] * 5 + bucket["recommended"] * 1 - bucket["weak"] * 3
-    if evidence_count == 0:
-        score = 0
+    # 加权时间衰减证据模型：
+    # M(c) = Σ(w_i · s_i · λ^Δt_i) / Σ(w_i · λ^Δt_i)
+    # conf(c) = 1 - 1 / (1 + Σ w_i)
+    weighted_score_sum = 0.0
+    weighted_decay_sum = 0.0
+    weight_sum = 0.0
+    evidence_count = 0
+
+    for ev in bucket.get("events", []):
+        weight = float_or_zero(ev.get("weight"))
+        evidence_type = ev.get("evidence_type")
+        if not evidence_type or weight <= 0:
+            continue
+        score = float_or_zero(ev.get("score"))
+        days = _days_since(ev.get("created_at"))
+        decay = TIME_DECAY_LAMBDA ** days
+        weighted_score_sum += weight * score * decay
+        weighted_decay_sum += weight * decay
+        weight_sum += weight
+        evidence_count += 1
+
+    if weighted_decay_sum > 0:
+        mastery = weighted_score_sum / weighted_decay_sum
+    else:
+        mastery = 0.0
+
+    mastery = max(0.0, min(100.0, mastery))
+    confidence = round(1.0 - 1.0 / (1.0 + weight_sum), 4) if weight_sum > 0 else 0.0
+    confidence = min(0.99, confidence)
+
     if ability_id in SAFETY_REVIEW_ABILITIES and bucket["mastered"]:
-        score = min(score, 80)
-    score = max(0, min(100, int(score)))
-    confidence = round(min(0.95, 0.15 + evidence_count * 0.06), 2)
+        mastery = min(mastery, 80.0)
 
     if bucket["mastered"] and not bucket["weak"] and ability_id not in SAFETY_REVIEW_ABILITIES:
         status = "mastered"
@@ -458,8 +706,9 @@ def compute_node_metrics(ability_id, bucket):
 
     return {
         "status": status,
-        "mastery_score": score,
+        "mastery_score": round(mastery, 1),
         "confidence": confidence,
+        "low_confidence": confidence < CONFIDENCE_THRESHOLD,
         "evidence_count": evidence_count,
         "last_updated_at": bucket["last_updated_at"],
         "update_reasons": reasons[:5],

@@ -2,6 +2,8 @@
  * ForceGraph - D3 Force-Directed Knowledge Graph
  * Clean mesh/netlike distribution, no border constraints, natural color clustering
  */
+const CONFIDENCE_THRESHOLD = 0.5;
+
 class ForceGraph {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
@@ -37,6 +39,8 @@ class ForceGraph {
     }
 
     _nodeColor(node) {
+        const confidence = node.confidence !== undefined && node.confidence !== null ? Number(node.confidence) : null;
+        if (confidence !== null && confidence < CONFIDENCE_THRESHOLD) return "#94a3b8";
         const dim = (node.radar_dimension_ids || []).join(",").toLowerCase();
         if (node.status === "root" || dim.includes("root")) return "#60a5fa";
         if (dim.includes("safety") || dim.includes("安全")) return "#f87171";
