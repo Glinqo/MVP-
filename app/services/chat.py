@@ -1,4 +1,4 @@
-﻿import json
+import json
 
 from .assist import assist
 from .data_loader import primary_job_profile

@@ -343,7 +343,8 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(build_cognitive_twin(session_id))
 
         if path == "/api/scenarios":
-            return self.send_json(list_scenarios())
+            job_role = parse_qs(parsed.query).get("job_role", [None])[0]
+            return self.send_json(list_scenarios(job_role=job_role))
 
         if path == "/api/graph/job/versions":
             job_role = parse_qs(parsed.query).get("job_role", [None])[0]

@@ -23,7 +23,7 @@ def _get_task_scenarios():
         _task_scenario_cache = _load_training_plan_tasks()
     return _task_scenario_cache
 
-def scenario_by_id(scenario_id=None):
+def scenario_by_id(scenario_id=None, job_role=None):
     scenarios = load_data()["troubleshooting_scenarios"]
     task_scenarios = _get_task_scenarios()
     if scenario_id:
@@ -34,6 +34,11 @@ def scenario_by_id(scenario_id=None):
         for s in scenarios:
             if s.get("id") == scenario_id:
                 return s
+    # Filter by job_role for task scenarios
+    if job_role:
+        matching = [s for s in task_scenarios if s.get("job_name") == job_role]
+        if matching:
+            return matching[0]
     if task_scenarios:
         return task_scenarios[0]
     if not scenarios:
@@ -97,7 +102,7 @@ def _load_training_plan_tasks():
         plans = _json.load(f)
     scenarios = []
     tid = 1
-    for _job_name, job_plan in plans.items():
+    for job_name, job_plan in plans.items():
         for stage in job_plan.get("stages", []):
             stage_name = stage.get("name", "")
             stage_tasks = stage.get("tasks", "")
@@ -120,9 +125,10 @@ def _load_training_plan_tasks():
                     safety = "安全提醒：操作前确认设备状态和安全边界，不确定时请教师确认。"
                 scenarios.append({
                     "id": sid,
+                    "job_name": job_name,
                     "title": "\u3010" + stage_short + "\u3011" + task_item[:32],
-                    "roleplay_frame": "\u4f60\u662f\u81ea\u52a8\u5316\u751f\u4ea7\u7ebf\u88c5\u8c03\u4e0e\u8fd0\u7ef4\u6280\u672f\u5458\u65b0\u4eba\uff0c\u5e08\u5085\u8ba9\u4f60\u5b8c\u6210\u4ee5\u4e0b\u4efb\u52a1\uff1a" + task_item + "\u3002",
-                    "initial_symptom": "\u4efb\u52a1\uff1a" + task_item + "\uff1b\u76ee\u6807\uff1a" + goal,
+                    "roleplay_frame": f"你是{job_name}新人，师傅让你完成以下任务：{task_item}。",
+                    "initial_symptom": f"任务：{task_item}；目标：{goal}",
                     "safety_notice": safety,
                     "ability_ids": [],
                     "source": "training_plan_task",
@@ -145,14 +151,10 @@ def _load_training_plan_tasks():
                               "observation": "\u5e08\u5085\u8981\u6c42\u4f60\u5148\u770b\u56fe\u7eb8\u3002"}]}]})
     return scenarios
 
-def list_scenarios():
+def list_scenarios(job_role=None):
     curated = load_data()["troubleshooting_scenarios"]
-    task_list = _get_task_scenarios()
-    all_scenarios = []
-    for s in task_list:
-        all_scenarios.append(s)
-    for s in curated:
-        all_scenarios.append(s)
+    if job_role:
+    	curated = [s for s in curated if s.get("job_name") and s.get("job_name") == job_role]
     return {
         "scenarios": [
             {
@@ -161,15 +163,16 @@ def list_scenarios():
                 "initial_symptom": s.get("initial_symptom"),
                 "ability_hits": [compact_ability(item) for item in s.get("ability_ids", [])],
                 "source": s.get("source"),
+                "job_name": s.get("job_name", ""),
             }
-            for s in all_scenarios
+            for s in curated
         ]
     }
 
 
 def start_scenario(payload=None):
     payload = payload or {}
-    scenario = scenario_by_id(payload.get("scenario_id"))
+    scenario = scenario_by_id(payload.get("scenario_id"), job_role=payload.get("job_role"))
     first_step = step_by_id(scenario)
     session_id = payload.get("session_id")
     if session_id:
@@ -206,7 +209,7 @@ def start_scenario(payload=None):
 
 def step_scenario(payload=None):
     payload = payload or {}
-    scenario = scenario_by_id(payload.get("scenario_id"))
+    scenario = scenario_by_id(payload.get("scenario_id"), job_role=payload.get("job_role"))
     step = step_by_id(scenario, payload.get("step_id"))
     choice_id = payload.get("choice_id")
     option = None
@@ -369,7 +372,7 @@ def action_scenario(payload=None):
             break
 
     # --- Record to student graph ---
-    scenario = scenario_by_id(scenario_id)
+    scenario = scenario_by_id(scenario_id, job_role=payload.get("job_role"))
     if session_id and session_id != "default":
         event_type = "scenario_step_completed" if trace_result["classification"] in ("optimal", "valid") else "scenario_step_mistake"
         record_student_graph_event(
@@ -446,3 +449,4 @@ def action_scenario(payload=None):
         ],
         "student_graph": build_student_ability_graph(session_id) if session_id else None,
     }
+

@@ -1359,44 +1359,60 @@ function renderScenarioCatalog() {
 
   var featured = null;
   var others = [];
-  (state.scenarios || []).forEach(function(s) {
-    if (s.id === "SCN_SENSOR_LED_ON_PLC_LED_OFF") featured = s;
-    else others.push(s);
-  });
+  var curatedMap = {
+    "自动化生产线装调与运维技术员": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
+    "机电设备维修工": "SCN_STAR_DELTA_STARTUP",
+    "自动化设备调试员": "SCN_SERVO_POWER_ON_CHECK",
+    "工业机器人系统运维员": "SCN_ROBOT_ZERO_CALIB",
+    "PLC电气控制技术员": "SCN_SAFETY_DOOR_CIRCUIT",
+    "传感器与工业网络调试员": "SCN_SENSOR_SELECTION",
+    "伺服/步进驱动调试员": "SCN_SERVO_LOOP_TUNING",
+    "数控设备维护员": "SCN_SPINDLE_BEARING_DIAG"
+  };
+  var curatedId = curatedMap[state.jobName || ""] || "";
+  if (curatedId) {
+    (state.scenarios || []).forEach(function(s) {
+      if (s.id === curatedId) featured = s;
+      else others.push(s);
+    });
+    if (!featured) {
+      (state.scenarios || []).forEach(function(s) {
+        if (!featured && s.source === "training_plan_task") featured = s;
+      });
+    }
+  } else {
+    (state.scenarios || []).forEach(function(s) {
+      if (!featured && s.source === "training_plan_task") featured = s;
+      else others.push(s);
+    });
+  }
+  // Fallback: if no task scenario, use first available
+  if (!featured && others.length > 0) {
+    featured = others.shift();
+  }
 
   var html = "";
 
-  // Featured scenario card
-  if (featured) {
-    html += '<div class="scenario-feature-card">' +
-      '<span class="scenario-feature-badge">\u63a8\u8350\u8bad\u7ec3</span>' +
-      '<div class="scenario-feature-icon">\u2699</div>' +
-      '<h3>' + escapeHtml(featured.title) + '</h3>' +
-      '<p class="scenario-feature-desc">\u4f60\u5c06\u6839\u636e\u73b0\u573a\u4e09\u8054\u72b6\u6001\uff0c\u9010\u6b65\u5224\u65ad\u6545\u969c\u8303\u56f4\u3001\u5b9a\u4f4d\u8f93\u5165\u516c\u5171\u7aef\u5f02\u5e38\uff0c\u5e76\u5b8c\u6210\u5b89\u5168\u4fee\u590d\u4e0e\u9a8c\u8bc1\u3002</p>' +
-      '<div class="scenario-feature-meta">' +
-        '<span>\u2605 \u57fa\u7840</span>' +
-        '<span>\u23f1 \u7ea65\u5206\u949f</span>' +
-        '<span>\u9636\u6bb5\uff1a\u6545\u969c\u8303\u56f4 \u2192 \u539f\u56e0\u5b9a\u4f4d \u2192 \u5b89\u5168\u4fee\u590d</span>' +
-      '</div>' +
-      '<div class="scenario-feature-goals">' +
-        '<h4>\u5b66\u4e60\u76ee\u6807</h4>' +
-        '<ul>' +
-          '<li>\u638c\u63e1PLC\u8f93\u5165\u4fe1\u53f7\u94fe\u7684\u6392\u67e5\u987a\u5e8f</li>' +
-          '<li>\u907f\u514d\u65e0\u4f9d\u636e\u4fee\u6539\u7a0b\u5e8f\u6216\u66f4\u6362\u6a21\u5757</li>' +
-          '<li>\u5f62\u6210\u7ef4\u4fee\u540e\u7684\u95ed\u73af\u9a8c\u8bc1\u610f\u8bc6</li>' +
-        '</ul>' +
-      '</div>' +
-      '<div class="scenario-feature-stages">' +
-        '<span class="scenario-stage-tag">\u2460 \u5224\u65ad\u6545\u969c\u8303\u56f4</span>' +
-        '<span class="scenario-stage-tag">\u2461 \u5b9a\u4f4d\u5177\u4f53\u539f\u56e0</span>' +
-        '<span class="scenario-stage-tag">\u2462 \u5b89\u5168\u4fee\u590d\u548c\u95ed\u73af\u9a8c\u8bc1</span>' +
-      '</div>' +
-      '<div class="scenario-feature-actions">' +
-        '<button class="scenario-btn-primary" onclick="startFeaturedScenario()">\u5f00\u59cb\u60c5\u666f\u8bad\u7ec3</button>' +
-      '</div>' +
-      '</div>';
-  }
-
+    // Featured scenario card - dynamic based on current job
+    if (featured) {
+      var featureDesc = featured.initial_symptom || "委托训练";
+      var featureTitle = escapeHtml(featured.title || "岗位实训任务");
+      var featureId = escapeHtml(featured.id || "");
+      html += '<div class="scenario-feature-card">' +
+        '<span class="scenario-feature-badge">推荐训练</span>' +
+        '<div class="scenario-feature-icon">⚙</div>' +
+        '<h3>' + featureTitle + '</h3>' +
+        '<p class="scenario-feature-desc">' + escapeHtml(featureDesc) + '</p>' +
+        '<div class="scenario-feature-meta">' +
+          '<span>★ 岗位实训</span>' +
+          '<span>⏱ 按任务执行</span>' +
+          '<span>' + escapeHtml(featured.source || "training_plan_task") + '</span>' +
+        '</div>' +
+        '<div class="scenario-feature-actions">' +
+          '<button class="scenario-btn-primary" onclick="startScenarioById(\'' + featureId + '\')">开始情景训练</button>' +
+        '</div>' +
+        '</div>';
+    }
   // More scenarios
   if (others.length > 0) {
     html += '<div class="scenario-more-section">' +
@@ -1414,10 +1430,6 @@ function renderScenarioCatalog() {
   container.innerHTML = html || '<p class="muted">\u6682\u65e0\u53ef\u7528\u573a\u666f</p>';
 }
 
-function startFeaturedScenario() {
-  startScenarioById("SCN_SENSOR_LED_ON_PLC_LED_OFF");
-}
-
 function startScenarioById(scenarioId) {
   resetScenarioDemoState();
   scenarioDemoState.activeScenarioId = scenarioId;
@@ -1425,6 +1437,33 @@ function startScenarioById(scenarioId) {
 }
 
 // ===== Scenario Demo Phase 2: API Calls =====
+function startFeaturedScenario() {
+    var jobName = state.jobName || (state.jobProfile && state.jobProfile.role_name) || localStorage.getItem("mcp_job_name") || "";
+    var curatedMap = {
+      "自动化生产线装调与运维技术员": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
+      "机电设备维修工": "SCN_STAR_DELTA_STARTUP",
+      "自动化设备调试员": "SCN_SERVO_POWER_ON_CHECK",
+      "工业机器人系统运维员": "SCN_ROBOT_ZERO_CALIB",
+      "PLC电气控制技术员": "SCN_SAFETY_DOOR_CIRCUIT",
+      "传感器与工业网络调试员": "SCN_SENSOR_SELECTION",
+      "伺服/步进驱动调试员": "SCN_SERVO_LOOP_TUNING",
+      "数控设备维护员": "SCN_SPINDLE_BEARING_DIAG"
+    };
+    var curatedId = curatedMap[jobName] || "";
+    if (curatedId) {
+      startScenarioById(curatedId);
+      return;
+    }
+    var featured = null;
+    (state.scenarios || []).forEach(function(s) {
+      if (!featured && s.source === "training_plan_task") featured = s;
+    });
+    if (featured) {
+      startScenarioById(featured.id);
+    } else if (state.scenarios && state.scenarios.length > 0) {
+      startScenarioById(state.scenarios[0].id);
+    }
+  }
 
 async function doStartScenario(scenarioId) {
   showTrainingView();
@@ -1443,7 +1482,8 @@ async function doStartScenario(scenarioId) {
       method: "POST",
       body: JSON.stringify({
         session_id: state.sessionId,
-        scenario_id: scenarioId
+        scenario_id: scenarioId,
+        job_role: state.jobName || (state.jobProfile && state.jobProfile.role_name) || ""
       })
     });
     state.activeScenario = data;
@@ -1480,7 +1520,8 @@ async function submitScenarioStep(choiceId) {
         session_id: state.sessionId,
         scenario_id: scenarioId,
         step_id: stepId,
-        choice_id: choiceId
+        choice_id: choiceId,
+        job_role: state.jobName || (state.jobProfile && state.jobProfile.role_name) || ""
       })
     });
 
@@ -1518,9 +1559,10 @@ async function submitScenarioStep(choiceId) {
     console.error("Scenario step failed:", e);
   } finally {
     scenarioDemoState.isSubmitting = false;
-    scenarioDemoState.selectedChoiceId = null;
-    if (submitBtn) { submitBtn.classList.remove("loading"); submitBtn.textContent = "\u6267\u884c\u8be5\u64cd\u4f5c"; }
     refreshActionCards();
+    scenarioDemoState.selectedChoiceId = null;
+    var sb = document.querySelector('.scenario-submit-btn');
+    if (sb) { sb.classList.remove("loading"); sb.textContent = "\u6267\u884c\u8be5\u64cd\u4f5c"; }
   }
 }
 
@@ -1652,11 +1694,10 @@ function renderScenarioActions(step, data) {
   });
   html += '</div>';
 
-  // Submit button
+  // Submit button - uses isLocked for disabled/loading, text always "执行该操作"
   html += '<button class="scenario-submit-btn' + (isLocked ? " loading" : "") + '" ' +
-    (isLocked ? "disabled" : "") + ' onclick="handleSubmitAction()">' +
-    (isLocked ? "\u63d0\u4ea4\u4e2d\u2026" : "\u6267\u884c\u8be5\u64cd\u4f5c") +
-  '</button>';
+    ' onclick="handleSubmitAction()">执行该操作</button>';
+
 
   col.innerHTML = html;
 
@@ -1699,10 +1740,13 @@ function refreshActionCards() {
 }
 
 function handleSubmitAction() {
-  if (scenarioDemoState.isSubmitting) return;
-  if (!scenarioDemoState.selectedChoiceId) return;
-  submitScenarioStep(scenarioDemoState.selectedChoiceId);
-}
+    if (scenarioDemoState.isSubmitting) return;
+    var card = document.querySelector(".scenario-action-card.selected");
+    var cid = card ? card.getAttribute("data-choice-id") : null;
+    if (!cid) return;
+    scenarioDemoState.selectedChoiceId = cid;
+    submitScenarioStep(cid);
+  }
 
 function renderScenarioEvidence(step, data) {
   var col = $("scenarioRightCol");
@@ -1943,9 +1987,10 @@ async function startScenario() {
 }
 
 async function loadScenarios() {
-  if (!state.scenarios || !state.scenarios.length) {
+  if (true) {
     try {
-      var data = await api("/api/scenarios");
+      var jobName = state.jobName || (state.jobProfile && state.jobProfile.role_name) || localStorage.getItem("mcp_job_name") || "";
+      var data = await api("/api/scenarios?job_role=" + encodeURIComponent(jobName));
       state.scenarios = data.scenarios || [];
     } catch (e) {
       console.error("Failed to load scenarios:", e);
@@ -3405,6 +3450,10 @@ function selectJob(jobId, event) {
       state.jobName = jobName;
     }
   }
+  state.scenarios = null;
+  state.trainingPlan = null;
+  state.activeScenario = null;
+  state.personalizedPlan = null;
   state.selectedJobId = jobId;
   state.sessionId = "demo-" + Date.now();
   localStorage.setItem("mcp_session_id", state.sessionId);
@@ -3424,3 +3473,5 @@ function toggleDrawer() {
 }
 // No-auth: always boot if job selected
 { var u2 = localStorage.getItem("mcp_login_user") || ""; var j2 = localStorage.getItem("mcp_job_id_" + u2); if (j2) { state.selectedJobId = j2; state.jobName = localStorage.getItem("mcp_job_name_" + u2) || ""; if (typeof boot === "function") boot(); } }
+
+
