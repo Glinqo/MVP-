@@ -4519,10 +4519,20 @@ function setTeacherWelcome() {
   // Set teacher suggested questions
   var sq = document.getElementById("suggestedQuestions");
   if (sq) {
-    sq.innerHTML = '<button type="button" onclick="sendChat(\u2018本班目前最薄弱的能力是什么？\u2019)">本班薄弱能力</button>' +
-      '<button type="button" onclick="sendChat(\u2018有哪些共性问题？\u2019)">共性问题</button>' +
-      '<button type="button" onclick="sendChat(\u2018查看待审核评语\u2019)">待审核评语</button>' +
-      '<button type="button" onclick="sendChat(\u2018当前岗位有多少待审核提案？\u2019)">岗位提案</button>';
+    var teacherQuestions = [
+      { label: "本班薄弱能力", question: "本班目前最薄弱的能力是什么？" },
+      { label: "共性问题", question: "有哪些共性问题？" },
+      { label: "待审核评语", question: "查看待审核评语" },
+      { label: "岗位提案", question: "当前岗位有多少待审核提案？" }
+    ];
+    sq.innerHTML = teacherQuestions.map(function(q) {
+      return '<button type="button" data-teacher-question="' + escapeHtml(q.question) + '">' + escapeHtml(q.label) + '</button>';
+    }).join("");
+    document.querySelectorAll("[data-teacher-question]").forEach(function(button) {
+      button.addEventListener("click", function() {
+        sendChat(button.dataset.teacherQuestion);
+      });
+    });
   }
 }
 
