@@ -1359,16 +1359,7 @@ function renderScenarioCatalog() {
 
   var featured = null;
   var others = [];
-  var curatedMap = {
-    "自动化生产线装调与运维技术员": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
-    "机电设备维修工": "SCN_STAR_DELTA_STARTUP",
-    "自动化设备调试员": "SCN_SERVO_POWER_ON_CHECK",
-    "工业机器人系统运维员": "SCN_ROBOT_ZERO_CALIB",
-    "PLC电气控制技术员": "SCN_SAFETY_DOOR_CIRCUIT",
-    "传感器与工业网络调试员": "SCN_SENSOR_SELECTION",
-    "伺服/步进驱动调试员": "SCN_SERVO_LOOP_TUNING",
-    "数控设备维护员": "SCN_SPINDLE_BEARING_DIAG"
-  };
+  var curatedMap = {};
   var curatedId = curatedMap[state.jobName || ""] || "";
   if (curatedId) {
     (state.scenarios || []).forEach(function(s) {
@@ -1377,12 +1368,12 @@ function renderScenarioCatalog() {
     });
     if (!featured) {
       (state.scenarios || []).forEach(function(s) {
-        if (!featured && s.source === "training_plan_task") featured = s;
+        if (!featured && s.source === "roleplay_task") featured = s;
       });
     }
   } else {
     (state.scenarios || []).forEach(function(s) {
-      if (!featured && s.source === "training_plan_task") featured = s;
+      if (!featured && s.source === "roleplay_task") featured = s;
       else others.push(s);
     });
   }
@@ -1406,7 +1397,7 @@ function renderScenarioCatalog() {
         '<div class="scenario-feature-meta">' +
           '<span>★ 岗位实训</span>' +
           '<span>⏱ 按任务执行</span>' +
-          '<span>' + escapeHtml(featured.source || "training_plan_task") + '</span>' +
+          '<span>' + escapeHtml(featured.source || "roleplay_task") + '</span>' +
         '</div>' +
         '<div class="scenario-feature-actions">' +
           '<button class="scenario-btn-primary" onclick="startScenarioById(\'' + featureId + '\')">开始情景训练</button>' +
@@ -1439,16 +1430,7 @@ function startScenarioById(scenarioId) {
 // ===== Scenario Demo Phase 2: API Calls =====
 function startFeaturedScenario() {
     var jobName = state.jobName || (state.jobProfile && state.jobProfile.role_name) || localStorage.getItem("mcp_job_name") || "";
-    var curatedMap = {
-      "自动化生产线装调与运维技术员": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
-      "机电设备维修工": "SCN_STAR_DELTA_STARTUP",
-      "自动化设备调试员": "SCN_SERVO_POWER_ON_CHECK",
-      "工业机器人系统运维员": "SCN_ROBOT_ZERO_CALIB",
-      "PLC电气控制技术员": "SCN_SAFETY_DOOR_CIRCUIT",
-      "传感器与工业网络调试员": "SCN_SENSOR_SELECTION",
-      "伺服/步进驱动调试员": "SCN_SERVO_LOOP_TUNING",
-      "数控设备维护员": "SCN_SPINDLE_BEARING_DIAG"
-    };
+    var curatedMap = {};
     var curatedId = curatedMap[jobName] || "";
     if (curatedId) {
       startScenarioById(curatedId);
@@ -1456,7 +1438,7 @@ function startFeaturedScenario() {
     }
     var featured = null;
     (state.scenarios || []).forEach(function(s) {
-      if (!featured && s.source === "training_plan_task") featured = s;
+      if (!featured && s.source === "roleplay_task") featured = s;
     });
     if (featured) {
       startScenarioById(featured.id);
@@ -2027,7 +2009,7 @@ function setWorkspacePanel(panel) {
   if (panel === "knowledge") { var ka = document.getElementById("knowledgeAlert"); if (ka) ka.style.display = "none"; }
   if (panel === "jobAdmin") loadJobAdmin();
   if (panel === "plan") loadTrainingPlans("staged");
-  if (panel === "scenario") loadScenarios();
+  if (panel === "scenario") loadScenarioTasks();
   // Reset scroll position when switching panels
   var body = document.querySelector(".workspace-body");
   if (body) body.scrollTop = 0;
@@ -2099,8 +2081,7 @@ async function openWorkspace(panel, graphView) {
   $("workspaceOverlay").classList.add("open");
   $("workspaceOverlay").setAttribute("aria-hidden", "false");
   setWorkspacePanel(panel || "graph");
-  if (panel === "scenario") { loadScenarioTasks(); }
-  if (panel === "graph" || graphView) {
+    if (panel === "graph" || graphView) {
     setGraphView(graphView || state.activeGraphView || "job");
     if ((graphView || state.activeGraphView) === "student") {
       await refreshStudentGraph();
@@ -2584,31 +2565,60 @@ function renderTrainingPlan7Day(planData) {
 async function loadScenarioTasks() {
   var el = document.getElementById('scenarioTaskRefs');
   if (!el) return;
-  el.innerHTML = '<div class="muted">加载中...</div>';
   var jobName = state.jobName || (state.jobProfile && state.jobProfile.role_name) || '';
   if (!jobName) { el.innerHTML = '<div class="muted">请先选择岗位</div>'; return; }
-  try {
-    var r = await fetch('/training-plans.json');
-    var allPlans = await r.json();
-    var planData = allPlans[jobName] || {};
-    renderWorkspaceTasks(planData);
-  } catch (e) {
-    el.innerHTML = '<div class="muted">加载失败</div>';
+  if (!state.scenarios || !state.scenarios.length) {
+    await loadScenarios();
   }
+  renderWorkspaceTasks(state.scenarios || []);
 }
 
-function renderWorkspaceTasks(planData) {
+function renderWorkspaceTasks(scenarios) {
   var el = document.getElementById('scenarioTaskRefs');
   if (!el) return;
-  if (!planData || !planData.stages) { el.innerHTML = '<div class="muted">暂无实训任务</div>'; return; }
+  if (!Array.isArray(scenarios)) return;
+  if (!scenarios || !scenarios.length) { el.innerHTML = '<div class="muted">暂无实训任务</div>'; return; }
+  var tasks = {};
+  scenarios.forEach(function(s) {
+    var tid = s.source_task_id || '';
+    if (!tid) return;
+    if (!tasks[tid]) {
+      tasks[tid] = {
+        id: tid,
+        title: s.source_task_title || tid,
+        stageName: s.source_task_stage || '',
+        fullTasks: s.source_task_full_tasks || '',
+        goal: s.source_task_goal || '',
+        items: []
+      };
+    }
+    tasks[tid].items.push(s);
+  });
   var html = '';
-  planData.stages.forEach(function(stage, idx) {
-    html += '<div style="padding:8px 10px;margin-bottom:6px;background:rgba(255,255,255,0.03);border-radius:6px;font-size:0.78rem;color:#cbd5e1;line-height:1.5">';
-    html += '<strong style="color:#38bdf8">' + (idx+1) + '. ' + escapeHtml((stage.name.split('：')[1] || stage.name)) + '：</strong>' + escapeHtml(stage.tasks || '');
-    html += '</div>';
+  Object.keys(tasks).sort().forEach(function(tid, idx) {
+    var task = tasks[tid];
+    html += '<div style="padding:8px 10px;margin-bottom:8px;background:rgba(255,255,255,0.03);border-radius:6px;font-size:0.78rem;color:#cbd5e1;line-height:1.5">';
+    html += '<strong style="color:#38bdf8">' + (idx+1) + '. ' + escapeHtml(task.title) + '</strong>';
+    html += '<span style="margin-left:6px;color:#64748b">(' + task.items.length + ' 个场景)</span>';
+    if (task.stageName) {
+      html += '<div style="margin-top:5px;color:#94a3b8"><strong style="color:#e2e8f0">阶段：</strong>' + escapeHtml(task.stageName) + '</div>';
+    }
+    if (task.fullTasks) {
+      html += '<div style="margin-top:3px;color:#94a3b8"><strong style="color:#e2e8f0">任务内容：</strong>' + escapeHtml(task.fullTasks) + '</div>';
+    }
+    if (task.goal) {
+      html += '<div style="margin-top:3px;color:#94a3b8"><strong style="color:#e2e8f0">培养目标：</strong>' + escapeHtml(task.goal) + '</div>';
+    }
+    html += '<div style="margin-top:6px;padding-left:10px">';
+    task.items.sort(function(a,b) { return (a.scenario_index||0) - (b.scenario_index||0); }).forEach(function(s) {
+      var label = s.title || '';
+      html += '<div style="margin:3px 0;color:#94a3b8"><span style="color:#64748b">场景 ' + (s.scenario_index || '') + '</span> · ' + escapeHtml(label) + '</div>';
+    });
+    html += '</div></div>';
   });
   el.innerHTML = html;
 }
+
 
 async function loadTrainingPlans(planMode) {
   var pp = document.getElementById('personalizedPlan');

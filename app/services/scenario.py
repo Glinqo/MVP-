@@ -80,6 +80,7 @@ def public_step(step):
 
 
 def scenario_summary(scenario):
+    task_meta = _task_metadata(scenario)
     return {
         "id": scenario.get("id"),
         "title": scenario.get("title"),
@@ -88,7 +89,48 @@ def scenario_summary(scenario):
         "safety_notice": scenario.get("safety_notice"),
         "ability_hits": [compact_ability(item) for item in scenario.get("ability_ids", [])],
         "source": scenario.get("source"),
+        "training_type": scenario.get("training_type", ""),
+        "source_task_id": scenario.get("source_task_id", ""),
+        "source_task_title": task_meta.get("task_title") or scenario.get("source_task_title", ""),
+        "source_task_stage": task_meta.get("stage_name", ""),
+        "source_task_full_tasks": task_meta.get("full_tasks", ""),
+        "source_task_goal": task_meta.get("goal", ""),
+        "scenario_index": scenario.get("scenario_index", 0),
     }
+
+
+_roleplay_task_metadata_cache = None
+
+
+def _get_roleplay_task_metadata():
+    global _roleplay_task_metadata_cache
+    if _roleplay_task_metadata_cache is not None:
+        return _roleplay_task_metadata_cache
+
+    import json as _json
+    from pathlib import Path as _Path
+    plan_path = _Path(__file__).resolve().parents[2] / "web" / "training-plans.json"
+    metadata = {}
+    if plan_path.exists():
+        with open(plan_path, "r", encoding="utf-8") as f:
+            plans = _json.load(f)
+        for job_index, job_plan in enumerate(plans.values(), start=1):
+            for stage_index, stage in enumerate(job_plan.get("stages", [])[:5], start=1):
+                full_tasks = (stage.get("tasks") or "").strip()
+                task_title = full_tasks.split("；", 1)[0].strip() if full_tasks else ""
+                metadata["T{}-{}".format(job_index, stage_index)] = {
+                    "task_title": task_title,
+                    "stage_name": stage.get("name", ""),
+                    "full_tasks": full_tasks,
+                    "goal": stage.get("goal", ""),
+                }
+    _roleplay_task_metadata_cache = metadata
+    return metadata
+
+
+def _task_metadata(scenario):
+    task_id = scenario.get("source_task_id", "")
+    return _get_roleplay_task_metadata().get(task_id, {})
 
 
 def _load_training_plan_tasks():
@@ -163,7 +205,14 @@ def list_scenarios(job_role=None):
                 "initial_symptom": s.get("initial_symptom"),
                 "ability_hits": [compact_ability(item) for item in s.get("ability_ids", [])],
                 "source": s.get("source"),
+                "training_type": s.get("training_type", ""),
                 "job_name": s.get("job_name", ""),
+                "source_task_id": s.get("source_task_id", ""),
+                "source_task_title": _task_metadata(s).get("task_title") or s.get("source_task_title", ""),
+                "source_task_stage": _task_metadata(s).get("stage_name", ""),
+                "source_task_full_tasks": _task_metadata(s).get("full_tasks", ""),
+                "source_task_goal": _task_metadata(s).get("goal", ""),
+                "scenario_index": s.get("scenario_index", 0),
             }
             for s in curated
         ]
