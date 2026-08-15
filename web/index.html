@@ -1,6 +1,25 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
+<script>
+// localStorage fallback for sandboxed environments
+(function() {
+  try { if (typeof localStorage !== 'undefined' && localStorage !== null) { return; } } catch(e) {}
+  var store = {};
+  var mock = {
+    getItem: function(k) { return Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null; },
+    setItem: function(k, v) { store[k] = String(v); },
+    removeItem: function(k) { delete store[k]; },
+    clear: function() { store = {}; },
+    get length() { return Object.keys(store).length; },
+    key: function(i) { return Object.keys(store)[i] || null; }
+  };
+  try { Object.defineProperty(window, 'localStorage', { value: mock, writable: true, configurable: true }); }
+  catch(e) { try { window.localStorage = mock; } catch(e2) {} }
+})();
+
+</script>
+
     <meta charset="utf-8" />
     <script src="/d3.min.js?v=20260730-2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -19,10 +38,78 @@
       <div class="landing-bg"></div>
   <div class="landing-container">
 
-        <!-- Job Position -->
-        <div id="landingStepJob" class="landing-step active">
+        <!-- Step 1: Identity -->
+        <div id="landingStepLogin" class="landing-step active">
           <div class="landing-header">
-            
+            <h1>机电岗位培训 AI</h1>
+            <p class="landing-subtitle">Mechatronics Training AI</p>
+          </div>
+          <div class="landing-cards" style="flex-direction:column;max-width:400px;margin:0 auto">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:24px;text-align:left">
+              <strong style="font-size:1.1rem;display:block;margin-bottom:16px">账号登录</strong>
+              <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:4px">用户名 (000-999)</label>
+              <input id="loginUsername" type="text" placeholder="例如 000" style="margin-bottom:12px;font-size:1rem;padding:10px 14px" maxlength="3" inputmode="numeric" />
+              <label style="font-size:0.85rem;color:#94a3b8;display:block;margin-bottom:4px">密码</label>
+              <input id="loginPassword" type="password" placeholder="" style="margin-bottom:16px;font-size:1rem;padding:10px 14px" />
+              <button type="button" onclick="doLogin()" style="width:100%;background:#0f766e;color:#fff;border:none;border-radius:10px;padding:12px;font-size:1rem;font-weight:600;cursor:pointer">登录</button>
+              <p style="font-size:0.75rem;color:#64748b;margin:4px 0 0">密码默认 123456</p>
+              <p id="loginError" style="color:#ef4444;font-size:0.8rem;margin:8px 0 0;display:none"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Job Selection (unchanged) --><!-- Step 2: Identity Selection -->
+        <div id="landingStepIdentity" class="landing-step">
+          <div class="landing-header">
+            <h2>选择身份</h2>
+            <p class="landing-subtitle">登录成功，请选择你的身份</p>
+          </div>
+          <div class="landing-cards">
+            <button class="landing-card" data-identity="student" onclick="selectIdentity('student')">
+              <div class="landing-card-icon">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                  <path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>学生入口</strong>
+                <span>进入学习模式，完成岗位实训与能力评估</span>
+              </div>
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+            <button class="landing-card" data-identity="teacher" onclick="selectIdentity('teacher')">
+              <div class="landing-card-icon">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </div>
+              <div class="landing-card-body">
+                <strong>教师入口</strong>
+                <span>教学管理，班级洞察，岗位图谱治理</span>
+              </div>
+              <div class="landing-card-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Job Position -->
+        <div id="landingStepJob" class="landing-step">
+          <div class="landing-header">
+            <button class="landing-back" onclick="backToIdentity()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
+              返回
+            </button>
             <h2>选择目标岗位</h2>
             <p class="landing-subtitle">当前为你匹配以下岗位能力图谱</p>
           </div>
@@ -210,6 +297,26 @@
 </button>
 </div>
         </div>
+
+        <!-- Step 4: Student Selection (Teacher only) -->
+        <div id="landingStepStudents" class="landing-step">
+          <div class="landing-header">
+            <button class="landing-back" onclick="backToJob()" type="button">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              返回
+            </button>
+            <h2>选择管理的学生</h2>
+            <p class="landing-subtitle">以下学生已选择当前岗位，请勾选需要管理的账号</p>
+          </div>
+          <div class="student-select-toolbar">
+            <button id="studentSelectAllBtn" class="btn-secondary" type="button" onclick="toggleSelectAllStudents()">全选</button>
+            <span id="studentSelectCount" class="student-select-count">已选 0 人</span>
+          </div>
+          <div id="studentSelectList" class="student-select-list"></div>
+          <div class="student-select-actions">
+            <button id="studentSelectConfirmBtn" class="btn-primary" type="button" onclick="finishStudentSelection()">确认并进入</button>
+          </div>
+        </div>
       </div>
     </div>
   <!-- Assessment Overlay (independent from landing overlay) -->
@@ -254,13 +361,67 @@
         <h1>机电岗位培训 AI</h1>
       </div>
       <div class="top-actions">
-        
+        <button onclick="switchAccount()" title="切换账号">切换账号</button>
         <div class="status" id="healthStatus">连接中</div>
         <div class="status" id="llmStatus">模型检测中</div>
       </div>
     </header>
 
-    <main class="chat-layout">
+    <!-- === TF-3 Teacher Layout: Copilot + Decision Workspace === -->
+    <div class="teacher-layout">
+      <!-- Left: Teacher Copilot -->
+      <div class="teacher-copilot">
+        <div class="copilot-chat">
+          <div class="summary-strip">
+            <span id="teacherScope">当前范围：岗位聚合</span>
+          </div>
+          <div class="copilot-chat-messages" id="teacherChatMessages">
+            <div class="chat-message assistant">
+              <div class="chat-bubble">欢迎使用教学决策工作台。请提问或查看左侧教学问题。</div>
+            </div>
+          </div>
+          <div class="copilot-chat-input">
+            <form id="teacherChatForm" onsubmit="event.preventDefault();TeacherUI.sendCopilotMessage()" style="display:flex;gap:8px">
+              <input type="text" id="copilotInput" placeholder="直接提问，请教学助手帮你分析..." style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:0.9rem" />
+              <button type="submit" style="background:#14b8a6;color:#fff;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;font-size:0.9rem">发送</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- Right: Decision Workspace -->
+      <div class="teacher-workspace">
+        <nav class="teacher-nav">
+          <button class="teacher-nav-tab active" data-tab="today">今日教学</button>
+          <button class="teacher-nav-tab" data-tab="insights">班级洞察</button>
+          <button class="teacher-nav-tab" data-tab="students">学生</button>
+          <button class="teacher-nav-tab" data-tab="feedback">教学反馈</button>
+          <button class="teacher-nav-tab" data-tab="standards">岗位标准</button>
+        </nav>
+        <section id="tw-today" class="teacher-workspace-panel active">
+          <div id="todayTeachingContent"></div>
+        </section>
+        <section id="tw-insights" class="teacher-workspace-panel">
+          <div id="classInsightsContent"></div>
+        </section>
+        <section id="tw-students" class="teacher-workspace-panel">
+          <div id="studentListContainer"></div>
+        </section>
+        <section id="tw-feedback" class="teacher-workspace-panel">
+          <div id="feedbackContent"></div>
+        </section>
+        <section id="tw-standards" class="teacher-workspace-panel">
+          <div id="standardsContent"></div>
+        </section>
+      </div>
+    </div>
+    <!-- Issue Detail Drawer -->
+    <div id="issueDetailDrawer" class="issue-drawer">
+      <button class="issue-drawer-close">&times;</button>
+      <div class="issue-drawer-title"></div>
+      <div class="issue-drawer-content"></div>
+    </div>
+
+    <main class="chat-layout student-layout">
       <section class="chat-main">
         <div id="jobStrip" class="job-strip">
           <span>岗位加载中</span>
@@ -285,7 +446,7 @@
         </details>
 
 
-        <section class="launcher-panel">
+        <section class="launcher-panel role-student">
           <h2>功能工作台</h2>
           <div class="tool-launcher">
             <button data-open-tool="knowledge" type="button" style="position:relative">
@@ -297,11 +458,6 @@
               <strong>能力图谱</strong>
               <span>岗位需求与个人能力可视化</span>
             </button>
-            <button data-open-tool="jobAdmin" type="button">
-              <strong>岗位数据</strong>
-              <span>JD 导入与图谱提案审核</span>
-            </button>
-
             <button data-open-tool="plan" type="button">
               <strong>个人培养方案</strong>
               <span>分阶段补强计划</span>
@@ -315,7 +471,32 @@
               <span>8 题确定性评分</span>
             </button>
           </div>
+        </section>
+
+        <section class="launcher-panel role-teacher" style="display:none">
+          <h2>教师工作台</h2>
+          <div class="tool-launcher">
+            <button data-open-tool="teacherDashboard" type="button">
+              <strong>教师工作台</strong>
+              <span>今日关注、待处理事项</span>
             </button>
+            <button data-open-tool="classInsights" type="button">
+              <strong>班级洞察</strong>
+              <span>平均能力图谱与共性问题</span>
+            </button>
+            <button data-open-tool="studentMgmt" type="button">
+              <strong>学生管理</strong>
+              <span>学生列表、画像与学习证据</span>
+            </button>
+            <button data-open-tool="teacherComments" type="button">
+              <strong>教学评语</strong>
+              <span>AI 撰写、审核与发布</span>
+            </button>
+            <button data-open-tool="teacherJobGraph" type="button">
+              <strong>岗位图谱</strong>
+              <span>岗位数据、提案审核、版本治理</span>
+            </button>
+          </div>
         </section>
 
         <div class="feedback-row">
@@ -340,7 +521,7 @@
         <nav class="workspace-tabs" aria-label="功能工作台">
           <button class="active" data-workspace-panel="knowledge" type="button">知识缺口</button>
           <button data-workspace-panel="graph" type="button">能力图谱</button>
-          <button data-workspace-panel="jobAdmin" type="button">岗位数据</button>
+          <button data-workspace-panel="jobAdmin" type="button" class="role-teacher" style="display:none">岗位数据</button>
           <button data-workspace-panel="plan" type="button">培养方案</button>
           <button data-workspace-panel="scenario" type="button">角色扮演</button>
           <button data-workspace-panel="quiz" type="button">自测</button>
@@ -355,10 +536,9 @@
             </div>
 
             <div id="graphViewJob" class="graph-view active">
-                            <div id="jobGraphDiagram" class="graph-diagram force-graph-container" aria-label="?????????"></div>
+                            <div id="mainJobGraphDiagram" class="graph-diagram force-graph-container" aria-label="?????????"></div>
               
             </div>
-            <div id="graphViewStudent" class="graph-view">
             <div id="graphViewStudent" class="graph-view">
               <div id="studentDimensionOverview" class="dimension-overview"></div>
               <div id="studentGraphDiagram" class="graph-diagram force-graph-container" aria-label="???????????"></div>
@@ -366,51 +546,236 @@
             </div>
           </section>
 
-          <section id="workspaceJobAdmin" class="workspace-panel">
+                    <section id="workspaceTeacherDashboard" class="workspace-panel role-teacher" style="display:none">
             <div class="plan-toolbar">
               <div>
-                <h3>岗位数据导入与提案审核</h3>
-                <p class="muted">从授权岗位资料生成证据与待审核提案，确认后才更新正式岗位能力图谱。</p>
+                <h3>教师工作台</h3>
+                <p class="muted">今日教学管理概览</p>
               </div>
-              <button id="refreshJobAdmin" type="button">刷新数据</button>
+              <button id="refreshTeacherDashboard" type="button">刷新</button>
             </div>
-            <div class="job-admin-grid">
-              <div class="job-admin-card">
-                <h3>导入岗位材料</h3>
-                <div class="job-admin-form">
-                  <label>目标岗位<input id="jobAdminRole" type="text" value="自动化生产线装调与运维技术员" /></label>
-                  <label>来源名称<input id="jobAdminSource" type="text" value="manual_admin_import" /></label>
-                  <label>来源类型
-                    <select id="jobAdminSourceType">
+            <div id="teacherDashboardStats" class="student-stats-row" style="display:flex;gap:16px;margin:12px 0;flex-wrap:wrap;">
+              <div class="muted">加载中...</div>
+            </div>
+            <div class="student-detail-grid" style="margin-top:12px;">
+              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('teacherComments')">
+                <h4>教学评语</h4>
+                <div id="tdCommentsDraft" class="metric"><span class="metric-label">待审核草稿</span><span class="metric-value" style="color:#f59e0b;">-</span></div>
+                <div id="tdCommentsReviewed" class="metric"><span class="metric-label">已审核待发布</span><span class="metric-value" style="color:#38bdf8;">-</span></div>
+                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入教学评语</div>
+              </div>
+              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('classInsights')">
+                <h4>班级洞察</h4>
+                <div id="tdClassIssues" class="metric"><span class="metric-label">共性问题</span><span class="metric-value" style="color:#f59e0b;">-</span></div>
+                <div id="tdClassWeakNodes" class="metric"><span class="metric-label">薄弱能力节点</span><span class="metric-value" style="color:#ef4444;">-</span></div>
+                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入班级洞察</div>
+              </div>
+              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('studentMgmt')">
+                <h4>学生管理</h4>
+                <div id="tdStudentTotal" class="metric"><span class="metric-label">学生总数</span><span class="metric-value">-</span></div>
+                <div id="tdStudentAssessed" class="metric"><span class="metric-label">已完成测评</span><span class="metric-value">-</span></div>
+                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入学生管理</div>
+              </div>
+              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('teacherJobGraph')">
+                <h4>岗位管理</h4>
+                <div id="tdJobProposals" class="metric"><span class="metric-label">待审核提案</span><span class="metric-value" style="color:#f59e0b;">-</span></div>
+                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入岗位图谱</div>
+              </div>
+            </div>
+          </section>
+<section id="workspaceJobAdmin" class="workspace-panel role-teacher" style="display:none">
+            <div class="plan-toolbar">
+              <div>
+                <h3>岗位图谱管理</h3>
+                <p class="muted">正式图谱 · 岗位数据 · 更新审核 · 版本管理</p>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <input id="jobAdminRole" type="text" value="自动化生产线装调与运维技术员" style="padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);width:200px;" />
+                <button id="refreshJobAdmin" type="button">刷新</button>
+              </div>
+            </div>
+            <nav class="workspace-tabs" style="margin-bottom:12px;">
+              <button class="active" data-jg-tab="graph" type="button">当前图谱</button>
+              <button data-jg-tab="data" type="button">岗位数据</button>
+              <button data-jg-tab="review" type="button">更新审核</button>
+              <button data-jg-tab="versions" type="button">版本管理</button>
+            </nav>
+
+            <!-- Tab: 当前图谱 -->
+            <div id="jgTabGraph" class="jg-tab">
+              <div id="teacherJobGraphDiagram" class="graph-diagram force-graph-container" style="min-height:400px;">
+                <div class="muted">加载图谱中...</div>
+              </div>
+              <div id="jobGraphLegend" style="margin-top:8px;font-size:12px;color:var(--text-secondary);"></div>
+            </div>
+
+            <!-- Tab: 岗位数据 -->
+            <div id="jgTabData" class="jg-tab" style="display:none;">
+              <div class="job-admin-grid">
+                <div class="job-admin-card">
+                  <h3>导入岗位材料</h3>
+                  <div class="job-admin-form">
+                    <label>来源名称<input id="jobAdminSource" type="text" value="manual_admin_import" /></label>
+                    <label>来源类型<select id="jobAdminSourceType">
                       <option value="teacher_material">教师/课程材料</option>
                       <option value="enterprise_official">企业官网招聘页</option>
                       <option value="job_platform">公开招聘平台</option>
                       <option value="local_file">本地授权文件</option>
-                    </select>
-                  </label>
-                  <label class="inline-check"><input id="jobAdminUseLlm" type="checkbox" /> 使用已配置 LLM 辅助抽取</label>
-                  <textarea id="jobAdminText" rows="8" placeholder="粘贴岗位 JD、企业招聘页正文或课程/标准材料。"></textarea>
-                  <div class="question-actions">
-                    <button id="ingestJobMaterial" class="primary" type="button">导入并生成提案</button>
-                    <button id="collectJobSources" type="button">运行授权来源采集</button>
-                    <button id="batchConfirmProposals" type="button">批量确认当前岗位提案</button>
+                    </select></label>
+                    <label class="inline-check"><input id="jobAdminUseLlm" type="checkbox" /> 使用已配置 LLM 辅助抽取</label>
+                    <textarea id="jobAdminText" rows="8" placeholder="粘贴岗位 JD、企业招聘页正文或课程/标准材料。"></textarea>
+                    <div class="question-actions">
+                      <button id="ingestJobMaterial" class="primary" type="button">导入并生成提案</button>
+                      <button id="collectJobSources" type="button">运行授权来源采集</button>
+                    </div>
+                    <div id="jobAdminStatus" class="muted">等待操作。</div>
                   </div>
-                  <div id="jobAdminStatus" class="muted">等待操作。</div>
+                </div>
+                <div class="job-admin-card">
+                  <h3>数据概览</h3>
+                  <div id="jobAdminSummary" class="job-admin-summary muted">加载中</div>
+                  <h3>最近岗位数据</h3>
+                  <div id="jobDataRecords" class="section-block muted">加载中</div>
                 </div>
               </div>
-              <div class="job-admin-card">
-                <h3>数据概览</h3>
-                <div id="jobAdminSummary" class="job-admin-summary muted">加载中</div>
-                <h3>最近岗位数据</h3>
-                <div id="jobDataRecords" class="section-block muted">加载中</div>
+            </div>
+
+            <!-- Tab: 更新审核 -->
+            <div id="jgTabReview" class="jg-tab" style="display:none;">
+              <div class="job-admin-card" style="margin-bottom:12px;">
+                <div class="plan-toolbar compact-toolbar">
+                  <h3>待审核图谱提案</h3>
+                  <span class="muted">确认后生成新快照；驳回只改变提案状态。</span>
+                </div>
+                <button id="batchConfirmProposals" type="button" class="btn-small" style="margin-top:8px;">批量确认当前岗位提案</button>
+                <div id="jobProposalList" class="section-block muted" style="margin-top:12px;">加载中</div>
               </div>
             </div>
-            <div class="job-admin-card">
+
+            <!-- Tab: 版本管理 -->
+            <div id="jgTabVersions" class="jg-tab" style="display:none;">
               <div class="plan-toolbar compact-toolbar">
-                <h3>待审核图谱提案</h3>
-                <span class="muted">确认后生成新快照；驳回只改变提案状态。</span>
+                <h3>图谱版本历史</h3>
+                <button id="loadVersionHistory" type="button" class="btn-small">加载版本历史</button>
               </div>
-              <div id="jobProposalList" class="section-block muted">加载中</div>
+              <div id="versionHistoryList" class="section-block muted" style="margin-top:12px;">点击加载版本历史</div>
+              <div id="versionDiffPanel" style="display:none;margin-top:12px;">
+                <div class="plan-toolbar compact-toolbar">
+                  <h3>版本比较</h3>
+                  <button id="closeVersionDiff" type="button" class="btn-small">关闭</button>
+                </div>
+                <div id="versionDiffContent" class="section-block muted"></div>
+              </div>
+              <div id="versionRollbackPanel" style="display:none;margin-top:12px;">
+                <div class="plan-toolbar compact-toolbar">
+                  <h3>回滚确认</h3>
+                  <button id="closeRollbackPanel" type="button" class="btn-small">取消</button>
+                </div>
+                <div id="versionRollbackContent" class="section-block"></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="workspaceClassInsights" class="workspace-panel role-teacher" style="display:none">
+            <div class="plan-toolbar">
+              <div>
+                <h3>班级洞察</h3>
+                <p class="muted">全班能力状态与共性问题</p>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <select id="classJobFilter" style="padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);">
+                  <option value="automation_line_commissioning_maintenance_newcomer">自动化生产线</option>
+                </select>
+                <button id="refreshClassInsights" type="button">刷新</button>
+              </div>
+            </div>
+            <div id="classOverview" class="student-stats-row" style="display:flex;gap:16px;margin:12px 0;flex-wrap:wrap;"></div>
+            <div class="graph-tabs" style="margin-bottom:12px;">
+              <button class="active" data-ci-tab="graph" type="button">平均能力图谱</button>
+              <button data-ci-tab="issues" type="button">共性问题</button>
+            </div>
+            <div id="ciGraphPanel" class="ci-panel">
+              <div id="classGraphDiagram" class="graph-diagram force-graph-container" style="min-height:400px;">
+                <div class="muted">加载图谱中...</div>
+              </div>
+              <div id="classGraphLegend" style="margin-top:8px;font-size:12px;color:var(--text-secondary);"></div>
+            </div>
+            <div id="ciIssuesPanel" class="ci-panel" style="display:none;">
+              <div id="commonIssuesList" class="section-block muted">加载中...</div>
+            </div>
+            <div id="classNodeDetail" class="student-detail" style="display:none;margin-top:12px;">
+              <div class="plan-toolbar compact-toolbar">
+                <h3 id="classNodeTitle">节点详情</h3>
+                <button id="closeClassNode" type="button">关闭</button>
+              </div>
+              <div id="classNodeContent" class="section-block"></div>
+            </div>
+          </section>
+
+          <section id="workspaceStudentMgmt" class="workspace-panel role-teacher" style="display:none">
+            <div class="plan-toolbar">
+              <div>
+                <h3>学生管理</h3>
+                <p class="muted">查看、搜索和管理学生</p>
+              </div>
+            </div>
+            <div class="student-mgmt-toolbar">
+              <div class="search-row">
+                <input id="studentSearch" type="text" placeholder="搜索学生账号或姓名..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);" />
+                <select id="studentJobFilter" style="padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);">
+                  <option value="">所有岗位</option>
+                  <option value="automation_line_commissioning_maintenance_newcomer">自动化生产线</option>
+                </select>
+                <select id="studentAssessFilter" style="padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);">
+                  <option value="">所有状态</option>
+                  <option value="true">已测评</option>
+                  <option value="false">未测评</option>
+                </select>
+                <button id="refreshStudentList" type="button" style="padding:8px 16px;">刷新</button>
+              </div>
+            </div>
+            <div id="studentStats" class="student-stats-row" style="display:flex;gap:16px;margin:12px 0;flex-wrap:wrap;"></div>
+            <div id="studentListContainerBottom" class="student-list">
+              <div class="muted">加载中...</div>
+            </div>
+            <div id="studentDetailPanel" class="student-detail" style="display:none;margin-top:16px;">
+              <div class="plan-toolbar compact-toolbar">
+                <h3 id="studentDetailName">学生详情</h3>
+                <button id="closeStudentDetail" type="button">返回列表</button>
+              </div>
+              <div id="studentDetailContent" class="section-block"></div>
+            </div>
+          </section>
+
+          <section id="workspaceTeacherComments" class="workspace-panel role-teacher" style="display:none">
+            <div class="plan-toolbar">
+              <div>
+                <h3>教学评语</h3>
+                <p class="muted">AI 辅助撰写、教师审核与发布</p>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <select id="commentStatusFilter" style="padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);">
+                  <option value="">全部</option>
+                  <option value="draft">草稿</option>
+                  <option value="reviewed">已审核</option>
+                  <option value="published">已发布</option>
+                </select>
+                <button id="refreshComments" type="button">刷新</button>
+                <button id="batchGenerateComments" type="button">批量生成</button>
+                <button id="batchReviewComments" type="button">批量审核</button>
+                <button id="batchPublishReviewed" type="button" style="color:#22c55e;">发布已审核</button>
+              </div>
+            </div>
+            <div id="commentStats" class="student-stats-row" style="display:flex;gap:16px;margin:12px 0;flex-wrap:wrap;"></div>
+            <div id="commentListContainer" class="student-list">
+              <div class="muted">加载中...</div>
+            </div>
+            <div id="commentDetailPanel" class="student-detail" style="display:none;margin-top:16px;">
+              <div class="plan-toolbar compact-toolbar">
+                <h3 id="commentDetailTitle">评语详情</h3>
+                <button id="closeCommentDetail" type="button">返回列表</button>
+              </div>
+              <div id="commentDetailContent" class="section-block"></div>
             </div>
           </section>
           <section id="workspaceKnowledge" class="workspace-panel active">
@@ -500,17 +865,109 @@ window.addEventListener("error", function(e) {
   if (lm) lm.textContent = "";
 });
 </script>
+<script src="/teacher-ui.js?v=20260810"></script>
 <script src="/app.js?v=20260812a"></script>
   
+<script>
+function myKey(k) { var u = localStorage.getItem("mcp_login_user")||""; return u?k+"_"+u:k; }
 
+async function doLogin() {
+  var u = document.getElementById("loginUsername"), p = document.getElementById("loginPassword"), e = document.getElementById("loginError");
+  if (!u||!p||!e) return;
+  var un = u.value.trim(), pw = p.value.trim();
+  if (!un) { e.textContent = "请输入用户名"; e.style.display = "block"; return; }
+  if (!pw) { e.textContent = "请输入密码"; e.style.display = "block"; return; }
+  e.style.display = "none";
+  try {
+    var r = await fetch("/api/auth/login", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({username:un,password:pw}) });
+    var d = await r.json();
+    if (!d.ok) { e.textContent = d.error; e.style.display = "block"; return; }
+    localStorage.setItem("mcp_auth_token", d.token);
+    localStorage.setItem("mcp_login_user", d.user.username);
+    // Teacher auto-detection
+    var serverRole = (d.user && d.user.role) || "student";
+    if (serverRole === "teacher") {
+      localStorage.setItem(myKey("mcp_identity"), "teacher");
+      localStorage.setItem("mcp_identity", "teacher");
+    } else {
+      localStorage.setItem(myKey("mcp_identity"), "student");
+      localStorage.setItem("mcp_identity", "student");
+    }
+    var prevJob = localStorage.getItem(myKey("mcp_job_id"));
+    if (prevJob) {
+      localStorage.setItem("mcp_session_id", d.user.username + "-session");
+      location.reload();
+      return;
+    }
+    if (serverRole === "teacher") {
+      var ls2 = document.getElementById("landingStepLogin");
+      var js = document.getElementById("landingStepJob");
+      if (ls2) ls2.classList.remove("active");
+      if (js) js.classList.add("active");
+    } else {
+      var ls2 = document.getElementById("landingStepLogin");
+      var is2 = document.getElementById("landingStepIdentity");
+      if (ls2) ls2.classList.remove("active");
+      if (is2) is2.classList.add("active");
+    }
+  } catch(x) { e.textContent = "登录失败: " + (x.message||"网络错误"); e.style.display = "block"; }
+}
+
+function selectIdentity(identity) {
+  localStorage.setItem(myKey("mcp_identity"), identity);
+  localStorage.setItem("mcp_identity", identity);
+  document.getElementById("landingStepIdentity").classList.remove("active");
+  document.getElementById("landingStepJob").classList.add("active");
+}
+
+function selectJob(jobId, event) {
+  var identity = localStorage.getItem(myKey("mcp_identity")) || "";
+  var jobName = event && event.currentTarget ? event.currentTarget.getAttribute("data-job-name") || "" : "";
+  localStorage.setItem(myKey("mcp_job_id"), jobId);
+  localStorage.setItem(myKey("mcp_job_name"), jobName);
+  var un = localStorage.getItem("mcp_login_user") || "000";
+  localStorage.setItem("mcp_session_id", un + "-session");
+  location.reload();
+}
+
+function dismissLanding() {
+  return new Promise(function(resolve) {
+    var o = document.getElementById("landingOverlay");
+    o.classList.add("fade-out");
+    setTimeout(function() { o.style.display = "none"; document.body.style.overflow = ""; resolve(); }, 400);
+  });
+}
+
+function switchAccount() {
+  localStorage.removeItem("mcp_auth_token");
+  localStorage.removeItem("mcp_login_user");
+  location.reload();
+}
+</script>
 
 
 <script>
-// Always show job selection on page load
 (function() {
-  var lo = document.getElementById("landingOverlay");
-  // job overlay is visible by default
+  var t = localStorage.getItem("mcp_auth_token");
+  var u = localStorage.getItem("mcp_login_user");
+  if (t && u) {
+    var pj = localStorage.getItem("mcp_job_id_" + u);
+    if (pj) {
+      localStorage.setItem("mcp_session_id", u + "-session");
+      var lo = document.getElementById("landingOverlay");
+      if (lo) { lo.style.display = "none"; }
+      document.body.style.overflow = "";
+      window.addEventListener("load", function() {
+        if (typeof state !== "undefined") {
+          state.selectedJobId = pj;
+          state.jobName = localStorage.getItem("mcp_job_name_" + u) || "";
+        }
+        if (typeof bootstrapApplication === "function") { bootstrapApplication(); }
+      });
+    }
+  }
 })();
 </script>
+
 </body>
 </html>

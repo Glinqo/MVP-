@@ -8,7 +8,7 @@
       "id": "es_safety_rules",
       "name": "安全用电规范",
       "level": "basic",
-      "desc": "掌握安全用电基本原则，熟悉电气安全标志和操作规范",
+      "description": "掌握安全用电基本原则，熟悉电气安全标志和操作规范",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -43,7 +43,7 @@
       "id": "es_power_isolation",
       "name": "断电隔离操作",
       "level": "basic",
-      "desc": "掌握断电、急停、气源切断等隔离操作流程",
+      "description": "掌握断电、急停、气源切断等隔离操作流程",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -74,7 +74,7 @@
       "id": "es_instrument_use",
       "name": "常用仪表使用",
       "level": "basic",
-      "desc": "掌握万用表等常用仪表的正确使用方法",
+      "description": "掌握万用表等常用仪表的正确使用方法",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -104,7 +104,7 @@
       "id": "es_low_voltage",
       "name": "低压电器识别",
       "level": "basic",
-      "desc": "识别常用低压电器，理解 DC24V 电源回路",
+      "description": "识别常用低压电器，理解 DC24V 电源回路",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -135,7 +135,7 @@
       "id": "es_diagram_reading",
       "name": "电气图纸识读",
       "level": "basic",
-      "desc": "能识读电气原理图、接线图",
+      "description": "能识读电气原理图、接线图",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [],
@@ -154,7 +154,7 @@
       "id": "sn_type_identify",
       "name": "传感器类型识别",
       "level": "basic",
-      "desc": "区分NPN/PNP等传感器类型，识读规格参数",
+      "description": "区分NPN/PNP等传感器类型，识读规格参数",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -194,7 +194,7 @@
       "id": "sn_wiring_rules",
       "name": "传感器接线规范",
       "level": "basic",
-      "desc": "掌握三线制传感器接线规则，判断接线正确性",
+      "description": "掌握三线制传感器接线规则，判断接线正确性",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -237,7 +237,7 @@
       "id": "sn_signal_acq",
       "name": "信号采集与验证",
       "level": "basic",
-      "desc": "完成传感器信号采集、状态判断和输出逻辑验证",
+      "description": "完成传感器信号采集、状态判断和输出逻辑验证",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -281,7 +281,7 @@
       "id": "sn_fault_diag",
       "name": "传感器故障排查",
       "level": "medium",
-      "desc": "定位传感器信号异常的根本原因",
+      "description": "定位传感器信号异常的根本原因",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -314,7 +314,7 @@
       "id": "sn_actuator_link",
       "name": "执行器联调基础",
       "level": "medium",
-      "desc": "理解气动执行机构与传感器的联动关系",
+      "description": "理解气动执行机构与传感器的联动关系",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [],
@@ -333,7 +333,7 @@
       "id": "pl_io_mapping",
       "name": "I/O地址映射",
       "level": "basic",
-      "desc": "掌握PLC I/O地址分配和映射关系",
+      "description": "掌握PLC I/O地址分配和映射关系",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -372,7 +372,7 @@
       "id": "pl_program_monitor",
       "name": "程序编写与监控",
       "level": "basic",
-      "desc": "编写基础梯形图程序，使用在线监控功能",
+      "description": "编写基础梯形图程序，使用在线监控功能",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -425,7 +425,7 @@
       "id": "pl_logic_control",
       "name": "逻辑控制实现",
       "level": "medium",
-      "desc": "实现启停控制、互锁逻辑、顺序控制",
+      "description": "实现启停控制、互锁逻辑、顺序控制",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -467,7 +467,7 @@
       "id": "pl_fault_diag",
       "name": "PLC故障排查",
       "level": "medium",
-      "desc": "排查PLC输入输出无响应等常见故障",
+      "description": "排查PLC输入输出无响应等常见故障",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -501,7 +501,7 @@
       "id": "pl_device_integration",
       "name": "设备联调基础",
       "level": "medium",
-      "desc": "完成自动化设备整体联调、运行参数监测和动作逻辑验证",
+      "description": "完成自动化设备整体联调、运行参数监测和动作逻辑验证",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [],
@@ -520,7 +520,7 @@
       "id": "tr_inspection",
       "name": "设备点检流程",
       "level": "basic",
-      "desc": "掌握设备点检标准流程和运行参数记录方法",
+      "description": "掌握设备点检标准流程和运行参数记录方法",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [],
@@ -539,7 +539,7 @@
       "id": "tr_fault_classify",
       "name": "故障分类与定位",
       "level": "medium",
-      "desc": "对常见故障进行分类，按优先级确定排查方向",
+      "description": "对常见故障进行分类，按优先级确定排查方向",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -575,7 +575,7 @@
       "id": "tr_signal_chain",
       "name": "电源与信号链路排查",
       "level": "medium",
-      "desc": "掌握从电源到信号的完整链路排查方法",
+      "description": "掌握从电源到信号的完整链路排查方法",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -614,7 +614,7 @@
       "id": "tr_system_diag",
       "name": "系统综合排故",
       "level": "medium",
-      "desc": "进行系统级故障诊断，涵盖机械、电气、控制多方面",
+      "description": "进行系统级故障诊断，涵盖机械、电气、控制多方面",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [],
@@ -633,7 +633,7 @@
       "id": "tr_record_feedback",
       "name": "诊断记录与反馈",
       "level": "medium",
-      "desc": "规范记录诊断过程和结果，形成反馈闭环",
+      "description": "规范记录诊断过程和结果，形成反馈闭环",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -666,7 +666,7 @@
       "id": "rt_task_understanding",
       "name": "岗位任务理解",
       "level": "root",
-      "desc": "说明自动化产线装调与运维岗位的任务边界和核心能力要求",
+      "description": "说明自动化产线装调与运维岗位的任务边界和核心能力要求",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
@@ -706,7 +706,7 @@
       "id": "rt_training_recommend",
       "name": "实训任务推荐",
       "level": "application",
-      "desc": "基于能力缺口推荐个性化实训任务和训练路径",
+      "description": "基于能力缺口推荐个性化实训任务和训练路径",
       "parent_id": null,
       "prerequisites": [],
       "related_knowledge": [
