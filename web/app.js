@@ -2932,6 +2932,18 @@ async function teacherBoot() {
       var healthEl = document.getElementById("healthStatus");
       if (healthEl) { healthEl.textContent = health.status === "ok" ? "正常" : "异常"; healthEl.classList.add("ok"); }
     } catch (_) {}
+    // TF: teacher boot also needs to resolve the model status badge
+    try {
+      var llmCheck = await api("/api/chat/start", {
+        method: "POST",
+        body: JSON.stringify({ session_id: state.sessionId, job_role: jobId })
+      });
+      var llmEl = document.getElementById("llmStatus");
+      if (llmEl) {
+        llmEl.textContent = llmCheck.llm_configured ? "模型已连接" : "本地兆底";
+        llmEl.classList.toggle("ok", Boolean(llmCheck.llm_configured));
+      }
+    } catch (_) {}
     // TF-3: Initialize teacher navigation
     if (typeof TeacherUI !== "undefined" && TeacherUI.initNav) { TeacherUI.initNav(); }
     // Load job graph (for standards tab)
