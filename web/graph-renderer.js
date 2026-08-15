@@ -39,19 +39,18 @@ class ForceGraph {
     }
 
     _nodeColor(node) {
-        const confidence = node.confidence !== undefined && node.confidence !== null ? Number(node.confidence) : null;
-        if (confidence !== null && confidence < CONFIDENCE_THRESHOLD) return "#94a3b8";
-        const dim = (node.radar_dimension_ids || []).join(",").toLowerCase();
-        if (node.status === "root" || dim.includes("root")) return "#60a5fa";
-        if (dim.includes("safety") || dim.includes("安全")) return "#f87171";
-        if (dim.includes("sensor") || dim.includes("传感")) return "#fbbf24";
-        if (dim.includes("plc") || dim.includes("控制") || dim.includes("plc")) return "#34d399";
-        if (dim.includes("trouble") || dim.includes("故障") || dim.includes("排故")) return "#a78bfa";
-        if (dim.includes("mechanical") || dim.includes("机械")) return "#fb923c";
-        if (dim.includes("electrical") || dim.includes("电气")) return "#38bdf8";
-        if (dim.includes("communication") || dim.includes("通信") || dim.includes("网络")) return "#f472b6";
-        const colors = ["#60a5fa","#34d399","#fbbf24","#f87171","#a78bfa","#fb923c","#38bdf8","#f472b6"];
-        const hash = (node.id || "").split("").reduce((a,c)=>a+c.charCodeAt(0),0);
+        const rawDim = node.radar_dimension_ids;
+        const dim = Array.isArray(rawDim) ? rawDim.join(',').toLowerCase() : String(rawDim || '').toLowerCase();
+        if (node.status === 'root' || dim.includes('root')) return '#60a5fa';
+        if (dim.includes('safety') || dim.includes('安全')) return '#f87171';
+        if (dim.includes('sensor') || dim.includes('signal') || dim.includes('传感')) return '#fbbf24';
+        if (dim.includes('plc') || dim.includes('控制')) return '#34d399';
+        if (dim.includes('trouble') || dim.includes('故障') || dim.includes('排故')) return '#a78bfa';
+        if (dim.includes('mechanical') || dim.includes('机械')) return '#fb923c';
+        if (dim.includes('electrical') || dim.includes('电气')) return '#38bdf8';
+        if (dim.includes('communication') || dim.includes('通信') || dim.includes('网络')) return '#f472b6';
+        const colors = ['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c','#38bdf8','#f472b6'];
+        const hash = (node.id || '').split('').reduce((a,ch)=>a+ch.charCodeAt(0),0);
         return colors[hash % colors.length];
     }
 
@@ -263,7 +262,7 @@ class ForceGraph {
             .attr("fill", d => d.color)
             .attr("stroke", d => d3.color(d.color).darker(0.3))
             .attr("stroke-width", 1.5)
-            .attr("opacity", 0.35);
+            .attr("opacity", 0.72);
 
         // Inner highlight
         ngEnter.append("circle").attr("class", "node-inner")
@@ -328,7 +327,7 @@ class ForceGraph {
             d3.select(this).select(".node-glow").transition().duration(200).attr("opacity", 0.22);
             d3.select(this).select(".node-status-ring").transition().duration(200).attr("opacity", 1);
         }).on("mouseleave", function() {
-            d3.select(this).select(".node-circle").transition().duration(200).attr("opacity", 0.35).attr("stroke-width", 1.5);
+            d3.select(this).select(".node-circle").transition().duration(200).attr("opacity", 0.72).attr("stroke-width", 1.5);
             d3.select(this).select(".node-glow").transition().duration(200).attr("opacity", 0.08);
             d3.select(this).select(".node-status-ring").transition().duration(200).attr("opacity", 0.55);
         });
