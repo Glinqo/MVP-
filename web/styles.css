@@ -1494,10 +1494,17 @@ body[data-role="student"] .role-teacher { display: none !important; }
 
 /* === TF-3: Teacher Decision Workspace Layout === */
 /* Teacher: Copilot (left 34%) + Decision Workspace (right 66%) */
-.teacher-layout { display: none; }
-body[data-role="teacher"] .teacher-layout { display: flex; gap: 0; height: calc(100vh - 56px); }
-body[data-role="student"] .teacher-layout { display: none; }
-body[data-role="teacher"] .student-layout { display: none; }
+/* Unified layout: teacher uses the same full chat layout as students */
+.teacher-layout { display: none !important; }
+body[data-role="teacher"] .teacher-layout { display: none !important; }
+body[data-role="student"] .teacher-layout { display: none !important; }
+body[data-role="teacher"] .student-layout { display: grid; }
+body[data-role="teacher"] .launcher-panel.role-student { display: none !important; }
+body[data-role="teacher"] .launcher-panel.role-teacher { display: block !important; }
+body[data-role="teacher"] .workspace-tabs .role-student { display: none; }
+body[data-role="teacher"] .workspace-tabs .role-teacher { display: inline-flex; }
+body[data-role="teacher"] .workspace-panel.role-teacher { display: none; }
+body[data-role="teacher"] .workspace-panel.role-teacher.active { display: block; }
 
 .teacher-copilot { flex: 0 0 34%; max-width: 34%; min-width: 300px; border-right: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; overflow: hidden; }
 .teacher-workspace { flex: 1 1 66%; display: flex; flex-direction: column; overflow: hidden; background: rgba(255,255,255,0.02); }

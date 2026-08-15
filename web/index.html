@@ -519,12 +519,17 @@
         </header>
 
         <nav class="workspace-tabs" aria-label="功能工作台">
-          <button class="active" data-workspace-panel="knowledge" type="button">知识缺口</button>
-          <button data-workspace-panel="graph" type="button">能力图谱</button>
+          <button class="active role-student" data-workspace-panel="knowledge" type="button">知识缺口</button>
+          <button class="role-student" data-workspace-panel="graph" type="button">能力图谱</button>
           <button data-workspace-panel="jobAdmin" type="button" class="role-teacher" style="display:none">岗位数据</button>
-          <button data-workspace-panel="plan" type="button">培养方案</button>
-          <button data-workspace-panel="scenario" type="button">角色扮演</button>
-          <button data-workspace-panel="quiz" type="button">自测</button>
+          <button class="role-student" data-workspace-panel="plan" type="button">培养方案</button>
+          <button class="role-student" data-workspace-panel="scenario" type="button">角色扮演</button>
+          <button class="role-student" data-workspace-panel="quiz" type="button">自测</button>
+          <button data-workspace-panel="teacherDashboard" type="button" class="role-teacher" style="display:none">教学总览</button>
+          <button data-workspace-panel="classInsights" type="button" class="role-teacher" style="display:none">班级洞察</button>
+          <button data-workspace-panel="studentMgmt" type="button" class="role-teacher" style="display:none">学生管理</button>
+          <button data-workspace-panel="teacherComments" type="button" class="role-teacher" style="display:none">教学评语</button>
+          <button data-workspace-panel="teacherJobGraph" type="button" class="role-teacher" style="display:none">岗位管理</button>
         </nav>
 
         <div class="workspace-body">
@@ -546,7 +551,7 @@
             </div>
           </section>
 
-                    <section id="workspaceTeacherDashboard" class="workspace-panel role-teacher" style="display:none">
+                    <section id="workspaceTeacherDashboard" class="workspace-panel role-teacher">
             <div class="plan-toolbar">
               <div>
                 <h3>教师工作台</h3>
@@ -583,7 +588,7 @@
               </div>
             </div>
           </section>
-<section id="workspaceJobAdmin" class="workspace-panel role-teacher" style="display:none">
+<section id="workspaceJobAdmin" class="workspace-panel role-teacher">
             <div class="plan-toolbar">
               <div>
                 <h3>岗位图谱管理</h3>
@@ -676,7 +681,7 @@
             </div>
           </section>
 
-          <section id="workspaceClassInsights" class="workspace-panel role-teacher" style="display:none">
+          <section id="workspaceClassInsights" class="workspace-panel role-teacher">
             <div class="plan-toolbar">
               <div>
                 <h3>班级洞察</h3>
@@ -712,7 +717,7 @@
             </div>
           </section>
 
-          <section id="workspaceStudentMgmt" class="workspace-panel role-teacher" style="display:none">
+          <section id="workspaceStudentMgmt" class="workspace-panel role-teacher">
             <div class="plan-toolbar">
               <div>
                 <h3>学生管理</h3>
@@ -747,7 +752,7 @@
             </div>
           </section>
 
-          <section id="workspaceTeacherComments" class="workspace-panel role-teacher" style="display:none">
+          <section id="workspaceTeacherComments" class="workspace-panel role-teacher">
             <div class="plan-toolbar">
               <div>
                 <h3>教学评语</h3>
