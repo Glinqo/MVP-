@@ -563,18 +563,6 @@
               <div class="muted">加载中...</div>
             </div>
             <div class="student-detail-grid" style="margin-top:12px;">
-              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('teacherComments')">
-                <h4>教学评语</h4>
-                <div id="tdCommentsDraft" class="metric"><span class="metric-label">待审核草稿</span><span class="metric-value" style="color:#f59e0b;">-</span></div>
-                <div id="tdCommentsReviewed" class="metric"><span class="metric-label">已审核待发布</span><span class="metric-value" style="color:#38bdf8;">-</span></div>
-                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入教学评语</div>
-              </div>
-              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('classInsights')">
-                <h4>班级洞察</h4>
-                <div id="tdClassIssues" class="metric"><span class="metric-label">共性问题</span><span class="metric-value" style="color:#f59e0b;">-</span></div>
-                <div id="tdClassWeakNodes" class="metric"><span class="metric-label">薄弱能力节点</span><span class="metric-value" style="color:#ef4444;">-</span></div>
-                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入班级洞察</div>
-              </div>
               <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('studentMgmt')">
                 <h4>学生管理</h4>
                 <div id="tdStudentTotal" class="metric"><span class="metric-label">学生总数</span><span class="metric-value">-</span></div>
@@ -585,6 +573,18 @@
                 <h4>岗位管理</h4>
                 <div id="tdJobProposals" class="metric"><span class="metric-label">待审核提案</span><span class="metric-value" style="color:#f59e0b;">-</span></div>
                 <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入岗位图谱</div>
+              </div>
+              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('classInsights')">
+                <h4>班级洞察</h4>
+                <div id="tdClassIssues" class="metric"><span class="metric-label">共性问题</span><span class="metric-value" style="color:#f59e0b;">-</span></div>
+                <div id="tdClassWeakNodes" class="metric"><span class="metric-label">薄弱能力节点</span><span class="metric-value" style="color:#ef4444;">-</span></div>
+                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入班级洞察</div>
+              </div>
+              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('teacherComments')">
+                <h4>教师评语</h4>
+                <div id="tdCommentsDraft" class="metric"><span class="metric-label">待审核草稿</span><span class="metric-value" style="color:#f59e0b;">-</span></div>
+                <div id="tdCommentsReviewed" class="metric"><span class="metric-label">已审核待发布</span><span class="metric-value" style="color:#38bdf8;">-</span></div>
+                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入教师评语</div>
               </div>
             </div>
           </section>
