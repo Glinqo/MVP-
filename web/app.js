@@ -2938,6 +2938,9 @@ async function teacherBoot() {
         method: "POST",
         body: JSON.stringify({ session_id: state.sessionId, job_role: jobId })
       });
+      if (typeof renderJobProfile === "function") {
+        renderJobProfile(llmCheck.job_profile || {});
+      }
       var llmEl = document.getElementById("llmStatus");
       if (llmEl) {
         llmEl.textContent = llmCheck.llm_configured ? "模型已连接" : "本地兆底";
