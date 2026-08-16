@@ -871,7 +871,7 @@ window.addEventListener("error", function(e) {
 });
 </script>
 <script src="/teacher-ui.js?v=20260810"></script>
-<script src="/app.js?v=20260815c"></script>
+<script src="/app.js?v=20260816a"></script>
   
 <script>
 function myKey(k) { var u = localStorage.getItem("mcp_login_user")||""; return u?k+"_"+u:k; }
@@ -898,12 +898,26 @@ async function doLogin() {
       localStorage.setItem(myKey("mcp_identity"), "student");
       localStorage.setItem("mcp_identity", "student");
     }
-    var prevJob = localStorage.getItem(myKey("mcp_job_id"));
-    if (prevJob) {
+    // Use server job_role, not stale localStorage, to decide whether to skip selection
+    if (d.user.job_role) {
+      localStorage.setItem(myKey("mcp_job_id"), d.user.job_role);
       localStorage.setItem("mcp_session_id", d.user.username + "-session");
       location.reload();
       return;
     }
+    // Fresh account: clear stale per-user job/session/message cache so no old history is restored
+    localStorage.removeItem(myKey("mcp_job_id"));
+    localStorage.removeItem(myKey("mcp_job_name"));
+    localStorage.removeItem("mcp_job_id");
+    localStorage.removeItem("mcp_job_name");
+    localStorage.removeItem("mcp_session_id");
+    try {
+      var oldSid = d.user.username + "-session";
+      localStorage.removeItem("mcp_msg_" + oldSid);
+      localStorage.removeItem("msg_" + oldSid);
+      localStorage.removeItem("msg_" + oldSid + "_" + d.user.username);
+      localStorage.removeItem("mcp_msg_" + oldSid + "_" + d.user.username);
+    } catch (_) {}
     if (serverRole === "teacher") {
       var ls2 = document.getElementById("landingStepLogin");
       var js = document.getElementById("landingStepJob");
