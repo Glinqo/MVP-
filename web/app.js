@@ -1050,8 +1050,8 @@ function renderGraph(graph, type = "job") {
   computeDimensionScores(graph);
   if (type === "job") {
     // jobMermaidOutput removed
-    renderGraphLegend(graph, "jobGraphDiagram");
-    renderGraphDiagram(graph, "jobGraphDiagram");
+    renderGraphLegend(graph, "mainJobGraphDiagram");
+    renderGraphDiagram(graph, "mainJobGraphDiagram");
   // renderGraphNodes job removed
       // renderDemandSources removed
   // jobDimensionOverview removed
