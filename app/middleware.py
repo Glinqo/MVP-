@@ -2,8 +2,17 @@
 from app.services.auth import verify_token
 
 def find_authed_user(handler):
-    """本地无登录 demo：默认返回教师用户，兼容教师端权限检查。"""
-    return {"id": 1, "username": "teacher", "role": "teacher"}
+    """从请求头提取 JWT 并返回用户信息，无有效 token 返回 None"""
+    auth = handler.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return None
+    token = auth[7:].strip()
+    if not token:
+        return None
+    payload = verify_token(token)
+    if not payload:
+        return None
+    return {"id": payload["user_id"], "username": payload["username"], "role": payload["role"]}
 
 def verify_student_ownership(handler):
     """Verify JWT user owns the requested session_id; returns (user, error_tuple_or_None)."""
@@ -29,8 +38,7 @@ def verify_student_ownership(handler):
     return user, (None, None)
 
 def require_student_owner(user: dict, requested_student_id: str = None, requested_session_id: str = None) -> bool:
-    """本地 demo：始终允许访问。"""
-    return True
+    """Student must only access their own resources. Teacher can access via Teacher API."""
     if not user:
         return False
     role = user.get("role", "")
