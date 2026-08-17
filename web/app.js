@@ -868,7 +868,8 @@ function renderGraphDiagram(graph, targetId) {
   }
   target.style.minHeight = '450px';
   if (!state.graphRenderers) state.graphRenderers = {};
-  if (!state.graphRenderers[targetId]) {
+  const hasStaleLoading = /加载图谱中/.test(target.textContent || "");
+  if (!state.graphRenderers[targetId] || hasStaleLoading) {
     target.innerHTML = '';
     state.graphRenderers[targetId] = new ForceGraph(targetId, {
       onNodeClick: (node, g) => {
@@ -4575,7 +4576,7 @@ function loadJobGraphWorkspace() {
 }
 
 async function loadJobGraphDiagram() {
-  var container = document.getElementById("mainJobGraphDiagram");
+  var container = document.getElementById("jobAdminGraphDiagram");
   if (!container) return;
   container.innerHTML = '<div class="muted">加载图谱中...</div>';
   try {
@@ -4588,7 +4589,7 @@ async function loadJobGraphDiagram() {
       return;
     }
     if (typeof renderGraphDiagram === "function") {
-      renderGraphDiagram(graph, null, container);
+      renderGraphDiagram(graph, "jobAdminGraphDiagram");
     }
     document.getElementById("jobGraphLegend").innerHTML =
       '<span style="font-size:12px;color:var(--text-secondary);">节点大小=岗位重要度 | 点击节点查看详情</span>';
