@@ -262,7 +262,7 @@ class ForceGraph {
             .attr("fill", d => d.color)
             .attr("stroke", d => d3.color(d.color).darker(0.3))
             .attr("stroke-width", 1.5)
-            .attr("opacity", 0.72);
+            .attr("opacity", 0.35);
 
         // Inner highlight
         ngEnter.append("circle").attr("class", "node-inner")
@@ -327,7 +327,7 @@ class ForceGraph {
             d3.select(this).select(".node-glow").transition().duration(200).attr("opacity", 0.22);
             d3.select(this).select(".node-status-ring").transition().duration(200).attr("opacity", 1);
         }).on("mouseleave", function() {
-            d3.select(this).select(".node-circle").transition().duration(200).attr("opacity", 0.72).attr("stroke-width", 1.5);
+            d3.select(this).select(".node-circle").transition().duration(200).attr("opacity", 0.35).attr("stroke-width", 1.5);
             d3.select(this).select(".node-glow").transition().duration(200).attr("opacity", 0.08);
             d3.select(this).select(".node-status-ring").transition().duration(200).attr("opacity", 0.55);
         });
