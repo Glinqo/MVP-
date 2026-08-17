@@ -3796,7 +3796,8 @@ var showRoleUI = setRoleVisibility;
 // ── 阶段二：学生管理 ──
 
 async function loadStudentList() {
-  var container = document.getElementById("studentListContainer");
+  var containerId = state.activeWorkspace === "studentMgmt" ? "studentListContainerBottom" : "studentListContainer";
+  var container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '<div class="muted">加载中...</div>';
   try {
@@ -3817,7 +3818,7 @@ async function loadStudentList() {
     }
     var data = await resp.json();
     renderStudentStats(data.stats);
-    renderStudentList(data);
+    renderStudentList(data, container);
   } catch (e) {
     container.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
   }
@@ -3838,8 +3839,8 @@ function renderStudentStats(stats) {
   }).join("");
 }
 
-function renderStudentList(data) {
-  var container = document.getElementById("studentListContainer");
+function renderStudentList(data, container) {
+  container = container || document.getElementById("studentListContainer");
   if (!container) return;
   var students = data.students || [];
   if (!students.length) {
