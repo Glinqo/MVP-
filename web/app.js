@@ -3402,6 +3402,16 @@ async function studentBoot() {
       } catch (_) {}
       renderJobProposals(jobGraph.pending_proposals || []);
       renderGraph(studentBootstrap.student_graph, "student");
+      if (!window._studentChatFormBound) {
+        var chatForm = document.getElementById("chatForm");
+        if (chatForm) {
+          chatForm.addEventListener("submit", function(ev) {
+            ev.preventDefault();
+            sendChat();
+          });
+          window._studentChatFormBound = true;
+        }
+      }
     } else {
       try { var jobGraph = await api("/api/graph/job?job_role=" + encodeURIComponent(jobId)); renderGraph(jobGraph, "job"); renderJobProposals(jobGraph.pending_proposals || []); } catch (_) {}
       try { loadStudentList(); } catch (_) {}
