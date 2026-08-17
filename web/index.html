@@ -476,10 +476,6 @@
         <section class="launcher-panel role-teacher" style="display:none">
           <h2>教师工作台</h2>
           <div class="tool-launcher">
-            <button data-open-tool="teacherDashboard" type="button">
-              <strong>任务清单</strong>
-              <span>今日关注、待处理事项</span>
-            </button>
             <button data-open-tool="studentMgmt" type="button">
               <strong>学生管理</strong>
               <span>学生列表、画像与学习证据</span>
@@ -525,7 +521,6 @@
           <button class="role-student" data-workspace-panel="plan" type="button">培养方案</button>
           <button class="role-student" data-workspace-panel="scenario" type="button">角色扮演</button>
           <button class="role-student" data-workspace-panel="quiz" type="button">自测</button>
-          <button data-workspace-panel="teacherDashboard" type="button" class="role-teacher" style="display:none">教学总览</button>
           <button data-workspace-panel="classInsights" type="button" class="role-teacher" style="display:none">班级洞察</button>
           <button data-workspace-panel="studentMgmt" type="button" class="role-teacher" style="display:none">学生管理</button>
           <button data-workspace-panel="teacherComments" type="button" class="role-teacher" style="display:none">教学评语</button>
@@ -551,43 +546,6 @@
             </div>
           </section>
 
-                    <section id="workspaceTeacherDashboard" class="workspace-panel role-teacher">
-            <div class="plan-toolbar">
-              <div>
-                <h3>教师工作台</h3>
-                <p class="muted">今日教学管理概览</p>
-              </div>
-              <button id="refreshTeacherDashboard" type="button">刷新</button>
-            </div>
-            <div id="teacherDashboardStats" class="student-stats-row" style="display:flex;gap:16px;margin:12px 0;flex-wrap:wrap;">
-              <div class="muted">加载中...</div>
-            </div>
-            <div class="student-detail-grid" style="margin-top:12px;">
-              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('studentMgmt')">
-                <h4>学生管理</h4>
-                <div id="tdStudentTotal" class="metric"><span class="metric-label">学生总数</span><span class="metric-value">-</span></div>
-                <div id="tdStudentAssessed" class="metric"><span class="metric-label">已完成测评</span><span class="metric-value">-</span></div>
-                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入学生管理</div>
-              </div>
-              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('teacherJobGraph')">
-                <h4>岗位管理</h4>
-                <div id="tdJobProposals" class="metric"><span class="metric-label">待审核提案</span><span class="metric-value" style="color:#f59e0b;">-</span></div>
-                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入岗位图谱</div>
-              </div>
-              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('classInsights')">
-                <h4>班级洞察</h4>
-                <div id="tdClassIssues" class="metric"><span class="metric-label">共性问题</span><span class="metric-value" style="color:#f59e0b;">-</span></div>
-                <div id="tdClassWeakNodes" class="metric"><span class="metric-label">薄弱能力节点</span><span class="metric-value" style="color:#ef4444;">-</span></div>
-                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入班级洞察</div>
-              </div>
-              <div class="student-detail-card" style="cursor:pointer;" onclick="if(typeof openWorkspace==='function')openWorkspace('teacherComments')">
-                <h4>教师评语</h4>
-                <div id="tdCommentsDraft" class="metric"><span class="metric-label">待审核草稿</span><span class="metric-value" style="color:#f59e0b;">-</span></div>
-                <div id="tdCommentsReviewed" class="metric"><span class="metric-label">已审核待发布</span><span class="metric-value" style="color:#38bdf8;">-</span></div>
-                <div style="font-size:11px;color:var(--primary);margin-top:4px;">点击进入教师评语</div>
-              </div>
-            </div>
-          </section>
 <section id="workspaceJobAdmin" class="workspace-panel role-teacher">
             <div class="plan-toolbar">
               <div>
@@ -871,7 +829,7 @@ window.addEventListener("error", function(e) {
 });
 </script>
 <script src="/teacher-ui.js?v=20260810"></script>
-<script src="/app.js?v=20260817h"></script>
+<script src="/app.js?v=20260817i"></script>
   
 <script>
 function myKey(k) { var u = localStorage.getItem("mcp_login_user")||""; return u?k+"_"+u:k; }

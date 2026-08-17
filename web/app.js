@@ -2003,7 +2003,6 @@ function workspaceTitle(panel) {
     jobAdmin: "岗位管理",
     knowledge: "知识缺口",
     tasks: "实训任务",
-    teacherDashboard: "教师工作台",
     classInsights: "班级洞察",
     studentMgmt: "学生管理",
     teacherComments: "教学评语",
@@ -2024,7 +2023,6 @@ function setWorkspacePanel(panel) {
     section.classList.toggle("active", section.id === "workspace" + domPanel.charAt(0).toUpperCase() + domPanel.slice(1));
   });
   if (panel === "knowledge") { var ka = document.getElementById("knowledgeAlert"); if (ka) ka.style.display = "none"; }
-  if (panel === "teacherDashboard" && typeof loadTeacherDashboard === "function") loadTeacherDashboard();
   if (panel === "jobAdmin" || panel === "teacherJobGraph") {
     loadJobAdmin();
     if (typeof loadJobGraphWorkspace === "function") loadJobGraphWorkspace();
@@ -4746,68 +4744,3 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   });
 });
-
-// ── 阶段七：教师工作台仪表板 ──
-
-async function loadTeacherDashboard() {
-  var jobRole = (document.getElementById("jobAdminRole")?.value) || "automation_line_commissioning_maintenance_newcomer";
-  try {
-    // Fetch comments stats
-    var resp1 = await fetch("/api/teacher/comments?job_role=" + encodeURIComponent(jobRole), {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (resp1.ok) {
-      var cd = await resp1.json();
-      var cs = cd.stats || {};
-      ["tdCommentsDraft","tdCommentsReviewed"].forEach(function(id) { var el = document.getElementById(id); if (el) el.querySelector(".metric-value").textContent = "-"; });
-      var el1 = document.getElementById("tdCommentsDraft"); if (el1) el1.querySelector(".metric-value").textContent = cs.draft || 0;
-      var el2 = document.getElementById("tdCommentsReviewed"); if (el2) el2.querySelector(".metric-value").textContent = cs.reviewed || 0;
-    }
-  } catch(e) {}
-
-  try {
-    // Fetch class overview
-    var resp2 = await fetch("/api/teacher/class/overview?job_role=" + encodeURIComponent(jobRole), {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (resp2.ok) {
-      var ov = await resp2.json();
-      var el3 = document.getElementById("tdClassIssues"); if (el3) el3.querySelector(".metric-value").textContent = ov.common_issue_count || 0;
-      var el4 = document.getElementById("tdClassWeakNodes"); if (el4) el4.querySelector(".metric-value").textContent = ov.weak_node_count || 0;
-    }
-  } catch(e) {}
-
-  try {
-    // Fetch students
-    var resp3 = await fetch("/api/teacher/students?job_role=" + encodeURIComponent(jobRole), {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (resp3.ok) {
-      var sd = await resp3.json();
-      var ss = sd.stats || {};
-      var el5 = document.getElementById("tdStudentTotal"); if (el5) el5.querySelector(".metric-value").textContent = ss.total || 0;
-      var el6 = document.getElementById("tdStudentAssessed"); if (el6) el6.querySelector(".metric-value").textContent = ss.assessed || 0;
-    }
-  } catch(e) {}
-
-  try {
-    // Fetch job proposals
-    var resp4 = await fetch("/api/graph/job/proposals/pending?job_role=" + encodeURIComponent(jobRole), {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (resp4.ok) {
-      var pd = await resp4.json();
-      var proposals = pd.proposals || [];
-      var el7 = document.getElementById("tdJobProposals"); if (el7) el7.querySelector(".metric-value").textContent = proposals.length;
-    }
-  } catch(e) {}
-
-  var statsEl = document.getElementById("teacherDashboardStats");
-  if (statsEl) statsEl.innerHTML = "";
-}
-
-document.addEventListener("DOMContentLoaded", function() {
-  var refreshBtn = document.getElementById("refreshTeacherDashboard");
-  if (refreshBtn) refreshBtn.addEventListener("click", loadTeacherDashboard);
-});
-
