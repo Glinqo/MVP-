@@ -92,7 +92,7 @@ body::before {
   padding:7px 12px;color:#fde68a;background:rgba(251,191,36,0.08);
   font-size:12px;font-weight:700;letter-spacing:.04em;white-space:nowrap;
 }
-.ai-generated-badge.chat-ai-badge{position:absolute;top:12px;left:12px;z-index:6;pointer-events:none}
+.ai-generated-badge.chat-ai-badge{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:6;pointer-events:none}
 .copilot-chat{position:relative}
 
 /* 鈹€鈹€ Chat Layout 鈹€鈹€ */
