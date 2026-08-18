@@ -120,7 +120,7 @@ class ForceGraph {
                 return true})
             .on("zoom", (ev) => { this.g.attr("transform", ev.transform); });
         this.svg.call(this.zoom);
-        this.svg.call(this.zoom.transform, d3.zoomIdentity.translate(this.width * 0.5, this.height * 0.5).scale(1.0));
+        this.svg.call(this.zoom.transform, d3.zoomIdentity.translate(0, 0).scale(1.0));
     }
 
     _buildGraphData(graphData) {
