@@ -61,6 +61,34 @@ def _ensure_tables():
 _ensure_tables()
 
 
+def require_teacher_class(user: Dict[str, Any], class_id: Any) -> Dict[str, Any]:
+    """验证 class_id 属于当前教师。
+
+    返回 (ok, class_dict, error_status, error_message)：
+      - ok=True: class_dict 为该班级详情
+      - ok=False: error_status 和 error_message 可用于 API 响应
+    """
+    if not user:
+        return {"ok": False, "status": 401, "error": "请先登录"}
+    if user.get("role", "") != "teacher":
+        return {"ok": False, "status": 403, "error": "需要教师权限"}
+    if class_id is None or class_id == "":
+        return {"ok": False, "status": 400, "error": "class_id is required"}
+    try:
+        cid = int(class_id)
+    except (TypeError, ValueError):
+        return {"ok": False, "status": 400, "error": "非法的 class_id"}
+    cls = get_class(cid, user["id"])
+    if cls is None:
+        # 区分不存在与无权限
+        with _conn() as conn:
+            exists = conn.execute("SELECT id FROM classes WHERE id = ?", (cid,)).fetchone()
+        if exists:
+            return {"ok": False, "status": 403, "error": "无权访问该班级"}
+        return {"ok": False, "status": 404, "error": "班级不存在"}
+    return {"ok": True, "class": cls}
+
+
 # ---------------------------------------------------------------------------
 # 内部辅助
 # ---------------------------------------------------------------------------

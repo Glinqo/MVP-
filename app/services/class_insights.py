@@ -91,10 +91,10 @@ def get_class_ability_graph(job_role=None, ability_id=None, class_id=None, teach
     else:
         node_ids = {n.get("id", "") for n in job_graph.get("nodes", [])}
 
-    if class_id and teacher_id:
-        sessions = _get_class_student_sessions(class_id, teacher_id)
-    else:
-        sessions = _get_student_sessions(jr)
+    # P6-B: class_id is mandatory for teacher class-scoped API
+    if not class_id or not teacher_id:
+        return {"nodes": [], "edges": [], "student_count": 0, "error": "class_id required"}
+    sessions = _get_class_student_sessions(class_id, teacher_id)
 
     # 聚合数据结构
     node_scores = {nid: [] for nid in node_ids}
@@ -213,10 +213,10 @@ def get_common_issues(job_role=None, ability_id=None, min_students=3, class_id=N
     第一版使用规则聚合：同一 ability_id + event_category 在多学生中出现。
     """
     jr = job_role or DEFAULT_JOB
-    if class_id and teacher_id:
-        sessions = _get_class_student_sessions(class_id, teacher_id)
-    else:
-        sessions = _get_student_sessions(jr)
+    # P6-B: class_id is mandatory
+    if not class_id or not teacher_id:
+        return []
+    sessions = _get_class_student_sessions(class_id, teacher_id)
     if not sessions:
         return []
 
@@ -325,10 +325,10 @@ def get_common_issues(job_role=None, ability_id=None, min_students=3, class_id=N
 def get_class_overview(job_role=None, class_id=None, teacher_id=None):
     """获取班级概览统计。"""
     jr = job_role or DEFAULT_JOB
-    if class_id and teacher_id:
-        sessions = _get_class_student_sessions(class_id, teacher_id)
-    else:
-        sessions = _get_student_sessions(jr)
+    # P6-B: class_id is mandatory
+    if not class_id or not teacher_id:
+        return {"total_students": 0, "has_data": False, "error": "class_id required"}
+    sessions = _get_class_student_sessions(class_id, teacher_id)
     student_count = len(sessions)
 
     graph = get_class_ability_graph(jr)
