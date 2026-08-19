@@ -40,3 +40,4 @@ debug_*.png
 *.db
 *.db-wal
 *.db-shm
+data/graph_update_events.json

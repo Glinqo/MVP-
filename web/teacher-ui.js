@@ -555,8 +555,12 @@ TeacherUI.generateCandidates = function() {
     }
   }
 
+  if (!TeacherUI.currentClassId) {
+    if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px;color:#f87171">Please select a class first.</div>';
+    return;
+  }
   TeacherUI.fetchAuth("/api/v2/teacher/issues/candidates", "POST", {
-    issue_id: issueId, student_ids: students.slice(0, 10)
+    class_id: TeacherUI.currentClassId, issue_id: issueId, student_ids: students.slice(0, 10)
   }).then(function(data) {
     var candidates = data.candidates || data || [];
     var html = '<div class="drawer-detail"><h3 style="margin:0 0 12px;color:#e2e8f0">Intervention Candidates (' + candidates.length + ')</h3>';
@@ -588,17 +592,35 @@ TeacherUI.generateCandidates = function() {
 TeacherUI.loadInsights = function() {
   var c = document.getElementById("tw-insights");
   if (!c) return;
-  c.innerHTML = '<div class="muted" style="padding:20px">Loading insights...</div>';
-  var insightUrl = "/api/graph/job";
-  if (TeacherUI.currentClassId) insightUrl += (insightUrl.includes("?") ? "&" : "?") + "class_id=" + TeacherUI.currentClassId;
-  TeacherUI.fetchAuth(insightUrl, "GET").then(function(data) {
-    var nodes = data.nodes || [];
-    c.innerHTML = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 4px">Job Ability Graph</h3><p style="color:#94a3b8;margin:0">' + nodes.length + ' ability nodes</p><div id="teacherJobGraphDiagram" style="width:100%;height:300px"></div></div>';
-    if (typeof renderGraphDiagram === "function" && nodes.length) {
-      setTimeout(function() { renderGraphDiagram(data, "teacherJobGraphDiagram"); }, 200);
+  if (!TeacherUI.currentClassId) {
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Please create a class first.</div>';
+    return;
+  }
+  c.innerHTML = '<div class="muted" style="padding:20px">Loading class insights...</div>';
+  var cid = TeacherUI.currentClassId;
+  Promise.all([
+    TeacherUI.fetchAuth("/api/teacher/class/overview?class_id=" + cid, "GET"),
+    TeacherUI.fetchAuth("/api/teacher/class/ability-graph?class_id=" + cid, "GET"),
+    TeacherUI.fetchAuth("/api/teacher/class/common-issues?class_id=" + cid, "GET")
+  ]).then(function(results) {
+    var overview = results[0] || {};
+    var graph = results[1] || { nodes: [] };
+    var issues = results[2] || { issues: [] };
+    var issueList = issues.issues || [];
+    var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 8px">Class Insights</h3>';
+    html += '<div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap">';
+    html += '<span class="badge">Students: ' + (overview.total_students || 0) + '</span>';
+    html += '<span class="badge">With evidence: ' + (overview.has_data ? overview.total_students : 0) + '</span>';
+    html += '<span class="badge">Common issues: ' + issueList.length + '</span>';
+    html += '</div>';
+    html += '<div id="teacherClassGraphDiagram" style="width:100%;height:300px"></div>';
+    html += '</div>';
+    c.innerHTML = html;
+    if (typeof renderGraphDiagram === "function" && (graph.nodes || []).length) {
+      setTimeout(function() { renderGraphDiagram(graph, "teacherClassGraphDiagram"); }, 200);
     }
   }).catch(function() {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No insight data available.</div>';
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Failed to load class insights.</div>';
   });
 };
 
@@ -612,11 +634,15 @@ TeacherUI.loadStudents = function() {
   var listPane = document.getElementById("teacherStudentListPane");
   listPane.innerHTML = '<div class="muted" style="padding:20px">Loading student list...</div>';
 
-  TeacherUI.fetchAuth("/api/teacher/students", "POST", {}).then(function(data) {
-    var students = data.students || data || [];
+  if (!TeacherUI.currentClassId) {
+    listPane.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Please select a class first.</div>';
+    return;
+  }
+  TeacherUI.fetchAuth("/api/teacher/classes/" + TeacherUI.currentClassId + "/students", "GET").then(function(data) {
+    var students = data.students || [];
     if (!Array.isArray(students)) students = [];
     if (!students.length) {
-      listPane.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No student data.</div>';
+      listPane.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No students in this class.</div>';
       return;
     }
     var html = '<div class="student-list" style="overflow-y:auto;max-height:calc(100vh - 200px)">';
@@ -650,10 +676,10 @@ TeacherUI.lookupStudent = function(studentId) {
   }
   detailPane.style.display = "block";
   detailPane.innerHTML = '<div style="padding:20px">Loading student detail...</div>';
-  var jobId = localStorage.getItem("mcp_job_id") || "";
-  TeacherUI.fetchAuth("/api/teacher/students/detail", "POST", {
-    student_id: studentId, job_role: jobId
-  }).then(function(data) {
+  var jobId = TeacherUI.currentClass ? TeacherUI.currentClass.job_role : "";
+  var detailUrl = "/api/teacher/students/" + studentId;
+  if (TeacherUI.currentClassId) detailUrl += "?class_id=" + TeacherUI.currentClassId;
+  TeacherUI.fetchAuth(detailUrl, "GET").then(function(data) {
     if (data.error) {
       detailPane.innerHTML = '<div style="padding:20px;color:#f87171">No data for student ' + studentId + '</div>';
       return;
@@ -702,7 +728,7 @@ TeacherUI.loadStandards = function() {
   var c = document.getElementById("tw-standards");
   if (!c) return;
   c.innerHTML = '<div class="muted" style="padding:20px">Loading standards...</div>';
-  var jobId = localStorage.getItem("mcp_job_id") || "";
+  var jobId = TeacherUI.currentClass ? TeacherUI.currentClass.job_role : "";
   TeacherUI.fetchAuth("/api/graph/job" + (jobId ? "?job_role=" + encodeURIComponent(jobId) : ""), "GET").then(function(data) {
     var nodes = data.nodes || [];
     var proposals = data.pending_proposals || [];
@@ -745,7 +771,7 @@ TeacherUI.sendCopilotMessage = function() {
   TeacherUI.renderMessages();
 
   var token = localStorage.getItem("mcp_auth_token") || "";
-  var jobRole = localStorage.getItem("mcp_job_id") || "";
+  var jobRole = TeacherUI.currentClass ? TeacherUI.currentClass.job_role : "";
   var payload = { message: msg, job_role: jobRole };
   if (TeacherUI.currentClassId) payload.class_id = TeacherUI.currentClassId;
   fetch("/api/teacher/assistant/message", {
