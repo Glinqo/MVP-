@@ -243,7 +243,7 @@ TeacherUI.renderStudentManageList = function() {
   var html = "";
   var inClass = 0;
   var selectedSet = new Set(TeacherUI._selectedStudents);
-  TeacherUI._allstudents.forEach(function(s) {
+  TeacherUI._allStudents.forEach(function(s) {
     var sid = String(s.username || "");
     var name = TeacherUI.escHtml(String(s.nickname || sid));
     var checked = selectedSet.has(sid) ? " checked" : "";
@@ -333,7 +333,7 @@ TeacherUI.parseBatchInput = function() {
   var tokens = raw.split(/[\s,，;；]+/).filter(function(t) { return t.trim(); });
   var resultEl = document.getElementById("batchParseResult");
   var known = {};
-  TeacherUI._allstudents.forEach(function(s) { known[String(s.username)] = true; });
+  TeacherUI._allStudents.forEach(function(s) { known[String(s.username)] = true; });
   var found = [], notFound = [];
   tokens.forEach(function(t) {
     var uname = t.trim();
