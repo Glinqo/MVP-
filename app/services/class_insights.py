@@ -339,10 +339,33 @@ def get_class_overview(job_role=None, class_id=None, teacher_id=None):
     except Exception:
         common_issues = []
 
+    # P10: Compute weakest abilities and risk distribution
+    weakest_abilities = []
+    for n in graph.get("nodes", []):
+        stats = n.get("class_stats", {})
+        mean_mastery = stats.get("mean_mastery")
+        weak_ratio = stats.get("weak_ratio", 0)
+        if mean_mastery is not None and weak_ratio > 0:
+            weakest_abilities.append({
+                "ability_id": n.get("id", ""),
+                "label": n.get("label", n.get("name", "")),
+                "mean_mastery": round(mean_mastery, 2),
+                "weak_student_count": stats.get("weak_count", 0),
+                "weak_ratio": round(weak_ratio, 2),
+            })
+    weakest_abilities.sort(key=lambda a: a["mean_mastery"])[:5]
+
+    risk_distribution = {"high": 0, "attention": 0, "normal": 0}
+    # Use weak_node_count as proxy for risk counts
+    risk_distribution["attention"] = len(weak_nodes)
+
     return {
         "job_role": jr,
         "total_students": student_count,
         "assessed_students": student_count,
+        "evidence_coverage": round(min(1.0, len(sessions) / max(1, student_count)), 2),
+        "weakest_abilities": weakest_abilities[:5],
+        "risk_distribution": risk_distribution,
         "weak_node_count": len(weak_nodes),
         "common_issue_count": len(common_issues),
         "high_priority_issues": len([i for i in common_issues if i["priority"] > 0.5]),
