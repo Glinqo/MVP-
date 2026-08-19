@@ -63,6 +63,16 @@ from app.services.teacher_students import list_teacher_students, get_teacher_stu
 from app.services.class_insights import get_class_ability_graph, get_common_issues, get_class_overview  # noqa: E402
 from app.services.teacher_comments import list_comments, get_comment, save_comment, review_comment, publish_comment, generate_comment, generate_comments_batch, review_comments_batch, publish_comments_batch, get_student_published_comments  # noqa: E402
 from app.services.teacher_ai import handle_teacher_message  # noqa: E402
+from app.services.class_management import (  # noqa: E402
+    add_students,
+    create_class,
+    get_available_students,
+    get_class,
+    get_class_students,
+    list_classes,
+    remove_students,
+    update_class,
+)
 from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
 from app.services.transfer_engine import suggest_transfer_tasks  # noqa: E402
 
@@ -344,6 +354,59 @@ class MVPHandler(BaseHTTPRequestHandler):
                 job_role=query.get("job_role", [None])[0],
             ))
 
+        if path == "/api/teacher/classes":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            return self.send_json({"classes": list_classes(user["id"])})
+
+        if path.startswith("/api/teacher/classes/") and path.endswith("/students"):
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            # /api/teacher/classes/{class_id}/students
+            class_id_str = path[len("/api/teacher/classes/"):-len("/students")]
+            try:
+                class_id = int(class_id_str)
+            except ValueError:
+                return self.send_error_json(400, "非法的 class_id")
+            result = get_class_students(class_id, user["id"])
+            if result is None:
+                return self.send_error_json(404, "班级不存在")
+            return self.send_json(result)
+
+        if path.startswith("/api/teacher/classes/") and "/students" not in path:
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            class_id_str = path[len("/api/teacher/classes/"):]
+            try:
+                class_id = int(class_id_str)
+            except ValueError:
+                return self.send_error_json(400, "非法的 class_id")
+            result = get_class(class_id, user["id"])
+            if result is None:
+                return self.send_error_json(404, "班级不存在")
+            return self.send_json(result)
+
+        if path == "/api/teacher/students/available":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            query = parse_qs(parsed.query)
+            class_id_str = query.get("class_id", [None])[0]
+            try:
+                class_id = int(class_id_str) if class_id_str else 0
+            except ValueError:
+                return self.send_error_json(400, "非法的 class_id")
+            if not class_id:
+                return self.send_error_json(400, "class_id is required")
+            return self.send_json(get_available_students(
+                class_id,
+                user["id"],
+                search=query.get("search", [None])[0],
+            ))
+
         if path == "/api/teacher/students":
             user = find_authed_user(self)
             if not user or not teacher_required(user):
@@ -525,7 +588,85 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(list_conversation_sessions(job_role=job_role))
                 job_role = query_params.get("job_role", [None])[0]
                 return self.send_json(list_conversation_sessions(job_role=job_role))
-            # ---- Teacher student selection (management flow) ----
+            # ---- Teacher class management ----
+            if path == "/api/teacher/classes":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                result = create_class(
+                    teacher_id=user["id"],
+                    name=payload.get("name", ""),
+                    job_role=payload.get("job_role", ""),
+                    term=payload.get("term", ""),
+                )
+                if not result.get("ok"):
+                    code = result.get("code", "")
+                    status = 400 if code == "INVALID_INPUT" else 500
+                    return self.send_error_json(status, result.get("error", "创建班级失败"))
+                return self.send_json(result)
+
+            if path.startswith("/api/teacher/classes/") and path.endswith("/update"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                class_id_str = path[len("/api/teacher/classes/"):-len("/update")]
+                try:
+                    class_id = int(class_id_str)
+                except ValueError:
+                    return self.send_error_json(400, "非法的 class_id")
+                result = update_class(
+                    class_id=class_id,
+                    teacher_id=user["id"],
+                    name=payload.get("name"),
+                    job_role=payload.get("job_role"),
+                    term=payload.get("term"),
+                    status=payload.get("status"),
+                )
+                if not result.get("ok"):
+                    code = result.get("code", "")
+                    status = 404 if code == "NOT_FOUND" else (400 if code == "INVALID_INPUT" else 500)
+                    return self.send_error_json(status, result.get("error", "更新班级失败"))
+                return self.send_json(result)
+
+            if path.startswith("/api/teacher/classes/") and path.endswith("/students/remove"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                class_id_str = path[len("/api/teacher/classes/"):-len("/students/remove")]
+                try:
+                    class_id = int(class_id_str)
+                except ValueError:
+                    return self.send_error_json(400, "非法的 class_id")
+                result = remove_students(
+                    class_id=class_id,
+                    teacher_id=user["id"],
+                    student_usernames=payload.get("student_usernames", []),
+                )
+                if not result.get("ok"):
+                    status = 404 if result.get("code") == "NOT_FOUND" else 500
+                    return self.send_error_json(status, result.get("error", "移除学生失败"))
+                return self.send_json(result)
+
+            if path.startswith("/api/teacher/classes/") and path.endswith("/students"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                class_id_str = path[len("/api/teacher/classes/"):-len("/students")]
+                try:
+                    class_id = int(class_id_str)
+                except ValueError:
+                    return self.send_error_json(400, "非法的 class_id")
+                result = add_students(
+                    class_id=class_id,
+                    teacher_id=user["id"],
+                    student_usernames=payload.get("student_usernames", []),
+                )
+                if not result.get("ok"):
+                    status = 404 if result.get("code") == "NOT_FOUND" else 500
+                    return self.send_error_json(status, result.get("error", "添加学生失败"))
+                return self.send_json(result)
+
+            # ---- Teacher student selection (deprecated, compatibility) ----
             if path == "/api/teacher/selected-students":
                 return self.send_json(save_teacher_student_selection(
                     payload.get("username", ""),
