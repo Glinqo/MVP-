@@ -1505,9 +1505,9 @@ body[data-role="student"] .role-teacher { display: none !important; }
 /* Teacher: Copilot (left 34%) + Decision Workspace (right 66%) */
 /* Unified layout: teacher uses the same full chat layout as students */
 .teacher-layout { display: none !important; }
-body[data-role="teacher"] .teacher-layout { display: none !important; }
+body[data-role="teacher"] .teacher-layout { display: flex !important; }
 body[data-role="student"] .teacher-layout { display: none !important; }
-body[data-role="teacher"] .student-layout { display: grid; }
+body[data-role="teacher"] .student-layout { display: none !important; }
 body[data-role="teacher"] .launcher-panel.role-student { display: none !important; }
 body[data-role="teacher"] .launcher-panel.role-teacher { display: block !important; }
 body[data-role="teacher"] .workspace-tabs .role-student { display: none; }
