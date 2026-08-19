@@ -3707,10 +3707,24 @@ async function doLogin() {
       }, 400);
       return;
     }
-    // TF-1.8: Server decides role; no more user identity selection
+    // P9.1 Fix: Teacher goes directly to workspace, no job selection
     var serverRole = (data.user && data.user.role) || "student";
     localStorage.setItem(userKey("mcp_identity"), serverRole);
     localStorage.setItem("mcp_identity", serverRole);
+    if (serverRole === "teacher") {
+      // Teacher: skip job selection, go straight to teacher workspace
+      var overlay = document.getElementById("landingOverlay");
+      if (overlay) {
+        overlay.classList.add("fade-out");
+        setTimeout(function() {
+          overlay.style.display = "none";
+          document.body.style.overflow = "";
+          bootstrapApplication();
+        }, 400);
+      }
+      return;
+    }
+    // Student: show job selection
     var loginStepEl = document.getElementById("landingStepLogin");
     var jobStepEl = document.getElementById("landingStepJob");
     if (loginStepEl) loginStepEl.classList.remove("active");
