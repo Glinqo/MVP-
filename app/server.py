@@ -288,6 +288,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(teacher_summary())
 
         if path == "/api/graph/job/proposals/pending":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
             job_role = parse_qs(parsed.query).get("job_role", [None])[0]
             from scripts.pipeline.evidence_store import get_pending_proposals
             return self.send_json({"proposals": get_pending_proposals(job_role)})
@@ -557,10 +560,16 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(list_scenarios(job_role=job_role))
 
         if path == "/api/graph/job/versions":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
             job_role = parse_qs(parsed.query).get("job_role", [None])[0]
             return self.send_json({"versions": list_snapshots(job_role)})
 
         if path == "/api/graph/job/versions/diff":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
             v1 = parse_qs(parsed.query).get("v1", [""])[0]
             v2 = parse_qs(parsed.query).get("v2", [""])[0]
             job_role = parse_qs(parsed.query).get("job_role", [None])[0]

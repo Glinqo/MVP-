@@ -789,7 +789,7 @@ TeacherUI.loadFeedback = function() {
         var status = TeacherUI.escHtml(String(cm.status || "draft"));
         var content = TeacherUI.escHtml(String(cm.content || cm.ai_draft || "").slice(0, 80));
         var evidenceCount = 0;
-        try { evidenceCount = (JSON.parse(cm.evidence_json || "[]")).length; } catch(e) {}
+        evidenceCount = (cm.evidence || []).length;
         html += '<div class="comment-card" style="padding:12px;border:1px solid #334155;border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="TeacherUI.openCommentDetail(' + cm.id + ')">';
         html += '<div style="font-weight:600;color:#e2e8f0">Student ' + sid + ' <span class="badge">' + status + '</span></div>';
         html += '<div style="color:#94a3b8;margin-top:4px">' + content + '</div>';
@@ -814,7 +814,7 @@ TeacherUI.openCommentDetail = function(commentId) {
   if (!c) return;
   TeacherUI.fetchAuth("/api/teacher/comments/" + commentId, "GET").then(function(cm) {
     var evidence = [];
-    try { evidence = JSON.parse(cm.evidence_json || "[]"); } catch(e) {}
+    evidence = cm.evidence || [];
     var html = '<div style="padding:16px"><button class="btn-secondary" style="margin-bottom:8px" onclick="TeacherUI.loadFeedback()">返回列表</button>';
     html += '<h3 style="color:#e2e8f0;margin:0 0 8px">评语详情</h3>';
     html += '<div class="detail-row"><span>学生： ' + TeacherUI.escHtml(String(cm.student_id || "")) + '</span></div>';
