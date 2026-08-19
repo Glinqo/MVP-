@@ -330,9 +330,12 @@ class MVPHandler(BaseHTTPRequestHandler):
             if not user or not teacher_required(user):
                 return self.send_error_json(403, "需要教师权限")
             query = parse_qs(parsed.query)
+            class_id = query.get("class_id", [None])[0]
             return self.send_json(get_class_ability_graph(
                 job_role=query.get("job_role", [None])[0],
                 ability_id=query.get("ability_id", [None])[0],
+                class_id=int(class_id) if class_id else None,
+                teacher_id=user["id"] if class_id else None,
             ))
 
         if path == "/api/teacher/class/common-issues":
@@ -340,9 +343,12 @@ class MVPHandler(BaseHTTPRequestHandler):
             if not user or not teacher_required(user):
                 return self.send_error_json(403, "需要教师权限")
             query = parse_qs(parsed.query)
+            class_id = query.get("class_id", [None])[0]
             return self.send_json({"issues": get_common_issues(
                 job_role=query.get("job_role", [None])[0],
                 ability_id=query.get("ability_id", [None])[0],
+                class_id=int(class_id) if class_id else None,
+                teacher_id=user["id"] if class_id else None,
             )})
 
         if path == "/api/teacher/class/overview":
@@ -350,8 +356,11 @@ class MVPHandler(BaseHTTPRequestHandler):
             if not user or not teacher_required(user):
                 return self.send_error_json(403, "需要教师权限")
             query = parse_qs(parsed.query)
+            class_id = query.get("class_id", [None])[0]
             return self.send_json(get_class_overview(
                 job_role=query.get("job_role", [None])[0],
+                class_id=int(class_id) if class_id else None,
+                teacher_id=user["id"] if class_id else None,
             ))
 
         if path == "/api/teacher/classes":
