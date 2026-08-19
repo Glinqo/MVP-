@@ -113,7 +113,42 @@ def discover_issues(job_role: str = "", student_states: List[Dict] = None,
         except Exception:
             pass
     issues = engine.discover_from_states(student_states or [], patterns or [])
-    return [i.to_dict() for i in issues]
+
+    # P10.2-A: Enrich each issue with evidence summary and top patterns
+    enriched = []
+    for issue in issues:
+        d = issue.to_dict()
+        affected = d.get("affected_students", []) or []
+        # Aggregate patterns for affected students
+        pattern_counts = {}
+        pattern_students = {}
+        total_events = 0
+        for sid in affected:
+            student_patterns = get_student_patterns(sid, limit=50)
+            total_events += len(get_events(sid, limit=100))
+            for p in student_patterns:
+                pid = p.get("pattern_id") or p.get("pattern_name") or p.get("name") or p.get("type") or "unknown"
+                label = p.get("label") or p.get("pattern_name") or p.get("name") or str(pid)
+                pattern_counts[label] = pattern_counts.get(label, 0) + 1
+                if label not in pattern_students:
+                    pattern_students[label] = set()
+                pattern_students[label].add(sid)
+        # Build top_patterns
+        top_patterns = []
+        for label, count in sorted(pattern_counts.items(), key=lambda x: -x[1])[:3]:
+            top_patterns.append({
+                "label": label,
+                "count": count,
+                "student_count": len(pattern_students.get(label, set())),
+            })
+        d["evidence_summary"] = {
+            "student_count": len(affected),
+            "event_count": total_events,
+            "pattern_count": sum(pattern_counts.values()),
+        }
+        d["top_patterns"] = top_patterns
+        enriched.append(d)
+    return enriched
 
 def get_issue(issue_id: str) -> Dict[str, Any]:
     issues = discover_issues()

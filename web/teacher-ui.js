@@ -522,6 +522,21 @@ TeacherUI.renderIssueDetail = function(issue, drawer) {
     html += '</span></div>';
   }
 
+  var evidence = issue.evidence_summary || {};
+  var topPatterns = issue.top_patterns || [];
+  html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
+  html += '<div class="detail-row"><strong>Why this issue?</strong></div>';
+  html += '<div class="detail-row">Students: ' + (evidence.student_count || affected.length || 0) + '</div>';
+  html += '<div class="detail-row">Learning events: ' + (evidence.event_count || 0) + '</div>';
+  html += '<div class="detail-row">Diagnostic patterns: ' + (evidence.pattern_count || 0) + '</div>';
+  if (topPatterns.length) {
+    html += '<div class="detail-row" style="margin-top:8px"><strong>Typical patterns</strong></div>';
+    topPatterns.forEach(function(p) {
+      html += '<div class="detail-row" style="color:#fbbf24">- ' + TeacherUI.escHtml(p.label || "unknown") + ' x' + p.count + ' · ' + p.student_count + ' students</div>';
+    });
+  } else {
+    html += '<div class="detail-row" style="color:#94a3b8">No repeated pattern evidence yet.</div>';
+  }
   html += '<div style="margin-top:16px;display:flex;gap:8px">';
   html += '<button class="btn-primary" onclick="TeacherUI.generateCandidates()">Generate Intervention Candidates</button>';
   html += '</div>';
@@ -743,22 +758,106 @@ TeacherUI.lookupStudent = function(studentId) {
 // ============================================================
 // Tab: Feedback
 // ============================================================
+TeacherUI._commentFilter = "all";
+
 TeacherUI.loadFeedback = function() {
   var c = document.getElementById("tw-feedback");
   if (!c) return;
+  if (!TeacherUI.currentClassId) {
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Please select a class first.</div>';
+    return;
+  }
   c.innerHTML = '<div class="muted" style="padding:20px">Loading feedback...</div>';
-  TeacherUI.fetchAuth("/api/teacher/comments", "GET").then(function(data) {
+  var url = "/api/teacher/comments?class_id=" + TeacherUI.currentClassId;
+  if (TeacherUI._commentFilter !== "all") url += "&status=" + TeacherUI._commentFilter;
+  TeacherUI.fetchAuth(url, "GET").then(function(data) {
     var stats = data.stats || {};
+    var comments = data.comments || [];
     var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 12px">Teaching Feedback</h3>';
-    html += '<div style="display:flex;gap:12px;margin-bottom:12px">';
-    html += '<span class="badge">Draft: ' + (stats.draft || 0) + '</span>';
-    html += '<span class="badge">Reviewed: ' + (stats.reviewed || 0) + '</span>';
-    html += '<span class="badge">Published: ' + (stats.published || 0) + '</span>';
+    html += '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
+    var filters = [["all", "All"], ["draft", "Draft"], ["reviewed", "Reviewed"], ["published", "Published"]];
+    filters.forEach(function(f) {
+      var active = TeacherUI._commentFilter === f[0] ? "background:#14b8a6;color:#fff" : "background:rgba(255,255,255,0.08)";
+      html += '<button style="padding:6px 12px;border-radius:6px;border:none;cursor:pointer;' + active + '" onclick="TeacherUI.setCommentFilter(\'' + f[0] + '\')">' + f[1] + ' (' + (stats[f[0]] || comments.length) + ')</button>';
+    });
+    html += '</div>';
+    if (!comments.length) {
+      html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No comments found.</div>';
+    } else {
+      comments.forEach(function(cm) {
+        var sid = TeacherUI.escHtml(String(cm.student_id || ""));
+        var status = TeacherUI.escHtml(String(cm.status || "draft"));
+        var content = TeacherUI.escHtml(String(cm.content || cm.ai_draft || "").slice(0, 80));
+        var evidenceCount = 0;
+        try { evidenceCount = (JSON.parse(cm.evidence_json || "[]")).length; } catch(e) {}
+        html += '<div class="comment-card" style="padding:12px;border:1px solid #334155;border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="TeacherUI.openCommentDetail(' + cm.id + ')">';
+        html += '<div style="font-weight:600;color:#e2e8f0">Student ' + sid + ' <span class="badge">' + status + '</span></div>';
+        html += '<div style="color:#94a3b8;margin-top:4px">' + content + '</div>';
+        html += '<div style="color:#64748b;font-size:0.8rem;margin-top:4px">' + evidenceCount + ' evidence items</div>';
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+    c.innerHTML = html;
+  }).catch(function() {
+    c.innerHTML = '<div style="padding:20px;color:rgba(255,255,255,0.4)">Failed to load comments.</div>';
+  });
+};
+
+TeacherUI.setCommentFilter = function(filter) {
+  TeacherUI._commentFilter = filter;
+  TeacherUI.loadFeedback();
+};
+
+TeacherUI.openCommentDetail = function(commentId) {
+  var c = document.getElementById("tw-feedback");
+  if (!c) return;
+  TeacherUI.fetchAuth("/api/teacher/comments/" + commentId, "GET").then(function(cm) {
+    var evidence = [];
+    try { evidence = JSON.parse(cm.evidence_json || "[]"); } catch(e) {}
+    var html = '<div style="padding:16px"><button class="btn-secondary" style="margin-bottom:8px" onclick="TeacherUI.loadFeedback()">Back to list</button>';
+    html += '<h3 style="color:#e2e8f0;margin:0 0 8px">Comment Detail</h3>';
+    html += '<div class="detail-row"><span>Student: ' + TeacherUI.escHtml(String(cm.student_id || "")) + '</span></div>';
+    html += '<div class="detail-row"><span>Status: <strong>' + TeacherUI.escHtml(String(cm.status || "draft")) + '</strong></span></div>';
+    if (cm.period_start) html += '<div class="detail-row"><span>Period: ' + cm.period_start + ' ~ ' + (cm.period_end || "") + '</span></div>';
+    if (cm.ai_draft) html += '<div class="detail-row" style="margin-top:8px"><strong>AI Draft</strong><p style="color:#94a3b8">' + TeacherUI.escHtml(cm.ai_draft) + '</p></div>';
+    html += '<div class="detail-row"><strong>Content</strong><p style="color:#cbd5e1">' + TeacherUI.escHtml(cm.content || "") + '</p></div>';
+    if (evidence.length) {
+      html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
+      html += '<div class="detail-row"><strong>Evidence</strong></div>';
+      evidence.forEach(function(ev) {
+        var label = typeof ev === "string" ? ev : (ev.label || ev.type || JSON.stringify(ev));
+        html += '<div class="detail-row" style="color:#94a3b8">- ' + TeacherUI.escHtml(label) + '</div>';
+      });
+    }
+    html += '<div style="display:flex;gap:8px;margin-top:16px">';
+    if (cm.status === "draft") {
+      html += '<button class="btn-primary" onclick="TeacherUI.reviewComment(' + commentId + ')">Review</button>';
+    }
+    if (cm.status === "reviewed") {
+      html += '<button class="btn-primary" onclick="TeacherUI.publishComment(' + commentId + ')">Publish</button>';
+    }
     html += '</div>';
     html += '</div>';
     c.innerHTML = html;
   }).catch(function() {
-    c.innerHTML = '<div style="padding:20px;color:rgba(255,255,255,0.4)">No feedback data.</div>';
+    c.innerHTML = '<div style="padding:20px;color:#f87171">Failed to load comment.</div>';
+  });
+};
+
+TeacherUI.reviewComment = function(commentId) {
+  TeacherUI.fetchAuth("/api/teacher/comments/" + commentId + "/review", "POST", {}).then(function() {
+    TeacherUI.openCommentDetail(commentId);
+  }).catch(function(e) {
+    alert("Review failed: " + e.message);
+  });
+};
+
+TeacherUI.publishComment = function(commentId) {
+  TeacherUI.fetchAuth("/api/teacher/comments/" + commentId + "/publish", "POST", {}).then(function() {
+    TeacherUI.openCommentDetail(commentId);
+  }).catch(function(e) {
+    alert("Publish failed: " + e.message);
   });
 };
 
