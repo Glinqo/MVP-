@@ -391,6 +391,17 @@
       </div>
       <!-- Right: Decision Workspace -->
       <div class="teacher-workspace">
+        <!-- Class selector bar (TF-6D P2) -->
+        <div class="teacher-class-bar">
+          <div class="class-bar-info">
+            <span id="teacherClassLabel">未选择班级</span>
+            <span id="teacherClassMeta" class="class-bar-meta"></span>
+          </div>
+          <div class="class-bar-actions">
+            <button id="manageClassBtn" class="btn-secondary" style="display:none">管理学生</button>
+            <button id="createClassBtn" class="btn-primary">创建班级</button>
+          </div>
+        </div>
         <nav class="teacher-nav">
           <button class="teacher-nav-tab active" data-tab="today">今日教学</button>
           <button class="teacher-nav-tab" data-tab="insights">班级洞察</button>
@@ -420,6 +431,76 @@
       <button class="issue-drawer-close">&times;</button>
       <div class="issue-drawer-title"></div>
       <div class="issue-drawer-content"></div>
+    </div>
+
+    <!-- Create Class Modal (TF-6D P2) -->
+    <div id="createClassModal" class="modal-overlay" style="display:none">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>创建班级</h3>
+          <button class="modal-close" onclick="TeacherUI.closeCreateClass()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-field">
+            <label>班级名称</label>
+            <input type="text" id="newClassName" placeholder="例如：机电2401班" />
+          </div>
+          <div class="form-field">
+            <label>目标岗位</label>
+            <select id="newClassJobRole">
+              <option value="automation_line_commissioning_maintenance_newcomer">自动化生产线装调与运维技术员</option>
+              <option value="mechanical_electrical_maintenance_worker">机电设备维修工</option>
+              <option value="automation_equipment_debugger">自动化设备调试员</option>
+              <option value="industrial_robot_maintenance">工业机器人系统运维员</option>
+              <option value="plc_electrical_control_technician">PLC电气控制技术员</option>
+              <option value="sensor_industrial_network_debugger">传感器与工业网络调试员</option>
+              <option value="servo_step_drive_debugger">伺服/步进驱动调试员</option>
+              <option value="cnc_maintenance_worker">数控设备维护工</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>学期（可选）</label>
+            <input type="text" id="newClassTerm" placeholder="例如：2026秋" />
+          </div>
+          <div id="createClassError" class="modal-error" style="display:none"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="TeacherUI.closeCreateClass()">取消</button>
+          <button class="btn-primary" onclick="TeacherUI.submitCreateClass()">创建班级</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Students Modal (TF-6D P3) -->
+    <div id="manageStudentsModal" class="modal-overlay" style="display:none">
+      <div class="modal-card modal-wide">
+        <div class="modal-header">
+          <h3>管理学生 · <span id="manageClassTitle"></span></h3>
+          <button class="modal-close" onclick="TeacherUI.closeManageStudents()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="student-manage-toolbar">
+            <input type="text" id="studentSearchInput" placeholder="搜索姓名或学号" oninput="TeacherUI.filterStudents()" />
+            <button class="btn-secondary" onclick="TeacherUI.showBatchInput()">批量添加学号</button>
+            <span id="studentFilterStatus" class="filter-status"></span>
+          </div>
+          <div class="student-manage-list" id="studentManageList"></div>
+          <div id="batchInputArea" style="display:none;margin-top:12px">
+            <textarea id="batchStudentIds" rows="4" placeholder="支持换行、逗号、空格分隔&#10;001&#10;002&#10;003"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn-secondary" onclick="TeacherUI.parseBatchInput()">解析名单</button>
+              <button class="btn-secondary" onclick="TeacherUI.hideBatchInput()">取消</button>
+            </div>
+            <div id="batchParseResult" style="margin-top:8px"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <span id="studentSelectionCount" style="margin-right:auto">已选择 0 人</span>
+          <button class="btn-secondary" onclick="TeacherUI.closeManageStudents()">取消</button>
+          <button class="btn-danger" onclick="TeacherUI.removeSelectedStudents()">移除选中</button>
+          <button class="btn-primary" onclick="TeacherUI.addSelectedStudents()">加入班级</button>
+        </div>
+      </div>
     </div>
 
     <main class="chat-layout student-layout">

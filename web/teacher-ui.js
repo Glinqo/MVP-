@@ -1,5 +1,17 @@
 ﻿// === teacher-ui.js - Teacher Decision Workspace (TF-6C Runtime Closure) ===
-var TeacherUI = { currentTab: "today", currentIssueId: null, messages: [], _navInitialized: false, _issuesCache: null };
+var TeacherUI = {
+  currentTab: "today",
+  currentIssueId: null,
+  messages: [],
+  _navInitialized: false,
+  _issuesCache: null,
+  currentClassId: null,
+  currentClass: null,
+  _classes: [],
+  _selectedStudents: [],
+  _batchParsedStudents: [],
+  _allStudents: []
+};
 
 // ---- Safe HTML escape ----
 TeacherUI.escHtml = function(text) {
@@ -29,11 +41,271 @@ TeacherUI.fetchAuth = function(url, method, body) {
 };
 
 // ============================================================
+// Class Management (TF-6D P2)
+// ============================================================
+TeacherUI.loadClasses = function() {
+  TeacherUI.fetchAuth("/api/teacher/classes", "GET").then(function(data) {
+    var classes = data.classes || [];
+    TeacherUI._classes = classes;
+    var savedClassId = parseInt(localStorage.getItem("mcp_teacher_class_id") || "0", 10);
+    var selected = null;
+    if (savedClassId) {
+      for (var i = 0; i < classes.length; i++) {
+        if (classes[i].id === savedClassId) { selected = classes[i]; break; }
+      }
+    }
+    if (!selected && classes.length > 0) {
+      selected = classes[0];
+      localStorage.setItem("mcp_teacher_class_id", String(selected.id));
+    }
+    TeacherUI.setCurrentClass(selected);
+  }).catch(function(e) {
+    console.warn("Load classes failed:", e.message);
+    TeacherUI.setCurrentClass(null);
+  });
+};
+
+TeacherUI.setCurrentClass = function(cls) {
+  TeacherUI.currentClass = cls;
+  TeacherUI.currentClassId = cls ? cls.id : null;
+  var labelEl = document.getElementById("teacherClassLabel");
+  var metaEl = document.getElementById("teacherClassMeta");
+  var manageBtn = document.getElementById("manageClassBtn");
+  if (cls) {
+    if (labelEl) labelEl.textContent = cls.name;
+    if (metaEl) metaEl.textContent = (cls.student_count || 0) + " students" + (cls.job_role ? " · " + cls.job_role : "");
+    if (manageBtn) manageBtn.style.display = "";
+    localStorage.setItem("mcp_teacher_class_id", String(cls.id));
+  } else {
+    if (labelEl) labelEl.textContent = "No class selected";
+    if (metaEl) metaEl.textContent = "";
+    if (manageBtn) manageBtn.style.display = "none";
+  }
+  if (TeacherUI.currentTab) TeacherUI.switchTab(TeacherUI.currentTab);
+};
+
+TeacherUI.openCreateClass = function() {
+  var modal = document.getElementById("createClassModal");
+  if (modal) modal.style.display = "flex";
+  var nameEl = document.getElementById("newClassName");
+  var termEl = document.getElementById("newClassTerm");
+  var errEl = document.getElementById("createClassError");
+  if (nameEl) nameEl.value = "";
+  if (termEl) termEl.value = "";
+  if (errEl) errEl.style.display = "none";
+};
+
+TeacherUI.closeCreateClass = function() {
+  var modal = document.getElementById("createClassModal");
+  if (modal) modal.style.display = "none";
+};
+
+TeacherUI.submitCreateClass = function() {
+  var nameEl = document.getElementById("newClassName");
+  var jobEl = document.getElementById("newClassJobRole");
+  var termEl = document.getElementById("newClassTerm");
+  var errEl = document.getElementById("createClassError");
+  var name = nameEl ? nameEl.value.trim() : "";
+  var jobRole = jobEl ? jobEl.value : "";
+  var term = termEl ? termEl.value.trim() : "";
+  if (!name) {
+    if (errEl) { errEl.textContent = "Please enter class name"; errEl.style.display = "block"; }
+    return;
+  }
+  TeacherUI.fetchAuth("/api/teacher/classes", "POST", {
+    name: name, job_role: jobRole, term: term
+  }).then(function(data) {
+    if (data.ok && data.class) {
+      TeacherUI.closeCreateClass();
+      TeacherUI._classes.push(data.class);
+      TeacherUI.setCurrentClass(data.class);
+    } else {
+      if (errEl) { errEl.textContent = data.error || "Create failed"; errEl.style.display = "block"; }
+    }
+  }).catch(function(e) {
+    if (errEl) { errEl.textContent = "Create failed: " + e.message; errEl.style.display = "block"; }
+  });
+};
+
+// ============================================================
+// Student Management (TF-6D P3)
+// ============================================================
+TeacherUI.openManageStudents = function() {
+  if (!TeacherUI.currentClassId) return;
+  var modal = document.getElementById("manageStudentsModal");
+  if (!modal) return;
+  modal.style.display = "flex";
+  var titleEl = document.getElementById("manageClassTitle");
+  if (titleEl && TeacherUI.currentClass) titleEl.textContent = TeacherUI.currentClass.name;
+  var searchEl = document.getElementById("studentSearchInput");
+  if (searchEl) searchEl.value = "";
+  var batchArea = document.getElementById("batchInputArea");
+  if (batchArea) batchArea.style.display = "none";
+  TeacherUI._selectedStudents = [];
+  TeacherUI.loadAvailableStudents();
+};
+
+TeacherUI.closeManageStudents = function() {
+  var modal = document.getElementById("manageStudentsModal");
+  if (modal) modal.style.display = "none";
+  TeacherUI._selectedStudents = [];
+};
+
+TeacherUI.loadAvailableStudents = function(search) {
+  if (!TeacherUI.currentClassId) return;
+  var url = "/api/teacher/students/available?class_id=" + TeacherUI.currentClassId;
+  if (search) url += "&search=" + encodeURIComponent(search);
+  var listEl = document.getElementById("studentManageList");
+  if (listEl) listEl.innerHTML = '<div class="muted" style="padding:20px">Loading students...</div>';
+  TeacherUI.fetchAuth(url, "GET").then(function(data) {
+    TeacherUI._allStudents = data.students || [];
+    TeacherUI.renderStudentManageList();
+  }).catch(function(e) {
+    if (listEl) listEl.innerHTML = '<div style="padding:20px;color:#f87171">Failed to load students.</div>';
+  });
+};
+
+TeacherUI.renderStudentManageList = function() {
+  var listEl = document.getElementById("studentManageList");
+  if (!listEl) return;
+  var html = "";
+  var inClass = 0;
+  var selectedSet = new Set(TeacherUI._selectedStudents);
+  TeacherUI._allStudents.forEach(function(s) {
+    var sid = String(s.username || "");
+    var name = TeacherUI.escHtml(String(s.nickname || sid));
+    var checked = selectedSet.has(sid) ? " checked" : "";
+    if (s.in_current_class) inClass++;
+    html += '<label class="student-manage-row" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #1e293b;cursor:pointer">';
+    html += '<input type="checkbox" class="student-manage-check" data-username="' + sid + '"' + checked + ' style="width:16px;height:16px">';
+    html += '<span style="flex:1">' + name + ' (' + sid + ')</span>';
+    if (s.in_current_class) html += '<span class="badge badge-in-class">In class</span>';
+    html += '</label>';
+  });
+  if (!TeacherUI._allStudents.length) {
+    html = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No students found.</div>';
+  }
+  listEl.innerHTML = html;
+  var statusEl = document.getElementById("studentFilterStatus");
+  if (statusEl) statusEl.textContent = "Total " + TeacherUI._allStudents.length + ", in class " + inClass;
+  listEl.querySelectorAll(".student-manage-check").forEach(function(cb) {
+    cb.addEventListener("change", function() {
+      var uname = cb.dataset.username;
+      if (cb.checked) {
+        if (!TeacherUI._selectedStudents.includes(uname)) TeacherUI._selectedStudents.push(uname);
+      } else {
+        TeacherUI._selectedStudents = TeacherUI._selectedStudents.filter(function(x) { return x !== uname; });
+      }
+      TeacherUI.updateSelectionCount();
+    });
+  });
+  TeacherUI.updateSelectionCount();
+};
+
+TeacherUI.filterStudents = function() {
+  var q = document.getElementById("studentSearchInput").value.trim();
+  TeacherUI.loadAvailableStudents(q);
+};
+
+TeacherUI.updateSelectionCount = function() {
+  var el = document.getElementById("studentSelectionCount");
+  if (el) el.textContent = "Selected " + TeacherUI._selectedStudents.length + " students";
+};
+
+TeacherUI.addSelectedStudents = function() {
+  if (!TeacherUI._selectedStudents.length) return;
+  TeacherUI.fetchAuth("/api/teacher/classes/" + TeacherUI.currentClassId + "/students", "POST", {
+    student_usernames: TeacherUI._selectedStudents.slice()
+  }).then(function(data) {
+    if (data.ok) {
+      alert("Added " + data.added.length + " students" + (data.already_in_class.length ? ", already in class " + data.already_in_class.length : ""));
+      TeacherUI._selectedStudents = [];
+      TeacherUI.loadAvailableStudents();
+      TeacherUI.loadClasses();
+    }
+  }).catch(function(e) {
+    alert("Add failed: " + e.message);
+  });
+};
+
+TeacherUI.removeSelectedStudents = function() {
+  if (!TeacherUI._selectedStudents.length) return;
+  TeacherUI.fetchAuth("/api/teacher/classes/" + TeacherUI.currentClassId + "/students/remove", "POST", {
+    student_usernames: TeacherUI._selectedStudents.slice()
+  }).then(function(data) {
+    if (data.ok) {
+      alert("Removed " + data.removed.length + " students");
+      TeacherUI._selectedStudents = [];
+      TeacherUI.loadAvailableStudents();
+      TeacherUI.loadClasses();
+    }
+  }).catch(function(e) {
+    alert("Remove failed: " + e.message);
+  });
+};
+
+TeacherUI.showBatchInput = function() {
+  var area = document.getElementById("batchInputArea");
+  if (area) area.style.display = "block";
+  var resultEl = document.getElementById("batchParseResult");
+  if (resultEl) resultEl.innerHTML = "";
+};
+
+TeacherUI.hideBatchInput = function() {
+  var area = document.getElementById("batchInputArea");
+  if (area) area.style.display = "none";
+};
+
+TeacherUI.parseBatchInput = function() {
+  var raw = document.getElementById("batchStudentIds").value;
+  var tokens = raw.split(/[\s,，;；]+/).filter(function(t) { return t.trim(); });
+  var resultEl = document.getElementById("batchParseResult");
+  var known = {};
+  TeacherUI._allStudents.forEach(function(s) { known[String(s.username)] = true; });
+  var found = [], notFound = [];
+  tokens.forEach(function(t) {
+    var uname = t.trim();
+    if (!uname) return;
+    if (known[uname]) found.push(uname);
+    else notFound.push(uname);
+  });
+  TeacherUI._batchParsedStudents = found;
+  var html = '<div><strong>Parse result</strong></div>';
+  html += '<div>Found ' + found.length + '</div>';
+  if (notFound.length) html += '<div style="color:#f87171">Not found: ' + notFound.join(", ") + '</div>';
+  if (found.length) html += '<div style="margin-top:8px"><button class="btn-primary" onclick="TeacherUI.addBatchStudents()">Add ' + found.length + ' found</button></div>';
+  resultEl.innerHTML = html;
+};
+
+TeacherUI.addBatchStudents = function() {
+  if (!TeacherUI._batchParsedStudents.length) return;
+  TeacherUI.fetchAuth("/api/teacher/classes/" + TeacherUI.currentClassId + "/students", "POST", {
+    student_usernames: TeacherUI._batchParsedStudents.slice()
+  }).then(function(data) {
+    if (data.ok) {
+      alert("Added " + data.added.length + " students" + (data.not_found.length ? ", not found " + data.not_found.length : ""));
+      TeacherUI._batchParsedStudents = [];
+      document.getElementById("batchInputArea").style.display = "none";
+      TeacherUI.loadAvailableStudents();
+      TeacherUI.loadClasses();
+    }
+  }).catch(function(e) {
+    alert("Add failed: " + e.message);
+  });
+};
+
+// ============================================================
 // Navigation
 // ============================================================
 TeacherUI.initNav = function() {
   if (TeacherUI._navInitialized) return;
   TeacherUI._navInitialized = true;
+  TeacherUI.loadClasses();
+  // Bind class management buttons
+  var manageBtn = document.getElementById("manageClassBtn");
+  if (manageBtn) manageBtn.addEventListener("click", function() { TeacherUI.openManageStudents(); });
+  var createBtn = document.getElementById("createClassBtn");
+  if (createBtn) createBtn.addEventListener("click", function() { TeacherUI.openCreateClass(); });
   var tabs = document.querySelectorAll(".teacher-nav-tab");
   tabs.forEach(function(tab) {
     tab.addEventListener("click", function() {
@@ -68,7 +340,9 @@ TeacherUI.loadToday = function() {
   var c = document.getElementById("todayTeachingContent");
   if (!c) return;
   c.innerHTML = '<div class="muted" style="padding:20px">Loading issues...</div>';
-  TeacherUI.fetchAuth("/api/v2/teacher/issues", "POST", {}).then(function(data) {
+  var payload = {};
+  if (TeacherUI.currentClassId) payload.class_id = TeacherUI.currentClassId;
+  TeacherUI.fetchAuth("/api/v2/teacher/issues", "POST", payload).then(function(data) {
     var issues = data.issues || data || [];
     if (!issues.length) {
       c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Not enough evidence to form teaching issues yet.</div>';
@@ -130,7 +404,9 @@ TeacherUI.openIssueDetail = function(issueId) {
   if (issue) {
     TeacherUI.renderIssueDetail(issue, drawer);
   } else {
-    TeacherUI.fetchAuth("/api/v2/teacher/issues", "POST", {}).then(function(data) {
+    var payload = {};
+  if (TeacherUI.currentClassId) payload.class_id = TeacherUI.currentClassId;
+  TeacherUI.fetchAuth("/api/v2/teacher/issues", "POST", payload).then(function(data) {
       var issues = data.issues || data || [];
       var found = null;
       for (var i = 0; i < issues.length; i++) {
@@ -241,7 +517,9 @@ TeacherUI.loadInsights = function() {
   var c = document.getElementById("tw-insights");
   if (!c) return;
   c.innerHTML = '<div class="muted" style="padding:20px">Loading insights...</div>';
-  TeacherUI.fetchAuth("/api/graph/job", "GET").then(function(data) {
+  var insightUrl = "/api/graph/job";
+  if (TeacherUI.currentClassId) insightUrl += (insightUrl.includes("?") ? "&" : "?") + "class_id=" + TeacherUI.currentClassId;
+  TeacherUI.fetchAuth(insightUrl, "GET").then(function(data) {
     var nodes = data.nodes || [];
     c.innerHTML = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 4px">Job Ability Graph</h3><p style="color:#94a3b8;margin:0">' + nodes.length + ' ability nodes</p><div id="teacherJobGraphDiagram" style="width:100%;height:300px"></div></div>';
     if (typeof renderGraphDiagram === "function" && nodes.length) {

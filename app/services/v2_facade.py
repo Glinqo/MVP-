@@ -69,11 +69,19 @@ def classify_scenario_action(student_id: str, state_id: str, action_id: str,
 
 # --- Teaching Issue ---
 def discover_issues(job_role: str = "", student_states: List[Dict] = None,
-                    patterns: List[Dict] = None) -> List[Dict[str, Any]]:
+                    patterns: List[Dict] = None, class_id: int = None,
+                    teacher_id: int = None) -> List[Dict[str, Any]]:
     from app.services.issues.issue_discovery import IssueDiscoveryEngine
     engine = IssueDiscoveryEngine()
-    # Auto-populate from EventStore when called without args
-    _DEMO_STUDENTS = ["001", "002", "003", "004", "005"]
+    # TF-6D: Resolve student scope from class membership
+    _DEMO_STUDENTS = []
+    if class_id and teacher_id:
+        from app.services.class_management import get_class_students
+        cls = get_class_students(class_id, teacher_id)
+        if cls:
+            _DEMO_STUDENTS = [s["username"] for s in cls.get("students", [])]
+    if not _DEMO_STUDENTS:
+        _DEMO_STUDENTS = ["001", "002", "003", "004", "005"]
     if not student_states:
         from app.services.state.learner_state import LearnerState
         student_states = []

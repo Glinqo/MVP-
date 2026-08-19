@@ -1016,7 +1016,8 @@ class MVPHandler(BaseHTTPRequestHandler):
                 user = find_authed_user(self)
                 if not user: return self.send_error_json(401, "请先登录")
                 if user.get("role") != "teacher": return self.send_error_json(403, "教师专属功能")
-                return self.send_json({"issues": discover_issues()})
+                class_id = payload.get("class_id")
+                return self.send_json({"issues": discover_issues(class_id=class_id, teacher_id=user["id"])})
             if path == "/api/v2/teacher/issues/candidates":
                 user = find_authed_user(self)
                 if not user: return self.send_error_json(401, "请先登录")

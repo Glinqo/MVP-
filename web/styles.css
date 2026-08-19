@@ -1597,3 +1597,76 @@ body[data-role="teacher"] .workspace-panel.role-teacher.active { display: block;
 .student-select-account { color:#94a3b8; font-size:0.85rem; margin-left:auto; }
 .student-select-status { color:#64748b; font-size:0.8rem; }
 .student-select-actions { display:flex; justify-content:center; padding:8px 0 20px; }
+
+
+/* ========== TF-6D: Class Management ========== */
+.teacher-class-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(15, 23, 42, 0.65);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+.class-bar-info { display: flex; align-items: baseline; gap: 8px; }
+.class-bar-info #teacherClassLabel { color: #e2e8f0; font-weight: 600; font-size: 1rem; }
+.class-bar-meta { color: #94a3b8; font-size: 0.85rem; }
+.class-bar-actions { display: flex; gap: 8px; }
+.btn-primary {
+  background: #14b8a6; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 16px; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+}
+.btn-primary:hover { background: #0d9488; }
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem;
+}
+.btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+.btn-danger {
+  background: #dc2626; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 16px; cursor: pointer; font-size: 0.9rem;
+}
+.btn-danger:hover { background: #b91c1c; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0, 0, 0, 0.65);
+  display: none; align-items: center; justify-content: center;
+}
+.modal-card {
+  background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px; padding: 20px; width: 420px; max-width: 90vw;
+  max-height: 80vh; overflow-y: auto;
+}
+.modal-card.modal-wide { width: 680px; max-width: 95vw; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.modal-header h3 { margin: 0; color: #e2e8f0; }
+.modal-close { background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; }
+.modal-body { margin-bottom: 16px; }
+.modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.modal-error { color: #f87171; margin-top: 8px; }
+.form-field { margin-bottom: 12px; }
+.form-field label { display: block; color: #94a3b8; font-size: 0.85rem; margin-bottom: 4px; }
+.form-field input, .form-field select {
+  width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 0.9rem;
+}
+.form-field select option { background: #0f172a; color: #fff; }
+
+/* Student management */
+.student-manage-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+.student-manage-toolbar input {
+  flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px; padding: 8px 12px; color: #fff;
+}
+.filter-status { color: #94a3b8; font-size: 0.85rem; }
+.student-manage-list { max-height: 45vh; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; }
+.student-manage-row:hover { background: rgba(255, 255, 255, 0.04); }
+.badge-in-class { background: #14b8a6; color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 0.75rem; }
+#batchInputArea textarea {
+  width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.9rem; font-family: inherit;
+}
