@@ -225,12 +225,12 @@ TeacherUI.closeManageStudents = function() {
 
 TeacherUI.loadAvailableStudents = function(search) {
   if (!TeacherUI.currentClassId) return;
-  var url = "/api/teacher/人/available?class_id=" + TeacherUI.currentClassId;
+  var url = "/api/teacher/students/available?class_id=" + TeacherUI.currentClassId;
   if (search) url += "&search=" + encodeURIComponent(search);
   var listEl = document.getElementById("studentManageList");
   if (listEl) listEl.innerHTML = '<div class="muted" style="padding:20px">加载学生中...</div>';
   TeacherUI.fetchAuth(url, "GET").then(function(data) {
-    TeacherUI._allStudents = data.Students || [];
+    TeacherUI._allStudents = data.students || [];
     TeacherUI.renderStudentManageList();
   }).catch(function(e) {
     if (listEl) listEl.innerHTML = '<div style="padding:20px;color:#f87171">学生列表加载失败。</div>';
@@ -302,7 +302,7 @@ TeacherUI.add已选择Students = function() {
 
 TeacherUI.remove已选择Students = function() {
   if (!TeacherUI._selectedStudents.length) return;
-  TeacherUI.fetchAuth("/api/teacher/classes/" + TeacherUI.currentClassId + "/人/remove", "POST", {
+  TeacherUI.fetchAuth("/api/teacher/classes/" + TeacherUI.currentClassId + "/students/remove", "POST", {
     student_usernames: TeacherUI._selectedStudents.slice()
   }).then(function(data) {
     if (data.ok) {
@@ -436,7 +436,7 @@ TeacherUI.renderIssueList = function(issues, container) {
     var title = TeacherUI.escHtml(issue.title || issue.issue_id || "未知");
     html += '<div class="issue-card" data-issue-id="' + issue.issue_id + '">';
     html += '<div class="issue-card-header"><span class="issue-card-title">' + title + '</span></div>';
-    html += '<div class="issue-card-meta"><span class="' + pc + '">' + pl.label + '</span><span>' + Students.length + ' 人</span></div>';
+    html += '<div class="issue-card-meta"><span class="' + pc + '">' + pl.label + '</span><span>' + students.length + ' 人</span></div>';
     html += '</div>';
   });
   html += '</div>';
@@ -510,7 +510,7 @@ TeacherUI.renderIssueDetail = function(issue, drawer) {
   html += '<div class="detail-row"><span class="label">置信度</span><span>' + ((issue.confidence || 0) * 100).toFixed(0) + '%</span></div>';
   html += '<div class="detail-row"><span class="label">严重程度</span><span>' + ((issue.severity || 0) * 100).toFixed(0) + '%</span></div>';
   html += '<div class="detail-row"><span class="label">主要能力</span><span>' + ability + '</span></div>';
-  html += '<div class="detail-row"><span class="label">影响学生</span><span>' + Students.length + '</span></div>';
+  html += '<div class="detail-row"><span class="label">影响学生</span><span>' + students.length + '</span></div>';
 
   if (Students.length > 0) {
     html += '<div class="detail-row"><span class="label">Students</span><span>';
@@ -518,7 +518,7 @@ TeacherUI.renderIssueDetail = function(issue, drawer) {
       var sid = String(Students[i]);
       html += '<button class="student-chip" data-student="' + sid + '">' + TeacherUI.escHtml(sid) + '</button> ';
     }
-    if (Students.length > 5) html += '... ' + Students.length + ' total';
+    if (Students.length > 5) html += '... ' + students.length + ' total';
     html += '</span></div>';
   }
 
@@ -564,7 +564,7 @@ TeacherUI.generateCandidates = function() {
   if (TeacherUI._issuesCache) {
     for (var i = 0; i < TeacherUI._issuesCache.length; i++) {
       if (TeacherUI._issuesCache[i].issue_id === issueId) {
-        人 = TeacherUI._issuesCache[i].affected_students || [];
+        students = TeacherUI._issuesCache[i].affected_students || [];
         break;
       }
     }
@@ -712,7 +712,7 @@ TeacherUI.lookupStudent = function(studentId) {
   detailPane.style.display = "block";
   detailPane.innerHTML = '<div style="padding:20px">加载学生详情中...</div>';
   var jobId = TeacherUI.currentClass ? TeacherUI.currentClass.job_role : "";
-  var detailUrl = "/api/teacher/人/" + studentId;
+  var detailUrl = "/api/teacher/students/" + studentId;
   if (TeacherUI.currentClassId) detailUrl += "?class_id=" + TeacherUI.currentClassId;
   TeacherUI.fetchAuth(detailUrl, "GET").then(function(data) {
     if (data.error) {
