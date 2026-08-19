@@ -1,6 +1,6 @@
 from .data_loader import load_data, primary_job_profile
 from .feedback import append_session_event
-from .graph import build_ability_graph, build_student_ability_graph
+from .graph import build_ability_graph, build_student_ability_graph, normalize_ability_id
 from .retrieval import refs_for_ability_ids, search_knowledge
 from .safety import safety_notice
 from .scoring import score_answers
@@ -16,7 +16,13 @@ def reverse_ability_catalog():
 
 def internal_ability_ids(weak_abilities):
     reverse = reverse_ability_catalog()
-    return [reverse.get(item.get("ability_id"), item.get("ability_id")) for item in weak_abilities]
+    ability_ids = []
+    for item in weak_abilities:
+        ability_id = reverse.get(item.get("ability_id"), item.get("ability_id"))
+        ability_id = normalize_ability_id(ability_id)
+        if ability_id and ability_id not in ability_ids:
+            ability_ids.append(ability_id)
+    return ability_ids
 
 
 def compact_knowledge(item):

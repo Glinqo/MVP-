@@ -145,7 +145,12 @@ class ScenarioTests:
     def test_closure_missing(self):
         step_scenario({"scenario_id": SCENARIO_ID, "step_id": "S1", "choice_id": "A"})
         step_scenario({"scenario_id": SCENARIO_ID, "step_id": "S2", "choice_id": "A"})
-        result = step_scenario({"scenario_id": SCENARIO_ID, "step_id": "S3", "choice_id": "B"
+        result = step_scenario({"scenario_id": SCENARIO_ID, "step_id": "S3", "choice_id": "B"})
+        assert result["is_correct"] is False
+        assert result["feedback_type"] == "closure_missing"
+        assert result["completed"] is False
+        assert result["current_step"]["id"] == "S3"
+
     def test_scenario_text_is_not_corrupted(self):
         """Verify no corruption in scenario Chinese text."""
         scenario = scenario_by_id(SCENARIO_ID)
@@ -176,12 +181,6 @@ class ScenarioTests:
         assert "aria-pressed" in app_js
         assert "event.key === \"Enter\"" in app_js
         assert "event.key === \" \"" in app_js
-
-})
-        assert result["is_correct"] is False
-        assert result["feedback_type"] == "closure_missing"
-        assert result["completed"] is False
-        assert result["current_step"]["id"] == "S3"
 
     # === Scenario List ===
 

@@ -12,6 +12,8 @@ from .graph_update_engine import (
 
     CONFIDENCE_THRESHOLD,
 
+    LEGACY_ABILITY_ALIASES,
+
     confirmed_job_snapshots,
 
     pending_job_proposals,
@@ -115,6 +117,10 @@ def normalize_ability_id(ability_id):
     if raw in data["ability_by_id"]:
 
         return raw
+
+    if raw in LEGACY_ABILITY_ALIASES:
+
+        return LEGACY_ABILITY_ALIASES[raw]
 
 
 
@@ -632,9 +638,15 @@ def build_job_ability_graph(job_role=None):
 
     data = load_data()
 
-    profile = job_profile_by_id(job_role) if job_role else primary_job_profile()
+    requested_role = str(job_role or "").strip()
+
+    profile = job_profile_by_id(requested_role) if requested_role else primary_job_profile()
 
     role_name = profile.get("role_name", "自动化生产线装调与运维技术员")
+
+    if requested_role and requested_role not in {profile.get("id"), role_name}:
+
+        role_name = requested_role
 
     chain = [item for item in profile.get("ability_chain", CORE_CHAIN) if item in data["ability_by_id"]]
 
@@ -852,7 +864,7 @@ def build_job_ability_graph(job_role=None):
 
 
 
-def session_ability_state(session_id):
+def session_ability_state(session_id, job_role=None):
 
     engine_state = personal_graph_state(session_id, _active_ability_chain(job_role))
 

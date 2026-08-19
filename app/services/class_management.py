@@ -191,6 +191,33 @@ def get_class(class_id: int, teacher_id: int) -> Optional[Dict[str, Any]]:
     return _get_class(class_id, teacher_id)
 
 
+def canonical_student_session_id(username: str, job_role: str = "") -> str:
+    """Return the V2 long-lived learning session id for a student/job pair."""
+    username = str(username or "").strip()
+    job_role = str(job_role or "").strip()
+    return f"{job_role}-{username}" if job_role else username
+
+
+def session_id_belongs_to_student(session_id: str, username: str, job_role: str = "") -> bool:
+    """Match canonical and legacy session ids to a student username."""
+    sid = str(session_id or "")
+    uname = str(username or "").strip()
+    if not sid or not uname:
+        return False
+
+    candidates = {uname, f"{uname}-session"}
+    if job_role:
+        candidates.add(canonical_student_session_id(uname, job_role))
+    if sid in candidates:
+        return True
+
+    return (
+        sid.startswith(uname + "-")
+        or sid.endswith("-" + uname)
+        or ("-" + uname + "-") in sid
+    )
+
+
 def update_class(
     class_id: int,
     teacher_id: int,

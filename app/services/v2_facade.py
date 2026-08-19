@@ -23,6 +23,72 @@ def get_event_count(student_id: str = "") -> int:
     q = EventQuery()
     return q.event_count(student_id) if student_id else q.total_events()
 
+
+def _candidate_session_ids(username: str, job_role: str = "") -> List[str]:
+    from app.services.class_management import canonical_student_session_id
+    candidates = []
+    if job_role:
+        candidates.append(canonical_student_session_id(username, job_role))
+    candidates.extend([f"{username}-session", username])
+
+    seen = set()
+    ordered = []
+    for sid in candidates:
+        if sid and sid not in seen:
+            seen.add(sid)
+            ordered.append(sid)
+    return ordered
+
+
+def _state_from_ability_engine(username: str, job_role: str = "") -> Dict[str, Any]:
+    from app.services.ability_state_engine import compute_ability_state
+
+    best_state = None
+    best_session_id = ""
+    best_evidence_count = -1
+
+    for session_id in _candidate_session_ids(username, job_role):
+        try:
+            state = compute_ability_state(session_id)
+        except Exception:
+            continue
+        abilities = state.get("abilities", {}) if state else {}
+        evidence_count = sum(
+            int((ability.get("evidence_summary") or {}).get("total_evidence") or 0)
+            for ability in abilities.values()
+            if isinstance(ability, dict)
+        )
+        if evidence_count > best_evidence_count:
+            best_state = state
+            best_session_id = session_id
+            best_evidence_count = evidence_count
+
+    if not best_state:
+        return {"student_id": username, "job_role": job_role, "abilities": {}, "event_count": 0}
+
+    abilities_out = {}
+    for ability_id, ability in (best_state.get("abilities") or {}).items():
+        if not isinstance(ability, dict):
+            continue
+        score = ability.get("cognitive_mastery_score")
+        try:
+            mastery = max(0.0, min(1.0, float(score or 0) / 100.0))
+        except (TypeError, ValueError):
+            mastery = 0.0
+        abilities_out[ability_id] = {
+            **ability,
+            "student_id": username,
+            "mastery": mastery,
+        }
+
+    return {
+        "student_id": username,
+        "session_id": best_state.get("session_id") or best_session_id,
+        "job_role": job_role,
+        "abilities": abilities_out,
+        "event_count": max(best_evidence_count, 0),
+    }
+
 # --- Learner State ---
 def get_student_state(student_id: str, job_role: str = "") -> Dict[str, Any]:
     from app.services.state.learner_state import LearnerState
@@ -72,7 +138,6 @@ def discover_issues(job_role: str = "", student_states: List[Dict] = None,
                     patterns: List[Dict] = None, class_id: int = None,
                     teacher_id: int = None) -> List[Dict[str, Any]]:
     from app.services.issues.issue_discovery import IssueDiscoveryEngine
-    engine = IssueDiscoveryEngine()
     # P6-B: No silent demo fallback. If no class scope is provided, return empty.
     if not class_id or not teacher_id:
         return []
@@ -80,14 +145,19 @@ def discover_issues(job_role: str = "", student_states: List[Dict] = None,
     cls = get_class_students(class_id, teacher_id)
     if not cls:
         return []
+    effective_job_role = job_role or cls.get("job_role", "")
+    try:
+        from app.services.graph import build_job_ability_graph
+        job_graph = build_job_ability_graph(effective_job_role)
+    except Exception:
+        job_graph = {}
+    engine = IssueDiscoveryEngine(job_graph)
     class_student_ids = [s["username"] for s in cls.get("students", [])]
     if not student_states:
-        from app.services.state.learner_state import LearnerState
         student_states = []
         for sid in class_student_ids:
             try:
-                st = LearnerState(student_id=sid, job_role=job_role)
-                student_states.append(st.to_dict())
+                student_states.append(_state_from_ability_engine(sid, effective_job_role))
             except Exception:
                 pass
     if not patterns:
@@ -112,10 +182,15 @@ def discover_issues(job_role: str = "", student_states: List[Dict] = None,
                             pass
         except Exception:
             pass
-    issues = engine.discover_from_states(student_states or [], patterns or [])
+    issues = engine.discover_from_states(
+        student_states or [],
+        patterns or [],
+        total_students=max(len(class_student_ids), 1),
+    )
 
     # P10.2-A: Enrich each issue with evidence summary and top patterns
     enriched = []
+    state_by_student = {s.get("student_id"): s for s in (student_states or [])}
     for issue in issues:
         d = issue.to_dict()
         affected = d.get("affected_students", []) or []
@@ -125,6 +200,7 @@ def discover_issues(job_role: str = "", student_states: List[Dict] = None,
         total_events = 0
         for sid in affected:
             student_patterns = get_student_patterns(sid, limit=50)
+            total_events += int((state_by_student.get(sid) or {}).get("event_count") or 0)
             total_events += len(get_events(sid, limit=100))
             for p in student_patterns:
                 pid = p.get("pattern_id") or p.get("pattern_name") or p.get("name") or p.get("type") or "unknown"
@@ -166,6 +242,13 @@ def generate_candidates(issue_id: str, student_ids: List[str],
     issue = get_issue(issue_id, class_id=class_id, teacher_id=teacher_id, job_role=job_role)
     if issue.get("status") == "not_found":
         return []
+    if class_id and teacher_id:
+        from app.services.class_management import get_class_students
+        cls = get_class_students(class_id, teacher_id)
+        roster = {s["username"] for s in (cls or {}).get("students", [])}
+        student_ids = [sid for sid in (student_ids or []) if sid in roster]
+        if not student_ids:
+            return []
     ability_id = issue.get("primary_ability_id", "")
     if not ability_id:
         return []

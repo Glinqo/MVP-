@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+CLIENT_DISCONNECT_ERRORS = (BrokenPipeError, ConnectionAbortedError, ConnectionResetError)
+
 from app.services.data_loader import primary_job_profile, public_questions  # noqa: E402
 from app.services.assist import assist  # noqa: E402
 from app.services.chat import chat_message, chat_start  # noqa: E402
@@ -57,7 +59,14 @@ from app.services.action_planner import plan_initial_learning  # noqa: E402
 from app.services.auth import login, get_user, save_identity, teacher_required
 from app.middleware import find_authed_user  # noqa: E402
 from app.middleware import require_student_owner  # noqa: E402  # noqa: E402
-from app.services.v2_facade import *  # V2 Engine Facade
+from app.services.v2_facade import (  # noqa: E402
+    discover_issues as v2_discover_issues,
+    emit_event as v2_emit_event,
+    evaluate_intervention as v2_evaluate_intervention,
+    generate_candidates as v2_generate_candidates,
+    get_events as v2_get_events,
+    get_student_state as v2_get_student_state,
+)
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.teacher_students import list_teacher_students, get_teacher_student_detail, save_teacher_student_selection  # noqa: E402
 from app.services.class_insights import get_class_ability_graph, get_common_issues, get_class_overview  # noqa: E402
@@ -128,6 +137,71 @@ def _load_training_plans():
             return json.load(f)
     return {}
 
+
+def _require_teacher(handler):
+    user = find_authed_user(handler)
+    if not user:
+        return None, (401, "请先登录")
+    if not teacher_required(user):
+        return None, (403, "需要教师权限")
+    return user, None
+
+
+def _parse_teacher_comment_id(path, action=None):
+    prefix = "/api/teacher/comments/"
+    if not path.startswith(prefix):
+        return None
+    suffix = f"/{action}" if action else ""
+    if suffix and not path.endswith(suffix):
+        return None
+    end = -len(suffix) if suffix else None
+    value = path[len(prefix):end]
+    if not value or "/" in value or not value.isdigit():
+        return None
+    return int(value)
+
+
+def _authorize_teacher_comment(user, comment_id):
+    comment = get_comment(comment_id)
+    if not comment:
+        return None, (404, "评语不存在")
+
+    class_id = comment.get("class_id")
+    if class_id:
+        auth = require_teacher_class(user, class_id)
+        if not auth["ok"]:
+            return None, (auth["status"], auth["error"])
+        return comment, None
+
+    comment_teacher_id = str(comment.get("teacher_id") or "")
+    if comment_teacher_id and comment_teacher_id != str(user.get("id", "")):
+        return None, (403, "无权访问该评语")
+    return comment, None
+
+
+def _authorize_teacher_comments(user, comment_ids):
+    for raw_id in comment_ids or []:
+        try:
+            comment_id = int(raw_id)
+        except (TypeError, ValueError):
+            return None, (400, "非法的 comment_id")
+        _, error = _authorize_teacher_comment(user, comment_id)
+        if error:
+            return None, error
+    return True, None
+
+
+def _authorize_teacher_class_students(user, class_id, student_ids):
+    auth = require_teacher_class(user, class_id)
+    if not auth["ok"]:
+        return None, (auth["status"], auth["error"])
+    cls = get_class_students(int(class_id), user["id"])
+    roster = {s["username"] for s in (cls or {}).get("students", [])}
+    outside = [sid for sid in (student_ids or []) if sid not in roster]
+    if outside:
+        return None, (403, "学生不属于当前班级: " + ", ".join(map(str, outside[:5])))
+    return auth, None
+
 class MVPHandler(BaseHTTPRequestHandler):
     server_version = "MechatronicsMVP/0.1"
 
@@ -155,21 +229,29 @@ class MVPHandler(BaseHTTPRequestHandler):
                     sse_text = str(event)
                 self.wfile.write(sse_text.encode("utf-8"))
                 self.wfile.flush()
+        except CLIENT_DISCONNECT_ERRORS:
+            return
         except Exception as exc:
             err = error_event("internal_error", str(exc), recoverable=False)
-            self.wfile.write(err.to_sse().encode("utf-8"))
-            self.wfile.flush()
+            try:
+                self.wfile.write(err.to_sse().encode("utf-8"))
+                self.wfile.flush()
+            except CLIENT_DISCONNECT_ERRORS:
+                return
 
     def send_json(self, data, status=200):
         body = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+            self.end_headers()
+            self.wfile.write(body)
+        except CLIENT_DISCONNECT_ERRORS:
+            return
 
     def send_error_json(self, status, message):
         self.send_json({"error": message}, status=status)
@@ -198,6 +280,18 @@ class MVPHandler(BaseHTTPRequestHandler):
 
         if path == "/api/health":
             return self.send_json({"status": "ok", "app": "mechatronics-agent-mvp", "version": "0.1.0"})
+
+        if path == "/api/auth/me":
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
+            return self.send_json({"ok": True, "user": user})
+
+        if path == "/api/user/role":
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
+            return self.send_json({"ok": True, "role": user.get("role", "student"), "username": user.get("username", "")})
 
         if path == "/api/quiz":
             query = parse_qs(parsed.query)
@@ -357,10 +451,15 @@ class MVPHandler(BaseHTTPRequestHandler):
                 class_id=int(class_id) if class_id else None,
             ))
 
-        if path.startswith("/api/teacher/comments/") and "/generate" not in path:
-            cid_str = path[len("/api/teacher/comments/"):]
-            if cid_str.isdigit():
-                return self.send_json(get_comment(int(cid_str)))
+        comment_id = _parse_teacher_comment_id(path)
+        if comment_id is not None:
+            user, error = _require_teacher(self)
+            if error:
+                return self.send_error_json(*error)
+            comment, error = _authorize_teacher_comment(user, comment_id)
+            if error:
+                return self.send_error_json(*error)
+            return self.send_json(comment)
 
         if path == "/api/teacher/class/ability-graph":
             user = find_authed_user(self)
@@ -468,11 +567,10 @@ class MVPHandler(BaseHTTPRequestHandler):
             ))
 
         if path == "/api/teacher/selected-students":
-            return self.send_json(save_teacher_student_selection(
-                payload.get("username", ""),
-                payload.get("job_role", ""),
-                payload.get("student_usernames", []),
-            ))
+            user, error = _require_teacher(self)
+            if error:
+                return self.send_error_json(*error)
+            return self.send_json({"ok": True, "deprecated": True, "username": user.get("username", "")})
 
         if path.startswith("/api/teacher/students/") and path != "/api/teacher/students/assessments" and path != "/api/teacher/students/assessment":
             user = find_authed_user(self)
@@ -480,15 +578,32 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_error_json(403, "需要教师权限")
             student_id = path[len("/api/teacher/students/"):]
             query = parse_qs(parsed.query)
+            class_id = query.get("class_id", [None])[0]
+            job_role = query.get("job_role", [None])[0]
+            if class_id:
+                auth = require_teacher_class(user, class_id)
+                if not auth["ok"]:
+                    return self.send_error_json(auth["status"], auth["error"])
+                cls = get_class_students(int(class_id), user["id"])
+                roster = {s["username"] for s in (cls or {}).get("students", [])}
+                if student_id not in roster:
+                    return self.send_error_json(403, "学生不属于当前班级")
+                job_role = job_role or (auth.get("class") or {}).get("job_role", "")
             return self.send_json(get_teacher_student_detail(
                 student_id,
-                job_role=query.get("job_role", [None])[0],
+                job_role=job_role,
             ))
 
         if path == "/api/teacher/students/assessments":
+            user, error = _require_teacher(self)
+            if error:
+                return self.send_error_json(*error)
             return self.send_json(list_student_sessions())
 
         if path == "/api/teacher/students/assessment":
+            user, error = _require_teacher(self)
+            if error:
+                return self.send_error_json(*error)
             query = parse_qs(parsed.query)
             session_id = query.get("session_id", [None])[0]
             if not session_id:
@@ -751,8 +866,11 @@ class MVPHandler(BaseHTTPRequestHandler):
 
             # ---- Teacher student selection (deprecated, compatibility) ----
             if path == "/api/teacher/selected-students":
+                user, error = _require_teacher(self)
+                if error:
+                    return self.send_error_json(*error)
                 return self.send_json(save_teacher_student_selection(
-                    payload.get("username", ""),
+                    user.get("username", ""),
                     payload.get("job_role", ""),
                     payload.get("student_usernames", []),
                 ))
@@ -792,9 +910,13 @@ class MVPHandler(BaseHTTPRequestHandler):
                     return self.send_error_json(403, "需要教师权限")
                 class_id = payload.get("class_id")
                 if class_id:
-                    auth = require_teacher_class(user, class_id)
-                    if not auth["ok"]:
-                        return self.send_error_json(auth["status"], auth["error"])
+                    _, error = _authorize_teacher_class_students(
+                        user,
+                        class_id,
+                        [payload.get("student_id", "")],
+                    )
+                    if error:
+                        return self.send_error_json(*error)
                 return self.send_json(generate_comment(
                     student_id=payload.get("student_id", ""),
                     teacher_id=str(user.get("id", "")),
@@ -808,9 +930,13 @@ class MVPHandler(BaseHTTPRequestHandler):
                     return self.send_error_json(403, "需要教师权限")
                 class_id = payload.get("class_id")
                 if class_id:
-                    auth = require_teacher_class(user, class_id)
-                    if not auth["ok"]:
-                        return self.send_error_json(auth["status"], auth["error"])
+                    _, error = _authorize_teacher_class_students(
+                        user,
+                        class_id,
+                        payload.get("student_ids", []),
+                    )
+                    if error:
+                        return self.send_error_json(*error)
                 return self.send_json(generate_comments_batch(
                     student_ids=payload.get("student_ids", []),
                     teacher_id=str(user.get("id", "")),
@@ -819,37 +945,60 @@ class MVPHandler(BaseHTTPRequestHandler):
                 ))
 
             if path.startswith("/api/teacher/comments/") and path.endswith("/update"):
-                user = find_authed_user(self)
-                if not user or not teacher_required(user):
-                    return self.send_error_json(403, "需要教师权限")
-                cid = int(path.split("/")[3])
+                user, error = _require_teacher(self)
+                if error:
+                    return self.send_error_json(*error)
+                cid = _parse_teacher_comment_id(path, action="update")
+                if cid is None:
+                    return self.send_error_json(400, "非法的 comment_id")
+                _, error = _authorize_teacher_comment(user, cid)
+                if error:
+                    return self.send_error_json(*error)
                 return self.send_json(save_comment(cid, payload.get("content", "")))
 
             if path.startswith("/api/teacher/comments/") and path.endswith("/review"):
-                user = find_authed_user(self)
-                if not user or not teacher_required(user):
-                    return self.send_error_json(403, "需要教师权限")
-                cid = int(path.split("/")[3])
+                user, error = _require_teacher(self)
+                if error:
+                    return self.send_error_json(*error)
+                cid = _parse_teacher_comment_id(path, action="review")
+                if cid is None:
+                    return self.send_error_json(400, "非法的 comment_id")
+                _, error = _authorize_teacher_comment(user, cid)
+                if error:
+                    return self.send_error_json(*error)
                 return self.send_json(review_comment(cid))
 
             if path.startswith("/api/teacher/comments/") and path.endswith("/publish"):
-                user = find_authed_user(self)
-                if not user or not teacher_required(user):
-                    return self.send_error_json(403, "需要教师权限")
-                cid = int(path.split("/")[3])
+                user, error = _require_teacher(self)
+                if error:
+                    return self.send_error_json(*error)
+                cid = _parse_teacher_comment_id(path, action="publish")
+                if cid is None:
+                    return self.send_error_json(400, "非法的 comment_id")
+                _, error = _authorize_teacher_comment(user, cid)
+                if error:
+                    return self.send_error_json(*error)
                 return self.send_json(publish_comment(cid))
 
             if path == "/api/teacher/comments/review-batch":
-                user = find_authed_user(self)
-                if not user or not teacher_required(user):
-                    return self.send_error_json(403, "需要教师权限")
-                return self.send_json(review_comments_batch(payload.get("comment_ids", [])))
+                user, error = _require_teacher(self)
+                if error:
+                    return self.send_error_json(*error)
+                comment_ids = payload.get("comment_ids", [])
+                _, error = _authorize_teacher_comments(user, comment_ids)
+                if error:
+                    return self.send_error_json(*error)
+                return self.send_json(review_comments_batch(comment_ids))
 
             if path == "/api/teacher/comments/publish-batch":
-                user = find_authed_user(self)
-                if not user or not teacher_required(user):
-                    return self.send_error_json(403, "需要教师权限")
-                return self.send_json(publish_comments_batch(payload.get("comment_ids", [])))
+                user, error = _require_teacher(self)
+                if error:
+                    return self.send_error_json(*error)
+                comment_ids = payload.get("comment_ids", [])
+                _, error = _authorize_teacher_comments(user, comment_ids)
+                if error:
+                    return self.send_error_json(*error)
+                return self.send_json(publish_comments_batch(comment_ids))
 
             # ---- Auth routes ----
             if path == "/api/auth/login":
@@ -920,6 +1069,9 @@ class MVPHandler(BaseHTTPRequestHandler):
                 event_result = record_student_graph_event(payload)
                 return self.send_json({**event_result, "student_graph": build_student_ability_graph(payload.get("session_id"))})
             if path == "/api/graph/job/proposals":
+                user, error = _require_teacher(self)
+                if error:
+                    return self.send_error_json(*error)
                 return self.send_json(generate_job_graph_proposals(payload))
             if path == "/api/job-data/collect":
                 user = find_authed_user(self)
@@ -1095,40 +1247,59 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/v2/events/emit":
                 user = find_authed_user(self)
                 if not user: return self.send_error_json(401, "请先登录")
+                actor_id = payload.get("actor_id") or payload.get("student_id")
+                if user.get("role") == "student" and actor_id and actor_id != user.get("username"):
+                    return self.send_error_json(403, "无权写入其他学生数据")
                 try:
-                    result = emit_event(payload)
+                    result = v2_emit_event(payload)
                     return self.send_json(result)
                 except ValueError as e:
                     return self.send_error_json(400, str(e))
             if path == "/api/v2/events/query":
                 user = find_authed_user(self)
                 if not user: return self.send_error_json(401, "请先登录")
-                events = get_events(payload.get("student_id", ""))
+                student_id = payload.get("student_id", "")
+                if user.get("role") == "student" and student_id and student_id != user.get("username"):
+                    return self.send_error_json(403, "无权访问其他学生数据")
+                events = v2_get_events(student_id)
                 return self.send_json({"events": events, "total": len(events)})
             if path == "/api/v2/student/state":
                 user = find_authed_user(self)
                 if not user: return self.send_error_json(401, "请先登录")
-                return self.send_json(get_student_state(payload.get("student_id", "")))
+                student_id = payload.get("student_id", "")
+                if user.get("role") == "student" and student_id and student_id != user.get("username"):
+                    return self.send_error_json(403, "无权访问其他学生数据")
+                return self.send_json(v2_get_student_state(student_id))
             if path == "/api/v2/teacher/issues":
                 user = find_authed_user(self)
                 class_id = payload.get("class_id")
                 auth = require_teacher_class(user, class_id)
                 if not auth["ok"]:
                     return self.send_error_json(auth["status"], auth["error"])
-                return self.send_json({"issues": discover_issues(class_id=int(class_id), teacher_id=user["id"])})
+                return self.send_json({"issues": v2_discover_issues(
+                    job_role=payload.get("job_role") or (auth.get("class") or {}).get("job_role", ""),
+                    class_id=int(class_id),
+                    teacher_id=user["id"],
+                )})
             if path == "/api/v2/teacher/issues/candidates":
                 user = find_authed_user(self)
                 class_id = payload.get("class_id")
                 auth = require_teacher_class(user, class_id)
                 if not auth["ok"]:
                     return self.send_error_json(auth["status"], auth["error"])
-                cands = generate_candidates(payload.get("issue_id", ""), payload.get("student_ids", []))
+                cands = v2_generate_candidates(
+                    payload.get("issue_id", ""),
+                    payload.get("student_ids", []),
+                    class_id=int(class_id),
+                    teacher_id=user["id"],
+                    job_role=payload.get("job_role") or (auth.get("class") or {}).get("job_role", ""),
+                )
                 return self.send_json({"candidates": cands})
             if path == "/api/v2/teacher/interventions/evaluate":
                 user = find_authed_user(self)
                 if not user: return self.send_error_json(401, "请先登录")
                 if user.get("role") != "teacher": return self.send_error_json(403, "教师专属功能")
-                result = evaluate_intervention(payload.get("intervention_id", ""),
+                result = v2_evaluate_intervention(payload.get("intervention_id", ""),
                                                 payload.get("pre_states", []), payload.get("post_states", []))
                 return self.send_json(result)
         except ValueError as exc:

@@ -265,7 +265,8 @@ def _collect_student_evidence(student_id: str, job_role: str) -> List[Dict]:
     # 近期学习事件
     try:
         from app.services.learning_event_store import get_events
-        events = get_events(sess_id, limit=10) or []
+        event_result = get_events(sess_id, limit=10) or {}
+        events = event_result.get("events", []) if isinstance(event_result, dict) else event_result
         for ev in events[:5]:
             evidence.append({
                 "source": "learning_event",

@@ -18,12 +18,15 @@ PORT = 8767
 BASE_URL = f"http://127.0.0.1:{PORT}"
 
 
-def request_json(path, payload=None):
+def request_json(path, payload=None, token=None):
     data = None if payload is None else json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = "Bearer " + token
     request = urllib.request.Request(
         BASE_URL + path,
         data=data,
-        headers={"Content-Type": "application/json"},
+        headers=headers,
         method="POST" if payload is not None else "GET",
     )
     with urllib.request.urlopen(request, timeout=5) as response:
@@ -381,6 +384,9 @@ def test_ingest_api(db_path):
     )
     try:
         wait_for_server(process)
+        teacher_login = request_json("/api/auth/login", {"username": "000", "password": "123456"})
+        teacher_token = teacher_login["token"]
+
         result = request_json(
             "/api/graph/job/ingest",
             {
@@ -390,6 +396,7 @@ def test_ingest_api(db_path):
                 "source": "unit_test_material",
                 "use_llm": False,
             },
+            token=teacher_token,
         )
         assert result["method"] == "rule_lexicon"
         assert result["raw_document"]["document_id"].startswith("DOC-")
@@ -404,20 +411,21 @@ def test_ingest_api(db_path):
         posts = request_json("/api/job-data/posts?" + role_query)
         assert posts["posts"]
 
-        pending = request_json("/api/graph/job/proposals/pending?" + role_query)
+        pending = request_json("/api/graph/job/proposals/pending?" + role_query, token=teacher_token)
         assert pending["proposals"]
 
         first = pending["proposals"][0]["proposal_id"]
         confirmed = request_json(
             "/api/graph/job/proposals/confirm-sqlite",
             {"proposal_id": first, "action": "confirm", "confirmed_by": "unit_teacher"},
+            token=teacher_token,
         )
         assert confirmed["proposal"]["status"] == "confirmed"
         assert confirmed["proposal"]["confirmed_by"] == "unit_teacher"
         assert confirmed["snapshot"]["version"].startswith("v")
         assert confirmed["snapshot_graph"]["created_from"] == "confirmed_sqlite_proposals"
         assert first in confirmed["snapshot_graph"]["confirmed_proposal_ids"]
-        versions = request_json("/api/graph/job/versions?" + role_query)
+        versions = request_json("/api/graph/job/versions?" + role_query, token=teacher_token)
         assert any(item["version"] == confirmed["snapshot"]["version"] for item in versions["versions"])
         active_graph = request_json("/api/graph/job?" + role_query)
         assert active_graph["job_role"] == "测试岗位"
@@ -434,6 +442,7 @@ def test_ingest_api(db_path):
                 "store": "sqlite",
                 "use_llm": False,
             },
+            token=teacher_token,
         )
         assert collected["ok"] is True
         assert collected["collected_count"] == 1
@@ -451,11 +460,13 @@ def test_ingest_api(db_path):
                 "source_url": "https://example.com/batch-job/1",
                 "use_llm": False,
             },
+            token=teacher_token,
         )
-        pending_after = request_json("/api/graph/job/proposals/pending?" + role_query)
+        pending_after = request_json("/api/graph/job/proposals/pending?" + role_query, token=teacher_token)
         batch = request_json(
             "/api/graph/job/proposals/confirm-sqlite-batch",
             {"confirm_all": True, "job_role": "测试岗位", "confirmed_by": "unit_teacher_batch"},
+            token=teacher_token,
         )
         assert batch["confirmed_count"] >= len(pending_after["proposals"])
         assert batch["snapshots"]

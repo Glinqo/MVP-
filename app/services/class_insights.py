@@ -47,19 +47,26 @@ def _get_class_student_usernames(class_id: int, teacher_id: int) -> List[str]:
         return []
     return [s["username"] for s in cls.get("students", [])]
 
-def _get_class_student_sessions(class_id: int, teacher_id: int) -> List[str]:
+def _get_class_student_sessions(class_id: int, teacher_id: int, job_role: str = None) -> List[str]:
     """TF-6D: 获取班级成员中所有有测评记录的学生 session_id。"""
     usernames = _get_class_student_usernames(class_id, teacher_id)
     if not usernames:
         return []
-    placeholders = ",".join("?" for _ in usernames)
-    # session_id 格式通常为 <username>-session，但也兼容直接 username
-    like_clauses = " OR ".join(["session_id LIKE ?" for _ in usernames])
-    params = [f"{u}-session" for u in usernames]
-    rows = _query_db(ASSESS_DB,
-        f"SELECT session_id FROM assessments WHERE state = 'completed' AND ({like_clauses})",
-        params)
-    return [r["session_id"] for r in rows]
+    sql = "SELECT session_id, job_role FROM assessments WHERE state = 'completed'"
+    params = []
+    if job_role:
+        sql += " AND job_role = ?"
+        params.append(job_role)
+    rows = _query_db(ASSESS_DB, sql, params)
+
+    from app.services.class_management import session_id_belongs_to_student
+    matched = []
+    for row in rows:
+        sid = row.get("session_id", "")
+        row_job_role = row.get("job_role", "") or job_role or ""
+        if any(session_id_belongs_to_student(sid, username, row_job_role) for username in usernames):
+            matched.append(sid)
+    return matched
 
 def _classify_status(cognitive_mastery_score: float) -> str:
     s = cognitive_mastery_score
@@ -94,7 +101,7 @@ def get_class_ability_graph(job_role=None, ability_id=None, class_id=None, teach
     # P6-B: class_id is mandatory for teacher class-scoped API
     if not class_id or not teacher_id:
         return {"nodes": [], "edges": [], "student_count": 0, "error": "class_id required"}
-    sessions = _get_class_student_sessions(class_id, teacher_id)
+    sessions = _get_class_student_sessions(class_id, teacher_id, jr)
 
     # 聚合数据结构
     node_scores = {nid: [] for nid in node_ids}
@@ -121,10 +128,11 @@ def get_class_ability_graph(job_role=None, ability_id=None, class_id=None, teach
             ab = abilities.get(nid, {})
             score = ab.get("cognitive_mastery_score")
             status = ab.get("status", "")
-            if score is not None:
+            evidence_total = int((ab.get("evidence_summary") or {}).get("total_evidence") or 0)
+            if score is not None and evidence_total > 0:
                 node_scores[nid].append(score)
                 evidence_students[nid] += 1
-            if status:
+            if status and evidence_total > 0:
                 node_statuses[nid].append(status)
 
     # 聚合入节点
@@ -196,7 +204,7 @@ def get_class_ability_graph(job_role=None, ability_id=None, class_id=None, teach
         "has_data": student_count > 0,
     }
     try:
-        overview["common_issue_count"] = len(get_common_issues(jr))
+        overview["common_issue_count"] = len(get_common_issues(jr, class_id=class_id, teacher_id=teacher_id))
     except Exception:
         overview["common_issue_count"] = 0
 
@@ -216,7 +224,7 @@ def get_common_issues(job_role=None, ability_id=None, min_students=3, class_id=N
     # P6-B: class_id is mandatory
     if not class_id or not teacher_id:
         return []
-    sessions = _get_class_student_sessions(class_id, teacher_id)
+    sessions = _get_class_student_sessions(class_id, teacher_id, jr)
     if not sessions:
         return []
 
@@ -328,14 +336,14 @@ def get_class_overview(job_role=None, class_id=None, teacher_id=None):
     # P6-B: class_id is mandatory
     if not class_id or not teacher_id:
         return {"total_students": 0, "has_data": False, "error": "class_id required"}
-    sessions = _get_class_student_sessions(class_id, teacher_id)
+    sessions = _get_class_student_sessions(class_id, teacher_id, jr)
     student_count = len(sessions)
 
-    graph = get_class_ability_graph(jr)
+    graph = get_class_ability_graph(jr, class_id=class_id, teacher_id=teacher_id)
 
     weak_nodes = [n for n in graph.get("nodes", []) if n.get("class_stats", {}).get("weak_ratio", 0) > 0.3]
     try:
-        common_issues = get_common_issues(jr)
+        common_issues = get_common_issues(jr, class_id=class_id, teacher_id=teacher_id)
     except Exception:
         common_issues = []
 
@@ -353,7 +361,7 @@ def get_class_overview(job_role=None, class_id=None, teacher_id=None):
                 "weak_student_count": stats.get("weak_count", 0),
                 "weak_ratio": round(weak_ratio, 2),
             })
-    weakest_abilities.sort(key=lambda a: a["mean_mastery"])[:5]
+    weakest_abilities.sort(key=lambda a: a["mean_mastery"])
 
     risk_distribution = {"high": 0, "attention": 0, "normal": 0}
     # Use weak_node_count as proxy for risk counts
@@ -371,4 +379,3 @@ def get_class_overview(job_role=None, class_id=None, teacher_id=None):
         "high_priority_issues": len([i for i in common_issues if i["priority"] > 0.5]),
         "has_data": student_count > 0,
     }
-

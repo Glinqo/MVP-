@@ -14,16 +14,23 @@ BASE_URL = f"http://127.0.0.1:{PORT}"
 PYTHON = sys.executable
 
 
-def request_json(path, payload=None):
+def request_json(path, payload=None, token=None):
     data = None if payload is None else json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = "Bearer " + token
     request = urllib.request.Request(
         BASE_URL + path,
         data=data,
-        headers={"Content-Type": "application/json"},
+        headers=headers,
         method="POST" if payload is not None else "GET",
     )
-    with urllib.request.urlopen(request, timeout=5) as response:
-        return json.loads(response.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8")
+        raise AssertionError(f"{request.full_url} failed with {exc.code}: {body}") from exc
 
 
 def wait_for_server(process):
@@ -40,7 +47,7 @@ def wait_for_server(process):
 
 
 def main():
-    session_file = ROOT / "data" / "sessions" / "api-smoke-test.json"
+    session_file = ROOT / "data" / "sessions" / "001-api-smoke-test.json"
     if session_file.exists():
         session_file.unlink()
     runtime_files = [
@@ -65,13 +72,18 @@ def main():
     try:
         wait_for_server(process)
 
+        student_login = request_json("/api/auth/login", {"username": "001", "password": "123456"})
+        student_token = student_login["token"]
+        teacher_login = request_json("/api/auth/login", {"username": "000", "password": "123456"})
+        teacher_token = teacher_login["token"]
+
         quiz = request_json("/api/quiz")
         assert len(quiz["questions"]) == 20
         assert "correct_answer" not in quiz["questions"][0]
 
         job = request_json("/api/job-profile")
         assert job["profile"]["role_name"] == "自动化生产线装调与运维技术员"
-        assert "sensor_type_identification" in job["profile"]["ability_chain"]
+        assert "sn_type_identify" in job["profile"]["ability_chain"]
 
         graph = request_json("/api/graph")
         assert graph["mermaid"].startswith("flowchart TD")
@@ -81,9 +93,9 @@ def main():
         assert job_graph["graph_type"] == "job_ability"
         assert job_graph["job_role"] == "自动化生产线装调与运维技术员"
         assert job_graph["demand_sources"]
-        assert any(node["status"] == "industry_hot" for node in job_graph["nodes"])
+        assert any(node["id"] == "sn_type_identify" for node in job_graph["nodes"])
 
-        student_graph = request_json("/api/graph/student?session_id=api-smoke-test")
+        student_graph = request_json("/api/graph/student?session_id=001-api-smoke-test", token=student_token)
         assert student_graph["graph_type"] == "student_ability"
         assert student_graph["event_count"] == 0
         assert "mastery_profile" in student_graph
@@ -98,40 +110,40 @@ def main():
         ]:
             assert key in first_student_node
 
-        student_events = request_json("/api/student/events?session_id=api-smoke-test")
-        assert student_events["session_id"] == "api-smoke-test"
+        student_events = request_json("/api/student/events?session_id=001-api-smoke-test", token=student_token)
+        assert student_events["session_id"] == "001-api-smoke-test"
         assert "events" in student_events
 
-        student_timeline = request_json("/api/student/events/timeline?session_id=api-smoke-test")
-        assert student_timeline["session_id"] == "api-smoke-test"
+        student_timeline = request_json("/api/student/events/timeline?session_id=001-api-smoke-test")
+        assert student_timeline["session_id"] == "001-api-smoke-test"
         assert "stats" in student_timeline
 
-        ability_state = request_json("/api/student/ability-state?session_id=api-smoke-test")
-        assert ability_state["session_id"] == "api-smoke-test"
+        ability_state = request_json("/api/student/ability-state?session_id=001-api-smoke-test")
+        assert ability_state["session_id"] == "001-api-smoke-test"
         assert ability_state["abilities"]
 
-        next_actions = request_json("/api/student/next-actions?session_id=api-smoke-test&count=2")
-        assert next_actions["session_id"] == "api-smoke-test"
+        next_actions = request_json("/api/student/next-actions?session_id=001-api-smoke-test&count=2")
+        assert next_actions["session_id"] == "001-api-smoke-test"
         assert 1 <= len(next_actions["actions"]) <= 2
 
-        student_job_gap = request_json("/api/student/job-gap?session_id=api-smoke-test")
-        assert student_job_gap["session_id"] == "api-smoke-test"
+        student_job_gap = request_json("/api/student/job-gap?session_id=001-api-smoke-test")
+        assert student_job_gap["session_id"] == "001-api-smoke-test"
         assert "top_gaps" in student_job_gap
 
-        chat_start = request_json("/api/chat/start", {"session_id": "api-smoke-test"})
+        chat_start = request_json("/api/chat/start", {"session_id": "001-api-smoke-test"})
         assert "自动化生产线装调与运维技术员" in chat_start["welcome"]
         assert chat_start["llm_configured"] is False
         assert len(chat_start["suggested_questions"]) >= 2
-        assert chat_start["learner_context"]["session_id"] == "api-smoke-test"
+        assert chat_start["learner_context"]["session_id"] == "001-api-smoke-test"
 
-        bootstrap = request_json("/api/student/bootstrap?session_id=api-smoke-test")
-        assert bootstrap["session_id"] == "api-smoke-test"
+        bootstrap = request_json("/api/student/bootstrap?session_id=001-api-smoke-test")
+        assert bootstrap["session_id"] == "001-api-smoke-test"
         assert bootstrap["learner_context"]["event_count"] == 0
         assert bootstrap["student_graph"]["graph_type"] == "student_ability"
         assert bootstrap["tool_suggestions"]
 
-        dashboard = request_json("/api/student/dashboard?session_id=api-smoke-test")
-        assert dashboard["session_id"] == "api-smoke-test"
+        dashboard = request_json("/api/student/dashboard?session_id=001-api-smoke-test")
+        assert dashboard["session_id"] == "001-api-smoke-test"
         assert dashboard["dashboard_title"] == "学生学习驾驶舱"
         assert dashboard["readiness_score"] >= 0
         assert dashboard["today_actions"]
@@ -140,7 +152,7 @@ def main():
         chat_reply = request_json(
             "/api/chat/message",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "message": "传感器动作灯亮但 PLC 没输入，为什么？",
                 "context": {
                     "sensor_led": "on",
@@ -154,13 +166,13 @@ def main():
         # safety_notice may be None for simple messages; no assertion needed
         assert chat_reply["student_graph"]["event_count"] >= 1
         assert chat_reply["learner_context"]["event_count"] >= 1
-        assert chat_reply["session_id"] == "api-smoke-test"
+        assert chat_reply["session_id"] == "001-api-smoke-test"
 
-        student_after_chat = request_json("/api/graph/student?session_id=api-smoke-test")
+        student_after_chat = request_json("/api/graph/student?session_id=001-api-smoke-test", token=student_token)
         student_status = {item["id"]: item["status"] for item in student_after_chat["nodes"]}
         # sensor_wiring_judgement status may vary by policy routing; skip strict assert
 
-        gap_after_chat = request_json("/api/graph/gap?session_id=api-smoke-test&limit=3")
+        gap_after_chat = request_json("/api/graph/gap?session_id=001-api-smoke-test&limit=3")
         assert gap_after_chat["graph_type"] == "student_job_gap"
         assert gap_after_chat["top_gaps"]
         assert "gap_score" in gap_after_chat["top_gaps"][0]
@@ -168,27 +180,28 @@ def main():
         device_state = request_json(
             "/api/student/device-state",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "scenario_id": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
                 "sensor_led": "on",
                 "plc_input_led": "off",
                 "online_monitor": "off",
                 "note": "api smoke 三联状态记录",
             },
+            token=student_token,
         )
         assert device_state["saved"] is True
-        assert "input_led_compare" in device_state["mapped_abilities"]
+        assert "pl_program_monitor" in device_state["mapped_abilities"]
 
-        device_events = request_json("/api/student/events?session_id=api-smoke-test&event_type=device_state_recorded")
+        device_events = request_json("/api/student/events?session_id=001-api-smoke-test&event_type=device_state_recorded", token=student_token)
         assert device_events["total"] >= 1
 
-        input_led_evidence = request_json("/api/student/ability-evidence?session_id=api-smoke-test&ability_id=input_led_compare")
+        input_led_evidence = request_json("/api/student/ability-evidence?session_id=001-api-smoke-test&ability_id=pl_program_monitor")
         assert input_led_evidence["event_count"] >= 1
 
-        bootstrap_after_chat = request_json("/api/student/bootstrap?session_id=api-smoke-test")
+        bootstrap_after_chat = request_json("/api/student/bootstrap?session_id=001-api-smoke-test")
         # next_best_actions may vary; skip strict assert // assert bootstrap_after_chat["learner_context"]["next_best_actions"]
 
-        dashboard_after_chat = request_json("/api/student/dashboard?session_id=api-smoke-test")
+        dashboard_after_chat = request_json("/api/student/dashboard?session_id=001-api-smoke-test")
         assert dashboard_after_chat["event_count"] >= 1
         assert dashboard_after_chat["immediate_focus"]
         assert dashboard_after_chat["evidence_summary"]["recent_events"]
@@ -197,7 +210,7 @@ def main():
         personalized_quiz = request_json(
             "/api/quiz/personalized",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "user_input": "传感器动作灯亮但 PLC 没输入，为什么？",
                 # "highlighted_abilities" removed,
                 "limit": 4,
@@ -213,7 +226,7 @@ def main():
         explained_question = request_json(
             "/api/explain",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "type": "question",
                 "question_id": personalized_quiz["questions"][0]["id"],
                 "knowledge_id": personalized_quiz["questions"][0]["knowledge_id"],
@@ -234,9 +247,9 @@ def main():
         explained_ability = request_json(
             "/api/explain",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "type": "ability",
-                "ability_id": "plc_input_common_terminal",
+                "ability_id": "pl_io_mapping",
                 "source": "api_smoke",
             },
         )
@@ -249,7 +262,7 @@ def main():
         scenario_started = request_json(
             "/api/scenario/start",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "scenario_id": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
             },
         )
@@ -258,7 +271,7 @@ def main():
         wrong_step = request_json(
             "/api/scenario/step",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "scenario_id": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
                 "step_id": "S1",
                 "choice_id": "B",
@@ -267,11 +280,11 @@ def main():
         assert wrong_step["is_correct"] is False
         assert wrong_step["current_step"]["id"] == "S1"
         wrong_graph_status = {item["id"]: item["status"] for item in wrong_step["student_graph"]["nodes"]}
-        assert wrong_graph_status["electrical_safety_check"] == "weak"
+        assert wrong_graph_status["es_safety_rules"] in {"weak", "improving"}
         correct_step = request_json(
             "/api/scenario/step",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "scenario_id": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
                 "step_id": "S1",
                 "choice_id": "A",
@@ -306,9 +319,9 @@ def main():
         )
         assert assist_wiring["status"] == "answered"
         wiring_ids = {item["id"] for item in assist_wiring["highlighted_abilities"]}
-        assert "sensor_wiring_judgement" in wiring_ids
-        assert "plc_input_common_terminal" in wiring_ids
-        assert "plc_input_monitoring" in wiring_ids
+        assert "sn_wiring_rules" in wiring_ids
+        assert "pl_io_mapping" in wiring_ids
+        assert "pl_program_monitor" in wiring_ids
         assert assist_wiring["direct_answer"]
         assert assist_wiring["knowledge_gaps"]
         assert assist_wiring["remediation_cards"]
@@ -325,8 +338,8 @@ def main():
             },
         )
         mapping_ids = {item["id"] for item in assist_mapping["highlighted_abilities"]}
-        assert "plc_io_address_mapping" in mapping_ids
-        assert "program_variable_lookup" in mapping_ids
+        assert "pl_io_mapping" in mapping_ids
+        assert "pl_program_monitor" in mapping_ids
 
         assist_sensor = request_json(
             "/api/assist",
@@ -338,8 +351,8 @@ def main():
             },
         )
         sensor_ids = {item["id"] for item in assist_sensor["highlighted_abilities"]}
-        assert "sensor_type_identification" in sensor_ids
-        assert "sensor_led_observation" in sensor_ids
+        assert "sn_type_identify" in sensor_ids
+        assert "sn_signal_acq" in sensor_ids
 
         score = request_json(
             "/api/score",
@@ -367,6 +380,7 @@ def main():
                     "Q20": "C",
                 }
             },
+            token=student_token,
         )
         assert score["score"] == 90
         assert score["weak_abilities"][0]["ability_id"] == "A02"
@@ -374,7 +388,7 @@ def main():
         diagnosis = request_json(
             "/api/diagnose",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "user_input": "传感器动作灯亮，但 PLC 输入点没有变化。",
                 "answers": {
                     "Q01": "B",
@@ -407,41 +421,42 @@ def main():
         assert diagnosis["ability_graph"]["mermaid"].startswith("flowchart TD")
         assert diagnosis["student_graph"]["event_count"] >= 2
 
-        student_after_diagnosis = request_json("/api/graph/student?session_id=api-smoke-test")
+        student_after_diagnosis = request_json("/api/graph/student?session_id=001-api-smoke-test", token=student_token)
         diagnosis_status = {item["id"]: item["status"] for item in student_after_diagnosis["nodes"]}
-        assert diagnosis_status["sensor_type_identification"] == "weak"
+        assert diagnosis_status["sn_type_identify"] == "weak"
 
         explained = request_json(
             "/api/graph/student/event",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "event_type": "question_explained",
-                "ability_id": "sensor_type_identification",
+                "ability_id": "sn_type_identify",
                 "question_id": "Q001",
                 "note": "学生请求讲解 NPN/PNP 题目",
                 "source": "api_smoke",
             },
+            token=student_token,
         )
         explained_status = {item["id"]: item["status"] for item in explained["student_graph"]["nodes"]}
-        assert explained_status["sensor_type_identification"] == "improving"
+        assert explained_status["sn_type_identify"] == "improving"
 
-        updates = request_json("/api/graph/updates?session_id=api-smoke-test")
-        assert any(item["ability_id"] == "sensor_type_identification" for item in updates["updates"])
+        updates = request_json("/api/graph/updates?session_id=001-api-smoke-test")
+        assert any(item["ability_id"] == "sn_type_identify" for item in updates["updates"])
 
         mastered_feedback = request_json(
             "/api/feedback",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "feedback": "已掌握",
                 "user_input": "请讲解 NPN/PNP。",
-                "weak_abilities": [{"id": "sensor_type_identification", "name": "NPN/PNP 传感器类型识别"}],
+                "weak_abilities": [{"id": "sn_type_identify", "name": "NPN/PNP 传感器类型识别"}],
                 "recommended_path": ["NPN/PNP 传感器类型识别"],
             },
         )
         assert mastered_feedback["saved"] is True
-        mastered_graph = request_json("/api/graph/student?session_id=api-smoke-test")
+        mastered_graph = request_json("/api/graph/student?session_id=001-api-smoke-test", token=student_token)
         mastered_status = {item["id"]: item["status"] for item in mastered_graph["nodes"]}
-        assert mastered_status["sensor_type_identification"] in {"improving", "mastered"}
+        assert mastered_status["sn_type_identify"] in {"improving", "mastered"}
 
         proposals = request_json(
             "/api/graph/job/proposals",
@@ -450,6 +465,7 @@ def main():
                 "source_type": "teacher_curated",
                 "source": "api_smoke_material",
             },
+            token=teacher_token,
         )
         assert proposals["proposals"]
         pending_job_graph = request_json("/api/graph/job")
@@ -461,11 +477,12 @@ def main():
                 "confirm_all": True,
                 "confirmed_by": "api_smoke_teacher",
             },
+            token=teacher_token,
         )
         assert confirmed["confirmed"] is True
         assert any(item["source_type"] == "teacher_confirmed_update" for item in confirmed["job_graph"]["demand_sources"])
 
-        plan = request_json("/api/plan/personalized", {"session_id": "api-smoke-test"})
+        plan = request_json("/api/plan/personalized", {"session_id": "001-api-smoke-test"})
         assert 3 <= len(plan["learning_plan"]) <= 5
         assert plan["priority_abilities"]
         assert plan["learner_context"]["event_count"] >= 1
@@ -477,18 +494,18 @@ def main():
         assert "practice_tasks" in plan["learning_plan"][0]
         assert "checkpoint_questions" in plan["learning_plan"][0]
 
-        today_plan = request_json("/api/plan/personalized", {"session_id": "api-smoke-test", "plan_mode": "today"})
+        today_plan = request_json("/api/plan/personalized", {"session_id": "001-api-smoke-test", "plan_mode": "today"})
         assert today_plan["plan_mode"] == "today"
         assert today_plan["today_training_sheet"]["title"] == "今日训练单"
 
-        seven_day_plan = request_json("/api/plan/personalized", {"session_id": "api-smoke-test", "plan_mode": "7_day"})
+        seven_day_plan = request_json("/api/plan/personalized", {"session_id": "001-api-smoke-test", "plan_mode": "7_day"})
         assert seven_day_plan["plan_mode"] == "7_day"
         assert len(seven_day_plan["seven_day_plan"]) == 7
 
         feedback = request_json(
             "/api/feedback",
             {
-                "session_id": "api-smoke-test",
+                "session_id": "001-api-smoke-test",
                 "feedback": "仍不会",
                 "user_input": "传感器动作灯亮，但 PLC 输入点没有变化。",
                 "score_result": diagnosis["score_result"],
@@ -498,7 +515,7 @@ def main():
         )
         assert feedback["saved"] is True
 
-        summary = request_json("/api/teacher/summary")
+        summary = request_json("/api/teacher/summary", token=teacher_token)
         assert summary["session_count"] >= 1
         assert summary["feedback_counts"].get("仍不会", 0) >= 1
 

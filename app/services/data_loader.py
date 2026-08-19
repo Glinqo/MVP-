@@ -17,7 +17,6 @@ def _job_questions():
     if path.is_file():
         return json.loads(path.read_text(encoding="utf-8")).get("job_question_sets", {})
     return {}
-    return json.loads((ROOT / relative_path).read_text(encoding="utf-8"))
 
 
 @lru_cache(maxsize=1)
@@ -73,29 +72,39 @@ def primary_job_profile():
     return profiles[0] if profiles else {}
 
 
+PUBLIC_QUESTION_KEYS = (
+    "id",
+    "type",
+    "question",
+    "options",
+    "ability_id",
+    "remediation_resources",
+    "remediation_tasks",
+    "source",
+)
+
+
+def _public_question_payload(question):
+    """Return the client-safe question contract without answer keys."""
+    return {
+        key: question.get(key)
+        for key in PUBLIC_QUESTION_KEYS
+        if key in question
+    }
+
+
 def public_questions(job_role=None):
     # Try job-specific questions first
     job_sets = _job_questions()
     if job_role and job_role in job_sets:
-        return job_sets[job_role]
+        return [_public_question_payload(question) for question in job_sets[job_role]]
     # Fall back to default questions
     if job_sets:
         first_key = next(iter(job_sets))
-        return job_sets[first_key]
+        return [_public_question_payload(question) for question in job_sets[first_key]]
     questions = []
     for question in load_data()["questions_data"].get("questions", []):
-        questions.append(
-            {
-                "id": question.get("id"),
-                "type": question.get("type"),
-                "question": question.get("question"),
-                "options": question.get("options", []),
-                "ability_id": question.get("ability_id"),
-                "remediation_resources": question.get("remediation_resources", []),
-                "remediation_tasks": question.get("remediation_tasks", []),
-                "source": question.get("source"),
-            }
-        )
+        questions.append(_public_question_payload(question))
     return questions
 
 def job_profile_by_id(profile_id=None):
@@ -104,4 +113,9 @@ def job_profile_by_id(profile_id=None):
     if not profile_id:
         return profiles[0] if profiles else {}
     by_id = load_data()["job_profile_by_id"]
-    return by_id.get(profile_id, profiles[0] if profiles else {})
+    if profile_id in by_id:
+        return by_id[profile_id]
+    for profile in profiles:
+        if profile.get("role_name") == profile_id:
+            return profile
+    return profiles[0] if profiles else {}

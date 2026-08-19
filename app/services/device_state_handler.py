@@ -5,7 +5,7 @@ and maps them to ability nodes for graph updates.
 """
 
 from .learning_event_store import append_normalized_event
-from .graph_update_engine import record_student_graph_event
+from .graph_update_engine import normalize_ability_id, record_student_graph_event
 
 
 # Mapping from device state fields to ability IDs
@@ -17,6 +17,15 @@ STATE_ABILITY_MAP = {
     "power_status": ["dc24v_power_check", "electrical_safety_check"],
     "safety_confirmed": ["electrical_safety_check", "power_isolation_confirmation"],
 }
+
+
+def _normalize_ability_list(ability_ids):
+    normalized = []
+    for ability_id in ability_ids or []:
+        normalized_id = normalize_ability_id(ability_id)
+        if normalized_id and normalized_id not in normalized:
+            normalized.append(normalized_id)
+    return normalized
 
 
 def record_device_state(payload):
@@ -49,7 +58,7 @@ def record_device_state(payload):
             abilities = STATE_ABILITY_MAP.get(field, [])
             mapped_abilities.update(abilities)
 
-    ability_ids = list(mapped_abilities)
+    ability_ids = _normalize_ability_list(mapped_abilities)
 
     # Build event
     event = {
@@ -107,29 +116,29 @@ def _generate_diagnostic_hint(payload):
         return {
             "direction": "??????",
             "hint": "????????PLC???????????????????????????",
-            "next_abilities": ["plc_input_common_terminal", "sensor_wiring_judgement"],
+            "next_abilities": _normalize_ability_list(["plc_input_common_terminal", "sensor_wiring_judgement"]),
         }
     if sensor_led == "on" and plc_led == "on" and monitor == "off":
         return {
             "direction": "??????",
             "hint": "???????PLC???????????I/O????????????",
-            "next_abilities": ["plc_io_address_mapping", "program_variable_lookup"],
+            "next_abilities": _normalize_ability_list(["plc_io_address_mapping", "program_variable_lookup"]),
         }
     if sensor_led == "off":
         return {
             "direction": "??????",
             "hint": "???????????24V???????????????????",
-            "next_abilities": ["sensor_led_observation", "dc24v_power_check", "sensor_type_identification"],
+            "next_abilities": _normalize_ability_list(["sensor_led_observation", "dc24v_power_check", "sensor_type_identification"]),
         }
     if sensor_led == "on" and plc_led == "on" and monitor != "off":
         return {
             "direction": "??????",
             "hint": "????PLC??????????????????????????",
-            "next_abilities": ["program_variable_lookup", "input_no_response_fault_scope"],
+            "next_abilities": _normalize_ability_list(["program_variable_lookup", "input_no_response_fault_scope"]),
         }
 
     return {
         "direction": "??????",
         "hint": "??????????????????????",
-        "next_abilities": ["sensor_led_observation", "input_led_compare", "plc_input_monitoring"],
+        "next_abilities": _normalize_ability_list(["sensor_led_observation", "input_led_compare", "plc_input_monitoring"]),
     }

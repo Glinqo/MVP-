@@ -1,5 +1,5 @@
 from .data_loader import load_data, primary_job_profile
-from .graph import build_ability_graph
+from .graph import build_ability_graph, normalize_ability_id
 from .safety import safety_notice
 
 
@@ -113,10 +113,15 @@ def clarifying_questions(pattern, missing_fields):
 def related_resources_for_abilities(ability_ids):
     resources = []
     seen = set()
+    normalized_ability_ids = {
+        normalize_ability_id(ability_id)
+        for ability_id in ability_ids
+        if normalize_ability_id(ability_id)
+    }
     for resource in load_data()["resources"]:
         if resource.get("id") in seen:
             continue
-        if any(ability_id in resource.get("node_ids", []) for ability_id in ability_ids):
+        if any(ability_id in resource.get("node_ids", []) for ability_id in normalized_ability_ids):
             seen.add(resource.get("id"))
             resources.append(resource)
     return resources
@@ -125,8 +130,12 @@ def related_resources_for_abilities(ability_ids):
 def build_highlighted_abilities(pattern):
     data = load_data()
     highlighted = []
+    seen = set()
     for item in pattern.get("highlighted_abilities", []):
-        ability_id = item.get("id")
+        ability_id = normalize_ability_id(item.get("id"))
+        if not ability_id or ability_id in seen:
+            continue
+        seen.add(ability_id)
         ability = data["ability_by_id"].get(ability_id, {})
         highlighted.append(
             {
@@ -153,7 +162,10 @@ def build_knowledge_gaps(pattern):
 
 def build_remediation_cards(pattern):
     data = load_data()
-    ability_ids = [item.get("id") for item in pattern.get("highlighted_abilities", [])]
+    ability_ids = [
+        normalize_ability_id(item.get("id"))
+        for item in pattern.get("highlighted_abilities", [])
+    ]
     task_cards = [
         compact_task(data["task_by_id"][task_id])
         for task_id in pattern.get("related_tasks", [])

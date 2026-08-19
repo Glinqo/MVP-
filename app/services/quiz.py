@@ -30,13 +30,14 @@ def knowledge_for_abilities(ability_ids):
 
 def ability_ids_from_payload(payload):
     payload = payload or {}
+    job_role = payload.get("job_role")
     ability_ids = []
     ability_ids.extend(extract_ability_ids(payload.get("weak_abilities", [])))
     ability_ids.extend(extract_ability_ids(payload.get("highlighted_abilities", [])))
 
     session_id = payload.get("session_id")
     if session_id:
-        state = session_ability_state(session_id)
+        state = session_ability_state(session_id, job_role)
         ability_ids.extend(state["weak_hits"].keys())
         ability_ids.extend(state["chat_hits"].keys())
         ability_ids.extend(state["recommended_ids"])
@@ -88,6 +89,7 @@ def compact_question(item, index):
 
 def personalized_quiz(payload=None):
     payload = payload or {}
+    job_role = payload.get("job_role")
     limit = int(payload.get("limit") or 4)
     limit = max(1, min(limit, 8))
     ability_ids = ability_ids_from_payload(payload)
@@ -109,5 +111,5 @@ def personalized_quiz(payload=None):
         "based_on_abilities": ability_ids[:8],
         "questions": questions,
         "preset_available": True,
-        "preset_questions": public_questions(),
+        "preset_questions": public_questions(job_role),
     }

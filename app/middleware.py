@@ -51,13 +51,16 @@ def require_student_owner(user: dict, requested_student_id: str = None, requeste
         return True
     # Session-based: session_id format should contain student identifier
     if requested_session_id:
-        # Try to derive student from session_id
+        try:
+            from app.services.class_management import session_id_belongs_to_student
+            if session_id_belongs_to_student(requested_session_id, username):
+                return True
+        except Exception:
+            pass
         parts = requested_session_id.split("-")
         for p in parts:
-            if p.isdigit() and len(p) == 3:
-                if p == username:
-                    return True
-        # If session matches username pattern, allow
+            if p == username:
+                return True
         if requested_session_id.startswith(username + "-") or ("-" + username + "-") in requested_session_id:
             return True
     # Default: student only accesses self
