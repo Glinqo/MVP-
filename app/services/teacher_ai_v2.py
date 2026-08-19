@@ -195,8 +195,15 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
         sid = m.group(1) if m else ""
         if sid:
             state = ai.get_student_state(sid, class_id=class_id, teacher_id=tid)
-            result["answer"] = f"学生 {sid} 的学习状态已加载。"
-            result["data_cards"] = [state]
+            if state.get("status") == "not_in_class":
+                result["answer"] = f"学生 {sid} 不属于当前班级。"
+                result["data_cards"] = [state]
+            elif state.get("status") == "not_found":
+                result["answer"] = f"班级不存在或无权访问。"
+                result["data_cards"] = [state]
+            else:
+                result["answer"] = f"学生 {sid} 的学习状态已加载。"
+                result["data_cards"] = [state]
 
     # Pattern-related intents
     elif any(kw in msg for kw in ["模式", "诊断", "过程", "pattern"]):
