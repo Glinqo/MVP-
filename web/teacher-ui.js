@@ -864,26 +864,80 @@ TeacherUI.publishComment = function(commentId) {
 // ============================================================
 // Tab: Standards
 // ============================================================
+TeacherUI._standardsView = "graph";
+
 TeacherUI.loadStandards = function() {
   var c = document.getElementById("tw-standards");
   if (!c) return;
+  if (!TeacherUI.currentClass) {
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Please select a class first.</div>';
+    return;
+  }
   c.innerHTML = '<div class="muted" style="padding:20px">Loading standards...</div>';
-  var jobId = TeacherUI.currentClass ? TeacherUI.currentClass.job_role : "";
-  TeacherUI.fetchAuth("/api/graph/job" + (jobId ? "?job_role=" + encodeURIComponent(jobId) : ""), "GET").then(function(data) {
-    var nodes = data.nodes || [];
-    var proposals = data.pending_proposals || [];
+  var jobRole = TeacherUI.currentClass.job_role || "";
+  Promise.all([
+    TeacherUI.fetchAuth("/api/graph/job?job_role=" + encodeURIComponent(jobRole), "GET"),
+    TeacherUI.fetchAuth("/api/graph/job/proposals/pending?job_role=" + encodeURIComponent(jobRole), "GET"),
+    TeacherUI.fetchAuth("/api/graph/job/versions?job_role=" + encodeURIComponent(jobRole), "GET")
+  ]).then(function(results) {
+    var graph = results[0] || { nodes: [] };
+    var proposalsData = results[1] || {};
+    var versionsData = results[2] || {};
+    var proposals = proposalsData.proposals || proposalsData.pending_proposals || [];
+    var versions = versionsData.versions || [];
+    var nodes = graph.nodes || [];
     var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 8px">Job Standards</h3>';
-    html += '<p style="color:#94a3b8;margin:0 0 8px">Current job: ' + (data.job_role || jobId) + ' | ' + nodes.length + ' nodes</p>';
-    if (proposals.length > 0) html += '<p style="color:#fbbf24;margin:0 0 8px">Pending proposals: ' + proposals.length + '</p>';
-    html += '<div id="teacherJobGraphDiagram" style="width:100%;height:300px"></div>';
+    html += '<div style="display:flex;gap:8px;margin-bottom:12px">';
+    var views = [["graph", "Graph"], ["proposals", "Proposals"], ["versions", "Versions"]];
+    views.forEach(function(v) {
+      var active = TeacherUI._standardsView === v[0] ? "background:#14b8a6;color:#fff" : "background:rgba(255,255,255,0.08)";
+      html += '<button style="padding:6px 12px;border-radius:6px;border:none;cursor:pointer;' + active + '" onclick="TeacherUI.setStandardsView(\'' + v[0] + '\')">' + v[1] + '</button>';
+    });
+    html += '</div>';
+    html += '<p style="color:#94a3b8;margin:0 0 8px">' + (graph.job_role || jobRole) + ' · ' + nodes.length + ' nodes · ' + proposals.length + ' proposals · ' + versions.length + ' versions</p>';
+    if (TeacherUI._standardsView === "graph") {
+      html += '<div id="teacherJobGraphDiagram" style="width:100%;height:300px"></div>';
+    } else if (TeacherUI._standardsView === "proposals") {
+      if (!proposals.length) {
+        html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No pending proposals.</div>';
+      } else {
+        proposals.forEach(function(p) {
+          var ptype = TeacherUI.escHtml(String(p.proposal_type || p.type || "update"));
+          var target = TeacherUI.escHtml(String(p.target_ability_id || p.ability_id || p.node_id || "unknown"));
+          var source = TeacherUI.escHtml(String(p.source || "unknown"));
+          html += '<div class="proposal-card" style="padding:12px;border:1px solid #334155;border-radius:8px;margin-bottom:8px">';
+          html += '<div style="font-weight:600;color:#e2e8f0">' + ptype + ': ' + target + '</div>';
+          html += '<div style="color:#94a3b8;font-size:0.85em">Source: ' + source + '</div>';
+          html += '</div>';
+        });
+      }
+    } else {
+      if (!versions.length) {
+        html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No version history.</div>';
+      } else {
+        versions.forEach(function(v) {
+          var vid = TeacherUI.escHtml(String(v.version || v.id || ""));
+          var vtime = TeacherUI.escHtml(String(v.created_at || v.timestamp || ""));
+          html += '<div class="version-card" style="padding:12px;border:1px solid #334155;border-radius:8px;margin-bottom:8px">';
+          html += '<div style="font-weight:600;color:#e2e8f0">Version ' + vid + '</div>';
+          html += '<div style="color:#94a3b8;font-size:0.85em">' + vtime + '</div>';
+          html += '</div>';
+        });
+      }
+    }
     html += '</div>';
     c.innerHTML = html;
-    if (typeof renderGraphDiagram === "function" && nodes.length) {
-      setTimeout(function() { renderGraphDiagram(data, "teacherJobGraphDiagram"); }, 200);
+    if (TeacherUI._standardsView === "graph" && typeof renderGraphDiagram === "function" && nodes.length) {
+      setTimeout(function() { renderGraphDiagram(graph, "teacherJobGraphDiagram"); }, 200);
     }
   }).catch(function() {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No standards data.</div>';
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Failed to load standards.</div>';
   });
+};
+
+TeacherUI.setStandardsView = function(view) {
+  TeacherUI._standardsView = view;
+  TeacherUI.loadStandards();
 };
 
 // ============================================================

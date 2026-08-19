@@ -150,8 +150,10 @@ def discover_issues(job_role: str = "", student_states: List[Dict] = None,
         enriched.append(d)
     return enriched
 
-def get_issue(issue_id: str) -> Dict[str, Any]:
-    issues = discover_issues()
+def get_issue(issue_id: str, class_id: int = None, teacher_id: int = None,
+               job_role: str = "") -> Dict[str, Any]:
+    """Get issue by ID, class-scoped when class_id/teacher_id provided."""
+    issues = discover_issues(class_id=class_id, teacher_id=teacher_id, job_role=job_role)
     for i in issues:
         if i.get("issue_id") == issue_id:
             return i
@@ -159,11 +161,14 @@ def get_issue(issue_id: str) -> Dict[str, Any]:
 
 # --- Intervention Policy ---
 def generate_candidates(issue_id: str, student_ids: List[str],
-                        completed: List[str] = None) -> List[Dict[str, Any]]:
-    issue = get_issue(issue_id)
-    ability_id = issue.get("primary_ability_id", "") if issue else ""
+                        completed: List[str] = None, class_id: int = None,
+                        teacher_id: int = None, job_role: str = "") -> List[Dict[str, Any]]:
+    issue = get_issue(issue_id, class_id=class_id, teacher_id=teacher_id, job_role=job_role)
+    if issue.get("status") == "not_found":
+        return []
+    ability_id = issue.get("primary_ability_id", "")
     if not ability_id:
-        ability_id = "PLC_INPUT_NO_RESPONSE"
+        return []
     from app.services.policy.intervention_policy import InterventionPolicyEngine
     engine = InterventionPolicyEngine()
     candidates = engine.process(

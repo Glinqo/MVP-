@@ -28,15 +28,26 @@ class TeacherAIV2:
             return []
         return issues[:limit]
 
-    def explain_issue(self, issue_id: str) -> Dict[str, Any]:
-        """Provide explanation and evidence for a teaching issue via V2 Facade."""
+    def explain_issue(self, issue_id: str, class_id: int = None,
+                      teacher_id: int = None, job_role: str = "") -> Dict[str, Any]:
+        """Provide explanation and evidence for a teaching issue, class-scoped."""
         from app.services.v2_facade import get_issue
-        issue = get_issue(issue_id)
-        if issue and issue.get("status") != "unknown":
+        issue = get_issue(issue_id, class_id=class_id, teacher_id=teacher_id, job_role=job_role)
+        if issue and issue.get("status") != "not_found":
+            evidence = issue.get("evidence_summary", {})
+            top_patterns = issue.get("top_patterns", [])
+            explanation = f"该问题当前影响 {evidence.get('student_count', 0)} 名学生。\n"
+            explanation += f"系统记录到 {evidence.get('event_count', 0)} 条相关学习事件，"
+            explanation += f"识别出 {evidence.get('pattern_count', 0)} 条重复诊断模式。\n"
+            if top_patterns:
+                top = top_patterns[0]
+                explanation += f"最常见模式：{top.get('label', 'unknown')}，出现 {top.get('count', 0)} 次，涉及 {top.get('student_count', 0)} 名学生。\n"
+            explanation += f"严重度 {round(issue.get('severity', 0) * 100)}%，判断置信度 {round(issue.get('confidence', 0) * 100)}%。"
             return {
                 "issue_id": issue_id,
-                "explanation": issue.get("description", "基于学生学习证据自动发现的共性问题"),
-                "evidence_summary": issue.get("evidence_refs", []),
+                "explanation": explanation,
+                "evidence_summary": evidence,
+                "top_patterns": top_patterns,
                 "recommended_actions": ["查看班级洞察", "生成教学评语", "创建针对性训练"],
                 "issue": issue,
             }
