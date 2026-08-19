@@ -37,3 +37,6 @@ data/*.db-wal
 # Temp debug artifacts
 _*.py
 debug_*.png
+*.db
+*.db-wal
+*.db-shm
