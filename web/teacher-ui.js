@@ -126,12 +126,7 @@ TeacherUI.switchTeacherClass = function(classId) {
     if (TeacherUI._classes[i].id === classId) { target = TeacherUI._classes[i]; break; }
   }
   if (!target) return;
-  // Clear old class scoped state
-  TeacherUI.clearClassScopedState();
-  // Update state
   TeacherUI.setCurrentClass(target);
-  // Refresh current tab with new class data
-  if (TeacherUI.currentTab) TeacherUI.switchTab(TeacherUI.currentTab);
   // Close dropdown
   var dropdown = document.getElementById("classDropdown");
   if (dropdown) dropdown.style.display = "none";
