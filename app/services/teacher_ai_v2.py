@@ -20,10 +20,10 @@ class TeacherAIV2:
         }
 
     def find_teaching_issues(self, class_id: str = "", job_role: str = "",
-                              limit: int = 10) -> List[Dict[str, Any]]:
-        """Find and rank teaching issues from Issue Discovery Engine via V2 Facade."""
+                              limit: int = 10, teacher_id: int = None) -> List[Dict[str, Any]]:
+        """Find and rank teaching issues, strictly scoped to class roster."""
         from app.services.v2_facade import discover_issues
-        issues = discover_issues(job_role=job_role)
+        issues = discover_issues(class_id=int(class_id) if class_id else None, teacher_id=teacher_id)
         if not issues:
             return []
         return issues[:limit]
@@ -47,9 +47,19 @@ class TeacherAIV2:
             "recommended_actions": [],
         }
 
-    def get_student_state(self, student_id: str) -> Dict[str, Any]:
-        """Get learner state for a specific student via V2 Facade."""
+    def get_student_state(self, student_id: str, class_id: int = None,
+                           teacher_id: int = None) -> Dict[str, Any]:
+        """Get learner state for a specific student, class-scoped if class_id provided."""
         from app.services.v2_facade import get_student_state
+        # P7-A: Verify student belongs to class if class_id specified
+        if class_id and teacher_id:
+            from app.services.class_management import get_class_students
+            cls = get_class_students(class_id, teacher_id)
+            if not cls:
+                return {"student_id": student_id, "error": "班级不存在", "status": "not_found"}
+            roster = {s["username"] for s in cls.get("students", [])}
+            if student_id not in roster:
+                return {"student_id": student_id, "error": "该学生不属于当前班级", "status": "not_in_class"}
         return get_student_state(student_id)
 
     def get_process_patterns(self, student_id: str, scenario_id: str = "") -> List[Dict[str, Any]]:
@@ -57,8 +67,19 @@ class TeacherAIV2:
         from app.services.v2_facade import get_student_patterns
         return get_student_patterns(student_id, scenario_id) or []
 
-    def generate_intervention_candidates(self, issue_id: str, student_ids: List[str]) -> List[Dict[str, Any]]:
-        """Generate ranked intervention candidates via V2 Facade."""
+    def generate_intervention_candidates(self, issue_id: str, student_ids: List[str],
+                                            class_id: int = None, teacher_id: int = None) -> List[Dict[str, Any]]:
+        """Generate ranked intervention candidates, restricted to class roster."""
+        # P7-A: Filter student_ids to class roster
+        if class_id and teacher_id:
+            from app.services.class_management import get_class_students
+            cls = get_class_students(class_id, teacher_id)
+            if not cls:
+                return []
+            roster = {s["username"] for s in cls.get("students", [])}
+            student_ids = [s for s in (student_ids or []) if s in roster]
+            if not student_ids:
+                return []
         from app.services.v2_facade import generate_candidates
         return generate_candidates(issue_id, student_ids)
 
@@ -104,7 +125,7 @@ def get_teacher_ai_v2() -> TeacherAIV2:
 
 def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: str = "",
                                history: List = None, ui_context: Dict = None,
-                               context: Dict = None) -> Dict[str, Any]:
+                               context: Dict = None, class_id: int = None) -> Dict[str, Any]:
     """V2 Teacher message handler - routes all intents through V2 Facade.
     
     Supported V2 intents:
@@ -121,6 +142,16 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
     ai = get_teacher_ai_v2()
     jr = job_role or ""
     msg = message.strip()
+    tid = int(teacher_id) if str(teacher_id).isdigit() else None
+
+    # P7-B: Bind context to class_id; reset if class_id mismatch
+    ctx = context or {}
+    if class_id is not None and ctx.get("class_id") != class_id:
+        ctx = {"class_id": class_id}
+    elif class_id is None:
+        ctx = dict(ctx)
+    else:
+        ctx = dict(ctx)
 
     result = {
         "answer": "",
@@ -135,7 +166,7 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
     # Issue-related intents
     if any(kw in msg for kw in ["教学问题", "问题列表", "发现问题", "共有问题", "common issue"]):
         result["intent"] = "find_issues"
-        issues = ai.find_teaching_issues(job_role=jr)
+        issues = ai.find_teaching_issues(class_id=class_id, job_role=jr, teacher_id=tid)
         if issues:
             result["answer"] = f"当前识别到 {len(issues)} 个教学问题：\n"
             for i, issue in enumerate(issues[:5], 1):
@@ -163,7 +194,7 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
         m = re.search(r"(\d{3})", msg)
         sid = m.group(1) if m else ""
         if sid:
-            state = ai.get_student_state(sid)
+            state = ai.get_student_state(sid, class_id=class_id, teacher_id=tid)
             result["answer"] = f"学生 {sid} 的学习状态已加载。"
             result["data_cards"] = [state]
 
@@ -186,7 +217,7 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
         issue_id = (context or {}).get("last_issue_id", "")
         student_ids = (context or {}).get("last_students", [])
         if issue_id and student_ids:
-            candidates = ai.generate_intervention_candidates(issue_id, student_ids)
+            candidates = ai.generate_intervention_candidates(issue_id, student_ids, class_id=class_id, teacher_id=tid)
             result["answer"] = f"为问题 {issue_id} 生成了 {len(candidates)} 个干预候选方案。"
             result["data_cards"] = candidates[:5]
             if candidates:

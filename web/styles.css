@@ -1670,3 +1670,21 @@ body[data-role="teacher"] .workspace-panel.role-teacher.active { display: block;
   width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.9rem; font-family: inherit;
 }
+
+
+/* P7: Class dropdown */
+.class-dropdown {
+  position: absolute; top: 48px; right: 14px; z-index: 9999;
+  background: #0f172a; border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  min-width: 240px; max-height: 360px; overflow-y: auto;
+}
+.class-dropdown-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px; cursor: pointer; color: #e2e8f0;
+  font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.class-dropdown-item:hover { background: rgba(255,255,255,0.06); }
+.class-dropdown-item.active { background: rgba(20,184,166,0.12); }
+.class-dropdown-meta { color: #94a3b8; font-size: 0.8rem; }
+.class-dropdown-divider { border-top: 1px solid rgba(255,255,255,0.1); margin: 4px 0; }

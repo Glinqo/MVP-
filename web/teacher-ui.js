@@ -96,11 +96,14 @@ TeacherUI.setCurrentClass = function(cls) {
   }
   TeacherUI.currentClass = cls;
   TeacherUI.currentClassId = cls ? cls.id : null;
+  // P7-I: Update AI scope display
+  var scopeEl = document.getElementById("teacherScope");
+  if (scopeEl) scopeEl.textContent = cls ? "Current scope: " + cls.name : "No class selected";
   var labelEl = document.getElementById("teacherClassLabel");
   var metaEl = document.getElementById("teacherClassMeta");
   var manageBtn = document.getElementById("manageClassBtn");
   if (cls) {
-    if (labelEl) labelEl.textContent = cls.name;
+    if (labelEl) { labelEl.textContent = cls.name; labelEl.style.cursor = "pointer"; labelEl.onclick = function() { TeacherUI.toggleClassDropdown(); }; }
     if (metaEl) metaEl.textContent = (cls.student_count || 0) + " students" + (cls.job_role ? " · " + cls.job_role : "");
     if (manageBtn) manageBtn.style.display = "";
     localStorage.setItem("mcp_teacher_class_id", String(cls.id));
@@ -110,6 +113,47 @@ TeacherUI.setCurrentClass = function(cls) {
     if (manageBtn) manageBtn.style.display = "none";
   }
   if (TeacherUI.currentTab) TeacherUI.switchTab(TeacherUI.currentTab);
+};
+
+TeacherUI.switchTeacherClass = function(classId) {
+  // P7-C: Unified class switch workflow
+  var target = null;
+  for (var i = 0; i < TeacherUI._classes.length; i++) {
+    if (TeacherUI._classes[i].id === classId) { target = TeacherUI._classes[i]; break; }
+  }
+  if (!target) return;
+  // Clear old class scoped state
+  TeacherUI.clearClassScopedState();
+  // Update state
+  TeacherUI.setCurrentClass(target);
+  // Refresh current tab with new class data
+  if (TeacherUI.currentTab) TeacherUI.switchTab(TeacherUI.currentTab);
+  // Close dropdown
+  var dropdown = document.getElementById("classDropdown");
+  if (dropdown) dropdown.style.display = "none";
+};
+
+TeacherUI.toggleClassDropdown = function() {
+  var dropdown = document.getElementById("classDropdown");
+  if (!dropdown) return;
+  if (dropdown.style.display === "block") {
+    dropdown.style.display = "none";
+  } else {
+    // Build dropdown items
+    var html = "";
+    TeacherUI._classes.forEach(function(cls) {
+      var active = cls.id === TeacherUI.currentClassId ? " active" : "";
+      html += '<div class="class-dropdown-item' + active + '" onclick="TeacherUI.switchTeacherClass(' + cls.id + ')">';
+      html += '<span>' + TeacherUI.escHtml(cls.name) + '</span>';
+      html += '<span class="class-dropdown-meta">' + (cls.student_count || 0) + ' students</span>';
+      html += '</div>';
+    });
+    html += '<div class="class-dropdown-divider"></div>';
+    html += '<div class="class-dropdown-item" onclick="TeacherUI.openCreateClass();TeacherUI.toggleClassDropdown()">+ Create Class</div>';
+    html += '<div class="class-dropdown-item" onclick="TeacherUI.openManageStudents();TeacherUI.toggleClassDropdown()">Manage Current Class</div>';
+    dropdown.innerHTML = html;
+    dropdown.style.display = "block";
+  }
 };
 
 TeacherUI.openCreateClass = function() {
@@ -702,10 +746,12 @@ TeacherUI.sendCopilotMessage = function() {
 
   var token = localStorage.getItem("mcp_auth_token") || "";
   var jobRole = localStorage.getItem("mcp_job_id") || "";
+  var payload = { message: msg, job_role: jobRole };
+  if (TeacherUI.currentClassId) payload.class_id = TeacherUI.currentClassId;
   fetch("/api/teacher/assistant/message", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-    body: JSON.stringify({ message: msg, job_role: jobRole })
+    body: JSON.stringify(payload)
   }).then(function(r) { return r.json(); })
   .then(function(data) {
     TeacherUI.messages.pop();

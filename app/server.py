@@ -755,6 +755,7 @@ class MVPHandler(BaseHTTPRequestHandler):
                     return self.send_error_json(403, "需要教师权限")
                 # Route through V2 Facade for supported intents, fall back to V1
                 from app.services.teacher_ai_v2 import handle_teacher_message_v2
+                class_id = payload.get("class_id")
                 result = handle_teacher_message_v2(
                     message=payload.get("message", ""),
                     job_role=payload.get("job_role"),
@@ -762,6 +763,7 @@ class MVPHandler(BaseHTTPRequestHandler):
                     history=payload.get("history", []),
                     ui_context=payload.get("ui_context"),
                     context=payload.get("context"),
+                    class_id=int(class_id) if class_id else None,
                 )
                 if result.get("engine") == "teacher_ai_v1":
                     # V2 unsupported intent - delegate to V1
