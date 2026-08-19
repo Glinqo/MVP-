@@ -212,8 +212,7 @@ def _get_evidence_count_safe(session_id):
     """Count learning evidence for student."""
     try:
         from app.services.learning_event_store import get_events
-        events = get_events(session_id, limit=200)
-        return len(events or [])
+        return len(_events_list(get_events(session_id, limit=200)))
     except Exception:
         return 0
 
@@ -249,10 +248,17 @@ def _find_session_for_user(username, assess_map):
 def _get_recent_events(session_id, limit=10):
     try:
         from app.services.learning_event_store import get_events
-        events = get_events(session_id, limit=limit)
-        return events or []
+        return _events_list(get_events(session_id, limit=limit))
     except Exception:
         return []
+
+
+def _events_list(result):
+    if isinstance(result, dict):
+        events = result.get("events", [])
+    else:
+        events = result or []
+    return events if isinstance(events, list) else []
 
 def _get_ability_state_safe(session_id):
     try:
@@ -286,4 +292,3 @@ def save_teacher_student_selection(username, job_role, student_usernames):
     data[username or "demo"] = entry
     selection_path.write_text(_json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     return {"ok": True, "saved": entry}
-

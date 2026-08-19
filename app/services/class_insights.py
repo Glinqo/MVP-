@@ -68,6 +68,28 @@ def _get_class_student_sessions(class_id: int, teacher_id: int, job_role: str = 
             matched.append(sid)
     return matched
 
+
+def _events_list(result) -> List[Dict]:
+    if isinstance(result, dict):
+        events = result.get("events", [])
+    else:
+        events = result or []
+    return [ev for ev in events if isinstance(ev, dict)]
+
+
+def _event_ability_ids(event: Dict) -> List[str]:
+    from app.services.graph import extract_ability_ids
+    items = []
+    for key in ("ability_id", "ability", "ability_ids", "abilities", "highlighted_abilities"):
+        value = event.get(key)
+        if not value:
+            continue
+        if isinstance(value, list):
+            items.extend(value)
+        else:
+            items.append(value)
+    return extract_ability_ids(items)
+
 def _classify_status(cognitive_mastery_score: float) -> str:
     s = cognitive_mastery_score
     if s >= MASTERY_THRESHOLD:
@@ -252,32 +274,39 @@ def get_common_issues(job_role=None, ability_id=None, min_students=3, class_id=N
         if total >= 500:
             break
         try:
-            events = get_events(sess, limit=50) or []
+            events = _events_list(get_events(sess, limit=50))
         except Exception:
             events = []
             continue
 
         total += len(events)
         for ev in events:
-            aid = ev.get("ability_id", "") or ev.get("ability", "")
-            if not aid:
+            ability_ids = _event_ability_ids(ev)
+            if not ability_ids:
                 continue
-            if ability_id and aid != ability_id:
+            if ability_id:
+                ability_ids = [aid for aid in ability_ids if aid == ability_id]
+            if not ability_ids:
                 continue
 
             cat = ev.get("category", "") or ev.get("event_type", "") or "unknown"
             st = ev.get("status", "") or ev.get("result", "")
-            is_negative = st in ("wrong", "incorrect", "error", "fail", "weak", "critical", "仍不会")
+            is_negative = (
+                st in ("wrong", "incorrect", "error", "fail", "weak", "critical", "仍不会")
+                or ev.get("outcome") in ("wrong", "incorrect", "error", "fail")
+                or ev.get("is_correct") is False
+            )
 
             if not is_negative:
                 continue
 
-            key = (aid, cat)
-            if key not in issue_groups:
-                issue_groups[key] = {"student_ids": set(), "events": [], "total_strength": 0}
-            issue_groups[key]["student_ids"].add(sess)
-            issue_groups[key]["events"].append(ev)
-            issue_groups[key]["total_strength"] += 1
+            for aid in ability_ids:
+                key = (aid, cat)
+                if key not in issue_groups:
+                    issue_groups[key] = {"student_ids": set(), "events": [], "total_strength": 0}
+                issue_groups[key]["student_ids"].add(sess)
+                issue_groups[key]["events"].append(ev)
+                issue_groups[key]["total_strength"] += 1
 
     # 过滤人数不足的
     issues = []

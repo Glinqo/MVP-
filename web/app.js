@@ -860,6 +860,7 @@ function renderGraphLegend(graph, targetId) {
 
 function renderGraphDiagram(graph, targetId) {
   const target = document.getElementById(targetId);
+  if (!target) return;
   const nodes = graph?.nodes || [];
   if (!nodes.length) {
     document.getElementById(`${targetId}Legend`)?.remove();
@@ -869,7 +870,10 @@ function renderGraphDiagram(graph, targetId) {
   target.style.minHeight = '450px';
   if (!state.graphRenderers) state.graphRenderers = {};
   const hasStaleLoading = /加载图谱中/.test(target.textContent || "");
-  if (!state.graphRenderers[targetId] || hasStaleLoading) {
+  const renderer = state.graphRenderers[targetId];
+  const hasStaleContainer = renderer && renderer.container !== target;
+  const hasNoSvg = !target.querySelector("svg");
+  if (!renderer || hasStaleLoading || hasStaleContainer || hasNoSvg) {
     target.innerHTML = '';
     state.graphRenderers[targetId] = new ForceGraph(targetId, {
       onNodeClick: (node, g) => {
