@@ -217,5 +217,66 @@ class P7TeacherAIIsolationTest(unittest.TestCase):
         # Should only process 001, no error
         self.assertIsInstance(result, list)
 
+
+
+class P8MultiClassTest(unittest.TestCase):
+    """P8: Multi-class student experience, stale context, personal fallback."""
+
+    def setUp(self):
+        self.teacher = 1
+        self.stamp = str(int(time.time()))
+        self.class_x = create_class(self.teacher, "X_" + self.stamp, "role_x", "")["class"]["id"]
+        self.class_y = create_class(self.teacher, "Y_" + self.stamp, "role_y", "")["class"]["id"]
+
+    def test_multi_class_list(self):
+        from app.services.class_management import get_student_active_classes
+        from app.services.auth import _conn as auth_conn
+        # Add student 001 to both classes
+        add_students(self.class_x, self.teacher, ["001"])
+        add_students(self.class_y, self.teacher, ["001"])
+        with auth_conn() as conn:
+            row = conn.execute("SELECT id FROM users WHERE username='001'").fetchone()
+        sid = row["id"]
+        classes = get_student_active_classes(sid)
+        class_ids = {c["id"] for c in classes}
+        self.assertIn(self.class_x, class_ids)
+        self.assertIn(self.class_y, class_ids)
+
+    def test_archive_filters_active(self):
+        from app.services.class_management import get_student_active_classes, archive_class
+        from app.services.auth import _conn as auth_conn
+        add_students(self.class_x, self.teacher, ["001"])
+        with auth_conn() as conn:
+            row = conn.execute("SELECT id FROM users WHERE username='001'").fetchone()
+        sid = row["id"]
+        # Archive class X
+        archive_class(self.class_x, self.teacher)
+        classes = get_student_active_classes(sid)
+        class_ids = {c["id"] for c in classes}
+        self.assertNotIn(self.class_x, class_ids)
+
+    def test_stale_class_context_rejected(self):
+        from app.services.class_management import resolve_learning_context
+        from app.services.auth import _conn as auth_conn
+        # Student 001 not in class_y
+        add_students(self.class_x, self.teacher, ["001"])
+        with auth_conn() as conn:
+            row = conn.execute("SELECT id, username, job_role FROM users WHERE username='001'").fetchone()
+        user = {"id": row["id"], "username": row["username"], "role": "student", "job_role": row["job_role"] or ""}
+        result = resolve_learning_context(user, class_id=self.class_y)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result.get("code"), "NOT_IN_CLASS")
+
+    def test_personal_fallback(self):
+        from app.services.class_management import resolve_learning_context
+        from app.services.auth import _conn as auth_conn
+        # Student 002 has no class
+        with auth_conn() as conn:
+            row = conn.execute("SELECT id, username, job_role FROM users WHERE username='002'").fetchone()
+        user = {"id": row["id"], "username": row["username"], "role": "student", "job_role": row["job_role"] or ""}
+        result = resolve_learning_context(user)
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["source"], "personal")
+
 if __name__ == "__main__":
     unittest.main()

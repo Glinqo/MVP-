@@ -2029,9 +2029,7 @@ function setWorkspacePanel(panel) {
   }
   if (panel === "plan") loadTrainingPlans("staged");
   if (panel === "scenario") loadScenarioTasks();
-  if (panel === "studentMgmt" && typeof loadStudentList === "function") loadStudentList();
-  if (panel === "classInsights" && typeof loadClassInsights === "function") loadClassInsights();
-  if (panel === "teacherComments" && typeof loadComments === "function") loadComments();
+  // P8-G: Old teacher workspace panels removed; teacher-ui.js handles all teacher modules
   // Reset scroll position when switching panels
   var body = document.querySelector(".workspace-body");
   if (body) body.scrollTop = 0;
@@ -3361,6 +3359,77 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ---- End Assessment ----
+function showStudentClassSelector(classes) {
+  var overlay = document.createElement("div");
+  overlay.id = "studentClassSelectorOverlay";
+  overlay.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center";
+  var html = '<div style="background:#0f172a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:24px;width:420px;max-width:90vw;max-height:80vh;overflow-y:auto">';
+  html += '<h2 style="margin:0 0 16px;color:#e2e8f0">选择学习班级</h2>';
+  classes.forEach(function(cls) {
+    html += '<div class="student-class-card" style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:16px;margin-bottom:12px;cursor:pointer" onclick="selectStudentClass(' + cls.id + ')">';
+    html += '<div style="font-weight:600;color:#e2e8f0">' + (cls.name || "Unknown") + '</div>';
+    html += '<div style="color:#94a3b8;font-size:0.85em">' + (cls.job_role || "No role") + '</div>';
+    html += '<button class="btn-primary" style="margin-top:8px">进入班级</button>';
+    html += '</div>';
+  });
+  html += '<button class="btn-secondary" style="width:100%;margin-top:8px" onclick="selectStudentClass(0)">使用个人学习模式</button>';
+  html += '</div>';
+  overlay.innerHTML = html;
+  document.body.appendChild(overlay);
+}
+
+function selectStudentClass(classId) {
+  var overlay = document.getElementById("studentClassSelectorOverlay");
+  if (overlay) overlay.remove();
+  var loginUser = localStorage.getItem("mcp_login_user") || "student";
+  var classKey = "mcp_student_class_id_" + loginUser;
+  if (classId === 0) {
+    // Personal mode
+    localStorage.removeItem(classKey);
+    state.currentStudentClassId = null;
+    state.currentStudentClass = null;
+    location.reload();
+    return;
+  }
+  // Find class
+  var classes = window._pendingStudentClasses || [];
+  var selected = null;
+  for (var i = 0; i < classes.length; i++) {
+    if (classes[i].id === classId) { selected = classes[i]; break; }
+  }
+  if (selected) {
+    localStorage.setItem(classKey, String(classId));
+    state.currentStudentClassId = classId;
+    state.currentStudentClass = selected;
+    location.reload();
+  }
+}
+
+function switchStudentClass(classId) {
+  // P8-C: Unified student class switch
+  clearStudentClassScopedState();
+  selectStudentClass(classId);
+}
+
+function clearStudentClassScopedState() {
+  // P8-C: Clear class/job-scoped student state
+  state.learnerContext = null;
+  state.personalizedPlan = null;
+  state.personalizedQuestions = null;
+  state.activeScenario = null;
+  state.knowledgeGaps = [];
+  state.studentGraph = null;
+  state.jobGap = null;
+  state.assessmentStarted = false;
+  state.assessmentState = null;
+  // Clear DOM containers
+  var containers = ["chatMessages", "suggestedQuestions", "knowledgeGaps", "studentGraphDiagram"];
+  containers.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = "";
+  });
+}
+
 async function studentBoot() {
   showRoleUI();
   var bootIdentity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
@@ -3370,23 +3439,38 @@ async function studentBoot() {
     if (dbg) dbg.style.display = "none";
     var jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
 
-    // P7-E: Load student class learning context
+    // P8-A/E: Load student class learning context with namespace + multi-class selection
     try {
       var classResp = await api("/api/student/classes");
       var studentClasses = classResp.classes || [];
-      if (studentClasses.length > 0) {
-        // Save current class id (prefer localStorage, then first class)
-        var savedStudentClass = parseInt(localStorage.getItem("mcp_student_class_id") || "0", 10);
-        var selectedClass = null;
-        if (savedStudentClass) {
-          for (var ci = 0; ci < studentClasses.length; ci++) {
-            if (studentClasses[ci].id === savedStudentClass) { selectedClass = studentClasses[ci]; break; }
-          }
+      var loginUser = localStorage.getItem("mcp_login_user") || "student";
+      var classKey = "mcp_student_class_id_" + loginUser;
+      var savedStudentClass = parseInt(localStorage.getItem(classKey) || "0", 10);
+      var selectedClass = null;
+      if (savedStudentClass) {
+        for (var ci = 0; ci < studentClasses.length; ci++) {
+          if (studentClasses[ci].id === savedStudentClass) { selectedClass = studentClasses[ci]; break; }
         }
-        if (!selectedClass) selectedClass = studentClasses[0];
+        // P8-E: stale validation - clear if not found
+        if (!selectedClass) localStorage.removeItem(classKey);
+      }
+      if (studentClasses.length === 1) {
+        // P8-A: Single class auto-select
+        selectedClass = studentClasses[0];
+        localStorage.setItem(classKey, String(selectedClass.id));
+      } else if (studentClasses.length > 1) {
+        // P8-A: Multi-class - show selection UI
+        if (!selectedClass) {
+          // Show selection overlay
+          window._pendingStudentClasses = studentClasses;
+          showStudentClassSelector(studentClasses);
+        } else {
+          localStorage.setItem(classKey, String(selectedClass.id));
+        }
+      }
+      if (selectedClass) {
         state.currentStudentClassId = selectedClass.id;
         state.currentStudentClass = selectedClass;
-        localStorage.setItem("mcp_student_class_id", String(selectedClass.id));
         // Class job_role overrides personal job_role for learning context
         if (selectedClass.job_role) jobId = selectedClass.job_role;
       }
@@ -3435,13 +3519,7 @@ async function studentBoot() {
         }
       }
     } else {
-      try { var jobGraph = await api("/api/graph/job?job_role=" + encodeURIComponent(jobId)); renderGraph(jobGraph, "job"); renderJobProposals(jobGraph.pending_proposals || []); } catch (_) {}
-      try { loadStudentList(); } catch (_) {}
-      try { setTeacherWelcome(); } catch (_) {}
-      var chatForm = document.getElementById("chatForm");
-      if (chatForm) {
-        chatForm.addEventListener("submit", function(ev) { ev.preventDefault(); sendChat(); });
-      }
+      // P8-G: Teacher boot is handled by teacherBoot/teacher-ui.js; no duplicate teacher init here
     }
   } catch (error) {
     var healthEl2 = document.getElementById("healthStatus");
@@ -3825,590 +3903,6 @@ var showRoleUI = setRoleVisibility;
 
 // ── 阶段二：学生管理 ──
 
-async function loadStudentList() {
-  var containerId = state.activeWorkspace === "studentMgmt" ? "studentListContainerBottom" : "studentListContainer";
-  var container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = '<div class="muted">加载中...</div>';
-  try {
-    var search = (document.getElementById("studentSearch")?.value || "").trim();
-    var jobRole = document.getElementById("studentJobFilter")?.value || "";
-    var hasAssess = document.getElementById("studentAssessFilter")?.value || "";
-    var params = new URLSearchParams();
-    if (search) params.append("search", search);
-    if (jobRole) params.append("job_role", jobRole);
-    if (hasAssess) params.append("has_assessment", hasAssess);
-    var url = "/api/teacher/students" + (params.toString() ? "?" + params.toString() : "");
-    var resp = await fetch(url, {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (!resp.ok) {
-      container.innerHTML = '<div class="muted">加载失败: ' + resp.status + '</div>';
-      return;
-    }
-    var data = await resp.json();
-    renderStudentStats(data.stats);
-    renderStudentList(data, container);
-  } catch (e) {
-    container.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
-  }
-}
-
-function renderStudentStats(stats) {
-  var el = document.getElementById("studentStats");
-  if (!el) return;
-  var items = [
-    { label: "学生总数", value: stats.total || 0 },
-    { label: "已完成测评", value: stats.assessed || 0 },
-    { label: "未测评", value: stats.not_assessed || 0 }
-  ];
-  el.innerHTML = items.map(function(i) {
-    return '<div class="metric" style="flex:1;min-width:120px;">' +
-      '<span class="metric-value">' + i.value + '</span>' +
-      '<span class="metric-label">' + i.label + '</span></div>';
-  }).join("");
-}
-
-function renderStudentList(data, container) {
-  container = container || document.getElementById("studentListContainer");
-  if (!container) return;
-  var students = data.students || [];
-  if (!students.length) {
-    container.innerHTML = '<div class="muted">暂无学生数据</div>';
-    return;
-  }
-  var statusClass = { "良好": "status-good", "正常": "status-normal", "需关注": "status-warn", "高风险": "status-danger", "未测评": "status-muted" };
-  var html = '<table class="student-table"><thead><tr>' +
-    '<th>账号</th><th>昵称</th><th>岗位</th><th>测评得分</th><th>状态</th><th>操作</th>' +
-    '</tr></thead><tbody>';
-  for (var i = 0; i < students.length; i++) {
-    var s = students[i];
-    var sc = statusClass[s.status] || "status-muted";
-    html += '<tr>' +
-      '<td><strong>' + escapeHtml(s.username) + '</strong></td>' +
-      '<td>' + escapeHtml(s.nickname) + '</td>' +
-      '<td>' + escapeHtml(s.job_role || "-") + '</td>' +
-      '<td>' + (s.completed ? s.overall_score + "分" : "-") + '</td>' +
-      '<td><span class="status-badge ' + sc + '">' + s.status + '</span></td>' +
-      '<td><button type="button" onclick="showStudentDetail(\'' + escapeHtml(s.username) + '\')" class="btn-small">查看</button></td>' +
-      '</tr>';
-  }
-  html += '</tbody></table>';
-  container.innerHTML = html;
-}
-
-async function showStudentDetail(username) {
-  var panel = document.getElementById("studentDetailPanel");
-  var content = document.getElementById("studentDetailContent");
-  var nameEl = document.getElementById("studentDetailName");
-  if (!panel || !content) return;
-  panel.style.display = "block";
-  if (nameEl) nameEl.textContent = "学生详情: " + username;
-  content.innerHTML = '<div class="muted">加载中...</div>';
-  try {
-    var resp = await fetch("/api/teacher/students/" + encodeURIComponent(username), {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (!resp.ok) {
-      content.innerHTML = '<div class="muted">加载失败: ' + resp.status + '</div>';
-      return;
-    }
-    var data = await resp.json();
-    renderStudentDetail(data);
-  } catch (e) {
-    content.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
-  }
-}
-
-function renderStudentDetail(data) {
-  var content = document.getElementById("studentDetailContent");
-  if (!content) return;
-  var statusColor = data.overall_score >= 60 ? "var(--accent-green, #22c55e)" : "var(--warning, #f59e0b)";
-  var weakHtml = (data.weak_abilities || []).map(function(a) {
-    return '<li>' + escapeHtml(typeof a === "string" ? a : (a.name || a.ability_name || a.id || JSON.stringify(a))) + '</li>';
-  }).join("") || '<li class="muted">暂无数据</li>';
-  var strongHtml = (data.strong_abilities || []).map(function(a) {
-    return '<li>' + escapeHtml(typeof a === "string" ? a : (a.name || a.ability_name || a.id || JSON.stringify(a))) + '</li>';
-  }).join("") || '<li class="muted">暂无数据</li>';
-  var eventsHtml = "";
-  if (data.recent_events && data.recent_events.length > 0) {
-    eventsHtml = '<div class="section-block"><h4>最近学习证据</h4>';
-    for (var i = 0; i < Math.min(data.recent_events.length, 10); i++) {
-      var ev = data.recent_events[i];
-      var ts = ev.timestamp || ev.time || ev.created_at || "";
-      var desc = ev.description || ev.event_type || ev.type || ev.category || JSON.stringify(ev).substring(0, 60);
-      eventsHtml += '<div class="evidence-item" style="padding:6px 0;border-bottom:1px solid var(--line);">' +
-        '<span class="muted" style="font-size:12px;">' + escapeHtml(String(ts).substring(0, 16)) + '</span> ' +
-        '<span>' + escapeHtml(String(desc)) + '</span></div>';
-    }
-    eventsHtml += '</div>';
-  } else {
-    eventsHtml = '<div class="section-block muted">暂无学习证据</div>';
-  }
-  content.innerHTML =
-    '<div class="student-detail-grid">' +
-    '<div class="student-detail-card">' +
-    '<h4>基本信息</h4>' +
-    '<div class="metric"><span class="metric-label">账号</span><span class="metric-value" style="font-size:16px;">' + escapeHtml(data.username) + '</span></div>' +
-    '<div class="metric"><span class="metric-label">昵称</span><span class="metric-value" style="font-size:16px;">' + escapeHtml(data.nickname) + '</span></div>' +
-    '<div class="metric"><span class="metric-label">岗位</span><span class="metric-value" style="font-size:16px;">' + escapeHtml(data.job_role || "-") + '</span></div>' +
-    '</div>' +
-    '<div class="student-detail-card">' +
-    '<h4>测评概况</h4>' +
-    '<div class="metric"><span class="metric-label">状态</span><span class="metric-value" style="font-size:16px;color:' + statusColor + '">' + escapeHtml(data.status) + '</span></div>' +
-    '<div class="metric"><span class="metric-label">总得分</span><span class="metric-value" style="font-size:16px;">' + (data.completed ? data.overall_score + " 分" : "未测评") + '</span></div>' +
-    '</div>' +
-    '<div class="student-detail-card">' +
-    '<h4>薄弱能力</h4><ul>' + weakHtml + '</ul>' +
-    '</div>' +
-    '<div class="student-detail-card">' +
-    '<h4>优势能力</h4><ul>' + strongHtml + '</ul>' +
-    '</div>' +
-    '</div>' +
-    eventsHtml +
-    '<div style="margin-top:12px">' +
-    '<button type="button" onclick="showStudentAbilityGraph(\'' + escapeHtml(data.username) + '\',\'' + escapeHtml(data.job_role || "automation_line_commissioning_maintenance_newcomer") + '\')" class="btn-small">查看个人能力图谱</button>' +
-    '</div>';
-}
-
-async function showStudentAbilityGraph(username, jobRole) {
-  var content = document.getElementById("studentDetailContent");
-  if (!content) return;
-  var graphDiv = content.querySelector(".student-graph-container");
-  if (!graphDiv) {
-    graphDiv = document.createElement("div");
-    graphDiv.className = "student-graph-container graph-diagram force-graph-container";
-    graphDiv.style.cssText = "margin-top:16px;min-height:400px;";
-    content.appendChild(graphDiv);
-  }
-  graphDiv.innerHTML = '<div class="muted">加载图谱中...</div>';
-  try {
-    var sessId = jobRole + "-" + username;
-    var resp = await fetch("/api/graph/student?session_id=" + encodeURIComponent(sessId), {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (!resp.ok) {
-      graphDiv.innerHTML = '<div class="muted">图谱加载失败: ' + resp.status + '</div>';
-      return;
-    }
-    var graph = await resp.json();
-    if (typeof renderGraphDiagram === "function") {
-      renderGraphDiagram(graph, null, graphDiv);
-    } else {
-      graphDiv.innerHTML = '<div class="muted">图谱组件不可用</div>';
-    }
-  } catch (e) {
-    graphDiv.innerHTML = '<div class="muted">图谱加载失败: ' + (e.message || "网络错误") + '</div>';
-  }
-}
-
-// Wire up student management event handlers
-document.addEventListener("DOMContentLoaded", function() {
-  var searchInput = document.getElementById("studentSearch");
-  if (searchInput) {
-    var debounceTimer;
-    searchInput.addEventListener("input", function() {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(loadStudentList, 300);
-    });
-  }
-  var jobFilter = document.getElementById("studentJobFilter");
-  if (jobFilter) jobFilter.addEventListener("change", loadStudentList);
-  var assessFilter = document.getElementById("studentAssessFilter");
-  if (assessFilter) assessFilter.addEventListener("change", loadStudentList);
-  var refreshBtn = document.getElementById("refreshStudentList");
-  if (refreshBtn) refreshBtn.addEventListener("click", loadStudentList);
-  var closeBtn = document.getElementById("closeStudentDetail");
-  if (closeBtn) closeBtn.addEventListener("click", function() {
-    var panel = document.getElementById("studentDetailPanel");
-    if (panel) panel.style.display = "none";
-  });
-});
-
-// Trigger load when student management workspace is opened
-// (hooked via setWorkspacePanel)
-
-// ── 阶段三：班级洞察 ──
-
-var ciState = { activeTab: "graph", currentNode: null };
-
-async function loadClassInsights() {
-  ciState.activeTab = "graph";
-  var jobRole = (document.getElementById("classJobFilter")?.value) || "automation_line_commissioning_maintenance_newcomer";
-  await Promise.all([loadClassAbilityGraph(jobRole), loadCommonIssues(jobRole)]);
-  renderClassOverview();
-}
-
-async function loadClassAbilityGraph(jobRole) {
-  var container = document.getElementById("classGraphDiagram");
-  if (!container) return;
-  container.innerHTML = '<div class="muted">加载图谱中...</div>';
-  try {
-    var resp = await fetch("/api/teacher/class/ability-graph?job_role=" + encodeURIComponent(jobRole), {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (!resp.ok) { container.innerHTML = '<div class="muted">加载失败: ' + resp.status + '</div>'; return; }
-    var data = await resp.json();
-    if (!data.overview || !data.overview.has_data) {
-      container.innerHTML = '<div class="muted" style="padding:60px;text-align:center;">暂无有效能力数据<br/><small>学生尚未完成测评或尚无学习证据</small></div>';
-      document.getElementById("classGraphLegend").innerHTML = "";
-      return;
-    }
-    renderClassGraph(data);
-  } catch (e) {
-    container.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
-  }
-}
-
-function renderClassGraph(data) {
-  var container = document.getElementById("classGraphDiagram");
-  if (!container) return;
-  // Color nodes by mean mastery
-  data.nodes.forEach(function(n) {
-    var cs = n.class_stats || {};
-    if (cs.mean_mastery === null) {
-      n._color = "var(--muted)";
-      n._statusLabel = "无数据";
-    } else if (cs.mean_mastery >= 75) { n._color = "#22c55e"; n._statusLabel = "良好"; }
-    else if (cs.mean_mastery >= 55) { n._color = "#38bdf8"; n._statusLabel = "正常"; }
-    else if (cs.mean_mastery >= 35) { n._color = "#f59e0b"; n._statusLabel = "薄弱"; }
-    else { n._color = "#ef4444"; n._statusLabel = "严重薄弱"; }
-    // Size by job importance
-    n._radius = 8 + (n.demand_weight || 0.3) * 18;
-    n._label = (n.label || n.name || n.id || "");
-    // On click: show node detail
-    n._onClick = function(node) { showClassNodeDetail(node.id); };
-  });
-  if (typeof renderGraphDiagram === "function") {
-    renderGraphDiagram(data, null, container);
-  } else {
-    container.innerHTML = '<div class="muted">图谱组件不可用</div>';
-  }
-  document.getElementById("classGraphLegend").innerHTML =
-    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#22c55e;margin-right:4px;"></span>良好 ' +
-    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#38bdf8;margin-right:4px;margin-left:8px;"></span>正常 ' +
-    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#f59e0b;margin-right:4px;margin-left:8px;"></span>薄弱 ' +
-    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ef4444;margin-right:4px;margin-left:8px;"></span>严重 ' +
-    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--muted);margin-right:4px;margin-left:8px;"></span>无数据';
-}
-
-async function loadCommonIssues(jobRole) {
-  var container = document.getElementById("commonIssuesList");
-  if (!container) return;
-  container.innerHTML = '<div class="muted">加载中...</div>';
-  try {
-    var resp = await fetch("/api/teacher/class/common-issues?job_role=" + encodeURIComponent(jobRole), {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (!resp.ok) { container.innerHTML = '<div class="muted">加载失败</div>'; return; }
-    var data = await resp.json();
-    var issues = data.issues || [];
-    if (!issues.length) {
-      container.innerHTML = '<div class="muted" style="padding:40px;text-align:center;">暂无共性问题<br/><small>学生数据积累不足或未发现明显共性薄弱</small></div>';
-      return;
-    }
-    renderCommonIssues(issues);
-  } catch (e) {
-    container.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
-  }
-}
-
-function renderCommonIssues(issues) {
-  var container = document.getElementById("commonIssuesList");
-  if (!container) return;
-  var html = "";
-  for (var i = 0; i < issues.length; i++) {
-    var iss = issues[i];
-    var priColor = iss.priority >= 0.7 ? "#ef4444" : iss.priority >= 0.4 ? "#f59e0b" : "#38bdf8";
-    html += '<div class="dashboard-card" style="margin-bottom:12px;cursor:pointer;" onclick="showIssueDetail(' + JSON.stringify(iss.issue_id) + ')">' +
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
-      '<div><strong>' + escapeHtml(iss.title) + '</strong>' +
-      '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">' +
-      '关联: ' + escapeHtml(iss.ability_name || iss.ability_id) + ' | 影响: ' + iss.affected_student_count + ' 名学生 (' + Math.round(iss.affected_ratio * 100) + '%)' +
-      '</div></div>' +
-      '<div style="text-align:right;">' +
-      '<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;background:' + priColor + '20;color:' + priColor + ';">优先级 ' + Math.round(iss.priority * 100) + '%</span>' +
-      '</div></div>' +
-      '<div style="font-size:12px;color:var(--muted);margin-top:8px;">' +
-      '证据: ' + (iss.evidence_summary ? iss.evidence_summary.total_events + ' 条' : '暂无') +
-      ' | 可信度: ' + Math.round(iss.confidence * 100) + '%' +
-      '</div></div>';
-  }
-  container.innerHTML = html;
-}
-
-function renderClassOverview() {
-  var el = document.getElementById("classOverview");
-  if (!el) return;
-  // Get stats from the graph data
-  var graphContainer = document.getElementById("classGraphDiagram");
-  var hasData = graphContainer && graphContainer.innerHTML.indexOf("暂无有效") === -1 && graphContainer.innerHTML.indexOf("加载中") === -1;
-  var issuesContainer = document.getElementById("commonIssuesList");
-  var issueCards = issuesContainer ? issuesContainer.querySelectorAll(".dashboard-card").length : 0;
-  el.innerHTML =
-    '<div class="metric" style="flex:1;min-width:120px;"><span class="metric-value">' + (hasData ? "" : "0") + '</span><span class="metric-label">有数据学生</span></div>' +
-    '<div class="metric" style="flex:1;min-width:120px;"><span class="metric-value">' + issueCards + '</span><span class="metric-label">共性问题</span></div>';
-}
-
-async function showClassNodeDetail(abilityId) {
-  ciState.currentNode = abilityId;
-  var panel = document.getElementById("classNodeDetail");
-  var title = document.getElementById("classNodeTitle");
-  var content = document.getElementById("classNodeContent");
-  if (!panel || !content) return;
-  panel.style.display = "block";
-  if (title) title.textContent = "节点详情: " + abilityId;
-  content.innerHTML = '<div class="muted">加载中...</div>';
-  try {
-    var jobRole = (document.getElementById("classJobFilter")?.value) || "automation_line_commissioning_maintenance_newcomer";
-    var resp = await fetch("/api/teacher/class/ability-graph?job_role=" + encodeURIComponent(jobRole) + "&ability_id=" + encodeURIComponent(abilityId), {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (!resp.ok) { content.innerHTML = '<div class="muted">加载失败</div>'; return; }
-    var data = await resp.json();
-    var node = (data.nodes || [])[0];
-    if (!node) { content.innerHTML = '<div class="muted">节点数据不存在</div>'; return; }
-    var cs = node.class_stats || {};
-    var html = '<div class="student-detail-grid">' +
-      '<div class="student-detail-card"><h4>基本信息</h4>' +
-      '<div class="metric"><span class="metric-label">能力名称</span><span class="metric-value" style="font-size:14px;">' + escapeHtml(node.label || node.name || node.id) + '</span></div>' +
-      '<div class="metric"><span class="metric-label">岗位重要度</span><span class="metric-value" style="font-size:14px;">' + Math.round((node.demand_weight || 0) * 100) + '%</span></div>' +
-      '</div>' +
-      '<div class="student-detail-card"><h4>班级统计</h4>';
-    if (cs.mean_mastery === null) {
-      html += '<div class="muted">暂无有效能力数据</div>';
-    } else {
-      html += '<div class="metric"><span class="metric-label">平均掌握度</span><span class="metric-value" style="font-size:14px;">' + cs.mean_mastery + '%</span></div>' +
-        '<div class="metric"><span class="metric-label">中位掌握度</span><span class="metric-value" style="font-size:14px;">' + cs.median_mastery + '%</span></div>' +
-        '<div class="metric"><span class="metric-label">统计学生</span><span class="metric-value" style="font-size:14px;">' + cs.evidence_student_count + ' / ' + cs.student_count + '</span></div>' +
-        '<div class="metric"><span class="metric-label">证据覆盖率</span><span class="metric-value" style="font-size:14px;">' + Math.round(cs.evidence_coverage * 100) + '%</span></div>';
-    }
-    html += '</div>' +
-      '<div class="student-detail-card"><h4>状态分布</h4>' +
-      '<div class="metric"><span class="metric-label">薄弱</span><span class="metric-value" style="font-size:14px;color:#ef4444;">' + (cs.weak_count || 0) + ' (' + Math.round((cs.weak_ratio || 0) * 100) + '%)</span></div>' +
-      '<div class="metric"><span class="metric-label">提升中</span><span class="metric-value" style="font-size:14px;color:#38bdf8;">' + (cs.improving_count || 0) + ' (' + Math.round((cs.improving_ratio || 0) * 100) + '%)</span></div>' +
-      '<div class="metric"><span class="metric-label">已掌握</span><span class="metric-value" style="font-size:14px;color:#22c55e;">' + (cs.mastered_count || 0) + ' (' + Math.round((cs.mastered_ratio || 0) * 100) + '%)</span></div>' +
-      '</div></div>';
-    if (cs.weak_count > 0) {
-      html += '<div style="margin-top:12px;"><button type="button" onclick="navigateToStudentMgmt(\'' + escapeHtml(abilityId) + '\')" class="btn-small">查看薄弱学生</button></div>';
-    }
-    content.innerHTML = html;
-  } catch (e) {
-    content.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
-  }
-}
-
-function navigateToStudentMgmt(abilityId) {
-  // Navigate to student management workspace with ability filter
-  if (typeof openWorkspace === "function") {
-    openWorkspace("studentMgmt");
-  }
-  // Could extend to filter by ability_id if student management supports it
-}
-
-function showIssueDetail(issueId) {
-  alert("Issue detail: " + issueId + " (detail drawer will be implemented as needed)");
-}
-
-// Wire up class insights events
-document.addEventListener("DOMContentLoaded", function() {
-  var refreshBtn = document.getElementById("refreshClassInsights");
-  if (refreshBtn) refreshBtn.addEventListener("click", function() { loadClassInsights(); });
-  var jobFilter = document.getElementById("classJobFilter");
-  if (jobFilter) jobFilter.addEventListener("change", function() { loadClassInsights(); });
-  var closeBtn = document.getElementById("closeClassNode");
-  if (closeBtn) closeBtn.addEventListener("click", function() {
-    var panel = document.getElementById("classNodeDetail");
-    if (panel) panel.style.display = "none";
-    ciState.currentNode = null;
-  });
-  // Tab switching
-  document.querySelectorAll("[data-ci-tab]").forEach(function(btn) {
-    btn.addEventListener("click", function() {
-      ciState.activeTab = this.dataset.ciTab;
-      document.querySelectorAll("[data-ci-tab]").forEach(function(b) { b.classList.remove("active"); });
-      this.classList.add("active");
-      document.getElementById("ciGraphPanel").style.display = ciState.activeTab === "graph" ? "" : "none";
-      document.getElementById("ciIssuesPanel").style.display = ciState.activeTab === "issues" ? "" : "none";
-    });
-  });
-});
-
-// Init state
-document.addEventListener("DOMContentLoaded", function() {
-  ciState = ciState || { activeTab: "graph", currentNode: null };
-});
-
-// ── 阶段四：教学评语 ──
-
-var commentState = { selectedIds: [] };
-
-async function loadComments() {
-  commentState.selectedIds = [];
-  var status = document.getElementById("commentStatusFilter")?.value || "";
-  try {
-    var params = [];
-    if (status) params.push("status=" + encodeURIComponent(status));
-    var url = "/api/teacher/comments" + (params.length ? "?" + params.join("&") : "");
-    var resp = await fetch(url, {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (!resp.ok) { document.getElementById("commentListContainer").innerHTML = '<div class="muted">加载失败</div>'; return; }
-    var data = await resp.json();
-    renderCommentStats(data.stats);
-    renderCommentList(data.comments);
-  } catch (e) {
-    document.getElementById("commentListContainer").innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
-  }
-}
-
-function renderCommentStats(stats) {
-  var el = document.getElementById("commentStats");
-  if (!el) return;
-  el.innerHTML =
-    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value">' + (stats.total || 0) + '</span><span class="metric-label">总计</span></div>' +
-    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value" style="color:#f59e0b;">' + (stats.draft || 0) + '</span><span class="metric-label">草稿</span></div>' +
-    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value" style="color:#38bdf8;">' + (stats.reviewed || 0) + '</span><span class="metric-label">已审核</span></div>' +
-    '<div class="metric" style="flex:1;min-width:90px;"><span class="metric-value" style="color:#22c55e;">' + (stats.published || 0) + '</span><span class="metric-label">已发布</span></div>';
-}
-
-function renderCommentList(comments) {
-  var container = document.getElementById("commentListContainer");
-  if (!container) return;
-  if (!comments || !comments.length) {
-    container.innerHTML = '<div class="muted" style="padding:40px;text-align:center;">暂无评语</div>';
-    return;
-  }
-  var statusBadge = {"draft": '<span style="color:#f59e0b;">草稿</span>', "reviewed": '<span style="color:#38bdf8;">已审核</span>', "published": '<span style="color:#22c55e;">已发布</span>'};
-  var html = '<table class="student-table"><thead><tr><th style="width:30px;"><input type="checkbox" id="commentSelectAll" /></th><th>学生</th><th>岗位</th><th>周期</th><th>状态</th><th>操作</th></tr></thead><tbody>';
-  for (var i = 0; i < comments.length; i++) {
-    var c = comments[i];
-    html += '<tr>' +
-      '<td><input type="checkbox" class="comment-cb" value="' + c.id + '" /></td>' +
-      '<td><strong>' + escapeHtml(c.student_id) + '</strong></td>' +
-      '<td>' + escapeHtml(c.job_role || "-") + '</td>' +
-      '<td>' + escapeHtml((c.period_start || "").substring(0, 10)) + '</td>' +
-      '<td>' + (statusBadge[c.status] || c.status) + '</td>' +
-      '<td><button type="button" onclick="showCommentDetail(' + c.id + ')" class="btn-small">查看</button></td>' +
-      '</tr>';
-  }
-  html += '</tbody></table>';
-  container.innerHTML = html;
-  // Select all handler
-  var sa = document.getElementById("commentSelectAll");
-  if (sa) sa.addEventListener("change", function() {
-    var cbs = document.querySelectorAll(".comment-cb");
-    commentState.selectedIds = [];
-    cbs.forEach(function(cb) {
-      cb.checked = sa.checked;
-      if (sa.checked) commentState.selectedIds.push(parseInt(cb.value));
-    });
-  });
-  document.querySelectorAll(".comment-cb").forEach(function(cb) {
-    cb.addEventListener("change", function() {
-      var vid = parseInt(cb.value);
-      if (cb.checked) { if (commentState.selectedIds.indexOf(vid) === -1) commentState.selectedIds.push(vid); }
-      else { commentState.selectedIds = commentState.selectedIds.filter(function(x) { return x !== vid; }); }
-    });
-  });
-}
-
-async function showCommentDetail(cid) {
-  var panel = document.getElementById("commentDetailPanel");
-  var content = document.getElementById("commentDetailContent");
-  var title = document.getElementById("commentDetailTitle");
-  if (!panel || !content) return;
-  panel.style.display = "block";
-  if (title) title.textContent = "评语详情 #" + cid;
-  content.innerHTML = '<div class="muted">加载中...</div>';
-  try {
-    var resp = await fetch("/api/teacher/comments/" + cid, {
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    if (!resp.ok) { content.innerHTML = '<div class="muted">加载失败</div>'; return; }
-    var c = await resp.json();
-    var statusColor = { "draft": "#f59e0b", "reviewed": "#38bdf8", "published": "#22c55e" }[c.status] || "var(--text)";
-    var evidenceHtml = (c.evidence || []).map(function(ev) { return '<li>' + escapeHtml(ev.summary || JSON.stringify(ev)) + '</li>'; }).join("") || '<li class="muted">无</li>';
-    var html = '<div class="student-detail-grid">' +
-      '<div class="student-detail-card"><h4>基本信息</h4>' +
-      '<div class="metric"><span class="metric-label">学生</span><span class="metric-value">' + escapeHtml(c.student_id) + '</span></div>' +
-      '<div class="metric"><span class="metric-label">岗位</span><span class="metric-value">' + escapeHtml(c.job_role || "-") + '</span></div>' +
-      '<div class="metric"><span class="metric-label">周期</span><span class="metric-value">' + escapeHtml((c.period_start || "").substring(0, 10)) + ' ~ ' + escapeHtml((c.period_end || "").substring(0, 10)) + '</span></div>' +
-      '<div class="metric"><span class="metric-label">状态</span><span class="metric-value" style="color:' + statusColor + ';font-weight:bold;">' + c.status + '</span></div>' +
-      '</div>' +
-      '<div class="student-detail-card"><h4>AI 草稿</h4><div style="white-space:pre-wrap;font-size:13px;">' + escapeHtml(c.ai_draft || "(无)") + '</div></div>' +
-      '</div>' +
-      '<div class="student-detail-card" style="margin-top:12px;"><h4>当前教师评语</h4>' +
-      '<textarea id="commentEditContent" style="width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:13px;">' + escapeHtml(c.content || "") + '</textarea>' +
-      '<div style="margin-top:8px;display:flex;gap:8px;">' +
-      '<button type="button" onclick="saveCommentContent(' + c.id + ')" class="btn-small">保存</button>' +
-      (c.status === "draft" ? '<button type="button" onclick="reviewComment(' + c.id + ')" class="btn-small" style="color:#38bdf8;">审核</button>' : "") +
-      (c.status === "reviewed" ? '<button type="button" onclick="publishComment(' + c.id + ')" class="btn-small" style="color:#22c55e;">发布</button>' : "") +
-      '</div></div>' +
-      '<div class="student-detail-card" style="margin-top:12px;"><h4>AI 生成依据</h4><ul style="font-size:12px;">' + evidenceHtml + '</ul></div>';
-    content.innerHTML = html;
-  } catch (e) {
-    content.innerHTML = '<div class="muted">加载失败: ' + (e.message || "网络错误") + '</div>';
-  }
-}
-
-async function saveCommentContent(cid) {
-  var textarea = document.getElementById("commentEditContent");
-  if (!textarea) return;
-  var content = textarea.value;
-  try {
-    var resp = await fetch("/api/teacher/comments/" + cid + "/update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
-      body: JSON.stringify({ content: content })
-    });
-    var data = await resp.json();
-    if (data.ok) { loadComments(); showCommentDetail(cid); }
-    else { alert("保存失败: " + (data.error || "未知错误")); }
-  } catch (e) {
-    alert("保存失败: " + (e.message || "网络错误"));
-  }
-}
-
-async function reviewComment(cid) {
-  try {
-    var resp = await fetch("/api/teacher/comments/" + cid + "/review", {
-      method: "POST",
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    var data = await resp.json();
-    if (data.ok) { loadComments(); showCommentDetail(cid); }
-    else { alert("审核失败: " + (data.error || "未知错误")); }
-  } catch (e) { alert("审核失败: " + (e.message || "网络错误")); }
-}
-
-async function publishComment(cid) {
-  if (!confirm("确认发布此评语？发布后学生将可见。")) return;
-  try {
-    var resp = await fetch("/api/teacher/comments/" + cid + "/publish", {
-      method: "POST",
-      headers: { Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") }
-    });
-    var data = await resp.json();
-    if (data.ok) { loadComments(); showCommentDetail(cid); }
-    else { alert("发布失败: " + (data.error || "未知错误")); }
-  } catch (e) { alert("发布失败: " + (e.message || "网络错误")); }
-}
-
-async function batchGenerate() {
-  var ids = commentState.selectedIds.length > 0 ? commentState.selectedIds : prompt("输入 student_id（逗号分隔）:", "001,002,003");
-  if (!ids) return;
-  try {
-    var resp = await fetch("/api/teacher/comments/generate-batch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
-      body: JSON.stringify({ student_ids: String(ids).split(",").map(function(s) { return s.trim(); }) })
-    });
-    var data = await resp.json();
-    alert("批量生成完成: " + data.total + " 条");
-    loadComments();
-  } catch (e) { alert("批量生成失败: " + (e.message || "网络错误")); }
-}
 
 async function batchReview() {
   if (!commentState.selectedIds.length) { alert("请先选择评语"); return; }
