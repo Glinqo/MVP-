@@ -610,9 +610,29 @@ TeacherUI.loadInsights = function() {
     var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 8px">Class Insights</h3>';
     html += '<div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap">';
     html += '<span class="badge">Students: ' + (overview.total_students || 0) + '</span>';
-    html += '<span class="badge">With evidence: ' + (overview.has_data ? overview.total_students : 0) + '</span>';
+    html += '<span class="badge">Evidence: ' + Math.round((overview.evidence_coverage || 0) * 100) + '%</span>';
     html += '<span class="badge">Common issues: ' + issueList.length + '</span>';
+    var risk = overview.risk_distribution || {};
+    if (risk.high) html += '<span class="badge badge-danger">High risk: ' + risk.high + '</span>';
+    if (risk.attention) html += '<span class="badge badge-warning">Attention: ' + risk.attention + '</span>';
     html += '</div>';
+    var weakest = overview.weakest_abilities || [];
+    if (weakest.length) {
+      html += '<div style="margin-bottom:16px"><strong style="color:#e2e8f0">Weakest Abilities</strong></div>';
+      weakest.forEach(function(w, idx) {
+        var masteryPct = Math.round((w.mean_mastery || 0) * 100);
+        var ratioPct = Math.round((w.weak_ratio || 0) * 100);
+        html += '<div style="margin-bottom:8px">';
+        html += '<div style="display:flex;justify-content:space-between;color:#cbd5e1;font-size:0.9rem">';
+        html += '<span>' + (idx + 1) + '. ' + TeacherUI.escHtml(w.label || w.ability_id) + '</span>';
+        html += '<span>' + w.weak_student_count + ' weak · ' + ratioPct + '%</span>';
+        html += '</div>';
+        html += '<div style="background:rgba(255,255,255,0.08);border-radius:4px;height:8px;margin-top:4px">';
+        html += '<div style="background:#f87171;height:8px;border-radius:4px;width:' + masteryPct + '%"></div>';
+        html += '</div>';
+        html += '</div>';
+      });
+    }
     html += '<div id="teacherClassGraphDiagram" style="width:100%;height:300px"></div>';
     html += '</div>';
     c.innerHTML = html;

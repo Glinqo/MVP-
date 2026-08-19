@@ -49,8 +49,7 @@ class TeacherAIV2:
 
     def get_student_state(self, student_id: str, class_id: int = None,
                            teacher_id: int = None) -> Dict[str, Any]:
-        """Get learner state for a specific student, class-scoped if class_id provided."""
-        from app.services.v2_facade import get_student_state
+        """Get aggregated student profile, class-scoped if class_id provided."""
         # P7-A: Verify student belongs to class if class_id specified
         if class_id and teacher_id:
             from app.services.class_management import get_class_students
@@ -60,6 +59,16 @@ class TeacherAIV2:
             roster = {s["username"] for s in cls.get("students", [])}
             if student_id not in roster:
                 return {"student_id": student_id, "error": "该学生不属于当前班级", "status": "not_in_class"}
+        # P10.1-C: Reuse aggregated student profile from teacher_students
+        try:
+            from app.services.teacher_students import get_teacher_student_detail
+            profile = get_teacher_student_detail(student_id)
+            if profile and not profile.get("error"):
+                profile["status"] = profile.get("status", "unknown")
+                return profile
+        except Exception:
+            pass
+        from app.services.v2_facade import get_student_state
         return get_student_state(student_id)
 
     def get_process_patterns(self, student_id: str, scenario_id: str = "") -> List[Dict[str, Any]]:
@@ -202,8 +211,35 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
                 result["answer"] = f"班级不存在或无权访问。"
                 result["data_cards"] = [state]
             else:
-                result["answer"] = f"学生 {sid} 的学习状态已加载。"
-                result["data_cards"] = [state]
+                # P10.1-C: Build structured explanation from real profile
+                status = state.get("status", "unknown")
+                score = state.get("overall_score", 0)
+                weak = state.get("weak_abilities", [])[:3]
+                patterns = state.get("diagnostic_patterns", [])[:3]
+                coverage = state.get("evidence_coverage", 0)
+                answer = f"学生 {sid} 当前状态：{status}。\n"
+                if score:
+                    answer += f"总体测评分 {score}。\n"
+                if weak:
+                    answer += f"主要薄弱：{', '.join(weak)}。\n"
+                if patterns:
+                    answer += "最近诊断模式：\n"
+                    for p in patterns[:3]:
+                        label = p if isinstance(p, str) else (p.get("pattern_name") or p.get("name") or str(p))
+                        answer += f"· {label}\n"
+                if coverage:
+                    answer += f"证据覆盖率 {round(coverage * 100)}%。"
+                result["answer"] = answer
+                result["data_cards"] = [{
+                    "type": "student_profile",
+                    "student_id": sid,
+                    "overall_score": score,
+                    "status": status,
+                    "weak_abilities": weak,
+                    "diagnostic_patterns": patterns,
+                    "evidence_coverage": coverage,
+                    "last_activity_at": state.get("last_activity_at"),
+                }]
 
     # Pattern-related intents
     elif any(kw in msg for kw in ["模式", "诊断", "过程", "pattern"]):
