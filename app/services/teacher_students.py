@@ -172,6 +172,12 @@ def get_teacher_student_detail(username: str, job_role=None):
     recent_events = _get_recent_events(sess_id, limit=10)
     ability_state = _get_ability_state_safe(sess_id)
 
+    # P10: Aggregate diagnosis + evidence coverage
+    diagnostic_patterns = _get_diagnostic_patterns_safe(username, sess_id)
+    event_count = len(recent_events)
+    evidence_count = _get_evidence_count_safe(sess_id)
+    last_activity = recent_events[0].get("timestamp") if recent_events else None
+
     return {
         "username": username,
         "nickname": u.get("nickname", "User_" + username),
@@ -185,7 +191,31 @@ def get_teacher_student_detail(username: str, job_role=None):
         "strong_abilities": strong_abilities,
         "recent_events": recent_events,
         "ability_state": ability_state,
+        # P10: Enhanced profile fields
+        "diagnostic_patterns": diagnostic_patterns,
+        "event_count": event_count,
+        "evidence_count": evidence_count,
+        "last_activity_at": last_activity,
+        "evidence_coverage": min(1.0, evidence_count / 20.0) if evidence_count else 0.0,
     }
+
+def _get_diagnostic_patterns_safe(username, session_id):
+    """Safe diagnostic pattern query for student profile."""
+    try:
+        from app.services.diagnostic_events import get_diagnostic_events
+        events = get_diagnostic_events(session_id) if hasattr(get_diagnostic_events, "__call__") else []
+        return events or []
+    except Exception:
+        return []
+
+def _get_evidence_count_safe(session_id):
+    """Count learning evidence for student."""
+    try:
+        from app.services.learning_event_store import get_events
+        events = get_events(session_id, limit=200)
+        return len(events or [])
+    except Exception:
+        return 0
 
 def _parse_score(result_json):
     if not result_json:

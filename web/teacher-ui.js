@@ -687,11 +687,32 @@ TeacherUI.lookupStudent = function(studentId) {
     var name = TeacherUI.escHtml(String(data.nickname || studentId));
     var weak = (data.weak_abilities || []).slice(0, 5);
     var strong = (data.strong_abilities || []).slice(0, 5);
+    var patterns = data.diagnostic_patterns || [];
+    var recentEvents = data.recent_events || [];
     var html = '<div class="student-detail"><h3>' + name + ' (' + studentId + ')</h3>';
-    if (data.status) html += '<div class="detail-row"><span>Status: ' + data.status + '</span></div>';
-    if (data.assess_score !== undefined) html += '<div class="detail-row"><span>Assessment Score: ' + data.assess_score + '</span></div>';
-    if (weak.length) html += '<div class="detail-row"><span>Weak: ' + weak.join(", ") + '</span></div>';
-    if (strong.length) html += '<div class="detail-row"><span>Strong: ' + strong.join(", ") + '</span></div>';
+    html += '<div class="detail-row"><span>Status: <strong>' + TeacherUI.escHtml(String(data.status || "Unknown")) + '</strong></span></div>';
+    if (data.overall_score !== undefined) html += '<div class="detail-row"><span>Assessment Score: <strong>' + data.overall_score + '</strong></span></div>';
+    if (data.evidence_count) html += '<div class="detail-row"><span>Evidence: ' + data.evidence_count + ' events</span></div>';
+    if (data.evidence_coverage) html += '<div class="detail-row"><span>Coverage: ' + Math.round(data.evidence_coverage * 100) + '%</span></div>';
+    html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
+    if (weak.length) html += '<div class="detail-row"><span style="color:#f87171">Weak: ' + weak.map(TeacherUI.escHtml).join(", ") + '</span></div>';
+    if (strong.length) html += '<div class="detail-row"><span style="color:#22c55e">Strong: ' + strong.map(TeacherUI.escHtml).join(", ") + '</span></div>';
+    if (patterns.length) {
+      html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
+      html += '<div class="detail-row"><strong>Diagnostic Patterns</strong></div>';
+      patterns.slice(0, 5).forEach(function(p) {
+        var label = typeof p === "string" ? p : (p.pattern_name || p.name || p.type || JSON.stringify(p));
+        html += '<div class="detail-row" style="color:#fbbf24">- ' + TeacherUI.escHtml(label) + '</div>';
+      });
+    }
+    if (recentEvents.length) {
+      html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
+      html += '<div class="detail-row"><strong>Recent Learning</strong></div>';
+      recentEvents.slice(0, 5).forEach(function(ev) {
+        var desc = typeof ev === "string" ? ev : (ev.event_type || ev.type || ev.action || "Learning event");
+        html += '<div class="detail-row" style="color:#94a3b8">- ' + TeacherUI.escHtml(desc) + '</div>';
+      });
+    }
     html += '</div>';
     detailPane.innerHTML = html;
   }).catch(function(e) {
