@@ -46,14 +46,20 @@ def _ensure_table():
                 published_at REAL
             )
         """)
+        # P6-F: Migration - add class_id column if missing
+        table_info = conn.execute("PRAGMA table_info(teacher_comments)").fetchall()
+        cols = {row["name"] for row in table_info}
+        if "class_id" not in cols:
+            conn.execute("ALTER TABLE teacher_comments ADD COLUMN class_id INTEGER")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_comments_student ON teacher_comments(student_id, status)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_comments_status ON teacher_comments(status)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_comments_class ON teacher_comments(class_id, student_id)")
         conn.commit()
 _ensure_table()
 
 # ── CRUD ──
 
-def list_comments(student_id=None, status=None, teacher_id=None, job_role=None) -> Dict:
+def list_comments(student_id=None, status=None, teacher_id=None, job_role=None, class_id=None) -> Dict:
     sql = "SELECT * FROM teacher_comments WHERE 1=1"
     params = []
     if student_id:
@@ -65,6 +71,9 @@ def list_comments(student_id=None, status=None, teacher_id=None, job_role=None) 
     if job_role:
         sql += " AND job_role = ?"
         params.append(job_role)
+    if class_id:
+        sql += " AND class_id = ?"
+        params.append(int(class_id))
     sql += " ORDER BY created_at DESC LIMIT 200"
 
     with _conn() as conn:
@@ -145,17 +154,17 @@ def publish_comment(comment_id: int) -> Dict:
 
 # ── AI 生成 ──
 
-def generate_comment(student_id: str, teacher_id: str = "", job_role: str = None) -> Dict:
+def generate_comment(student_id: str, teacher_id: str = "", job_role: str = None, class_id: int = None) -> Dict:
     """为单个学生 AI 生成评语草稿。"""
     jr = job_role or DEFAULT_JOB
     now = time.time()
     period_start, period_end = _current_week_range()
 
-    # 检查是否已有本周草稿
+    # P6-F: Duplicate check by class_id + student_id + period
     with _conn() as conn:
         existing = conn.execute(
-            "SELECT id FROM teacher_comments WHERE student_id=? AND job_role=? AND status='draft' AND period_start=?",
-            (student_id, jr, period_start)
+            "SELECT id FROM teacher_comments WHERE class_id=? AND student_id=? AND status='draft' AND period_start=?",
+            (int(class_id) if class_id else 0, student_id, period_start)
         ).fetchone()
     if existing:
         return {"ok": False, "error": "本周已有未发布草稿", "comment_id": existing[0]}
@@ -179,20 +188,20 @@ def generate_comment(student_id: str, teacher_id: str = "", job_role: str = None
     with _conn() as conn:
         cur = conn.execute(
             """INSERT INTO teacher_comments
-               (student_id, teacher_id, job_role, period_start, period_end, content, ai_draft, evidence_json, status, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)""",
-            (student_id, teacher_id, jr, period_start, period_end, content, ai_draft, json.dumps(evidence, ensure_ascii=False), now, now)
+               (student_id, teacher_id, job_role, class_id, period_start, period_end, content, ai_draft, evidence_json, status, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)""",
+            (student_id, teacher_id, jr, int(class_id) if class_id else 0, period_start, period_end, content, ai_draft, json.dumps(evidence, ensure_ascii=False), now, now)
         )
         conn.commit()
         cid = cur.lastrowid
 
     return {"ok": True, "comment": get_comment(cid), "llm_used": llm_configured}
 
-def generate_comments_batch(student_ids: List[str], teacher_id: str = "", job_role: str = None) -> Dict:
+def generate_comments_batch(student_ids: List[str], teacher_id: str = "", job_role: str = None, class_id: int = None) -> Dict:
     """批量生成评语草稿。"""
     results = []
     for sid in student_ids:
-        r = generate_comment(sid, teacher_id=teacher_id, job_role=job_role)
+        r = generate_comment(sid, teacher_id=teacher_id, job_role=job_role, class_id=class_id)
         results.append(r)
     return {"ok": True, "results": results, "total": len(results)}
 

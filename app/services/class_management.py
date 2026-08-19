@@ -420,3 +420,109 @@ def get_student_classes(student_id: int) -> List[Dict[str, Any]]:
             (student_id,),
         ).fetchall()
         return [dict(r) for r in rows]
+
+
+def get_student_active_classes(student_id: int) -> List[Dict[str, Any]]:
+    """查询学生所属的 active classes，包含教师名称。"""
+    with _conn() as conn:
+        rows = conn.execute(
+            """
+            SELECT c.id, c.name, c.job_role, c.term, c.status,
+                   u.nickname AS teacher_name, cm.joined_at
+            FROM class_members cm
+            JOIN classes c ON c.id = cm.class_id
+            LEFT JOIN users u ON u.id = c.teacher_id
+            WHERE cm.student_id = ? AND c.status = 'active'
+            ORDER BY cm.joined_at ASC
+            """,
+            (student_id,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def resolve_learning_context(
+    user: Dict[str, Any],
+    class_id: Any = None,
+) -> Dict[str, Any]:
+    """解析学生学习上下文，决定 effective_job_role。
+
+    规则：
+      - 如果提供了 class_id 且该学生属于该班：source=class, job_role=class.job_role
+      - 如果学生只属于一个 active class：自动进入该班
+      - 否则：source=personal, job_role=user.job_role
+    """
+    if not user:
+        return {"ok": False, "error": "not authenticated", "code": "UNAUTHENTICATED"}
+
+    student_id = user.get("id")
+    if not student_id:
+        return {"ok": False, "error": "missing user id", "code": "INVALID_USER"}
+
+    active_classes = get_student_active_classes(student_id)
+
+    selected_class = None
+    if class_id:
+        try:
+            cid = int(class_id)
+        except (TypeError, ValueError):
+            return {"ok": False, "error": "invalid class_id", "code": "INVALID_CLASS_ID"}
+        for cls in active_classes:
+            if cls["id"] == cid:
+                selected_class = cls
+                break
+        if not selected_class:
+            return {"ok": False, "error": "student not in this class", "code": "NOT_IN_CLASS"}
+    elif len(active_classes) == 1:
+        selected_class = active_classes[0]
+
+    if selected_class:
+        return {
+            "ok": True,
+            "student_id": student_id,
+            "class_id": selected_class["id"],
+            "job_role": selected_class.get("job_role", ""),
+            "source": "class",
+            "class": selected_class,
+            "available_classes": active_classes,
+        }
+
+    return {
+        "ok": True,
+        "student_id": student_id,
+        "class_id": None,
+        "job_role": user.get("job_role", ""),
+        "source": "personal",
+        "class": None,
+        "available_classes": active_classes,
+    }
+
+
+def archive_class(class_id: int, teacher_id: int) -> Dict[str, Any]:
+    """归档班级，不做硬删除。历史数据保留。"""
+    cls = get_class(class_id, teacher_id)
+    if cls is None:
+        return {"ok": False, "error": "班级不存在", "code": "NOT_FOUND"}
+    with _conn() as conn:
+        conn.execute(
+            "UPDATE classes SET status = 'archived', updated_at = ? WHERE id = ?",
+            (time.time(), class_id),
+        )
+        conn.commit()
+    return {"ok": True, "class_id": class_id, "status": "archived"}
+
+
+def restore_class(class_id: int, teacher_id: int) -> Dict[str, Any]:
+    """恢复已归档班级。"""
+    with _conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM classes WHERE id = ? AND teacher_id = ? AND status = 'archived'",
+            (class_id, teacher_id),
+        ).fetchone()
+        if not row:
+            return {"ok": False, "error": "归档班级不存在", "code": "NOT_FOUND"}
+        conn.execute(
+            "UPDATE classes SET status = 'active', updated_at = ? WHERE id = ?",
+            (time.time(), class_id),
+        )
+        conn.commit()
+    return {"ok": True, "class_id": class_id, "status": "active"}

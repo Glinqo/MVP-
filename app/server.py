@@ -65,13 +65,17 @@ from app.services.teacher_comments import list_comments, get_comment, save_comme
 from app.services.teacher_ai import handle_teacher_message  # noqa: E402
 from app.services.class_management import (  # noqa: E402
     add_students,
+    archive_class,
     create_class,
     get_available_students,
     get_class,
     get_class_students,
+    get_student_active_classes,
     list_classes,
     remove_students,
     require_teacher_class,
+    resolve_learning_context,
+    restore_class,
     update_class,
 )
 from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
@@ -239,6 +243,29 @@ class MVPHandler(BaseHTTPRequestHandler):
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(student_bootstrap(session_id))
 
+        if path == "/api/student/classes":
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
+            if user.get("role", "") != "student":
+                return self.send_error_json(403, "仅学生可访问")
+            classes = get_student_active_classes(user["id"])
+            return self.send_json({"classes": classes})
+
+        if path == "/api/student/learning-context":
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
+            if user.get("role", "") != "student":
+                return self.send_error_json(403, "仅学生可访问")
+            class_id = parse_qs(parsed.query).get("class_id", [None])[0]
+            result = resolve_learning_context(user, class_id=class_id)
+            if not result.get("ok"):
+                code = result.get("code", "")
+                status = 400 if "INVALID" in code else (403 if code == "NOT_IN_CLASS" else 401)
+                return self.send_error_json(status, result.get("error", "学习上下文解析失败"))
+            return self.send_json(result)
+
         if path == "/api/student/dashboard":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(build_student_dashboard(session_id))
@@ -315,10 +342,16 @@ class MVPHandler(BaseHTTPRequestHandler):
             if not user or not teacher_required(user):
                 return self.send_error_json(403, "需要教师权限")
             query = parse_qs(parsed.query)
+            class_id = query.get("class_id", [None])[0]
+            if class_id:
+                auth = require_teacher_class(user, class_id)
+                if not auth["ok"]:
+                    return self.send_error_json(auth["status"], auth["error"])
             return self.send_json(list_comments(
                 student_id=query.get("student_id", [None])[0],
                 status=query.get("status", [None])[0],
                 job_role=query.get("job_role", [None])[0],
+                class_id=int(class_id) if class_id else None,
             ))
 
         if path.startswith("/api/teacher/comments/") and "/generate" not in path:
@@ -641,6 +674,34 @@ class MVPHandler(BaseHTTPRequestHandler):
                     return self.send_error_json(status, result.get("error", "更新班级失败"))
                 return self.send_json(result)
 
+            if path.startswith("/api/teacher/classes/") and path.endswith("/archive"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                class_id_str = path[len("/api/teacher/classes/"):-len("/archive")]
+                try:
+                    class_id = int(class_id_str)
+                except ValueError:
+                    return self.send_error_json(400, "非法的 class_id")
+                result = archive_class(class_id, user["id"])
+                if not result.get("ok"):
+                    return self.send_error_json(404, result.get("error", "班级不存在"))
+                return self.send_json(result)
+
+            if path.startswith("/api/teacher/classes/") and path.endswith("/restore"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                class_id_str = path[len("/api/teacher/classes/"):-len("/restore")]
+                try:
+                    class_id = int(class_id_str)
+                except ValueError:
+                    return self.send_error_json(400, "非法的 class_id")
+                result = restore_class(class_id, user["id"])
+                if not result.get("ok"):
+                    return self.send_error_json(404, result.get("error", "归档班级不存在"))
+                return self.send_json(result)
+
             if path.startswith("/api/teacher/classes/") and path.endswith("/students/remove"):
                 user = find_authed_user(self)
                 if not user or not teacher_required(user):
@@ -718,20 +779,32 @@ class MVPHandler(BaseHTTPRequestHandler):
                 user = find_authed_user(self)
                 if not user or not teacher_required(user):
                     return self.send_error_json(403, "需要教师权限")
+                class_id = payload.get("class_id")
+                if class_id:
+                    auth = require_teacher_class(user, class_id)
+                    if not auth["ok"]:
+                        return self.send_error_json(auth["status"], auth["error"])
                 return self.send_json(generate_comment(
                     student_id=payload.get("student_id", ""),
                     teacher_id=str(user.get("id", "")),
                     job_role=payload.get("job_role"),
+                    class_id=int(class_id) if class_id else None,
                 ))
 
             if path == "/api/teacher/comments/generate-batch":
                 user = find_authed_user(self)
                 if not user or not teacher_required(user):
                     return self.send_error_json(403, "需要教师权限")
+                class_id = payload.get("class_id")
+                if class_id:
+                    auth = require_teacher_class(user, class_id)
+                    if not auth["ok"]:
+                        return self.send_error_json(auth["status"], auth["error"])
                 return self.send_json(generate_comments_batch(
                     student_ids=payload.get("student_ids", []),
                     teacher_id=str(user.get("id", "")),
                     job_role=payload.get("job_role"),
+                    class_id=int(class_id) if class_id else None,
                 ))
 
             if path.startswith("/api/teacher/comments/") and path.endswith("/update"):

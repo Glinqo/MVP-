@@ -53,6 +53,8 @@ TeacherUI.loadClasses = function() {
       for (var i = 0; i < classes.length; i++) {
         if (classes[i].id === savedClassId) { selected = classes[i]; break; }
       }
+      // P6-E: clear stale localStorage if class no longer exists
+      if (!selected) localStorage.removeItem("mcp_teacher_class_id");
     }
     if (!selected && classes.length > 0) {
       selected = classes[0];
@@ -65,7 +67,33 @@ TeacherUI.loadClasses = function() {
   });
 };
 
+TeacherUI.clearClassScopedState = function() {
+  // P6-D: Clear all class-scoped cache when switching class
+  TeacherUI._issuesCache = null;
+  TeacherUI.currentIssueId = null;
+  TeacherUI.messages = [];
+  TeacherUI._selectedStudents = [];
+  TeacherUI._batchParsedStudents = [];
+  TeacherUI._allStudents = [];
+  if (TeacherUI._commentState) TeacherUI._commentState = {};
+  if (TeacherUI._ciState) TeacherUI._ciState = {};
+  // Clear AI message DOM
+  var chatMsgs = document.getElementById("teacherChatMessages");
+  if (chatMsgs) {
+    chatMsgs.innerHTML = '<div class="chat-message assistant"><div class="chat-bubble">欢迎使用教学决策工作台。请提问或查看左侧教学问题。</div></div>';
+  }
+  // Close any open modals/drawers
+  var drawer = document.getElementById("issueDetailDrawer");
+  if (drawer) drawer.classList.remove("open");
+  var manageModal = document.getElementById("manageStudentsModal");
+  if (manageModal) manageModal.style.display = "none";
+};
+
 TeacherUI.setCurrentClass = function(cls) {
+  // P6-D: Clear old class cache before switching
+  if (TeacherUI.currentClassId && cls && TeacherUI.currentClassId !== cls.id) {
+    TeacherUI.clearClassScopedState();
+  }
   TeacherUI.currentClass = cls;
   TeacherUI.currentClassId = cls ? cls.id : null;
   var labelEl = document.getElementById("teacherClassLabel");

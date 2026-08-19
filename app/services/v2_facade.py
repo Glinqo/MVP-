@@ -144,9 +144,9 @@ def group_students(student_ids: List[str], patterns: List[Dict] = None) -> Dict[
 
 # --- Teaching Workflow ---
 def create_intervention(issue_id: str, candidate_id: str, student_ids: List[str],
-                        teacher_id: str) -> Dict[str, Any]:
+                        teacher_id: str, scope_class: str = "", job_role: str = "") -> Dict[str, Any]:
     from app.services.workflow.workflow_store import create_intervention as ws_create
-    return ws_create(issue_id, candidate_id, student_ids, teacher_id)
+    return ws_create(issue_id, candidate_id, student_ids, teacher_id, scope_class=scope_class, job_role=job_role)
 
 def review_intervention(intervention_id: str, approved: bool, teacher_id: str) -> Dict[str, Any]:
     from app.services.workflow.workflow_store import transition_intervention
