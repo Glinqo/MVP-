@@ -39,6 +39,28 @@ def _get_student_sessions(job_role: str) -> List[str]:
         (job_role,))
     return [r["session_id"] for r in rows]
 
+def _get_class_student_usernames(class_id: int, teacher_id: int) -> List[str]:
+    """TF-6D: 从班级成员解析学生 username 列表。"""
+    from app.services.class_management import get_class_students
+    cls = get_class_students(class_id, teacher_id)
+    if not cls:
+        return []
+    return [s["username"] for s in cls.get("students", [])]
+
+def _get_class_student_sessions(class_id: int, teacher_id: int) -> List[str]:
+    """TF-6D: 获取班级成员中所有有测评记录的学生 session_id。"""
+    usernames = _get_class_student_usernames(class_id, teacher_id)
+    if not usernames:
+        return []
+    placeholders = ",".join("?" for _ in usernames)
+    # session_id 格式通常为 <username>-session，但也兼容直接 username
+    like_clauses = " OR ".join(["session_id LIKE ?" for _ in usernames])
+    params = [f"{u}-session" for u in usernames]
+    rows = _query_db(ASSESS_DB,
+        f"SELECT session_id FROM assessments WHERE state = 'completed' AND ({like_clauses})",
+        params)
+    return [r["session_id"] for r in rows]
+
 def _classify_status(cognitive_mastery_score: float) -> str:
     s = cognitive_mastery_score
     if s >= MASTERY_THRESHOLD:
@@ -50,7 +72,7 @@ def _classify_status(cognitive_mastery_score: float) -> str:
     else:
         return "critical"
 
-def get_class_ability_graph(job_role=None, ability_id=None):
+def get_class_ability_graph(job_role=None, ability_id=None, class_id=None, teacher_id=None):
     """获取班级平均能力图谱。
 
     以岗位能力图谱为骨架，聚合该岗位下所有有测评记录学生的能力状态。
@@ -69,7 +91,10 @@ def get_class_ability_graph(job_role=None, ability_id=None):
     else:
         node_ids = {n.get("id", "") for n in job_graph.get("nodes", [])}
 
-    sessions = _get_student_sessions(jr)
+    # P6-B: class_id is mandatory for teacher class-scoped API
+    if not class_id or not teacher_id:
+        return {"nodes": [], "edges": [], "student_count": 0, "error": "class_id required"}
+    sessions = _get_class_student_sessions(class_id, teacher_id)
 
     # 聚合数据结构
     node_scores = {nid: [] for nid in node_ids}
@@ -182,13 +207,16 @@ def get_class_ability_graph(job_role=None, ability_id=None):
         "edges": job_graph.get("edges", []),
     }
 
-def get_common_issues(job_role=None, ability_id=None, min_students=3):
+def get_common_issues(job_role=None, ability_id=None, min_students=3, class_id=None, teacher_id=None):
     """基于学习事件发现共性问题。
 
     第一版使用规则聚合：同一 ability_id + event_category 在多学生中出现。
     """
     jr = job_role or DEFAULT_JOB
-    sessions = _get_student_sessions(jr)
+    # P6-B: class_id is mandatory
+    if not class_id or not teacher_id:
+        return []
+    sessions = _get_class_student_sessions(class_id, teacher_id)
     if not sessions:
         return []
 
@@ -294,10 +322,13 @@ def get_common_issues(job_role=None, ability_id=None, min_students=3):
 
     return issues
 
-def get_class_overview(job_role=None):
+def get_class_overview(job_role=None, class_id=None, teacher_id=None):
     """获取班级概览统计。"""
     jr = job_role or DEFAULT_JOB
-    sessions = _get_student_sessions(jr)
+    # P6-B: class_id is mandatory
+    if not class_id or not teacher_id:
+        return {"total_students": 0, "has_data": False, "error": "class_id required"}
+    sessions = _get_class_student_sessions(class_id, teacher_id)
     student_count = len(sessions)
 
     graph = get_class_ability_graph(jr)

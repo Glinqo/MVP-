@@ -2,6 +2,8 @@
  * ForceGraph - D3 Force-Directed Knowledge Graph
  * Clean mesh/netlike distribution, no border constraints, natural color clustering
  */
+const CONFIDENCE_THRESHOLD = 0.5;
+
 class ForceGraph {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
@@ -37,17 +39,18 @@ class ForceGraph {
     }
 
     _nodeColor(node) {
-        const dim = (node.radar_dimension_ids || []).join(",").toLowerCase();
-        if (node.status === "root" || dim.includes("root")) return "#60a5fa";
-        if (dim.includes("safety") || dim.includes("安全")) return "#f87171";
-        if (dim.includes("sensor") || dim.includes("传感")) return "#fbbf24";
-        if (dim.includes("plc") || dim.includes("控制") || dim.includes("plc")) return "#34d399";
-        if (dim.includes("trouble") || dim.includes("故障") || dim.includes("排故")) return "#a78bfa";
-        if (dim.includes("mechanical") || dim.includes("机械")) return "#fb923c";
-        if (dim.includes("electrical") || dim.includes("电气")) return "#38bdf8";
-        if (dim.includes("communication") || dim.includes("通信") || dim.includes("网络")) return "#f472b6";
-        const colors = ["#60a5fa","#34d399","#fbbf24","#f87171","#a78bfa","#fb923c","#38bdf8","#f472b6"];
-        const hash = (node.id || "").split("").reduce((a,c)=>a+c.charCodeAt(0),0);
+        const rawDim = node.radar_dimension_ids;
+        const dim = Array.isArray(rawDim) ? rawDim.join(',').toLowerCase() : String(rawDim || '').toLowerCase();
+        if (node.status === 'root' || dim.includes('root')) return '#60a5fa';
+        if (dim.includes('safety') || dim.includes('安全')) return '#f87171';
+        if (dim.includes('sensor') || dim.includes('signal') || dim.includes('传感')) return '#fbbf24';
+        if (dim.includes('plc') || dim.includes('控制')) return '#34d399';
+        if (dim.includes('trouble') || dim.includes('故障') || dim.includes('排故')) return '#a78bfa';
+        if (dim.includes('mechanical') || dim.includes('机械')) return '#fb923c';
+        if (dim.includes('electrical') || dim.includes('电气')) return '#38bdf8';
+        if (dim.includes('communication') || dim.includes('通信') || dim.includes('网络')) return '#f472b6';
+        const colors = ['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c','#38bdf8','#f472b6'];
+        const hash = (node.id || '').split('').reduce((a,ch)=>a+ch.charCodeAt(0),0);
         return colors[hash % colors.length];
     }
 
@@ -117,7 +120,7 @@ class ForceGraph {
                 return true})
             .on("zoom", (ev) => { this.g.attr("transform", ev.transform); });
         this.svg.call(this.zoom);
-        this.svg.call(this.zoom.transform, d3.zoomIdentity.translate(this.width * 0.5, this.height * 0.5).scale(1.0));
+        this.svg.call(this.zoom.transform, d3.zoomIdentity.translate(0, 0).scale(1.0));
     }
 
     _buildGraphData(graphData) {

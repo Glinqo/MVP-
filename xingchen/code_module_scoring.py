@@ -155,6 +155,9 @@ def score_diagnostic(input_data, data=None):
     path_seen = set()
     correct_count = 0
     total_count = 0
+    ability_correct = {}
+    ability_total = {}
+    answered_ability_ids = []
 
     # Iterate over answers (from front-end) instead of questions, to support v2 QIDs
     for qid, answer in answers.items():
@@ -162,6 +165,13 @@ def score_diagnostic(input_data, data=None):
         if not question:
             continue
         total_count += 1
+        ability_id = question.get("ability_id")
+        if ability_id:
+            if ability_id not in answered_ability_ids:
+                answered_ability_ids.append(ability_id)
+            ability_total[ability_id] = ability_total.get(ability_id, 0) + 1
+            if is_correct(answer, question):
+                ability_correct[ability_id] = ability_correct.get(ability_id, 0) + 1
 
         if is_correct(answer, question):
             correct_count += 1
@@ -178,10 +188,16 @@ def score_diagnostic(input_data, data=None):
 
     score = round((correct_count / total_count) * 100) if total_count else 0
 
+    ability_scores = {}
+    for aid, total in ability_total.items():
+        ability_scores[aid] = round((ability_correct.get(aid, 0) / total) * 100) if total else 0
+
     return {
         "score": score,
         "correct_count": correct_count,
         "total_count": total_count,
+        "ability_scores": ability_scores,
+        "answered_ability_ids": answered_ability_ids,
         "weak_abilities": weak_abilities,
         "recommended_path": recommended_path,
         "feedback_level": feedback_level(score, weak_abilities, rules),

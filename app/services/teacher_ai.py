@@ -57,6 +57,9 @@ def handle_teacher_message(message, job_role=None, teacher_id="", history=None, 
 
 def _dispatch(intent, msg, jr, tid, ctx, ui):
     r = {"answer": "OK", "evidence": [], "data_cards": [], "actions": [], "context_update": {}}
+    # V2 Engine available for all intents
+    try: from app.services.v2_facade import discover_issues
+    except: discover_issues = None
     if intent == "class_overview":
         try: from app.services.class_insights import get_class_overview; ov = get_class_overview(jr); r["answer"] = f"该岗位共有{ov.get('total_students',0)}名有测评记录的学生。" if ov.get("has_data") else "暂无有效测评数据。"
         except: pass
@@ -80,7 +83,7 @@ def _dispatch(intent, msg, jr, tid, ctx, ui):
         r["actions"] = [{"type":"navigate","module":"teacherComments","label":"教学评语"}]
     elif intent in ("student_lookup", "student_summary"):
         m = re.search(r"(\d{3}|[\u4e00-\u9fff]{2,4})", msg)
-        sid = m.group(0) if m else (conv_ctx.get("last_students",[None])[0] if conv_ctx else None)
+        sid = m.group(0) if m else (ctx.get("last_students",[None])[0] if ctx else None)
         if sid:
             try: from app.services.teacher_students import get_teacher_student_detail; d = get_teacher_student_detail(str(sid), jr)
             except: d = {}

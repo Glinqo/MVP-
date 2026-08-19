@@ -1,6 +1,6 @@
 from .data_loader import load_data
 from .graph import build_student_ability_graph
-from .graph_update_engine import normalize_ability_id
+from .graph_update_engine import CONFIDENCE_THRESHOLD, float_or_zero, normalize_ability_id
 from .learner_context import learner_context_pack
 
 
@@ -49,6 +49,7 @@ def sort_focus_nodes(nodes):
     return sorted(
         nodes,
         key=lambda node: (
+            0 if float_or_zero(node.get("confidence")) < CONFIDENCE_THRESHOLD else 1,
             STATUS_WEIGHTS.get(node.get("status"), 9),
             int(node.get("mastery_score", 30) or 0),
             -int(node.get("evidence_count", 0) or 0),
@@ -170,13 +171,16 @@ def dashboard_actions(focus_nodes, event_count):
 
     actions = []
     for node in focus_nodes[:3]:
+        is_low_confidence = float_or_zero(node.get("confidence")) < CONFIDENCE_THRESHOLD
+        tool_id = "quiz" if is_low_confidence else ("plan" if node.get("status") in {"weak", "improving"} else "student_graph")
         actions.append(
             {
                 "title": node.get("label"),
                 "action": node.get("next_best_action") or "查看讲解并完成一个关联实训任务。",
                 "ability_id": node.get("id"),
                 "status": node.get("status"),
-                "tool_id": "plan" if node.get("status") in {"weak", "improving"} else "student_graph",
+                "tool_id": tool_id,
+                "low_confidence": is_low_confidence,
             }
         )
     return actions
@@ -203,6 +207,7 @@ def build_student_dashboard(session_id=None):
                 "status_label": node.get("status_label"),
                 "mastery_score": node.get("mastery_score"),
                 "confidence": node.get("confidence"),
+                "low_confidence": node.get("low_confidence", float_or_zero(node.get("confidence")) < CONFIDENCE_THRESHOLD),
                 "reason": (node.get("update_reasons") or node.get("evidence") or ["个人图谱排序建议"])[0],
                 "next_best_action": node.get("next_best_action"),
                 **linked,

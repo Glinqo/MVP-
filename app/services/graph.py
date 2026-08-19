@@ -10,6 +10,8 @@ from .graph_update_engine import (
 
     compute_node_metrics,
 
+    CONFIDENCE_THRESHOLD,
+
     confirmed_job_snapshots,
 
     pending_job_proposals,
@@ -216,10 +218,12 @@ def ability_source(ability_id):
 
 
 
-def next_best_action(ability_id, status):
+def next_best_action(ability_id, status, confidence=None):
     ability = load_data()["ability_by_id"].get(ability_id, {})
     task_id = (ability.get("related_tasks") or [None])[0]
     task = load_data()["task_by_id"].get(task_id, {}) if task_id else {}
+    if confidence is not None and confidence < CONFIDENCE_THRESHOLD:
+        return f"先做一道验证题确认掌握度：{task.get('title', '关联实训任务')}"
     if status == "weak":
         return f"先看该节点讲解，再完成任务：{task.get('title', '关联实训任务')}"
     if status == "improving":
@@ -951,6 +955,8 @@ def build_student_ability_graph(session_id=None, job_role=None):
 
                 confidence=metrics["confidence"],
 
+                low_confidence=metrics["low_confidence"],
+
                 evidence_count=metrics["evidence_count"],
 
                 last_updated_at=metrics["last_updated_at"],
@@ -959,7 +965,7 @@ def build_student_ability_graph(session_id=None, job_role=None):
 
                 evidence_events=metrics["evidence_events"],
 
-                next_best_action=next_best_action(ability_id, status),
+                next_best_action=next_best_action(ability_id, status, confidence=metrics["confidence"]),
                 knowledge_mastery=None,
                 procedure_mastery=None,
                 transfer_score=None,

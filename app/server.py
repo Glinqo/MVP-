@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import json
 import mimetypes
 import sys
@@ -56,11 +56,28 @@ from app.services.initial_assessment import start_assessment as ia_start, submit
 from app.services.action_planner import plan_initial_learning  # noqa: E402
 from app.services.auth import login, get_user, save_identity, teacher_required
 from app.middleware import find_authed_user  # noqa: E402
+from app.middleware import require_student_owner  # noqa: E402  # noqa: E402
+from app.services.v2_facade import *  # V2 Engine Facade
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
-from app.services.teacher_students import list_teacher_students, get_teacher_student_detail  # noqa: E402
+from app.services.teacher_students import list_teacher_students, get_teacher_student_detail, save_teacher_student_selection  # noqa: E402
 from app.services.class_insights import get_class_ability_graph, get_common_issues, get_class_overview  # noqa: E402
 from app.services.teacher_comments import list_comments, get_comment, save_comment, review_comment, publish_comment, generate_comment, generate_comments_batch, review_comments_batch, publish_comments_batch, get_student_published_comments  # noqa: E402
 from app.services.teacher_ai import handle_teacher_message  # noqa: E402
+from app.services.class_management import (  # noqa: E402
+    add_students,
+    archive_class,
+    create_class,
+    get_available_students,
+    get_class,
+    get_class_students,
+    get_student_active_classes,
+    list_classes,
+    remove_students,
+    require_teacher_class,
+    resolve_learning_context,
+    restore_class,
+    update_class,
+)
 from app.services.scaffolding_engine import get_scaffold_config_for_assessment  # noqa: E402
 from app.services.transfer_engine import suggest_transfer_tasks  # noqa: E402
 
@@ -150,7 +167,7 @@ class MVPHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
         self.wfile.write(body)
 
@@ -171,7 +188,7 @@ class MVPHandler(BaseHTTPRequestHandler):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
 
     def do_GET(self):
@@ -209,7 +226,11 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(build_job_ability_graph(job_role))
 
         if path == "/api/graph/student":
+            user = find_authed_user(self)
+            if not user: return self.send_error_json(401, "\u8bf7\u5148\u767b\u5f55")
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
+            if not require_student_owner(user, requested_session_id=session_id):
+                return self.send_error_json(403, "\u65e0\u6743\u8bbf\u95ee\u5176\u4ed6\u5b66\u751f\u6570\u636e")
             return self.send_json(build_student_ability_graph(session_id))
 
         if path == "/api/graph/gap":
@@ -221,6 +242,29 @@ class MVPHandler(BaseHTTPRequestHandler):
         if path == "/api/student/bootstrap":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
             return self.send_json(student_bootstrap(session_id))
+
+        if path == "/api/student/classes":
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
+            if user.get("role", "") != "student":
+                return self.send_error_json(403, "仅学生可访问")
+            classes = get_student_active_classes(user["id"])
+            return self.send_json({"classes": classes})
+
+        if path == "/api/student/learning-context":
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
+            if user.get("role", "") != "student":
+                return self.send_error_json(403, "仅学生可访问")
+            class_id = parse_qs(parsed.query).get("class_id", [None])[0]
+            result = resolve_learning_context(user, class_id=class_id)
+            if not result.get("ok"):
+                code = result.get("code", "")
+                status = 400 if "INVALID" in code else (403 if code == "NOT_IN_CLASS" else 401)
+                return self.send_error_json(status, result.get("error", "学习上下文解析失败"))
+            return self.send_json(result)
 
         if path == "/api/student/dashboard":
             session_id = parse_qs(parsed.query).get("session_id", [None])[0]
@@ -261,7 +305,11 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(build_cumulative_strategy_profile(session_id))
 
         if path == "/api/student/events":
+            user = find_authed_user(self)
+            if not user: return self.send_error_json(401, "\u8bf7\u5148\u767b\u5f55")
             session_id = query_params.get("session_id", ["default"])[0]
+            if not require_student_owner(user, requested_session_id=session_id):
+                return self.send_error_json(403, "\u65e0\u6743\u8bbf\u95ee\u5176\u4ed6\u5b66\u751f\u6570\u636e")
             event_type = query_params.get("event_type", [None])[0]
             ability_id = query_params.get("ability_id", [None])[0]
             scenario_id = query_params.get("scenario_id", [None])[0]
@@ -294,10 +342,16 @@ class MVPHandler(BaseHTTPRequestHandler):
             if not user or not teacher_required(user):
                 return self.send_error_json(403, "需要教师权限")
             query = parse_qs(parsed.query)
+            class_id = query.get("class_id", [None])[0]
+            if class_id:
+                auth = require_teacher_class(user, class_id)
+                if not auth["ok"]:
+                    return self.send_error_json(auth["status"], auth["error"])
             return self.send_json(list_comments(
                 student_id=query.get("student_id", [None])[0],
                 status=query.get("status", [None])[0],
                 job_role=query.get("job_role", [None])[0],
+                class_id=int(class_id) if class_id else None,
             ))
 
         if path.startswith("/api/teacher/comments/") and "/generate" not in path:
@@ -307,31 +361,96 @@ class MVPHandler(BaseHTTPRequestHandler):
 
         if path == "/api/teacher/class/ability-graph":
             user = find_authed_user(self)
-            if not user or not teacher_required(user):
-                return self.send_error_json(403, "需要教师权限")
             query = parse_qs(parsed.query)
+            class_id = query.get("class_id", [None])[0]
+            auth = require_teacher_class(user, class_id)
+            if not auth["ok"]:
+                return self.send_error_json(auth["status"], auth["error"])
             return self.send_json(get_class_ability_graph(
                 job_role=query.get("job_role", [None])[0],
                 ability_id=query.get("ability_id", [None])[0],
+                class_id=int(class_id),
+                teacher_id=user["id"],
             ))
 
         if path == "/api/teacher/class/common-issues":
             user = find_authed_user(self)
-            if not user or not teacher_required(user):
-                return self.send_error_json(403, "需要教师权限")
             query = parse_qs(parsed.query)
+            class_id = query.get("class_id", [None])[0]
+            auth = require_teacher_class(user, class_id)
+            if not auth["ok"]:
+                return self.send_error_json(auth["status"], auth["error"])
             return self.send_json({"issues": get_common_issues(
                 job_role=query.get("job_role", [None])[0],
                 ability_id=query.get("ability_id", [None])[0],
+                class_id=int(class_id),
+                teacher_id=user["id"],
             )})
 
         if path == "/api/teacher/class/overview":
             user = find_authed_user(self)
+            query = parse_qs(parsed.query)
+            class_id = query.get("class_id", [None])[0]
+            auth = require_teacher_class(user, class_id)
+            if not auth["ok"]:
+                return self.send_error_json(auth["status"], auth["error"])
+            return self.send_json(get_class_overview(
+                job_role=query.get("job_role", [None])[0],
+                class_id=int(class_id),
+                teacher_id=user["id"],
+            ))
+
+        if path == "/api/teacher/classes":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            return self.send_json({"classes": list_classes(user["id"])})
+
+        if path.startswith("/api/teacher/classes/") and path.endswith("/students"):
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            # /api/teacher/classes/{class_id}/students
+            class_id_str = path[len("/api/teacher/classes/"):-len("/students")]
+            try:
+                class_id = int(class_id_str)
+            except ValueError:
+                return self.send_error_json(400, "非法的 class_id")
+            result = get_class_students(class_id, user["id"])
+            if result is None:
+                return self.send_error_json(404, "班级不存在")
+            return self.send_json(result)
+
+        if path.startswith("/api/teacher/classes/") and "/students" not in path:
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            class_id_str = path[len("/api/teacher/classes/"):]
+            try:
+                class_id = int(class_id_str)
+            except ValueError:
+                return self.send_error_json(400, "非法的 class_id")
+            result = get_class(class_id, user["id"])
+            if result is None:
+                return self.send_error_json(404, "班级不存在")
+            return self.send_json(result)
+
+        if path == "/api/teacher/students/available":
+            user = find_authed_user(self)
             if not user or not teacher_required(user):
                 return self.send_error_json(403, "需要教师权限")
             query = parse_qs(parsed.query)
-            return self.send_json(get_class_overview(
-                job_role=query.get("job_role", [None])[0],
+            class_id_str = query.get("class_id", [None])[0]
+            try:
+                class_id = int(class_id_str) if class_id_str else 0
+            except ValueError:
+                return self.send_error_json(400, "非法的 class_id")
+            if not class_id:
+                return self.send_error_json(400, "class_id is required")
+            return self.send_json(get_available_students(
+                class_id,
+                user["id"],
+                search=query.get("search", [None])[0],
             ))
 
         if path == "/api/teacher/students":
@@ -343,6 +462,13 @@ class MVPHandler(BaseHTTPRequestHandler):
                 job_role=query.get("job_role", [None])[0],
                 search=query.get("search", [None])[0],
                 has_assessment=query.get("has_assessment", [None])[0],
+            ))
+
+        if path == "/api/teacher/selected-students":
+            return self.send_json(save_teacher_student_selection(
+                payload.get("username", ""),
+                payload.get("job_role", ""),
+                payload.get("student_usernames", []),
             ))
 
         if path.startswith("/api/teacher/students/") and path != "/api/teacher/students/assessments" and path != "/api/teacher/students/assessment":
@@ -427,7 +553,8 @@ class MVPHandler(BaseHTTPRequestHandler):
             return self.send_json(build_cognitive_twin(session_id))
 
         if path == "/api/scenarios":
-            return self.send_json(list_scenarios())
+            job_role = parse_qs(parsed.query).get("job_role", [None])[0]
+            return self.send_json(list_scenarios(job_role=job_role))
 
         if path == "/api/graph/job/versions":
             job_role = parse_qs(parsed.query).get("job_role", [None])[0]
@@ -449,11 +576,25 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(all_plans.get(job, {}))
             return self.send_json(all_plans)
         if path == "/api/conversations":
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
+            user_role = user.get("role", "")
+            usr = user.get("username", "")
+            if user_role == "student":
+                return self.send_json(list_conversation_sessions(owner=usr))
             job_role = parse_qs(parsed.query).get("job_role", [None])[0]
             return self.send_json(list_conversation_sessions(job_role=job_role))
         if path.startswith("/api/conversation/") and path != "/api/conversations":
             sid = path[len("/api/conversation/"):]
+            user = find_authed_user(self)
+            if not user:
+                return self.send_error_json(401, "请先登录")
             conv = load_conversation_state(sid)
+            owner = conv.get("metadata", {}).get("owner_user_id", "")
+            if owner and user.get("id") and str(owner) != str(user.get("id", "")):
+                if user.get("role") != "teacher":
+                    return self.send_error_json(403, "无权访问此会话")
             return self.send_json({"session_id": sid, "messages": conv.get("messages", []), "title": conv.get("metadata", {}).get("title", "")})
 
         return self.serve_static(path)
@@ -467,6 +608,15 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path.startswith("/api/conversation/") and path != "/api/conversations":
                 sid = path[len("/api/conversation/"):]
                 action = query_params.get("action", [""])[0]
+
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
+                conv = load_conversation_state(sid)
+                owner = conv.get("metadata", {}).get("owner_user_id", "")
+                if owner and user.get("id") and str(owner) != str(user.get("id", "")):
+                    if user.get("role") != "teacher":
+                        return self.send_error_json(403, "无权操作此会话")
 
                 if action == "delete":
                     return self.send_json(delete_conversation(sid))
@@ -484,39 +634,179 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(list_conversation_sessions(job_role=job_role))
                 job_role = query_params.get("job_role", [None])[0]
                 return self.send_json(list_conversation_sessions(job_role=job_role))
+            # ---- Teacher class management ----
+            if path == "/api/teacher/classes":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                result = create_class(
+                    teacher_id=user["id"],
+                    name=payload.get("name", ""),
+                    job_role=payload.get("job_role", ""),
+                    term=payload.get("term", ""),
+                )
+                if not result.get("ok"):
+                    code = result.get("code", "")
+                    status = 400 if code == "INVALID_INPUT" else 500
+                    return self.send_error_json(status, result.get("error", "创建班级失败"))
+                return self.send_json(result)
+
+            if path.startswith("/api/teacher/classes/") and path.endswith("/update"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                class_id_str = path[len("/api/teacher/classes/"):-len("/update")]
+                try:
+                    class_id = int(class_id_str)
+                except ValueError:
+                    return self.send_error_json(400, "非法的 class_id")
+                result = update_class(
+                    class_id=class_id,
+                    teacher_id=user["id"],
+                    name=payload.get("name"),
+                    job_role=payload.get("job_role"),
+                    term=payload.get("term"),
+                    status=payload.get("status"),
+                )
+                if not result.get("ok"):
+                    code = result.get("code", "")
+                    status = 404 if code == "NOT_FOUND" else (400 if code == "INVALID_INPUT" else 500)
+                    return self.send_error_json(status, result.get("error", "更新班级失败"))
+                return self.send_json(result)
+
+            if path.startswith("/api/teacher/classes/") and path.endswith("/archive"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                class_id_str = path[len("/api/teacher/classes/"):-len("/archive")]
+                try:
+                    class_id = int(class_id_str)
+                except ValueError:
+                    return self.send_error_json(400, "非法的 class_id")
+                result = archive_class(class_id, user["id"])
+                if not result.get("ok"):
+                    return self.send_error_json(404, result.get("error", "班级不存在"))
+                return self.send_json(result)
+
+            if path.startswith("/api/teacher/classes/") and path.endswith("/restore"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                class_id_str = path[len("/api/teacher/classes/"):-len("/restore")]
+                try:
+                    class_id = int(class_id_str)
+                except ValueError:
+                    return self.send_error_json(400, "非法的 class_id")
+                result = restore_class(class_id, user["id"])
+                if not result.get("ok"):
+                    return self.send_error_json(404, result.get("error", "归档班级不存在"))
+                return self.send_json(result)
+
+            if path.startswith("/api/teacher/classes/") and path.endswith("/students/remove"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                class_id_str = path[len("/api/teacher/classes/"):-len("/students/remove")]
+                try:
+                    class_id = int(class_id_str)
+                except ValueError:
+                    return self.send_error_json(400, "非法的 class_id")
+                result = remove_students(
+                    class_id=class_id,
+                    teacher_id=user["id"],
+                    student_usernames=payload.get("student_usernames", []),
+                )
+                if not result.get("ok"):
+                    status = 404 if result.get("code") == "NOT_FOUND" else 500
+                    return self.send_error_json(status, result.get("error", "移除学生失败"))
+                return self.send_json(result)
+
+            if path.startswith("/api/teacher/classes/") and path.endswith("/students"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                class_id_str = path[len("/api/teacher/classes/"):-len("/students")]
+                try:
+                    class_id = int(class_id_str)
+                except ValueError:
+                    return self.send_error_json(400, "非法的 class_id")
+                result = add_students(
+                    class_id=class_id,
+                    teacher_id=user["id"],
+                    student_usernames=payload.get("student_usernames", []),
+                )
+                if not result.get("ok"):
+                    status = 404 if result.get("code") == "NOT_FOUND" else 500
+                    return self.send_error_json(status, result.get("error", "添加学生失败"))
+                return self.send_json(result)
+
+            # ---- Teacher student selection (deprecated, compatibility) ----
+            if path == "/api/teacher/selected-students":
+                return self.send_json(save_teacher_student_selection(
+                    payload.get("username", ""),
+                    payload.get("job_role", ""),
+                    payload.get("student_usernames", []),
+                ))
+
             # ---- Teacher AI Assistant (Stage 5) ----
             if path == "/api/teacher/assistant/message":
                 user = find_authed_user(self)
                 if not user or not teacher_required(user):
                     return self.send_error_json(403, "需要教师权限")
-                return self.send_json(handle_teacher_message(
+                # Route through V2 Facade for supported intents, fall back to V1
+                from app.services.teacher_ai_v2 import handle_teacher_message_v2
+                class_id = payload.get("class_id")
+                result = handle_teacher_message_v2(
                     message=payload.get("message", ""),
                     job_role=payload.get("job_role"),
                     teacher_id=str(user.get("id", "")),
                     history=payload.get("history", []),
                     ui_context=payload.get("ui_context"),
                     context=payload.get("context"),
-                ))
-
+                    class_id=int(class_id) if class_id else None,
+                )
+                if result.get("engine") == "teacher_ai_v1":
+                    # V2 unsupported intent - delegate to V1
+                    return self.send_json(handle_teacher_message(
+                        message=payload.get("message", ""),
+                        job_role=payload.get("job_role"),
+                        teacher_id=str(user.get("id", "")),
+                        history=payload.get("history", []),
+                        ui_context=payload.get("ui_context"),
+                        context=payload.get("context"),
+                    ))
+                return self.send_json(result)
             # ---- Teacher Comments (Stage 4) ----
             if path == "/api/teacher/comments/generate":
                 user = find_authed_user(self)
                 if not user or not teacher_required(user):
                     return self.send_error_json(403, "需要教师权限")
+                class_id = payload.get("class_id")
+                if class_id:
+                    auth = require_teacher_class(user, class_id)
+                    if not auth["ok"]:
+                        return self.send_error_json(auth["status"], auth["error"])
                 return self.send_json(generate_comment(
                     student_id=payload.get("student_id", ""),
                     teacher_id=str(user.get("id", "")),
                     job_role=payload.get("job_role"),
+                    class_id=int(class_id) if class_id else None,
                 ))
 
             if path == "/api/teacher/comments/generate-batch":
                 user = find_authed_user(self)
                 if not user or not teacher_required(user):
                     return self.send_error_json(403, "需要教师权限")
+                class_id = payload.get("class_id")
+                if class_id:
+                    auth = require_teacher_class(user, class_id)
+                    if not auth["ok"]:
+                        return self.send_error_json(auth["status"], auth["error"])
                 return self.send_json(generate_comments_batch(
                     student_ids=payload.get("student_ids", []),
                     teacher_id=str(user.get("id", "")),
                     job_role=payload.get("job_role"),
+                    class_id=int(class_id) if class_id else None,
                 ))
 
             if path.startswith("/api/teacher/comments/") and path.endswith("/update"):
@@ -569,7 +859,7 @@ class MVPHandler(BaseHTTPRequestHandler):
                 user = find_authed_user(self)
                 if not user:
                     return self.send_error_json(401, "请先登录")
-                result = save_identity(payload.get("username", ""), payload.get("identity", "student"), payload.get("job_role", ""))
+                result = save_identity(user.get("username", ""), payload.get("identity", "student"), payload.get("job_role", ""))
                 # Always include the server-side role from JWT
                 result["role"] = user.get("role", "student")
                 return self.send_json(result)
@@ -587,7 +877,12 @@ class MVPHandler(BaseHTTPRequestHandler):
                         result["knowledge_refs"] = list(kg)
                 return self.send_json(result)
             if path == "/api/student/bootstrap":
-                return self.send_json(student_bootstrap(payload.get("session_id")))
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "\u8bf7\u5148\u767b\u5f55")
+                session_id_val = payload.get("session_id")
+                if not require_student_owner(user, requested_session_id=session_id_val):
+                    return self.send_error_json(403, "\u65e0\u6743\u8bbf\u95ee\u5176\u4ed6\u5b66\u751f\u6570\u636e")
+                return self.send_json(student_bootstrap(session_id_val))
             if path == "/api/quiz/personalized":
                 return self.send_json(personalized_quiz(payload))
             if path == "/api/plan/personalized":
@@ -601,9 +896,18 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/scenario/action":
                 return self.send_json(action_scenario(payload))
             if path == "/api/student/device-state":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
                 return self.send_json(record_device_state(payload))
 
             if path == "/api/graph/student/event":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
+                session_id_val = payload.get("session_id", "")
+                if not require_student_owner(user, requested_session_id=session_id_val):
+                    return self.send_error_json(403, "无权访问其他学生数据")
                 event_result = record_student_graph_event(payload)
                 return self.send_json({**event_result, "student_graph": build_student_ability_graph(payload.get("session_id"))})
             if path == "/api/graph/job/proposals":
@@ -633,6 +937,9 @@ class MVPHandler(BaseHTTPRequestHandler):
                 )
                 return self.send_json(run_update(args))
             if path == "/api/graph/job/ingest":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 text = (payload.get("text") or "").strip()
                 if not text:
                     return self.send_error_json(400, "text is required")
@@ -652,8 +959,14 @@ class MVPHandler(BaseHTTPRequestHandler):
                     max_abilities=max_abilities,
                 ))
             if path == "/api/graph/job/proposals/confirm-sqlite":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 return self.send_json(confirm_sqlite_job_graph_proposal(payload))
             if path == "/api/graph/job/proposals/confirm-sqlite-batch":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
                 return self.send_json(confirm_sqlite_job_graph_proposals(payload))
             if path == "/api/graph/job/proposals/confirm":
                 user = find_authed_user(self)
@@ -669,6 +982,9 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/assist":
                 return self.send_json(assist(payload))
             if path == "/api/score":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
                 score_result = score_answers(payload)
                 if payload.get("session_id"):
                     append_session_event(
@@ -746,6 +1062,9 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(data)
 
             if path == "/api/plan/task_feedback":
+                user = find_authed_user(self)
+                if not user:
+                    return self.send_error_json(401, "请先登录")
                 session_id = payload.get("session_id", "")
                 if not session_id:
                     return self.send_error_json(400, "session_id is required")
@@ -763,6 +1082,46 @@ class MVPHandler(BaseHTTPRequestHandler):
 
             if path == "/api/feedback":
                 return self.send_json(save_feedback(payload))
+            # ---- V2 Engine API (via Facade) ----
+            if path == "/api/v2/events/emit":
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "请先登录")
+                try:
+                    result = emit_event(payload)
+                    return self.send_json(result)
+                except ValueError as e:
+                    return self.send_error_json(400, str(e))
+            if path == "/api/v2/events/query":
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "请先登录")
+                events = get_events(payload.get("student_id", ""))
+                return self.send_json({"events": events, "total": len(events)})
+            if path == "/api/v2/student/state":
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "请先登录")
+                return self.send_json(get_student_state(payload.get("student_id", "")))
+            if path == "/api/v2/teacher/issues":
+                user = find_authed_user(self)
+                class_id = payload.get("class_id")
+                auth = require_teacher_class(user, class_id)
+                if not auth["ok"]:
+                    return self.send_error_json(auth["status"], auth["error"])
+                return self.send_json({"issues": discover_issues(class_id=int(class_id), teacher_id=user["id"])})
+            if path == "/api/v2/teacher/issues/candidates":
+                user = find_authed_user(self)
+                class_id = payload.get("class_id")
+                auth = require_teacher_class(user, class_id)
+                if not auth["ok"]:
+                    return self.send_error_json(auth["status"], auth["error"])
+                cands = generate_candidates(payload.get("issue_id", ""), payload.get("student_ids", []))
+                return self.send_json({"candidates": cands})
+            if path == "/api/v2/teacher/interventions/evaluate":
+                user = find_authed_user(self)
+                if not user: return self.send_error_json(401, "请先登录")
+                if user.get("role") != "teacher": return self.send_error_json(403, "教师专属功能")
+                result = evaluate_intervention(payload.get("intervention_id", ""),
+                                                payload.get("pre_states", []), payload.get("post_states", []))
+                return self.send_json(result)
         except ValueError as exc:
             return self.send_error_json(400, str(exc))
         except Exception as exc:  # pragma: no cover - defensive boundary for demo server
@@ -782,6 +1141,8 @@ class MVPHandler(BaseHTTPRequestHandler):
 
         self.send_response(200)
         self.send_header("Content-Type", content_type)
+        if target.suffix in {".html", ".css", ".js"}:
+            self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(content)))
         self.end_headers()
         self.wfile.write(content)
@@ -803,4 +1164,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

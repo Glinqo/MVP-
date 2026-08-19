@@ -44,12 +44,15 @@ def list_teacher_students(
 ):
     """列出教师管理范围内的学生，聚合测评和能力数据。"""
     sql = "SELECT id, username, nickname, role, job_role, updated_at FROM users WHERE role = 'student'"
-    params = ()
+    params = []
+    if job_role:
+        sql += " AND job_role = ?"
+        params.append(job_role)
     if search:
         sql += " AND (username LIKE ? OR nickname LIKE ?)"
         p = "%" + search + "%"
-        params = (p, p)
-    users = _query_users_db(sql, params)
+        params.extend([p, p])
+    users = _query_users_db(sql, tuple(params))
 
     if not users:
         return {"students": [], "total": 0, "stats": {"total": 0, "assessed": 0, "not_assessed": 0}}
@@ -228,3 +231,29 @@ def _get_ability_state_safe(session_id):
         return state or {}
     except Exception:
         return {}
+
+
+def save_teacher_student_selection(username, job_role, student_usernames):
+    """[DEPRECATED] 保存教师勾选的学生账号。
+
+    TF-6D 班级-学生管理正式上线后，该临时 selection 不再承担业务作用域。
+    保留此函数仅为旧接口兼容；新 UI 使用 /api/teacher/classes 和班级成员表。
+    """
+    import json as _json
+    from pathlib import Path as _Path
+    selection_path = _Path(__file__).resolve().parents[2] / "data" / "teacher_student_selections.json"
+    data = {}
+    if selection_path.exists():
+        try:
+            data = _json.loads(selection_path.read_text(encoding="utf-8"))
+        except Exception:
+            data = {}
+    entry = {
+        "job_role": job_role,
+        "student_usernames": list(student_usernames or []),
+        "updated_at": time.time(),
+    }
+    data[username or "demo"] = entry
+    selection_path.write_text(_json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"ok": True, "saved": entry}
+
