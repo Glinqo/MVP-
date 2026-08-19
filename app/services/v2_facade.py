@@ -80,11 +80,11 @@ def discover_issues(job_role: str = "", student_states: List[Dict] = None,
     cls = get_class_students(class_id, teacher_id)
     if not cls:
         return []
-    _DEMO_STUDENTS = [s["username"] for s in cls.get("students", [])]
+    class_student_ids = [s["username"] for s in cls.get("students", [])]
     if not student_states:
         from app.services.state.learner_state import LearnerState
         student_states = []
-        for sid in _DEMO_STUDENTS:
+        for sid in class_student_ids:
             try:
                 st = LearnerState(student_id=sid, job_role=job_role)
                 student_states.append(st.to_dict())
@@ -99,7 +99,7 @@ def discover_issues(job_role: str = "", student_states: List[Dict] = None,
             g = get_expert_graph("SCN_PLC_INPUT_NO_RESPONSE")
             pc = PatternClassifier(g)
             q2 = EventQuery()
-            for sid in _DEMO_STUDENTS:
+            for sid in class_student_ids:
                 events = q2.by_student(sid, limit=30)
                 for ev in (events or []):
                     sid2 = ev.get("state_id", "") or ev.get("current_state", "")
