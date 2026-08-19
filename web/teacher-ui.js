@@ -20,7 +20,7 @@ TeacherUI.escHtml = function(text) {
   return d.innerHTML;
 };
 
-// ---- Priority helper ----
+// ---- 优先级 helper ----
 TeacherUI.priorityLevel = function(priority) {
   var p = parseFloat(priority);
   if (isNaN(p)) return { level: "low", label: String(priority || "low") };
@@ -98,17 +98,17 @@ TeacherUI.setCurrentClass = function(cls) {
   TeacherUI.currentClassId = cls ? cls.id : null;
   // P7-I: Update AI scope display
   var scopeEl = document.getElementById("teacherScope");
-  if (scopeEl) scopeEl.textContent = cls ? "Current scope: " + cls.name : "No class selected";
+  if (scopeEl) scopeEl.textContent = cls ? "当前范围： " + cls.name : "未选择班级";
   var labelEl = document.getElementById("teacherClassLabel");
   var metaEl = document.getElementById("teacherClassMeta");
   var manageBtn = document.getElementById("manageClassBtn");
   if (cls) {
     if (labelEl) { labelEl.textContent = cls.name; labelEl.style.cursor = "pointer"; labelEl.onclick = function() { TeacherUI.toggleClassDropdown(); }; }
-    if (metaEl) metaEl.textContent = (cls.student_count || 0) + " students" + (cls.job_role ? " · " + cls.job_role : "");
+    if (metaEl) metaEl.textContent = (cls.student_count || 0) + " 人" + (cls.job_role ? " · " + cls.job_role : "");
     if (manageBtn) manageBtn.style.display = "";
     localStorage.setItem("mcp_teacher_class_id", String(cls.id));
   } else {
-    if (labelEl) labelEl.textContent = "No class selected";
+    if (labelEl) labelEl.textContent = "未选择班级";
     if (metaEl) metaEl.textContent = "";
     if (manageBtn) manageBtn.style.display = "none";
   }
@@ -145,12 +145,12 @@ TeacherUI.toggleClassDropdown = function() {
       var active = cls.id === TeacherUI.currentClassId ? " active" : "";
       html += '<div class="class-dropdown-item' + active + '" onclick="TeacherUI.switchTeacherClass(' + cls.id + ')">';
       html += '<span>' + TeacherUI.escHtml(cls.name) + '</span>';
-      html += '<span class="class-dropdown-meta">' + (cls.student_count || 0) + ' students</span>';
+      html += '<span class="class-dropdown-meta">' + (cls.student_count || 0) + ' 人</span>';
       html += '</div>';
     });
     html += '<div class="class-dropdown-divider"></div>';
-    html += '<div class="class-dropdown-item" onclick="TeacherUI.openCreateClass();TeacherUI.toggleClassDropdown()">+ Create Class</div>';
-    html += '<div class="class-dropdown-item" onclick="TeacherUI.openManageStudents();TeacherUI.toggleClassDropdown()">Manage Current Class</div>';
+    html += '<div class="class-dropdown-item" onclick="TeacherUI.openCreateClass();TeacherUI.toggleClassDropdown()">+ 创建班级</div>';
+    html += '<div class="class-dropdown-item" onclick="TeacherUI.openManageStudents();TeacherUI.toggleClassDropdown()">管理当前班级</div>';
     dropdown.innerHTML = html;
     dropdown.style.display = "block";
   }
@@ -192,10 +192,10 @@ TeacherUI.submitCreateClass = function() {
       TeacherUI._classes.push(data.class);
       TeacherUI.setCurrentClass(data.class);
     } else {
-      if (errEl) { errEl.textContent = data.error || "Create failed"; errEl.style.display = "block"; }
+      if (errEl) { errEl.textContent = data.error || "创建失败"; errEl.style.display = "block"; }
     }
   }).catch(function(e) {
-    if (errEl) { errEl.textContent = "Create failed: " + e.message; errEl.style.display = "block"; }
+    if (errEl) { errEl.textContent = "创建失败: " + e.message; errEl.style.display = "block"; }
   });
 };
 
@@ -225,15 +225,15 @@ TeacherUI.closeManageStudents = function() {
 
 TeacherUI.loadAvailableStudents = function(search) {
   if (!TeacherUI.currentClassId) return;
-  var url = "/api/teacher/students/available?class_id=" + TeacherUI.currentClassId;
+  var url = "/api/teacher/人/available?class_id=" + TeacherUI.currentClassId;
   if (search) url += "&search=" + encodeURIComponent(search);
   var listEl = document.getElementById("studentManageList");
-  if (listEl) listEl.innerHTML = '<div class="muted" style="padding:20px">Loading students...</div>';
+  if (listEl) listEl.innerHTML = '<div class="muted" style="padding:20px">加载学生中...</div>';
   TeacherUI.fetchAuth(url, "GET").then(function(data) {
-    TeacherUI._allStudents = data.students || [];
+    TeacherUI._allStudents = data.Students || [];
     TeacherUI.renderStudentManageList();
   }).catch(function(e) {
-    if (listEl) listEl.innerHTML = '<div style="padding:20px;color:#f87171">Failed to load students.</div>';
+    if (listEl) listEl.innerHTML = '<div style="padding:20px;color:#f87171">学生列表加载失败。</div>';
   });
 };
 
@@ -243,7 +243,7 @@ TeacherUI.renderStudentManageList = function() {
   var html = "";
   var inClass = 0;
   var selectedSet = new Set(TeacherUI._selectedStudents);
-  TeacherUI._allStudents.forEach(function(s) {
+  TeacherUI._allstudents.forEach(function(s) {
     var sid = String(s.username || "");
     var name = TeacherUI.escHtml(String(s.nickname || sid));
     var checked = selectedSet.has(sid) ? " checked" : "";
@@ -251,15 +251,15 @@ TeacherUI.renderStudentManageList = function() {
     html += '<label class="student-manage-row" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #1e293b;cursor:pointer">';
     html += '<input type="checkbox" class="student-manage-check" data-username="' + sid + '"' + checked + ' style="width:16px;height:16px">';
     html += '<span style="flex:1">' + name + ' (' + sid + ')</span>';
-    if (s.in_current_class) html += '<span class="badge badge-in-class">In class</span>';
+    if (s.in_current_class) html += '<span class="badge badge-in-class">已在本班</span>';
     html += '</label>';
   });
   if (!TeacherUI._allStudents.length) {
-    html = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No students found.</div>';
+    html = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">未找到学生。</div>';
   }
   listEl.innerHTML = html;
   var statusEl = document.getElementById("studentFilterStatus");
-  if (statusEl) statusEl.textContent = "Total " + TeacherUI._allStudents.length + ", in class " + inClass;
+  if (statusEl) statusEl.textContent = "共 " + TeacherUI._allStudents.length + "，本班 " + inClass;
   listEl.querySelectorAll(".student-manage-check").forEach(function(cb) {
     cb.addEventListener("change", function() {
       var uname = cb.dataset.username;
@@ -281,38 +281,38 @@ TeacherUI.filterStudents = function() {
 
 TeacherUI.updateSelectionCount = function() {
   var el = document.getElementById("studentSelectionCount");
-  if (el) el.textContent = "Selected " + TeacherUI._selectedStudents.length + " students";
+  if (el) el.textContent = "已选择 " + TeacherUI._selectedStudents.length + " 人";
 };
 
-TeacherUI.addSelectedStudents = function() {
+TeacherUI.add已选择Students = function() {
   if (!TeacherUI._selectedStudents.length) return;
   TeacherUI.fetchAuth("/api/teacher/classes/" + TeacherUI.currentClassId + "/students", "POST", {
     student_usernames: TeacherUI._selectedStudents.slice()
   }).then(function(data) {
     if (data.ok) {
-      alert("Added " + data.added.length + " students" + (data.already_in_class.length ? ", already in class " + data.already_in_class.length : ""));
+      alert("Added " + data.added.length + " 人" + (data.already_in_class.length ? ", already in class " + data.already_in_class.length : ""));
       TeacherUI._selectedStudents = [];
       TeacherUI.loadAvailableStudents();
       TeacherUI.loadClasses();
     }
   }).catch(function(e) {
-    alert("Add failed: " + e.message);
+    alert("添加失败： " + e.message);
   });
 };
 
-TeacherUI.removeSelectedStudents = function() {
+TeacherUI.remove已选择Students = function() {
   if (!TeacherUI._selectedStudents.length) return;
-  TeacherUI.fetchAuth("/api/teacher/classes/" + TeacherUI.currentClassId + "/students/remove", "POST", {
+  TeacherUI.fetchAuth("/api/teacher/classes/" + TeacherUI.currentClassId + "/人/remove", "POST", {
     student_usernames: TeacherUI._selectedStudents.slice()
   }).then(function(data) {
     if (data.ok) {
-      alert("Removed " + data.removed.length + " students");
+      alert("Removed " + data.removed.length + " 人");
       TeacherUI._selectedStudents = [];
       TeacherUI.loadAvailableStudents();
       TeacherUI.loadClasses();
     }
   }).catch(function(e) {
-    alert("Remove failed: " + e.message);
+    alert("移除失败： " + e.message);
   });
 };
 
@@ -333,7 +333,7 @@ TeacherUI.parseBatchInput = function() {
   var tokens = raw.split(/[\s,，;；]+/).filter(function(t) { return t.trim(); });
   var resultEl = document.getElementById("batchParseResult");
   var known = {};
-  TeacherUI._allStudents.forEach(function(s) { known[String(s.username)] = true; });
+  TeacherUI._allstudents.forEach(function(s) { known[String(s.username)] = true; });
   var found = [], notFound = [];
   tokens.forEach(function(t) {
     var uname = t.trim();
@@ -355,14 +355,14 @@ TeacherUI.addBatchStudents = function() {
     student_usernames: TeacherUI._batchParsedStudents.slice()
   }).then(function(data) {
     if (data.ok) {
-      alert("Added " + data.added.length + " students" + (data.not_found.length ? ", not found " + data.not_found.length : ""));
+      alert("Added " + data.added.length + " 人" + (data.not_found.length ? ", not found " + data.not_found.length : ""));
       TeacherUI._batchParsedStudents = [];
       document.getElementById("batchInputArea").style.display = "none";
       TeacherUI.loadAvailableStudents();
       TeacherUI.loadClasses();
     }
   }).catch(function(e) {
-    alert("Add failed: " + e.message);
+    alert("添加失败： " + e.message);
   });
 };
 
@@ -409,21 +409,21 @@ TeacherUI.switchTab = function(tabId) {
 // Tab: Today (V2 Teaching Issues)
 // ============================================================
 TeacherUI.loadToday = function() {
-  var c = document.getElementById("todayTeachingContent");
+  var c = document.getElementById("todayTeaching正文");
   if (!c) return;
-  c.innerHTML = '<div class="muted" style="padding:20px">Loading issues...</div>';
+  c.innerHTML = '<div class="muted" style="padding:20px">加载教学问题中...</div>';
   var payload = {};
   if (TeacherUI.currentClassId) payload.class_id = TeacherUI.currentClassId;
   TeacherUI.fetchAuth("/api/v2/teacher/issues", "POST", payload).then(function(data) {
     var issues = data.issues || data || [];
     if (!issues.length) {
-      c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Not enough evidence to form teaching issues yet.</div>';
+      c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">当前没有足够证据形成需要优先处理的教学问题。</div>';
       return;
     }
     TeacherUI._issuesCache = issues;
     TeacherUI.renderIssueList(issues, c);
   }).catch(function(e) {
-    c.innerHTML = '<div style="padding:20px;color:#f87171">Load failed. <a href="#" onclick="TeacherUI.loadToday();return false">Retry</a></div>';
+    c.innerHTML = '<div style="padding:20px;color:#f87171">加载失败。 <a href="#" onclick="TeacherUI.loadToday();return false">重试</a></div>';
   });
 };
 
@@ -433,10 +433,10 @@ TeacherUI.renderIssueList = function(issues, container) {
     var pl = TeacherUI.priorityLevel(issue.priority);
     var pc = "badge-priority-" + pl.level;
     var students = issue.affected_students || [];
-    var title = TeacherUI.escHtml(issue.title || issue.issue_id || "Unknown");
+    var title = TeacherUI.escHtml(issue.title || issue.issue_id || "未知");
     html += '<div class="issue-card" data-issue-id="' + issue.issue_id + '">';
     html += '<div class="issue-card-header"><span class="issue-card-title">' + title + '</span></div>';
-    html += '<div class="issue-card-meta"><span class="' + pc + '">' + pl.label + '</span><span>' + students.length + ' students</span></div>';
+    html += '<div class="issue-card-meta"><span class="' + pc + '">' + pl.label + '</span><span>' + Students.length + ' 人</span></div>';
     html += '</div>';
   });
   html += '</div>';
@@ -487,7 +487,7 @@ TeacherUI.openIssueDetail = function(issueId) {
       if (found) TeacherUI.renderIssueDetail(found, drawer);
       else {
         if (titleEl) titleEl.textContent = "Not Found";
-        if (bodyEl) bodyEl.innerHTML = '<div style="padding:40px;text-align:center">Issue not found or expired.</div>';
+        if (bodyEl) bodyEl.innerHTML = '<div style="padding:40px;text-align:center">教学问题不存在或已过期。</div>';
       }
     }).catch(function() {
       if (titleEl) titleEl.textContent = "Error";
@@ -503,42 +503,42 @@ TeacherUI.renderIssueDetail = function(issue, drawer) {
   var students = issue.affected_students || [];
   var ability = TeacherUI.escHtml(issue.primary_ability_id || "");
 
-  if (titleEl) titleEl.textContent = issue.title || issue.issue_id || "Unknown";
+  if (titleEl) titleEl.textContent = issue.title || issue.issue_id || "未知";
 
   var html = '<div class="drawer-detail">';
-  html += '<div class="detail-row"><span class="label">Priority</span><span class="badge-priority-' + pl.level + '">' + pl.label + '</span></div>';
-  html += '<div class="detail-row"><span class="label">Confidence</span><span>' + ((issue.confidence || 0) * 100).toFixed(0) + '%</span></div>';
-  html += '<div class="detail-row"><span class="label">Severity</span><span>' + ((issue.severity || 0) * 100).toFixed(0) + '%</span></div>';
-  html += '<div class="detail-row"><span class="label">Primary Ability</span><span>' + ability + '</span></div>';
-  html += '<div class="detail-row"><span class="label">Affected Students</span><span>' + students.length + '</span></div>';
+  html += '<div class="detail-row"><span class="label">优先级</span><span class="badge-priority-' + pl.level + '">' + pl.label + '</span></div>';
+  html += '<div class="detail-row"><span class="label">置信度</span><span>' + ((issue.confidence || 0) * 100).toFixed(0) + '%</span></div>';
+  html += '<div class="detail-row"><span class="label">严重程度</span><span>' + ((issue.severity || 0) * 100).toFixed(0) + '%</span></div>';
+  html += '<div class="detail-row"><span class="label">主要能力</span><span>' + ability + '</span></div>';
+  html += '<div class="detail-row"><span class="label">影响学生</span><span>' + Students.length + '</span></div>';
 
-  if (students.length > 0) {
+  if (Students.length > 0) {
     html += '<div class="detail-row"><span class="label">Students</span><span>';
-    for (var i = 0; i < Math.min(students.length, 5); i++) {
-      var sid = String(students[i]);
+    for (var i = 0; i < Math.min(Students.length, 5); i++) {
+      var sid = String(Students[i]);
       html += '<button class="student-chip" data-student="' + sid + '">' + TeacherUI.escHtml(sid) + '</button> ';
     }
-    if (students.length > 5) html += '... ' + students.length + ' total';
+    if (Students.length > 5) html += '... ' + Students.length + ' total';
     html += '</span></div>';
   }
 
   var evidence = issue.evidence_summary || {};
   var topPatterns = issue.top_patterns || [];
   html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
-  html += '<div class="detail-row"><strong>Why this issue?</strong></div>';
-  html += '<div class="detail-row">Students: ' + (evidence.student_count || affected.length || 0) + '</div>';
-  html += '<div class="detail-row">Learning events: ' + (evidence.event_count || 0) + '</div>';
-  html += '<div class="detail-row">Diagnostic patterns: ' + (evidence.pattern_count || 0) + '</div>';
+  html += '<div class="detail-row"><strong>为什么这是教学问题？</strong></div>';
+  html += '<div class="detail-row">学生数： ' + (evidence.student_count || affected.length || 0) + '</div>';
+  html += '<div class="detail-row">学习事件： ' + (evidence.event_count || 0) + '</div>';
+  html += '<div class="detail-row">诊断模式： ' + (evidence.pattern_count || 0) + '</div>';
   if (topPatterns.length) {
-    html += '<div class="detail-row" style="margin-top:8px"><strong>Typical patterns</strong></div>';
+    html += '<div class="detail-row" style="margin-top:8px"><strong>典型问题模式</strong></div>';
     topPatterns.forEach(function(p) {
-      html += '<div class="detail-row" style="color:#fbbf24">- ' + TeacherUI.escHtml(p.label || "unknown") + ' x' + p.count + ' · ' + p.student_count + ' students</div>';
+      html += '<div class="detail-row" style="color:#fbbf24">- ' + TeacherUI.escHtml(p.label || "unknown") + ' x' + p.count + ' · ' + p.student_count + ' 人</div>';
     });
   } else {
-    html += '<div class="detail-row" style="color:#94a3b8">No repeated pattern evidence yet.</div>';
+    html += '<div class="detail-row" style="color:#94a3b8">暂无重复过程模式证据。</div>';
   }
   html += '<div style="margin-top:16px;display:flex;gap:8px">';
-  html += '<button class="btn-primary" onclick="TeacherUI.generateCandidates()">Generate Intervention Candidates</button>';
+  html += '<button class="btn-primary" onclick="TeacherUI.generateCandidates()">生成干预方案</button>';
   html += '</div>';
   html += '</div>';
 
@@ -547,7 +547,7 @@ TeacherUI.renderIssueDetail = function(issue, drawer) {
     // Bind student chip clicks
     bodyEl.querySelectorAll(".student-chip").forEach(function(btn) {
       btn.addEventListener("click", function() {
-        TeacherUI.switchTab("students");
+        TeacherUI.switchTab("人");
         setTimeout(function() { TeacherUI.lookupStudent(btn.dataset.student); }, 300);
       });
     });
@@ -557,30 +557,30 @@ TeacherUI.renderIssueDetail = function(issue, drawer) {
 TeacherUI.generateCandidates = function() {
   var drawer = document.getElementById("issueDetailDrawer");
   var bodyEl = drawer ? (drawer.querySelector(".issue-drawer-body") || drawer.querySelector(".issue-drawer-content")) : null;
-  if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px">Generating candidates...</div>';
+  if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px">生成方案中...</div>';
 
   var issueId = TeacherUI.currentIssueId;
   var students = [];
   if (TeacherUI._issuesCache) {
     for (var i = 0; i < TeacherUI._issuesCache.length; i++) {
       if (TeacherUI._issuesCache[i].issue_id === issueId) {
-        students = TeacherUI._issuesCache[i].affected_students || [];
+        人 = TeacherUI._issuesCache[i].affected_students || [];
         break;
       }
     }
   }
 
   if (!TeacherUI.currentClassId) {
-    if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px;color:#f87171">Please select a class first.</div>';
+    if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px;color:#f87171">请先选择班级。</div>';
     return;
   }
   TeacherUI.fetchAuth("/api/v2/teacher/issues/candidates", "POST", {
-    class_id: TeacherUI.currentClassId, issue_id: issueId, student_ids: students.slice(0, 10)
+    class_id: TeacherUI.currentClassId, issue_id: issueId, student_ids: Students.slice(0, 10)
   }).then(function(data) {
     var candidates = data.candidates || data || [];
     var html = '<div class="drawer-detail"><h3 style="margin:0 0 12px;color:#e2e8f0">Intervention Candidates (' + candidates.length + ')</h3>';
     if (!candidates.length) {
-      html += '<div style="padding:20px;text-align:center">No candidates available.</div>';
+      html += '<div style="padding:20px;text-align:center">暂无可用干预方案。</div>';
     } else {
       candidates.slice(0, 5).forEach(function(c, idx) {
         var cid = TeacherUI.escHtml(String(c.candidate_id || "C" + idx));
@@ -597,7 +597,7 @@ TeacherUI.generateCandidates = function() {
     html += '</div>';
     if (bodyEl) bodyEl.innerHTML = html;
   }).catch(function(e) {
-    if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px;color:#f87171">Failed to generate candidates</div>';
+    if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px;color:#f87171">方案生成失败。</div>';
   });
 };
 
@@ -608,7 +608,7 @@ TeacherUI.loadInsights = function() {
   var c = document.getElementById("tw-insights");
   if (!c) return;
   if (!TeacherUI.currentClassId) {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Please create a class first.</div>';
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">请先创建班级。</div>';
     return;
   }
   c.innerHTML = '<div class="muted" style="padding:20px">Loading class insights...</div>';
@@ -622,25 +622,25 @@ TeacherUI.loadInsights = function() {
     var graph = results[1] || { nodes: [] };
     var issues = results[2] || { issues: [] };
     var issueList = issues.issues || [];
-    var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 8px">Class Insights</h3>';
+    var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 8px">班级洞察</h3>';
     html += '<div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap">';
-    html += '<span class="badge">Students: ' + (overview.total_students || 0) + '</span>';
-    html += '<span class="badge">Evidence: ' + Math.round((overview.evidence_coverage || 0) * 100) + '%</span>';
-    html += '<span class="badge">Common issues: ' + issueList.length + '</span>';
+    html += '<span class="badge">学生数： ' + (overview.total_students || 0) + '</span>';
+    html += '<span class="badge">证据： ' + Math.round((overview.evidence_coverage || 0) * 100) + '%</span>';
+    html += '<span class="badge">共性问题： ' + issueList.length + '</span>';
     var risk = overview.risk_distribution || {};
-    if (risk.high) html += '<span class="badge badge-danger">High risk: ' + risk.high + '</span>';
-    if (risk.attention) html += '<span class="badge badge-warning">Attention: ' + risk.attention + '</span>';
+    if (risk.high) html += '<span class="badge badge-danger">高风险： ' + risk.high + '</span>';
+    if (risk.attention) html += '<span class="badge badge-warning">需关注： ' + risk.attention + '</span>';
     html += '</div>';
-    var weakest = overview.weakest_abilities || [];
-    if (weakest.length) {
-      html += '<div style="margin-bottom:16px"><strong style="color:#e2e8f0">Weakest Abilities</strong></div>';
-      weakest.forEach(function(w, idx) {
+    var 薄弱est = overview.薄弱est_abilities || [];
+    if (薄弱est.length) {
+      html += '<div style="margin-bottom:16px"><strong style="color:#e2e8f0">班级最薄弱能力</strong></div>';
+      薄弱est.forEach(function(w, idx) {
         var masteryPct = Math.round((w.mean_mastery || 0) * 100);
-        var ratioPct = Math.round((w.weak_ratio || 0) * 100);
+        var ratioPct = Math.round((w.薄弱_ratio || 0) * 100);
         html += '<div style="margin-bottom:8px">';
         html += '<div style="display:flex;justify-content:space-between;color:#cbd5e1;font-size:0.9rem">';
         html += '<span>' + (idx + 1) + '. ' + TeacherUI.escHtml(w.label || w.ability_id) + '</span>';
-        html += '<span>' + w.weak_student_count + ' weak · ' + ratioPct + '%</span>';
+        html += '<span>' + w.薄弱_student_count + ' 薄弱 · ' + ratioPct + '%</span>';
         html += '</div>';
         html += '<div style="background:rgba(255,255,255,0.08);border-radius:4px;height:8px;margin-top:4px">';
         html += '<div style="background:#f87171;height:8px;border-radius:4px;width:' + masteryPct + '%"></div>';
@@ -648,14 +648,14 @@ TeacherUI.loadInsights = function() {
         html += '</div>';
       });
     }
-    html += '<div id="teacherClassGraphDiagram" style="width:100%;height:300px"></div>';
+    html += '<div id="teacherClass当前图谱Diagram" style="width:100%;height:300px"></div>';
     html += '</div>';
     c.innerHTML = html;
-    if (typeof renderGraphDiagram === "function" && (graph.nodes || []).length) {
-      setTimeout(function() { renderGraphDiagram(graph, "teacherClassGraphDiagram"); }, 200);
+    if (typeof render当前图谱Diagram === "function" && (graph.nodes || []).length) {
+      setTimeout(function() { render当前图谱Diagram(graph, "teacherClass当前图谱Diagram"); }, 200);
     }
   }).catch(function() {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Failed to load class insights.</div>';
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">班级洞察加载失败。</div>';
   });
 };
 
@@ -667,27 +667,27 @@ TeacherUI.loadStudents = function() {
   if (!c) return;
   c.innerHTML = '<div class="teacher-students-layout"><div id="teacherStudentListPane" style="flex:1;overflow-y:auto"></div><div id="teacherStudentDetailPane" style="flex:1;overflow-y:auto;border-left:1px solid #334155;padding:16px;display:none"></div></div>';
   var listPane = document.getElementById("teacherStudentListPane");
-  listPane.innerHTML = '<div class="muted" style="padding:20px">Loading student list...</div>';
+  listPane.innerHTML = '<div class="muted" style="padding:20px">加载学生列表中...</div>';
 
   if (!TeacherUI.currentClassId) {
-    listPane.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Please select a class first.</div>';
+    listPane.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">请先选择班级。</div>';
     return;
   }
   TeacherUI.fetchAuth("/api/teacher/classes/" + TeacherUI.currentClassId + "/students", "GET").then(function(data) {
     var students = data.students || [];
     if (!Array.isArray(students)) students = [];
     if (!students.length) {
-      listPane.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No students in this class.</div>';
+      listPane.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">当前班级暂无学生。</div>';
       return;
     }
     var html = '<div class="student-list" style="overflow-y:auto;max-height:calc(100vh - 200px)">';
     students.forEach(function(s) {
       var sid = String(s.student_id || s.id || s.username || "");
       var name = TeacherUI.escHtml(String(s.nickname || s.name || sid));
-      var weak = (s.weak_abilities || []).slice(0, 2).join(", ");
+      var 薄弱 = (s.薄弱_abilities || []).slice(0, 2).join(", ");
       html += '<div class="student-card" data-student-id="' + sid + '" style="padding:12px;border-bottom:1px solid #1e293b;cursor:pointer">';
       html += '<div style="font-weight:600;color:#e2e8f0">' + name + ' (' + sid + ')</div>';
-      if (weak) html += '<div style="font-size:0.85em;color:#94a3b8">Weak: ' + TeacherUI.escHtml(weak) + '</div>';
+      if (薄弱) html += '<div style="font-size:0.85em;color:#94a3b8">弱项： ' + TeacherUI.escHtml(薄弱) + '</div>';
       html += '</div>';
     });
     html += '</div>';
@@ -696,23 +696,23 @@ TeacherUI.loadStudents = function() {
       card.addEventListener("click", function() { TeacherUI.lookupStudent(card.dataset.studentId); });
     });
   }).catch(function(e) {
-    listPane.innerHTML = '<div style="padding:20px;color:#f87171">Failed to load students.</div>';
+    listPane.innerHTML = '<div style="padding:20px;color:#f87171">学生列表加载失败。</div>';
   });
 };
 
 TeacherUI.lookupStudent = function(studentId) {
   var detailPane = document.getElementById("teacherStudentDetailPane");
   if (!detailPane) {
-    var old = document.getElementById("studentDetailContent");
+    var old = document.getElementById("studentDetail正文");
     if (old) old.innerHTML = '<div style="padding:20px">Loading student ' + studentId + ' ...</div>';
     if (typeof fetchStudentDetail === "function") { fetchStudentDetail(studentId); return; }
     if (typeof loadStudentDetail === "function") { loadStudentDetail(studentId); return; }
     return;
   }
   detailPane.style.display = "block";
-  detailPane.innerHTML = '<div style="padding:20px">Loading student detail...</div>';
+  detailPane.innerHTML = '<div style="padding:20px">加载学生详情中...</div>';
   var jobId = TeacherUI.currentClass ? TeacherUI.currentClass.job_role : "";
-  var detailUrl = "/api/teacher/students/" + studentId;
+  var detailUrl = "/api/teacher/人/" + studentId;
   if (TeacherUI.currentClassId) detailUrl += "?class_id=" + TeacherUI.currentClassId;
   TeacherUI.fetchAuth(detailUrl, "GET").then(function(data) {
     if (data.error) {
@@ -720,21 +720,21 @@ TeacherUI.lookupStudent = function(studentId) {
       return;
     }
     var name = TeacherUI.escHtml(String(data.nickname || studentId));
-    var weak = (data.weak_abilities || []).slice(0, 5);
+    var 薄弱 = (data.薄弱_abilities || []).slice(0, 5);
     var strong = (data.strong_abilities || []).slice(0, 5);
     var patterns = data.diagnostic_patterns || [];
     var recentEvents = data.recent_events || [];
     var html = '<div class="student-detail"><h3>' + name + ' (' + studentId + ')</h3>';
-    html += '<div class="detail-row"><span>Status: <strong>' + TeacherUI.escHtml(String(data.status || "Unknown")) + '</strong></span></div>';
-    if (data.overall_score !== undefined) html += '<div class="detail-row"><span>Assessment Score: <strong>' + data.overall_score + '</strong></span></div>';
-    if (data.evidence_count) html += '<div class="detail-row"><span>Evidence: ' + data.evidence_count + ' events</span></div>';
-    if (data.evidence_coverage) html += '<div class="detail-row"><span>Coverage: ' + Math.round(data.evidence_coverage * 100) + '%</span></div>';
+    html += '<div class="detail-row"><span>状态： <strong>' + TeacherUI.escHtml(String(data.status || "未知")) + '</strong></span></div>';
+    if (data.overall_score !== undefined) html += '<div class="detail-row"><span>测评分： <strong>' + data.overall_score + '</strong></span></div>';
+    if (data.evidence_count) html += '<div class="detail-row"><span>证据： ' + data.evidence_count + ' events</span></div>';
+    if (data.evidence_coverage) html += '<div class="detail-row"><span>覆盖率： ' + Math.round(data.evidence_coverage * 100) + '%</span></div>';
     html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
-    if (weak.length) html += '<div class="detail-row"><span style="color:#f87171">Weak: ' + weak.map(TeacherUI.escHtml).join(", ") + '</span></div>';
-    if (strong.length) html += '<div class="detail-row"><span style="color:#22c55e">Strong: ' + strong.map(TeacherUI.escHtml).join(", ") + '</span></div>';
+    if (薄弱.length) html += '<div class="detail-row"><span style="color:#f87171">弱项： ' + 薄弱.map(TeacherUI.escHtml).join(", ") + '</span></div>';
+    if (strong.length) html += '<div class="detail-row"><span style="color:#22c55e">强项： ' + strong.map(TeacherUI.escHtml).join(", ") + '</span></div>';
     if (patterns.length) {
       html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
-      html += '<div class="detail-row"><strong>Diagnostic Patterns</strong></div>';
+      html += '<div class="detail-row"><strong>诊断模式</strong></div>';
       patterns.slice(0, 5).forEach(function(p) {
         var label = typeof p === "string" ? p : (p.pattern_name || p.name || p.type || JSON.stringify(p));
         html += '<div class="detail-row" style="color:#fbbf24">- ' + TeacherUI.escHtml(label) + '</div>';
@@ -742,7 +742,7 @@ TeacherUI.lookupStudent = function(studentId) {
     }
     if (recentEvents.length) {
       html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
-      html += '<div class="detail-row"><strong>Recent Learning</strong></div>';
+      html += '<div class="detail-row"><strong>最近学习</strong></div>';
       recentEvents.slice(0, 5).forEach(function(ev) {
         var desc = typeof ev === "string" ? ev : (ev.event_type || ev.type || ev.action || "Learning event");
         html += '<div class="detail-row" style="color:#94a3b8">- ' + TeacherUI.escHtml(desc) + '</div>';
@@ -751,7 +751,7 @@ TeacherUI.lookupStudent = function(studentId) {
     html += '</div>';
     detailPane.innerHTML = html;
   }).catch(function(e) {
-    detailPane.innerHTML = '<div style="padding:20px;color:#f87171">Failed to load student detail</div>';
+    detailPane.innerHTML = '<div style="padding:20px;color:#f87171">学生详情加载失败。</div>';
   });
 };
 
@@ -764,25 +764,25 @@ TeacherUI.loadFeedback = function() {
   var c = document.getElementById("tw-feedback");
   if (!c) return;
   if (!TeacherUI.currentClassId) {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Please select a class first.</div>';
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">请先选择班级。</div>';
     return;
   }
-  c.innerHTML = '<div class="muted" style="padding:20px">Loading feedback...</div>';
+  c.innerHTML = '<div class="muted" style="padding:20px">加载教学反馈中...</div>';
   var url = "/api/teacher/comments?class_id=" + TeacherUI.currentClassId;
   if (TeacherUI._commentFilter !== "all") url += "&status=" + TeacherUI._commentFilter;
   TeacherUI.fetchAuth(url, "GET").then(function(data) {
     var stats = data.stats || {};
     var comments = data.comments || [];
-    var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 12px">Teaching Feedback</h3>';
+    var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 12px">教学反馈</h3>';
     html += '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
-    var filters = [["all", "All"], ["draft", "Draft"], ["reviewed", "Reviewed"], ["published", "Published"]];
+    var filters = [["all", "全部"], ["draft", "草稿"], ["reviewed", "审核ed"], ["published", "发布ed"]];
     filters.forEach(function(f) {
       var active = TeacherUI._commentFilter === f[0] ? "background:#14b8a6;color:#fff" : "background:rgba(255,255,255,0.08)";
       html += '<button style="padding:6px 12px;border-radius:6px;border:none;cursor:pointer;' + active + '" onclick="TeacherUI.setCommentFilter(\'' + f[0] + '\')">' + f[1] + ' (' + (stats[f[0]] || comments.length) + ')</button>';
     });
     html += '</div>';
     if (!comments.length) {
-      html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No comments found.</div>';
+      html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">暂无评语。</div>';
     } else {
       comments.forEach(function(cm) {
         var sid = TeacherUI.escHtml(String(cm.student_id || ""));
@@ -793,14 +793,14 @@ TeacherUI.loadFeedback = function() {
         html += '<div class="comment-card" style="padding:12px;border:1px solid #334155;border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="TeacherUI.openCommentDetail(' + cm.id + ')">';
         html += '<div style="font-weight:600;color:#e2e8f0">Student ' + sid + ' <span class="badge">' + status + '</span></div>';
         html += '<div style="color:#94a3b8;margin-top:4px">' + content + '</div>';
-        html += '<div style="color:#64748b;font-size:0.8rem;margin-top:4px">' + evidenceCount + ' evidence items</div>';
+        html += '<div style="color:#64748b;font-size:0.8rem;margin-top:4px">' + evidenceCount + ' 条证据</div>';
         html += '</div>';
       });
     }
     html += '</div>';
     c.innerHTML = html;
   }).catch(function() {
-    c.innerHTML = '<div style="padding:20px;color:rgba(255,255,255,0.4)">Failed to load comments.</div>';
+    c.innerHTML = '<div style="padding:20px;color:rgba(255,255,255,0.4)">评语加载失败。</div>';
   });
 };
 
@@ -815,16 +815,16 @@ TeacherUI.openCommentDetail = function(commentId) {
   TeacherUI.fetchAuth("/api/teacher/comments/" + commentId, "GET").then(function(cm) {
     var evidence = [];
     try { evidence = JSON.parse(cm.evidence_json || "[]"); } catch(e) {}
-    var html = '<div style="padding:16px"><button class="btn-secondary" style="margin-bottom:8px" onclick="TeacherUI.loadFeedback()">Back to list</button>';
-    html += '<h3 style="color:#e2e8f0;margin:0 0 8px">Comment Detail</h3>';
-    html += '<div class="detail-row"><span>Student: ' + TeacherUI.escHtml(String(cm.student_id || "")) + '</span></div>';
-    html += '<div class="detail-row"><span>Status: <strong>' + TeacherUI.escHtml(String(cm.status || "draft")) + '</strong></span></div>';
-    if (cm.period_start) html += '<div class="detail-row"><span>Period: ' + cm.period_start + ' ~ ' + (cm.period_end || "") + '</span></div>';
-    if (cm.ai_draft) html += '<div class="detail-row" style="margin-top:8px"><strong>AI Draft</strong><p style="color:#94a3b8">' + TeacherUI.escHtml(cm.ai_draft) + '</p></div>';
-    html += '<div class="detail-row"><strong>Content</strong><p style="color:#cbd5e1">' + TeacherUI.escHtml(cm.content || "") + '</p></div>';
+    var html = '<div style="padding:16px"><button class="btn-secondary" style="margin-bottom:8px" onclick="TeacherUI.loadFeedback()">返回列表</button>';
+    html += '<h3 style="color:#e2e8f0;margin:0 0 8px">评语详情</h3>';
+    html += '<div class="detail-row"><span>学生： ' + TeacherUI.escHtml(String(cm.student_id || "")) + '</span></div>';
+    html += '<div class="detail-row"><span>状态： <strong>' + TeacherUI.escHtml(String(cm.status || "draft")) + '</strong></span></div>';
+    if (cm.period_start) html += '<div class="detail-row"><span>周期： ' + cm.period_start + ' ~ ' + (cm.period_end || "") + '</span></div>';
+    if (cm.ai_draft) html += '<div class="detail-row" style="margin-top:8px"><strong>AI 初稿</strong><p style="color:#94a3b8">' + TeacherUI.escHtml(cm.ai_draft) + '</p></div>';
+    html += '<div class="detail-row"><strong>正文</strong><p style="color:#cbd5e1">' + TeacherUI.escHtml(cm.content || "") + '</p></div>';
     if (evidence.length) {
       html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
-      html += '<div class="detail-row"><strong>Evidence</strong></div>';
+      html += '<div class="detail-row"><strong>证据</strong></div>';
       evidence.forEach(function(ev) {
         var label = typeof ev === "string" ? ev : (ev.label || ev.type || JSON.stringify(ev));
         html += '<div class="detail-row" style="color:#94a3b8">- ' + TeacherUI.escHtml(label) + '</div>';
@@ -832,16 +832,16 @@ TeacherUI.openCommentDetail = function(commentId) {
     }
     html += '<div style="display:flex;gap:8px;margin-top:16px">';
     if (cm.status === "draft") {
-      html += '<button class="btn-primary" onclick="TeacherUI.reviewComment(' + commentId + ')">Review</button>';
+      html += '<button class="btn-primary" onclick="TeacherUI.reviewComment(' + commentId + ')">审核</button>';
     }
     if (cm.status === "reviewed") {
-      html += '<button class="btn-primary" onclick="TeacherUI.publishComment(' + commentId + ')">Publish</button>';
+      html += '<button class="btn-primary" onclick="TeacherUI.publishComment(' + commentId + ')">发布</button>';
     }
     html += '</div>';
     html += '</div>';
     c.innerHTML = html;
   }).catch(function() {
-    c.innerHTML = '<div style="padding:20px;color:#f87171">Failed to load comment.</div>';
+    c.innerHTML = '<div style="padding:20px;color:#f87171">评语详情加载失败。</div>';
   });
 };
 
@@ -849,7 +849,7 @@ TeacherUI.reviewComment = function(commentId) {
   TeacherUI.fetchAuth("/api/teacher/comments/" + commentId + "/review", "POST", {}).then(function() {
     TeacherUI.openCommentDetail(commentId);
   }).catch(function(e) {
-    alert("Review failed: " + e.message);
+    alert("审核 failed: " + e.message);
   });
 };
 
@@ -857,7 +857,7 @@ TeacherUI.publishComment = function(commentId) {
   TeacherUI.fetchAuth("/api/teacher/comments/" + commentId + "/publish", "POST", {}).then(function() {
     TeacherUI.openCommentDetail(commentId);
   }).catch(function(e) {
-    alert("Publish failed: " + e.message);
+    alert("发布 failed: " + e.message);
   });
 };
 
@@ -870,10 +870,10 @@ TeacherUI.loadStandards = function() {
   var c = document.getElementById("tw-standards");
   if (!c) return;
   if (!TeacherUI.currentClass) {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Please select a class first.</div>';
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">请先选择班级。</div>';
     return;
   }
-  c.innerHTML = '<div class="muted" style="padding:20px">Loading standards...</div>';
+  c.innerHTML = '<div class="muted" style="padding:20px">加载岗位标准中...</div>';
   var jobRole = TeacherUI.currentClass.job_role || "";
   Promise.all([
     TeacherUI.fetchAuth("/api/graph/job?job_role=" + encodeURIComponent(jobRole), "GET"),
@@ -886,9 +886,9 @@ TeacherUI.loadStandards = function() {
     var proposals = proposalsData.proposals || proposalsData.pending_proposals || [];
     var versions = versionsData.versions || [];
     var nodes = graph.nodes || [];
-    var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 8px">Job Standards</h3>';
+    var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 8px">岗位标准</h3>';
     html += '<div style="display:flex;gap:8px;margin-bottom:12px">';
-    var views = [["graph", "Graph"], ["proposals", "Proposals"], ["versions", "Versions"]];
+    var views = [["graph", "当前图谱"], ["proposals", "更新建议"], ["versions", "版本s"]];
     views.forEach(function(v) {
       var active = TeacherUI._standardsView === v[0] ? "background:#14b8a6;color:#fff" : "background:rgba(255,255,255,0.08)";
       html += '<button style="padding:6px 12px;border-radius:6px;border:none;cursor:pointer;' + active + '" onclick="TeacherUI.setStandardsView(\'' + v[0] + '\')">' + v[1] + '</button>';
@@ -896,10 +896,10 @@ TeacherUI.loadStandards = function() {
     html += '</div>';
     html += '<p style="color:#94a3b8;margin:0 0 8px">' + (graph.job_role || jobRole) + ' · ' + nodes.length + ' nodes · ' + proposals.length + ' proposals · ' + versions.length + ' versions</p>';
     if (TeacherUI._standardsView === "graph") {
-      html += '<div id="teacherJobGraphDiagram" style="width:100%;height:300px"></div>';
+      html += '<div id="teacherJob当前图谱Diagram" style="width:100%;height:300px"></div>';
     } else if (TeacherUI._standardsView === "proposals") {
       if (!proposals.length) {
-        html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No pending proposals.</div>';
+        html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">暂无待审核更新建议。</div>';
       } else {
         proposals.forEach(function(p) {
           var ptype = TeacherUI.escHtml(String(p.proposal_type || p.type || "update"));
@@ -907,19 +907,19 @@ TeacherUI.loadStandards = function() {
           var source = TeacherUI.escHtml(String(p.source || "unknown"));
           html += '<div class="proposal-card" style="padding:12px;border:1px solid #334155;border-radius:8px;margin-bottom:8px">';
           html += '<div style="font-weight:600;color:#e2e8f0">' + ptype + ': ' + target + '</div>';
-          html += '<div style="color:#94a3b8;font-size:0.85em">Source: ' + source + '</div>';
+          html += '<div style="color:#94a3b8;font-size:0.85em">来源： ' + source + '</div>';
           html += '</div>';
         });
       }
     } else {
       if (!versions.length) {
-        html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">No version history.</div>';
+        html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">暂无版本记录。</div>';
       } else {
         versions.forEach(function(v) {
           var vid = TeacherUI.escHtml(String(v.version || v.id || ""));
           var vtime = TeacherUI.escHtml(String(v.created_at || v.timestamp || ""));
           html += '<div class="version-card" style="padding:12px;border:1px solid #334155;border-radius:8px;margin-bottom:8px">';
-          html += '<div style="font-weight:600;color:#e2e8f0">Version ' + vid + '</div>';
+          html += '<div style="font-weight:600;color:#e2e8f0">版本 ' + vid + '</div>';
           html += '<div style="color:#94a3b8;font-size:0.85em">' + vtime + '</div>';
           html += '</div>';
         });
@@ -927,11 +927,11 @@ TeacherUI.loadStandards = function() {
     }
     html += '</div>';
     c.innerHTML = html;
-    if (TeacherUI._standardsView === "graph" && typeof renderGraphDiagram === "function" && nodes.length) {
-      setTimeout(function() { renderGraphDiagram(graph, "teacherJobGraphDiagram"); }, 200);
+    if (TeacherUI._standardsView === "graph" && typeof render当前图谱Diagram === "function" && nodes.length) {
+      setTimeout(function() { render当前图谱Diagram(graph, "teacherJob当前图谱Diagram"); }, 200);
     }
   }).catch(function() {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">Failed to load standards.</div>';
+    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">岗位标准加载失败。</div>';
   });
 };
 
@@ -961,7 +961,7 @@ TeacherUI.sendCopilotMessage = function() {
   input.value = "";
 
   TeacherUI.messages.push({ role: "user", content: msg });
-  TeacherUI.messages.push({ role: "loading", content: "Analyzing..." });
+  TeacherUI.messages.push({ role: "loading", content: "AI 正在分析..." });
   TeacherUI.renderMessages();
 
   var token = localStorage.getItem("mcp_auth_token") || "";
@@ -975,11 +975,11 @@ TeacherUI.sendCopilotMessage = function() {
   }).then(function(r) { return r.json(); })
   .then(function(data) {
     TeacherUI.messages.pop();
-    TeacherUI.messages.push({ role: "assistant", content: data.answer || data.reply || data.message || "Response received" });
+    TeacherUI.messages.push({ role: "assistant", content: data.answer || data.reply || data.message || "已收到回复" });
     TeacherUI.renderMessages();
   }).catch(function(e) {
     TeacherUI.messages.pop();
-    TeacherUI.messages.push({ role: "error", content: "Error: " + (e.message || "Network error") });
+    TeacherUI.messages.push({ role: "error", content: "错误： " + (e.message || "网络错误") });
     TeacherUI.renderMessages();
   });
 };

@@ -1688,3 +1688,106 @@ body[data-role="teacher"] .workspace-panel.role-teacher.active { display: block;
 .class-dropdown-item.active { background: rgba(20,184,166,0.12); }
 .class-dropdown-meta { color: #94a3b8; font-size: 0.8rem; }
 .class-dropdown-divider { border-top: 1px solid rgba(255,255,255,0.1); margin: 4px 0; }
+
+
+/* ========== P10.4 Visual Polish ========== */
+/* 教师工作区整体质感 */
+.teacher-layout {
+  gap: 0;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* 班级栏 */
+.teacher-class-bar {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin: 0 0 10px 0;
+  backdrop-filter: blur(8px);
+}
+#teacherClassLabel {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  transition: color 0.2s;
+}
+#teacherClassLabel:hover { color: #14b8a6; }
+
+/* 导航 Tab */
+.teacher-nav {
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.teacher-nav-tab {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+}
+.teacher-nav-tab:hover { background: rgba(255, 255, 255, 0.06); color: #e2e8f0; }
+.teacher-nav-tab.active {
+  background: #14b8a6;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
+}
+
+/* 卡片样式 */
+.issue-card, .student-card, .comment-card, .proposal-card, .version-card {
+  border-radius: 10px !important;
+  transition: all 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+.issue-card:hover, .student-card:hover, .comment-card:hover {
+  border-color: rgba(20, 184, 166, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+/* 进度条 */
+.progress-bar {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+/* Badge */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.badge-danger { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+.badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.badge-in-class { background: rgba(20, 184, 166, 0.2); color: #5eead4; }
+
+/* 按钮微调 */
+.btn-primary, .btn-secondary, .btn-danger {
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.btn-primary:active, .btn-secondary:active, .btn-danger:active {
+  transform: scale(0.96);
+}
+
+/* Modal 微调 */
+.modal-card {
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.modal-header h3 { font-size: 1.1rem; }
