@@ -3686,6 +3686,7 @@ async function doLogin() {
     var data = await resp.json();
     if (!data.ok) { errEl.textContent = data.error; errEl.style.display = "block"; return; }
     state.currentUser = data.user;
+    state.authToken = data.token;
     localStorage.setItem("mcp_auth_token", data.token);
     localStorage.setItem("mcp_login_user", data.user.username);
     // If identity already chosen, skip to main page
@@ -3724,7 +3725,28 @@ async function doLogin() {
       }
       return;
     }
-    // Student: show job selection
+    // Student: check for active classes before showing job selection
+    try {
+      var classResp = await fetch("/api/student/classes", {
+        headers: { Authorization: "Bearer " + data.token }
+      });
+      var classData = await classResp.json();
+      var activeClasses = classData.classes || [];
+      if (activeClasses.length > 0) {
+        // Student has class(es), enter class context directly
+        var overlay = document.getElementById("landingOverlay");
+        if (overlay) {
+          overlay.classList.add("fade-out");
+          setTimeout(function() {
+            overlay.style.display = "none";
+            document.body.style.overflow = "";
+            bootstrapApplication();
+          }, 400);
+        }
+        return;
+      }
+    } catch (_) {}
+    // No active class: show personal job selection
     var loginStepEl = document.getElementById("landingStepLogin");
     var jobStepEl = document.getElementById("landingStepJob");
     if (loginStepEl) loginStepEl.classList.remove("active");
