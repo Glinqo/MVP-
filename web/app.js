@@ -2950,8 +2950,6 @@ async function teacherBoot() {
     if (typeof TeacherUI !== "undefined" && TeacherUI.initNav) { TeacherUI.initNav(); }
     // Load job graph (for standards tab)
     try { var jobGraph = await api("/api/graph/job?job_role=" + encodeURIComponent(jobId)); renderGraph(jobGraph, "job"); renderJobProposals(jobGraph.pending_proposals || []); } catch (_) {}
-    // Load student list
-    try { loadStudentList(); } catch (_) {}
     // Register chat listener
     if (!window._chatListenerRegistered) {
       window._chatListenerRegistered = true;
@@ -3371,6 +3369,30 @@ async function studentBoot() {
     var dbg = document.getElementById("debugInfo");
     if (dbg) dbg.style.display = "none";
     var jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
+
+    // P7-E: Load student class learning context
+    try {
+      var classResp = await api("/api/student/classes");
+      var studentClasses = classResp.classes || [];
+      if (studentClasses.length > 0) {
+        // Save current class id (prefer localStorage, then first class)
+        var savedStudentClass = parseInt(localStorage.getItem("mcp_student_class_id") || "0", 10);
+        var selectedClass = null;
+        if (savedStudentClass) {
+          for (var ci = 0; ci < studentClasses.length; ci++) {
+            if (studentClasses[ci].id === savedStudentClass) { selectedClass = studentClasses[ci]; break; }
+          }
+        }
+        if (!selectedClass) selectedClass = studentClasses[0];
+        state.currentStudentClassId = selectedClass.id;
+        state.currentStudentClass = selectedClass;
+        localStorage.setItem("mcp_student_class_id", String(selectedClass.id));
+        // Class job_role overrides personal job_role for learning context
+        if (selectedClass.job_role) jobId = selectedClass.job_role;
+      }
+    } catch (e) {
+      console.warn("Load student classes failed:", e.message);
+    }
 
     var health = await api("/api/health");
     var healthEl = document.getElementById("healthStatus");

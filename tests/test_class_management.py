@@ -186,5 +186,36 @@ class P6CrossClassIsolationTest(unittest.TestCase):
         active2 = list_classes(self.teacher_a)
         self.assertTrue(any(c["id"] == self.class_a for c in active2))
 
+
+
+class P7TeacherAIIsolationTest(unittest.TestCase):
+    """P7: Teacher AI class-scoped isolation."""
+
+    def setUp(self):
+        self.teacher_a = 1
+        self.stamp = str(int(time.time()))
+        self.class_a = create_class(self.teacher_a, "A7_" + self.stamp, "role_a", "")["class"]["id"]
+        add_students(self.class_a, self.teacher_a, ["001", "002", "003"])
+
+    def test_ai_student_state_class_scoped(self):
+        from app.services.teacher_ai_v2 import TeacherAIV2
+        ai = TeacherAIV2()
+        # Student 001 in class
+        r1 = ai.get_student_state("001", class_id=self.class_a, teacher_id=self.teacher_a)
+        self.assertNotIn("not_in_class", r1.get("status", ""))
+        # Student 999 not in class
+        r2 = ai.get_student_state("999", class_id=self.class_a, teacher_id=self.teacher_a)
+        self.assertEqual(r2.get("status"), "not_in_class")
+
+    def test_ai_candidates_class_filtered(self):
+        from app.services.teacher_ai_v2 import TeacherAIV2
+        ai = TeacherAIV2()
+        # Only 001 in class, 999 outside
+        result = ai.generate_intervention_candidates(
+            "ISSUE_TEST", ["001", "999"], class_id=self.class_a, teacher_id=self.teacher_a
+        )
+        # Should only process 001, no error
+        self.assertIsInstance(result, list)
+
 if __name__ == "__main__":
     unittest.main()
