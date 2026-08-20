@@ -25,7 +25,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>机电岗位培训 AI</title>
-    <link rel="stylesheet" href="/styles.css?v=20260818c" />
+    <link rel="stylesheet" href="/styles.css?v=20260820a" />
     <link rel="stylesheet" href="/scenario.css">
   </head>
   <body><div id="debugInfo" style="position:fixed;top:0;left:0;z-index:99999;background:#000;color:#0f0;padding:6px 12px;font-size:12px;font-family:monospace;display:none">JS loading...</div>
@@ -350,67 +350,6 @@
       </div>
     </header>
 
-    <!-- === TF-3 Teacher Layout: Copilot + Decision Workspace === -->
-    <div class="teacher-layout">
-      <!-- Left: Teacher Copilot -->
-      <div class="teacher-copilot">
-        <div class="copilot-chat">
-          <div class="ai-generated-badge chat-ai-badge" role="note" aria-label="AI 生成内容">AI 生成内容</div>
-          <div class="summary-strip">
-            <span id="teacherScope">当前范围：岗位聚合</span>
-          </div>
-          <div class="copilot-chat-messages" id="teacherChatMessages">
-            <div class="chat-message assistant">
-              <div class="chat-bubble">欢迎使用教学决策工作台。你可以直接提问，或查看教学问题和班级数据。</div>
-            </div>
-          </div>
-          <div class="copilot-chat-input">
-            <form id="teacherChatForm" onsubmit="event.preventDefault();TeacherUI.sendCopilotMessage()" style="display:flex;gap:8px">
-              <input type="text" id="copilotInput" placeholder="直接提问，请 AI 助教帮你分析班级情况..." style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:0.9rem" />
-              <button type="submit" style="background:#14b8a6;color:#fff;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;font-size:0.9rem">发送</button>
-            </form>
-          </div>
-        </div>
-      </div>
-      <!-- Right: Decision Workspace -->
-      <div class="teacher-workspace">
-        <!-- Class selector bar (TF-6D P2) -->
-        <div class="teacher-class-bar">
-          <div class="class-bar-info">
-            <span id="teacherClassLabel">未选择班级</span>
-            <span id="teacherClassMeta" class="class-bar-meta"></span>
-          </div>
-          <div class="class-bar-actions">
-            <button id="manageClassBtn" class="btn-secondary" style="display:none">管理学生</button>
-            <button id="createClassBtn" class="btn-primary">创建班级</button>
-          </div>
-        </div>
-        <!-- Class dropdown -->
-        <div id="classDropdown" class="class-dropdown" style="display:none"></div>
-        <nav class="teacher-nav">
-          <button class="teacher-nav-tab active" data-tab="today">今日教学</button>
-          <button class="teacher-nav-tab" data-tab="insights">班级洞察</button>
-          <button class="teacher-nav-tab" data-tab="students">学生</button>
-          <button class="teacher-nav-tab" data-tab="feedback">教学反馈</button>
-          <button class="teacher-nav-tab" data-tab="standards">岗位标准</button>
-        </nav>
-        <section id="tw-today" class="teacher-workspace-panel active">
-          <div id="todayTeachingContent"></div>
-        </section>
-        <section id="tw-insights" class="teacher-workspace-panel">
-          <div id="classInsightsContent"></div>
-        </section>
-        <section id="tw-students" class="teacher-workspace-panel">
-          <div id="studentListContainer"></div>
-        </section>
-        <section id="tw-feedback" class="teacher-workspace-panel">
-          <div id="feedbackContent"></div>
-        </section>
-        <section id="tw-standards" class="teacher-workspace-panel">
-          <div id="standardsContent"></div>
-        </section>
-      </div>
-    </div>
     <!-- Issue Detail Drawer -->
     <div id="issueDetailDrawer" class="issue-drawer">
       <button class="issue-drawer-close">&times;</button>
@@ -511,6 +450,20 @@
           <div id="jobProfile" class="job-card">
             <div class="muted">岗位画像加载中</div>
           </div>
+          <div id="teacherJobCard" class="job-card teacher-job-card role-teacher" style="display:none">
+            <div class="job-card-head">
+              <div>
+                <div class="muted">当前班级</div>
+                <strong id="teacherClassLabel" onclick="TeacherUI.toggleClassDropdown()">未选择班级</strong>
+              </div>
+              <span id="teacherClassMeta"></span>
+            </div>
+            <div class="teacher-class-actions">
+              <button id="manageClassBtn" class="btn-secondary" style="display:none" onclick="TeacherUI.openManageStudents()">管理学生</button>
+              <button id="createClassBtn" class="btn-primary" onclick="TeacherUI.openCreateClass()">创建班级</button>
+            </div>
+            <div id="classDropdown" class="class-dropdown" style="display:none"></div>
+          </div>
         </details>
 
 
@@ -544,6 +497,10 @@
         <section class="launcher-panel role-teacher" style="display:none">
           <h2>教师工作台</h2>
           <div class="tool-launcher">
+            <button data-open-tool="teacherToday" type="button">
+              <strong>今日教学</strong>
+              <span>教学问题与干预方案</span>
+            </button>
             <button data-open-tool="studentMgmt" type="button">
               <strong>学生管理</strong>
               <span>学生列表、画像与学习证据</span>
@@ -585,10 +542,13 @@
         <nav class="workspace-tabs" aria-label="功能工作台">
           <button class="active role-student" data-workspace-panel="knowledge" type="button">知识缺口</button>
           <button class="role-student" data-workspace-panel="graph" type="button">能力图谱</button>
-          <button data-workspace-panel="jobAdmin" type="button" class="role-teacher" style="display:none">岗位数据</button>
           <button class="role-student" data-workspace-panel="plan" type="button">培养方案</button>
           <button class="role-student" data-workspace-panel="scenario" type="button">角色扮演</button>
           <button class="role-student" data-workspace-panel="quiz" type="button">自测</button>
+          <button data-workspace-panel="teacherToday" type="button" class="role-teacher" style="display:none">今日教学</button>
+          <button data-workspace-panel="classInsights" type="button" class="role-teacher" style="display:none">班级洞察</button>
+          <button data-workspace-panel="studentMgmt" type="button" class="role-teacher" style="display:none">学生</button>
+          <button data-workspace-panel="teacherComments" type="button" class="role-teacher" style="display:none">教学反馈</button>
           <button data-workspace-panel="teacherJobGraph" type="button" class="role-teacher" style="display:none">岗位管理</button>
         </nav>
 
@@ -759,6 +719,24 @@
             <div id="personalizedPlan" class="section-block muted">尚未生成培养方案。</div>
           </section>
 
+          <section id="workspaceTeacherToday" class="workspace-panel role-teacher teacher-workspace-panel">
+            <div id="tw-today">
+              <div id="todayTeachingContent"></div>
+            </div>
+          </section>
+
+          <section id="workspaceClassInsights" class="workspace-panel role-teacher teacher-workspace-panel">
+            <div id="tw-insights"></div>
+          </section>
+
+          <section id="workspaceStudentMgmt" class="workspace-panel role-teacher teacher-workspace-panel">
+            <div id="tw-students"></div>
+          </section>
+
+          <section id="workspaceTeacherComments" class="workspace-panel role-teacher teacher-workspace-panel">
+            <div id="tw-feedback"></div>
+          </section>
+
         </div>
       </div>
       <aside id="nodeDetailDrawer" class="node-detail-drawer" aria-hidden="true">
@@ -791,8 +769,8 @@ window.addEventListener("error", function(e) {
   if (lm) lm.textContent = "";
 });
 </script>
-<script src="/teacher-ui.js?v=20260810"></script>
-<script src="/app.js?v=20260819a"></script>
+<script src="/teacher-ui.js?v=20260820a"></script>
+<script src="/app.js?v=20260820a"></script>
   
 
 

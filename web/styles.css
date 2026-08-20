@@ -1505,15 +1505,32 @@ body[data-role="student"] .role-teacher { display: none !important; }
 /* Teacher: Copilot (left 34%) + Decision Workspace (right 66%) */
 /* Unified layout: teacher uses the same full chat layout as students */
 .teacher-layout { display: none !important; }
-body[data-role="teacher"] .teacher-layout { display: flex !important; }
+body[data-role="teacher"] .teacher-layout { display: none !important; }
 body[data-role="student"] .teacher-layout { display: none !important; }
-body[data-role="teacher"] .student-layout { display: none !important; }
+body[data-role="teacher"] .student-layout { display: grid !important; }
 body[data-role="teacher"] .launcher-panel.role-student { display: none !important; }
 body[data-role="teacher"] .launcher-panel.role-teacher { display: block !important; }
+body[data-role="teacher"] .feedback-row,
+body[data-role="teacher"] #feedbackStatus { display: none !important; }
 body[data-role="teacher"] .workspace-tabs .role-student { display: none; }
-body[data-role="teacher"] .workspace-tabs .role-teacher { display: inline-flex; }
+body[data-role="teacher"] .workspace-tabs .role-teacher { display: inline-flex !important; }
 body[data-role="teacher"] .workspace-panel.role-teacher { display: none; }
 body[data-role="teacher"] .workspace-panel.role-teacher.active { display: block; }
+
+/* Shared skeleton: teacher class card in sidebar */
+.tool-drawer details { position: relative; }
+.teacher-job-card { display: none; position: relative; }
+body[data-role="teacher"] #jobProfile { display: none !important; }
+body[data-role="teacher"] .teacher-job-card { display: block !important; }
+.teacher-class-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+#teacherClassMeta { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+#classDropdown { top: calc(100% + 6px); right: 0; min-width: 240px; }
+
+/* Teacher modules rendered inside the shared workspace shell */
+.teacher-workspace-panel { min-height: 100%; }
+.teacher-students-layout { display: flex; align-items: stretch; gap: 16px; min-height: 60vh; }
+.teacher-students-layout > div { flex: 1; min-width: 0; }
+.teacher-students-layout > div:last-child { border-left: 1px solid #334155; padding-left: 16px; }
 
 .teacher-copilot { flex: 0 0 34%; max-width: 34%; min-width: 300px; border-right: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; overflow: hidden; }
 .teacher-workspace { flex: 1 1 66%; display: flex; flex-direction: column; overflow: hidden; background: rgba(255,255,255,0.02); }

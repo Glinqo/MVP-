@@ -37,8 +37,9 @@ test("teacher login and students roster class-scoped", async ({ page }) => {
   // Select E2E-A class
   await page.locator(".class-dropdown-item", { hasText: "E2E-A" }).first().click();
 
-  // Go to Students tab
-  await page.locator('.teacher-nav-tab[data-tab="students"]').click();
+  // Open Students module from the shared teacher launcher
+  await page.locator('[data-open-tool="studentMgmt"]').click();
+  await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
 
   // Wait for roster to load
   await expect(page.locator("#teacherStudentListPane")).toBeVisible();
@@ -58,21 +59,28 @@ test("teacher A to B to A switch no cross-class", async ({ page }) => {
 
   // Select E2E-A
   await page.locator("#teacherClassLabel").click();
+  await expect(page.locator("#classDropdown")).toBeVisible();
   await page.locator(".class-dropdown-item", { hasText: "E2E-A" }).first().click();
-  await page.locator('.teacher-nav-tab[data-tab="students"]').click();
+  await page.locator('[data-open-tool="studentMgmt"]').click();
   await expect(page.locator(".student-card", { hasText: "001" }).first()).toBeVisible({ timeout: 15000 });
 
   // Switch to E2E-B
+  await page.locator("#closeWorkspace").click();
   await page.locator("#teacherClassLabel").click();
+  await expect(page.locator("#classDropdown")).toBeVisible();
   await page.locator(".class-dropdown-item", { hasText: "E2E-B" }).first().click();
+  await page.locator('[data-open-tool="studentMgmt"]').click();
   // Students should reload to B roster
   await expect(page.locator(".student-card", { hasText: "006" }).first()).toBeVisible({ timeout: 15000 });
   // A students must be gone
   await expect(page.locator(".student-card", { hasText: "001" })).toHaveCount(0);
 
   // Switch back to E2E-A
+  await page.locator("#closeWorkspace").click();
   await page.locator("#teacherClassLabel").click();
+  await expect(page.locator("#classDropdown")).toBeVisible();
   await page.locator(".class-dropdown-item", { hasText: "E2E-A" }).first().click();
+  await page.locator('[data-open-tool="studentMgmt"]').click();
   await expect(page.locator(".student-card", { hasText: "001" }).first()).toBeVisible({ timeout: 15000 });
 
   expect(errors.pageErrors).toHaveLength(0);
@@ -84,14 +92,15 @@ test("teacher AI rejects out-of-class student", async ({ page }) => {
 
   // Select E2E-A
   await page.locator("#teacherClassLabel").click();
+  await expect(page.locator("#classDropdown")).toBeVisible();
   await page.locator(".class-dropdown-item", { hasText: "E2E-A" }).first().click();
 
   // Ask AI about student 008 (in E2E-B, not E2E-A)
-  await page.fill("#copilotInput", "查看学生 008 的学习状态");
+  await page.fill("#chatInput", "查看学生 008 的学习状态");
   await page.getByRole("button", { name: "发送" }).click();
 
   // Wait for AI response
-  await expect(page.locator("#teacherChatMessages")).toContainText("不属于当前班级", { timeout: 15000 });
+  await expect(page.locator("#chatMessages")).toContainText("不属于当前班级", { timeout: 15000 });
 
   expect(errors.pageErrors).toHaveLength(0);
 });

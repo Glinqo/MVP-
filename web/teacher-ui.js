@@ -10,7 +10,13 @@ var TeacherUI = {
   _classes: [],
   _selectedStudents: [],
   _batchParsedStudents: [],
-  _allStudents: []
+  _allStudents: [],
+  workspacePanelForTab: {
+    today: "teacherToday",
+    insights: "classInsights",
+    students: "studentMgmt",
+    feedback: "teacherComments"
+  }
 };
 
 // ---- Safe HTML escape ----
@@ -61,6 +67,7 @@ TeacherUI.loadClasses = function() {
       localStorage.setItem("mcp_teacher_class_id", String(selected.id));
     }
     TeacherUI.setCurrentClass(selected);
+    TeacherUI.renderClassDropdown();
   }).catch(function(e) {
     console.warn("Load classes failed:", e.message);
     TeacherUI.setCurrentClass(null);
@@ -78,14 +85,13 @@ TeacherUI.clearClassScopedState = function() {
   TeacherUI._commentFilter = "all";
   TeacherUI._currentCommentId = null;
   TeacherUI._selectedCommentIds = [];
-  TeacherUI._standardsView = "graph";
   if (TeacherUI._commentState) TeacherUI._commentState = {};
   if (TeacherUI._ciState) TeacherUI._ciState = {};
-  // Clear AI message DOM
-  var chatMsgs = document.getElementById("teacherChatMessages");
-  if (chatMsgs) {
-    chatMsgs.innerHTML = '<div class="chat-message assistant"><div class="chat-bubble">欢迎使用教学决策工作台。请提问或查看左侧教学问题。</div></div>';
-  }
+  // Reset the shared AI chat when switching class scope
+  if (window.state) window.state.messages = [];
+  var chatMsgs = document.getElementById("chatMessages");
+  if (chatMsgs) chatMsgs.innerHTML = "";
+  if (typeof setTeacherWelcome === "function") setTeacherWelcome();
   // Close any open modals/drawers
   var drawer = document.getElementById("issueDetailDrawer");
   if (drawer) drawer.classList.remove("open");
@@ -138,21 +144,26 @@ TeacherUI.toggleClassDropdown = function() {
   if (dropdown.style.display === "block") {
     dropdown.style.display = "none";
   } else {
-    // Build dropdown items
-    var html = "";
-    TeacherUI._classes.forEach(function(cls) {
-      var active = cls.id === TeacherUI.currentClassId ? " active" : "";
-      html += '<div class="class-dropdown-item' + active + '" onclick="TeacherUI.switchTeacherClass(' + cls.id + ')">';
-      html += '<span>' + TeacherUI.escHtml(cls.name) + '</span>';
-      html += '<span class="class-dropdown-meta">' + (cls.student_count || 0) + ' 人</span>';
-      html += '</div>';
-    });
-    html += '<div class="class-dropdown-divider"></div>';
-    html += '<div class="class-dropdown-item" onclick="TeacherUI.openCreateClass();TeacherUI.toggleClassDropdown()">+ 创建班级</div>';
-    html += '<div class="class-dropdown-item" onclick="TeacherUI.openManageStudents();TeacherUI.toggleClassDropdown()">管理当前班级</div>';
-    dropdown.innerHTML = html;
     dropdown.style.display = "block";
+    TeacherUI.renderClassDropdown();
   }
+};
+
+TeacherUI.renderClassDropdown = function() {
+  var dropdown = document.getElementById("classDropdown");
+  if (!dropdown || dropdown.style.display !== "block") return;
+  var html = "";
+  TeacherUI._classes.forEach(function(cls) {
+    var active = cls.id === TeacherUI.currentClassId ? " active" : "";
+    html += '<div class="class-dropdown-item' + active + '" onclick="TeacherUI.switchTeacherClass(' + cls.id + ')">';
+    html += '<span>' + TeacherUI.escHtml(cls.name) + '</span>';
+    html += '<span class="class-dropdown-meta">' + (cls.student_count || 0) + ' 人</span>';
+    html += '</div>';
+  });
+  html += '<div class="class-dropdown-divider"></div>';
+  html += '<div class="class-dropdown-item" onclick="TeacherUI.openCreateClass();TeacherUI.toggleClassDropdown()">+ 创建班级</div>';
+  html += '<div class="class-dropdown-item" onclick="TeacherUI.openManageStudents();TeacherUI.toggleClassDropdown()">管理当前班级</div>';
+  dropdown.innerHTML = html;
 };
 
 TeacherUI.openCreateClass = function() {
@@ -394,12 +405,20 @@ TeacherUI.switchTab = function(tabId) {
   panels.forEach(function(p) { p.classList.remove("active"); });
   var target = document.getElementById("tw-" + tabId);
   if (target) target.classList.add("active");
+  var panelName = TeacherUI.workspacePanelForTab[tabId];
+  if (panelName) {
+    document.querySelectorAll("[data-workspace-panel]").forEach(function(b) {
+      b.classList.toggle("active", b.dataset.workspacePanel === panelName);
+    });
+    document.querySelectorAll(".workspace-panel").forEach(function(s) {
+      s.classList.toggle("active", s.id === "workspace" + panelName.charAt(0).toUpperCase() + panelName.slice(1));
+    });
+  }
   var loaders = {
     today: TeacherUI.loadToday,
     insights: TeacherUI.loadInsights,
     students: TeacherUI.loadStudents,
-    feedback: TeacherUI.loadFeedback,
-    standards: TeacherUI.loadStandards
+    feedback: TeacherUI.loadFeedback
   };
   if (loaders[tabId]) loaders[tabId]();
 };
@@ -546,7 +565,7 @@ TeacherUI.renderIssueDetail = function(issue, drawer) {
     // Bind student chip clicks
     bodyEl.querySelectorAll(".student-chip").forEach(function(btn) {
       btn.addEventListener("click", function() {
-        TeacherUI.switchTab("students");
+        if (typeof openWorkspace === "function") openWorkspace("studentMgmt");
         setTimeout(function() { TeacherUI.lookupStudent(btn.dataset.student); }, 300);
       });
     });
@@ -858,85 +877,6 @@ TeacherUI.publishComment = function(commentId) {
   }).catch(function(e) {
     alert("发布 failed: " + e.message);
   });
-};
-
-// ============================================================
-// Tab: Standards
-// ============================================================
-TeacherUI._standardsView = "graph";
-
-TeacherUI.loadStandards = function() {
-  var c = document.getElementById("tw-standards");
-  if (!c) return;
-  if (!TeacherUI.currentClass) {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">请先选择班级。</div>';
-    return;
-  }
-  c.innerHTML = '<div class="muted" style="padding:20px">加载岗位标准中...</div>';
-  var jobRole = TeacherUI.currentClass.job_role || "";
-  Promise.all([
-    TeacherUI.fetchAuth("/api/graph/job?job_role=" + encodeURIComponent(jobRole), "GET"),
-    TeacherUI.fetchAuth("/api/graph/job/proposals/pending?job_role=" + encodeURIComponent(jobRole), "GET"),
-    TeacherUI.fetchAuth("/api/graph/job/versions?job_role=" + encodeURIComponent(jobRole), "GET")
-  ]).then(function(results) {
-    var graph = results[0] || { nodes: [] };
-    var proposalsData = results[1] || {};
-    var versionsData = results[2] || {};
-    var proposals = proposalsData.proposals || proposalsData.pending_proposals || [];
-    var versions = versionsData.versions || [];
-    var nodes = graph.nodes || [];
-    var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 8px">岗位标准</h3>';
-    html += '<div style="display:flex;gap:8px;margin-bottom:12px">';
-    var views = [["graph", "当前图谱"], ["proposals", "更新建议"], ["versions", "版本"]];
-    views.forEach(function(v) {
-      var active = TeacherUI._standardsView === v[0] ? "background:#14b8a6;color:#fff" : "background:rgba(255,255,255,0.08)";
-      html += '<button style="padding:6px 12px;border-radius:6px;border:none;cursor:pointer;' + active + '" onclick="TeacherUI.setStandardsView(\'' + v[0] + '\')">' + v[1] + '</button>';
-    });
-    html += '</div>';
-    html += '<p style="color:#94a3b8;margin:0 0 8px">' + (graph.job_role || jobRole) + ' · ' + nodes.length + ' nodes · ' + proposals.length + ' proposals · ' + versions.length + ' versions</p>';
-    if (TeacherUI._standardsView === "graph") {
-      html += '<div id="teacherJobGraphDiagram" style="width:100%;height:300px"></div>';
-    } else if (TeacherUI._standardsView === "proposals") {
-      if (!proposals.length) {
-        html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">暂无待审核更新建议。</div>';
-      } else {
-        proposals.forEach(function(p) {
-          var ptype = TeacherUI.escHtml(String(p.proposal_type || p.type || "update"));
-          var target = TeacherUI.escHtml(String(p.target_ability_id || p.ability_id || p.node_id || "unknown"));
-          var source = TeacherUI.escHtml(String(p.source || "unknown"));
-          html += '<div class="proposal-card" style="padding:12px;border:1px solid #334155;border-radius:8px;margin-bottom:8px">';
-          html += '<div style="font-weight:600;color:#e2e8f0">' + ptype + ': ' + target + '</div>';
-          html += '<div style="color:#94a3b8;font-size:0.85em">来源： ' + source + '</div>';
-          html += '</div>';
-        });
-      }
-    } else {
-      if (!versions.length) {
-        html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">暂无版本记录。</div>';
-      } else {
-        versions.forEach(function(v) {
-          var vid = TeacherUI.escHtml(String(v.version || v.id || ""));
-          var vtime = TeacherUI.escHtml(String(v.created_at || v.timestamp || ""));
-          html += '<div class="version-card" style="padding:12px;border:1px solid #334155;border-radius:8px;margin-bottom:8px">';
-          html += '<div style="font-weight:600;color:#e2e8f0">版本 ' + vid + '</div>';
-          html += '<div style="color:#94a3b8;font-size:0.85em">' + vtime + '</div>';
-          html += '</div>';
-        });
-      }
-    }
-    html += '</div>';
-    c.innerHTML = html;
-    if (TeacherUI._standardsView === "graph" && typeof renderGraphDiagram === "function" && nodes.length) {
-      setTimeout(function() { renderGraphDiagram(graph, "teacherJobGraphDiagram"); }, 200);
-    }
-  }).catch(function() {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">岗位标准加载失败。</div>';
-  });
-};
-
-TeacherUI.setStandardsView = function(view) {
-  TeacherUI._standardsView = view;
-  TeacherUI.loadStandards();
 };
 
 // ============================================================

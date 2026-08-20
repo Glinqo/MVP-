@@ -6,14 +6,15 @@ test("teacher 000 login shows teacher workspace", async ({ page }) => {
   const errors = collectErrors(page);
   await loginAsTeacher(page, "000", "123456");
 
-  // Teacher layout visible, student layout hidden
-  await expect(page.locator(".teacher-layout")).toBeVisible();
-  await expect(page.locator(".student-layout")).toBeHidden();
+  // Teacher uses the same full chat skeleton as students
+  await expect(page.locator(".student-layout")).toBeVisible();
+  await expect(page.locator(".teacher-layout")).toHaveCount(0);
 
   // Key teacher UI elements
   await expect(page.locator("#teacherClassLabel")).toBeVisible();
   await expect(page.locator("#createClassBtn")).toBeVisible();
-  await expect(page.locator("#teacherChatForm")).toBeVisible();
+  await expect(page.locator("#chatForm")).toBeVisible();
+  await expect(page.locator(".launcher-panel.role-teacher")).toBeVisible();
 
   // No legacy landingStepStudents
   await expect(page.locator("#landingStepStudents")).toHaveCount(0);

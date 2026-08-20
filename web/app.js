@@ -2007,6 +2007,7 @@ function workspaceTitle(panel) {
     jobAdmin: "岗位管理",
     knowledge: "知识缺口",
     tasks: "实训任务",
+    teacherToday: "今日教学",
     classInsights: "班级洞察",
     studentMgmt: "学生管理",
     teacherComments: "教学评语",
@@ -2026,6 +2027,15 @@ function setWorkspacePanel(panel) {
   document.querySelectorAll(".workspace-panel").forEach((section) => {
     section.classList.toggle("active", section.id === "workspace" + domPanel.charAt(0).toUpperCase() + domPanel.slice(1));
   });
+  var teacherTabByPanel = {
+    teacherToday: "today",
+    classInsights: "insights",
+    studentMgmt: "students",
+    teacherComments: "feedback"
+  };
+  if (teacherTabByPanel[panel] && typeof TeacherUI !== "undefined" && TeacherUI.switchTab) {
+    TeacherUI.switchTab(teacherTabByPanel[panel]);
+  }
   if (panel === "knowledge") { var ka = document.getElementById("knowledgeAlert"); if (ka) ka.style.display = "none"; }
   if (panel === "jobAdmin" || panel === "teacherJobGraph") {
     loadJobAdmin();
@@ -2774,7 +2784,8 @@ async function sendChat(message) {
         method: "POST",
         body: JSON.stringify({
           message: text,
-          job_role: state.jobProfile?.id,
+          job_role: (typeof TeacherUI !== "undefined" && TeacherUI.currentClass && TeacherUI.currentClass.job_role) || state.jobProfile?.id,
+          class_id: (typeof TeacherUI !== "undefined" && TeacherUI.currentClassId) || null,
           history: history,
           ui_context: state.uiContext || {},
           context: state.teacherContext || {}
@@ -2950,7 +2961,9 @@ async function teacherBoot() {
     } catch (_) {}
     // TF-3: Initialize teacher navigation
     if (typeof TeacherUI !== "undefined" && TeacherUI.initNav) { TeacherUI.initNav(); }
-    // Load job graph (for standards tab)
+    bindChatForm();
+    if (typeof setTeacherWelcome === "function") setTeacherWelcome();
+    // Load job graph (for teacher job governance tab)
     try { var jobGraph = await api("/api/graph/job?job_role=" + encodeURIComponent(jobId)); renderGraph(jobGraph, "job"); renderJobProposals(jobGraph.pending_proposals || []); } catch (_) {}
     // Register chat listener
     if (!window._chatListenerRegistered) {
@@ -3434,6 +3447,17 @@ function clearStudentClassScopedState() {
   });
 }
 
+function bindChatForm() {
+  if (window._chatFormBound) return;
+  var chatForm = document.getElementById("chatForm");
+  if (!chatForm) return;
+  chatForm.addEventListener("submit", function(ev) {
+    ev.preventDefault();
+    sendChat();
+  });
+  window._chatFormBound = true;
+}
+
 async function studentBoot() {
   showRoleUI();
   var bootIdentity = localStorage.getItem(userKey("mcp_identity")) || localStorage.getItem("mcp_identity") || "student";
@@ -3512,16 +3536,7 @@ async function studentBoot() {
       } catch (_) {}
       renderJobProposals(jobGraph.pending_proposals || []);
       renderGraph(studentBootstrap.student_graph, "student");
-      if (!window._studentChatFormBound) {
-        var chatForm = document.getElementById("chatForm");
-        if (chatForm) {
-          chatForm.addEventListener("submit", function(ev) {
-            ev.preventDefault();
-            sendChat();
-          });
-          window._studentChatFormBound = true;
-        }
-      }
+      bindChatForm();
     } else {
       // P8-G: Teacher boot is handled by teacherBoot/teacher-ui.js; no duplicate teacher init here
     }

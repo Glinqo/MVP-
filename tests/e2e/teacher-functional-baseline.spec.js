@@ -191,6 +191,8 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
 
   await selectClass(page, classAName);
 
+  await page.locator('[data-open-tool="teacherToday"]').click();
+  await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
   await expect(page.locator("#todayTeachingContent .issue-card").first()).toBeVisible({ timeout: 15000 });
   await expect(page.locator("#todayTeachingContent")).toContainText("2 人");
   await page.locator("#todayTeachingContent .issue-card").first().click();
@@ -208,6 +210,7 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
   await page.locator(".issue-drawer-close").click();
   await expect(page.locator("#issueDetailDrawer")).not.toHaveClass(/open/);
 
+  await page.locator("#closeWorkspace").click();
   await page.locator("#manageClassBtn").click();
   await expect(page.locator("#manageStudentsModal")).toBeVisible();
   await page.locator("#studentSearchInput").fill("003");
@@ -225,55 +228,46 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
   await page.locator("#manageStudentsModal .modal-close").click();
   await expect(page.locator("#manageStudentsModal")).toBeHidden();
 
-  await page.locator('.teacher-nav-tab[data-tab="students"]').click();
+  await page.locator('[data-open-tool="studentMgmt"]').click();
+  await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
   await expect(page.locator("#teacherStudentListPane .student-card", { hasText: "001" }).first()).toBeVisible();
   await expect(page.locator("#teacherStudentListPane .student-card", { hasText: "006" })).toHaveCount(0);
   await page.locator('#teacherStudentListPane .student-card[data-student-id="001"]').click();
   await expect(page.locator("#teacherStudentDetailPane")).toContainText("弱项");
   await expect(page.locator("#teacherStudentDetailPane")).toContainText("sn_type_identify");
 
-  await page.locator('.teacher-nav-tab[data-tab="insights"]').click();
+  await page.locator('[data-workspace-panel="classInsights"]').click();
   await expect(page.locator("#tw-insights")).toContainText("班级洞察");
   await expect(page.locator("#tw-insights")).toContainText("班级最薄弱能力");
   await expect(page.locator("#tw-insights")).toContainText("传感器类型识别");
   await expectGraphRendered(page, "#teacherClassGraphDiagram");
 
-  await page.locator('.teacher-nav-tab[data-tab="standards"]').click();
-  await expect(page.locator("#tw-standards")).toContainText("岗位标准");
-  await expect(page.locator("#tw-standards")).toContainText("nodes");
-  await expectGraphRendered(page, "#teacherJobGraphDiagram");
-  await page.getByRole("button", { name: "更新建议" }).click();
-  await expect(page.locator("#tw-standards")).toContainText(/更新建议|暂无待审核更新建议/);
-  await page.getByRole("button", { name: "版本" }).click();
-  await expect(page.locator("#tw-standards")).toContainText(/版本|暂无版本记录/);
-  await page.getByRole("button", { name: "当前图谱" }).click();
-  await expectGraphRendered(page, "#teacherJobGraphDiagram");
-
-  await page.locator('.teacher-nav-tab[data-tab="feedback"]').click();
+  await page.locator('[data-workspace-panel="teacherComments"]').click();
   await expect(page.locator("#tw-feedback")).toContainText("教学反馈");
   await page.getByRole("button", { name: /草稿/ }).click();
   await expect(page.locator("#tw-feedback .comment-card").first()).toBeVisible();
   await page.locator("#tw-feedback .comment-card").first().click();
   await expect(page.locator("#tw-feedback")).toContainText("评语详情");
   await expect(page.locator("#tw-feedback")).toContainText("draft");
-  await page.getByRole("button", { name: "审核" }).click();
+  await page.getByRole("button", { name: "审核", exact: true }).click();
   await expect(page.locator("#tw-feedback")).toContainText("reviewed");
-  await page.getByRole("button", { name: "发布" }).click();
+  await page.getByRole("button", { name: "发布", exact: true }).click();
   await expect(page.locator("#tw-feedback")).toContainText("published");
   await page.getByRole("button", { name: "返回列表" }).click();
   await page.getByRole("button", { name: /草稿/ }).click();
   expect(await page.evaluate(() => window.TeacherUI?._commentFilter)).toBe("draft");
+  await page.locator("#closeWorkspace").click();
   await selectClass(page, classBName);
   expect(await page.evaluate(() => window.TeacherUI?._commentFilter)).toBe("all");
   await expect(page.locator("#tw-feedback")).toContainText("教学反馈");
 
   await selectClass(page, classAName);
-  await page.locator("#copilotInput").fill("查看学生 008 的学习状态");
+  await page.locator("#chatInput").fill("查看学生 008 的学习状态");
   await page.getByRole("button", { name: "发送" }).click();
-  await expect(page.locator("#teacherChatMessages")).toContainText("不属于当前班级", { timeout: 15000 });
+  await expect(page.locator("#chatMessages")).toContainText("不属于当前班级", { timeout: 15000 });
 
   const fit = await page.evaluate(() => {
-    const required = [".teacher-layout", ".teacher-copilot", ".teacher-workspace"]
+    const required = [".student-layout", ".chat-main", ".tool-drawer"]
       .map((selector) => {
         const el = document.querySelector(selector);
         if (!el) return { selector, missing: true };
@@ -298,6 +292,16 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
   });
   expect(fit.canScrollX).toBeFalsy();
   expect(fit.required.filter((item) => item.missing || item.width <= 0 || item.height <= 0)).toEqual([]);
+
+  await page.locator('[data-open-tool="teacherToday"]').click();
+  await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
+  const workspaceFit = await page.evaluate(() => {
+    const el = document.querySelector(".workspace-shell");
+    if (!el) return { missing: true };
+    const rect = el.getBoundingClientRect();
+    return { missing: false, width: rect.width, height: rect.height };
+  });
+  expect(workspaceFit.missing || workspaceFit.width <= 0 || workspaceFit.height <= 0).toBeFalsy();
 
   await page.screenshot({
     path: "test-results/teacher-functional-baseline-desktop.png",

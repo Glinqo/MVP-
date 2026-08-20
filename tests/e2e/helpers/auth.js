@@ -12,8 +12,8 @@ export async function loginAsTeacher(page, username = "000", password = "123456"
   await page.fill("#loginUsername", username);
   await page.fill("#loginPassword", password);
   await page.getByRole("button", { name: "登录" }).click();
-  // Wait for teacher layout to appear
-  await expect(page.locator(".teacher-layout")).toBeVisible({ timeout: 15000 });
+  // Wait for the shared chat skeleton to appear
+  await expect(page.locator(".student-layout")).toBeVisible({ timeout: 15000 });
 }
 
 /**
