@@ -115,10 +115,12 @@ class TeacherAIV2:
         )
 
     def draft_intervention(self, issue_id: str, candidate_id: str,
-                            student_ids: List[str], teacher_id: str) -> Dict[str, Any]:
+                            student_ids: List[str], teacher_id: str,
+                            plan_snapshot: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Draft an intervention for teacher review via V2 Facade (persistent store)."""
         from app.services.v2_facade import create_intervention
-        return create_intervention(issue_id, candidate_id, student_ids, teacher_id)
+        return create_intervention(issue_id, candidate_id, student_ids, teacher_id,
+                                   plan_snapshot=plan_snapshot)
 
     def get_intervention_status(self, intervention_id: str) -> Dict[str, Any]:
         """Get current status of an intervention from persistent Workflow Store."""
@@ -176,13 +178,18 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
     tid = int(teacher_id) if str(teacher_id).isdigit() else None
 
     # P7-B: Bind context to class_id; reset if class_id mismatch
-    ctx = context or {}
+    ctx = dict(context or {})
     if class_id is not None and ctx.get("class_id") != class_id:
         ctx = {"class_id": class_id}
-    elif class_id is None:
-        ctx = dict(ctx)
-    else:
-        ctx = dict(ctx)
+    elif class_id is not None:
+        ctx["class_id"] = class_id
+
+    issue_id = _first(ctx, ["current_issue_id", "last_issue_id"])
+    student_ids = _as_list(ctx.get("current_student_ids") or ctx.get("last_students") or [])
+    student_id = ctx.get("current_student_id") or ctx.get("last_student_id") or (student_ids[0] if student_ids else "")
+    candidate_id = ctx.get("current_candidate_id") or ctx.get("last_candidate_id") or ""
+    intervention_id = ctx.get("current_intervention_id") or ctx.get("last_intervention_id") or ""
+    draft_plan = ctx.get("current_intervention_draft") or {}
 
     result = {
         "answer": "",
@@ -193,6 +200,45 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
         "intent": "general",
         "engine": "teacher_ai_v2",
     }
+
+    modify_hit = any(kw in msg for kw in [
+        "改成", "修改", "调整", "单独安排", "单独", "基础差", "分钟", "不做讲授",
+        "改成实操", "实操", "讲授", "安排", "换个方案", "换个", "取消",
+    ])
+    plan_hit = any(kw in msg for kw in [
+        "方案", "教学建议", "怎么教", "干预", "候选", "candidate", "intervention", "教学计划",
+    ])
+    issue_hit = any(kw in msg for kw in [
+        "为什么", "原因", "解释", "说明", "这个", "怎么办", "如何", "证据",
+    ])
+    student_hit = any(kw in msg for kw in ["学生", "状态", "薄弱", "能力", "他", "表现", "谁"])
+    status_hit = any(kw in msg for kw in ["状态", "进度", "status", "审批"])
+
+    # Natural-language modification is the strongest signal when a draft exists.
+    if modify_hit and (intervention_id or candidate_id or draft_plan):
+        result["intent"] = "modify_intervention"
+        plan = _modify_plan(draft_plan, msg, student_ids)
+        if intervention_id:
+            from app.services.v2_facade import update_intervention_plan
+            saved = update_intervention_plan(intervention_id, plan, teacher_id=str(tid or ""))
+            if saved.get("ok"):
+                plan = saved.get("plan_snapshot", plan)
+        result["answer"] = _describe_plan(plan)
+        result["data_cards"] = [_plan_card(plan)]
+        result["actions"] = [
+            {"type": "draft_intervention", "label": "采用方案",
+             "issue_id": issue_id, "candidate_id": candidate_id, "student_ids": student_ids, "plan": plan}
+        ]
+        if intervention_id:
+            result["actions"].append({"type": "open_intervention", "label": "查看干预", "intervention_id": intervention_id})
+        result["context_update"] = {
+            "current_candidate_id": candidate_id,
+            "last_candidate_id": candidate_id,
+            "current_intervention_id": intervention_id,
+            "last_intervention_id": intervention_id,
+            "current_intervention_draft": plan,
+        }
+        return result
 
     # Issue-related intents
     if any(kw in msg for kw in ["教学问题", "问题列表", "发现问题", "共有问题", "common issue"]):
@@ -206,24 +252,59 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
                 students = len(issue.get("affected_students", []))
                 result["answer"] += f"{i}. {title} (优先级: {priority}, 影响 {students} 名学生)\n"
             result["data_cards"] = issues[:5]
-            result["actions"] = [{"type": "navigate", "module": "teacherIssues", "label": "查看教学问题"}]
+            result["actions"] = [{"type": "navigate", "module": "teacherToday", "label": "查看教学问题"}]
         else:
             result["answer"] = "当前未发现教学问题。系统需要更多学习证据来检测问题。"
 
-    elif any(kw in msg for kw in ["解释", "说明", "这个"]):
+    elif issue_hit and issue_id:
         result["intent"] = "explain_issue"
-        issue_id = context.get("last_issue_id", "") if context else ""
-        if issue_id:
-            explanation = ai.explain_issue(issue_id, class_id=class_id, teacher_id=tid, job_role=jr)
-            result["answer"] = explanation.get("explanation", "")
-            result["evidence"] = explanation.get("evidence_summary", [])
+        explanation = ai.explain_issue(issue_id, class_id=class_id, teacher_id=tid, job_role=jr)
+        result["answer"] = explanation.get("explanation", "")
+        result["evidence"] = explanation.get("top_patterns", [])
+        result["actions"] = [
+            {"type": "open_issue", "label": "查看教学问题", "issue_id": issue_id},
+            {"type": "generate_candidates", "label": "生成方案", "issue_id": issue_id, "student_ids": student_ids},
+        ]
+        result["context_update"] = {"current_issue_id": issue_id, "last_issue_id": issue_id,
+                                    "current_student_ids": student_ids, "last_students": student_ids}
+
+    elif plan_hit and issue_id and student_ids:
+        result["intent"] = "generate_candidates"
+        candidates = ai.generate_intervention_candidates(
+            issue_id,
+            student_ids,
+            class_id=class_id,
+            teacher_id=tid,
+            job_role=jr,
+        )
+        if candidates:
+            top = candidates[0]
+            plan = _candidate_plan(top)
+            result["answer"] = _describe_plan(plan)
+            result["data_cards"] = [_plan_card(plan)]
+            result["actions"] = [
+                {"type": "generate_candidates", "label": "生成方案",
+                 "issue_id": issue_id, "student_ids": student_ids},
+                {"type": "select_candidate", "label": "采用方案",
+                 "candidate_id": top.get("candidate_id", ""), "issue_id": issue_id,
+                 "student_ids": student_ids, "plan": plan}
+            ]
+            result["context_update"] = {
+                "last_candidate_id": top.get("candidate_id", ""),
+                "current_candidate_id": top.get("candidate_id", ""),
+                "last_students": student_ids,
+                "current_student_ids": student_ids,
+                "current_intervention_draft": plan,
+            }
+        else:
+            result["answer"] = "当前问题暂时没有可生成的干预方案，请先补充学生证据。"
 
     # Student-related intents
-    elif any(kw in msg for kw in ["学生", "状态", "薄弱", "能力"]):
+    elif student_hit:
         result["intent"] = "student_state"
         import re
         m = re.search(r"(\d{3})", msg)
-        sid = m.group(1) if m else ""
+        sid = m.group(1) if m else student_id
         if sid:
             state = ai.get_student_state(sid, class_id=class_id, teacher_id=tid, job_role=jr)
             if state.get("status") == "not_in_class":
@@ -262,13 +343,17 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
                     "evidence_coverage": coverage,
                     "last_activity_at": state.get("last_activity_at"),
                 }]
+                result["actions"] = [{"type": "open_student", "label": "查看学生", "student_id": sid}]
+                result["context_update"] = {"current_student_id": sid, "last_student_id": sid}
+        else:
+            result["answer"] = "请先选择或指定学生。"
 
     # Pattern-related intents
     elif any(kw in msg for kw in ["模式", "诊断", "过程", "pattern"]):
         result["intent"] = "student_patterns"
         import re
         m = re.search(r"(\d{3})", msg)
-        sid = m.group(1) if m else ""
+        sid = m.group(1) if m else student_id
         if sid:
             patterns = ai.get_process_patterns(sid)
             result["answer"] = f"学生 {sid} 检测到 {len(patterns)} 个诊断模式。"
@@ -276,50 +361,155 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
         else:
             result["answer"] = "请指定学生编号以查询诊断模式。"
 
-    # Intervention-related intents
-    elif any(kw in msg for kw in ["干预", "候选", "方案", "candidate", "intervention"]):
-        result["intent"] = "generate_candidates"
-        issue_id = (context or {}).get("last_issue_id", "")
-        student_ids = (context or {}).get("last_students", [])
-        if issue_id and student_ids:
-            candidates = ai.generate_intervention_candidates(
-                issue_id,
-                student_ids,
-                class_id=class_id,
-                teacher_id=tid,
-                job_role=jr,
-            )
-            result["answer"] = f"为问题 {issue_id} 生成了 {len(candidates)} 个干预候选方案。"
-            result["data_cards"] = candidates[:5]
-            if candidates:
-                result["context_update"] = {"last_candidate_id": candidates[0].get("candidate_id", "")}
-
-    elif any(kw in msg for kw in ["草稿", "创建干预", "draft"]):
+    elif any(kw in msg for kw in ["草稿", "创建干预", "draft", "采用"]):
         result["intent"] = "draft_intervention"
-        ctx = context or {}
-        issue_id = ctx.get("last_issue_id", "")
-        candidate_id = ctx.get("last_candidate_id", "")
-        student_ids = ctx.get("last_students", [])
+        issue_id = issue_id or ctx.get("last_issue_id", "")
+        candidate_id = candidate_id or ctx.get("last_candidate_id", "")
+        student_ids = student_ids or ctx.get("last_students", [])
         if issue_id and candidate_id and student_ids:
-            draft = ai.draft_intervention(issue_id, candidate_id, student_ids, teacher_id)
+            plan = draft_plan or _candidate_plan({
+                "candidate_id": candidate_id,
+                "issue_id": issue_id,
+                "ability_ids": [],
+                "target_students": student_ids,
+            })
+            draft = ai.draft_intervention(
+                issue_id, candidate_id, student_ids, teacher_id,
+                plan_snapshot=plan,
+            )
             result["answer"] = f"干预草案已创建：{draft.get('intervention_id', '')}，状态：{draft.get('status', 'draft')}"
+            result["data_cards"] = [_plan_card(plan)]
+            result["actions"] = [{"type": "open_intervention", "label": "查看干预",
+                                  "intervention_id": draft.get("intervention_id", "")}]
             result["context_update"] = {"last_intervention_id": draft.get("intervention_id", "")}
         else:
             result["answer"] = "创建干预草案需要先选择问题、候选方案和学生。"
 
-    elif any(kw in msg for kw in ["状态", "进度", "status", "审批"]):
+    elif status_hit and intervention_id:
         result["intent"] = "intervention_status"
-        ctx = context or {}
-        intervention_id = ctx.get("last_intervention_id", "")
-        if intervention_id:
-            status = ai.get_intervention_status(intervention_id)
-            result["answer"] = f"干预 {intervention_id} 当前状态：{status.get('status', 'unknown')}"
-            result["data_cards"] = [status]
+        status = ai.get_intervention_status(intervention_id)
+        result["answer"] = f"干预 {intervention_id} 当前状态：{status.get('status', 'unknown')}"
+        result["data_cards"] = [status]
+        result["actions"] = [{"type": "open_intervention", "label": "查看干预", "intervention_id": intervention_id}]
 
     else:
         # Unsupported V2 intent - delegate to V1
         result["intent"] = "general_v1_fallback"
         result["engine"] = "teacher_ai_v1"
-        result["answer"] = "V2引擎暂不支持此查询。请使用教学问题、学生状态、干预管理等V2功能。"
+        result["answer"] = "请先打开一个教学问题、学生或能力节点，再直接问“为什么”或“生成方案”。"
 
     return result
+
+
+def _first(ctx: Dict[str, Any], keys: List[str]) -> Any:
+    for key in keys:
+        value = ctx.get(key)
+        if value not in (None, "", [], {}):
+            return value
+    return ""
+
+
+def _as_list(value: Any) -> List[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value if item is not None]
+    if value:
+        return [str(value)]
+    return []
+
+
+def _candidate_plan(candidate: Dict[str, Any]) -> Dict[str, Any]:
+    ability_ids = candidate.get("ability_ids") or candidate.get("ability_id") or []
+    if isinstance(ability_ids, str):
+        ability_ids = [ability_ids]
+    students = candidate.get("target_students") or candidate.get("student_ids") or []
+    title = candidate.get("title") or "教学干预方案"
+    plan = {
+        "candidate_id": candidate.get("candidate_id", ""),
+        "issue_id": candidate.get("issue_id", ""),
+        "title": title,
+        "duration_minutes": 20,
+        "objective": "强化学生对本问题对应能力的理解，并通过实操纠正共性错误。",
+        "method": "集中讲解 + 实物辨认 + 分组练习",
+        "target_students": list(students),
+        "focus_students": [],
+        "ability_ids": list(ability_ids),
+        "resources": ["传感器实物/接线图", "PLC 输入模块或等效实训台"],
+        "steps": ["5分钟：回顾错误现象与安全要求", "10分钟：实物辨认和接线判断", "5分钟：分组复述并检查"],
+        "verification": "学生能够独立说明判断依据，并完成一次正确接线或辨析。",
+        "why": candidate.get("description") or "该方案直接针对本问题的主要薄弱能力，适合短时间课堂干预。",
+        "expected_outcome": "相关错误事件减少，学生能正确完成目标能力判断。",
+    }
+    if "sn_type_identify" in ability_ids:
+        plan["title"] = "集中纠错 + NPN/PNP 实物辨认"
+        plan["objective"] = "区分 NPN/PNP 输出类型，并正确匹配 PLC 输入公共端。"
+        plan["resources"] = ["NPN/PNP 传感器实物", "PLC 输入模块与接线图"]
+        plan["verification"] = "学生能独立说明公共端匹配规则并完成接线判断。"
+    return plan
+
+
+def _modify_plan(plan: Dict[str, Any], message: str, student_ids: List[str]) -> Dict[str, Any]:
+    import re
+    updated = dict(plan or {})
+    if not updated:
+        updated = _candidate_plan({"target_students": student_ids})
+    if "20分钟" in message:
+        updated["duration_minutes"] = 20
+    m = re.search(r"(\d+)\s*分钟", message)
+    if m:
+        updated["duration_minutes"] = int(m.group(1))
+    if "不做讲授" in message or "改成实操" in message or "实操" in message:
+        updated["method"] = "分组实操 + 即时反馈"
+    if "讲授" in message and "不做" not in message:
+        updated["method"] = "集中讲授 + 实物示范"
+    focus = []
+    for sid in student_ids:
+        if sid in message:
+            focus.append(sid)
+    explicit = re.findall(r"\b(\d{3})\b", message)
+    for sid in explicit:
+        if sid not in focus:
+            focus.append(sid)
+    if focus:
+        updated["focus_students"] = focus
+        updated["special_arrangement"] = "；".join([f"{sid} 单独安排" for sid in focus])
+    if "基础差" in message:
+        updated["method"] = "降低起点 + 分步示范 + 单独反馈"
+        updated["note"] = "已针对基础较弱学生降低初始难度。"
+    if "没PLC实训台" in message or "没有PLC" in message:
+        updated["resources"] = ["传感器实物", "接线图/图纸", "仿真或替代训练板"]
+    if "取消" in message:
+        updated["status_hint"] = "建议取消当前草案"
+    return updated
+
+
+def _describe_plan(plan: Dict[str, Any]) -> str:
+    duration = plan.get("duration_minutes", 20)
+    students = plan.get("target_students") or []
+    method = plan.get("method", "")
+    focus = plan.get("focus_students") or []
+    text = f"建议用时：{duration} 分钟。适用学生：{len(students)} 人。"
+    if method:
+        text += f"\n教学方式：{method}。"
+    if focus:
+        text += "\n单独安排：" + "、".join(str(s) for s in focus) + "。"
+    text += f"\n验证方式：{plan.get('verification', '学生能独立完成判断。')}"
+    return text
+
+
+def _plan_card(plan: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "type": "intervention_plan",
+        "candidate_id": plan.get("candidate_id", ""),
+        "title": plan.get("title", "教学干预方案"),
+        "duration_minutes": plan.get("duration_minutes", 20),
+        "target_students": plan.get("target_students", []),
+        "focus_students": plan.get("focus_students", []),
+        "ability_ids": plan.get("ability_ids", []),
+        "objective": plan.get("objective", ""),
+        "method": plan.get("method", ""),
+        "steps": plan.get("steps", []),
+        "resources": plan.get("resources", []),
+        "verification": plan.get("verification", ""),
+        "why": plan.get("why", ""),
+        "expected_outcome": plan.get("expected_outcome", ""),
+    }

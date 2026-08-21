@@ -10,12 +10,12 @@ async function openStudentManagement(page) {
   const overlayOpen = await page.locator("#workspaceOverlay").evaluate((el) =>
     el.classList.contains("open")
   );
-  if (!overlayOpen) {
-    await page.locator('[data-open-tool="studentMgmt"]').click();
-    await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
-  } else {
-    await page.locator('[data-workspace-panel="studentMgmt"]').click();
+  if (overlayOpen) {
+    await page.locator("#closeWorkspace").click();
   }
+  await page.locator('[data-open-tool="studentMgmt"]').click();
+  await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
+  await page.locator('[data-workspace-panel="studentMgmt"]').click();
   await expect(page.locator("#teacherClassLabel")).toBeVisible();
 }
 

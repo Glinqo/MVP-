@@ -4,6 +4,7 @@ server.py -> V2Facade -> Engine
 Never let server.py directly access engine internals.
 """
 
+import json
 from typing import Any, Dict, List, Optional
 
 # --- Evidence ---
@@ -267,9 +268,41 @@ def group_students(student_ids: List[str], patterns: List[Dict] = None) -> Dict[
 
 # --- Teaching Workflow ---
 def create_intervention(issue_id: str, candidate_id: str, student_ids: List[str],
-                        teacher_id: str, scope_class: str = "", job_role: str = "") -> Dict[str, Any]:
+                        teacher_id: str, scope_class: str = "", job_role: str = "",
+                        plan_snapshot: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     from app.services.workflow.workflow_store import create_intervention as ws_create
-    return ws_create(issue_id, candidate_id, student_ids, teacher_id, scope_class=scope_class, job_role=job_role)
+    return ws_create(issue_id, candidate_id, student_ids, teacher_id,
+                     scope_class=scope_class, job_role=job_role,
+                     plan_snapshot=plan_snapshot)
+
+
+def get_intervention(intervention_id: str) -> Dict[str, Any]:
+    from app.services.workflow.workflow_store import get_intervention as ws_get
+    result = ws_get(intervention_id)
+    if not result:
+        return {"intervention_id": intervention_id, "status": "not_found"}
+    return result
+
+
+def list_interventions(teacher_id: str = "", scope_class: str = "") -> List[Dict[str, Any]]:
+    from app.services.workflow.workflow_store import list_interventions as ws_list
+    return ws_list(teacher_id=teacher_id, scope_class=scope_class)
+
+
+def update_intervention_plan(intervention_id: str, plan_snapshot: Dict[str, Any],
+                             status: str = "draft", teacher_id: str = "") -> Dict[str, Any]:
+    from app.services.workflow.workflow_store import update_intervention_plan as ws_update
+    return ws_update(intervention_id, plan_snapshot, status=status, actor=teacher_id or "teacher")
+
+
+def confirm_intervention(intervention_id: str, teacher_id: str) -> Dict[str, Any]:
+    from app.services.workflow.workflow_store import transition_intervention
+    return transition_intervention(intervention_id, "planned", teacher_id or "teacher")
+
+
+def complete_intervention(intervention_id: str, teacher_id: str) -> Dict[str, Any]:
+    from app.services.workflow.workflow_store import transition_intervention
+    return transition_intervention(intervention_id, "completed", teacher_id or "teacher")
 
 def review_intervention(intervention_id: str, approved: bool, teacher_id: str) -> Dict[str, Any]:
     from app.services.workflow.workflow_store import transition_intervention
@@ -290,10 +323,33 @@ def assign_intervention(intervention_id: str, candidate_id: str,
 def evaluate_intervention(intervention_id: str, pre_states: List[Dict] = None,
                           post_states: List[Dict] = None) -> Dict[str, Any]:
     from app.services.outcome.outcome_model import OutcomeEvaluator
+    from app.services.workflow.workflow_store import save_outcome, transition_intervention, get_intervention
     evaluator = OutcomeEvaluator()
     results = evaluator.batch_evaluate(pre_states or [], post_states or [])
+    for result in results:
+        save_outcome(
+            intervention_id,
+            result.student_id,
+            pre_mastery=result.pre_mastery,
+            post_mastery=result.post_mastery,
+            delta=result.mastery_delta,
+            pre_patterns=json.dumps([], ensure_ascii=False),
+            post_patterns=json.dumps([], ensure_ascii=False),
+            evidence_count=int(result.completion_rate * 3),
+            status=result.outcome,
+        )
+    existing = get_intervention(intervention_id)
+    if existing and existing.get("status") == "completed":
+        transition_intervention(intervention_id, "evaluated", "system")
+    summary = {
+        "total": len(results),
+        "improved": sum(1 for r in results if r.outcome == "improved"),
+        "no_change": sum(1 for r in results if r.outcome == "no_change"),
+        "worsened": sum(1 for r in results if r.outcome == "worsened"),
+        "insufficient_evidence": sum(1 for r in results if r.outcome == "insufficient_evidence"),
+    }
     return {"intervention_id": intervention_id, "outcomes": [r.to_dict() for r in results],
-            "summary": {"total": len(results)}}
+            "summary": summary}
 
 def get_outcome(intervention_id: str) -> Dict[str, Any]:
     from app.services.workflow.workflow_store import get_outcome as ws_get_outcome

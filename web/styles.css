@@ -1817,3 +1817,18 @@ body[data-role="teacher"] .workspace-panel.role-teacher.active { display: block;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 .modal-header h3 { font-size: 1.1rem; }
+
+/* Teacher AI Workflow V2 */
+.suggestion-label { color: #94a3b8; font-size: 0.85rem; margin-bottom: 6px; }
+.candidate-card-title { font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
+.candidate-meta { display: flex; flex-wrap: wrap; gap: 8px; color: #94a3b8; font-size: 0.8rem; margin-bottom: 10px; }
+.candidate-body { color: #cbd5e1; margin-bottom: 10px; font-size: 0.9rem; line-height: 1.5; }
+.candidate-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.analysis-details { margin-top: 12px; color: #94a3b8; font-size: 0.9rem; }
+.analysis-details summary { cursor: pointer; color: #5eead4; }
+.intervention-preview .detail-row,
+.intervention-status .detail-row,
+.intervention-created .detail-row { margin-bottom: 10px; line-height: 1.55; }
+.intervention-preview-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.insight-ability-row .btn-small { font-size: 0.75rem; padding: 4px 8px; }
+.ai-actions-row .ai-action-btn { white-space: normal; }

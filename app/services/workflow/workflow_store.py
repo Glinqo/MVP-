@@ -7,7 +7,8 @@ ROOT = Path(__file__).resolve().parents[2]
 DB_PATH = ROOT / "data" / "v2_workflow.db"
 
 VALID_TRANSITIONS = {
-    "draft":       ["reviewed", "cancelled"],
+    "draft":       ["planned", "reviewed", "cancelled"],
+    "planned":     ["reviewed", "in_progress", "cancelled"],
     "reviewed":    ["assigned", "cancelled"],
     "assigned":    ["in_progress", "cancelled"],
     "in_progress": ["completed"],
@@ -46,6 +47,10 @@ def _ensure_tables():
                 version INTEGER NOT NULL DEFAULT 1
             )
         """)
+        # Lightweight migration for existing workflow databases.
+        existing = [row["name"] for row in conn.execute("PRAGMA table_info(interventions)").fetchall()]
+        if "plan_snapshot" not in existing:
+            conn.execute("ALTER TABLE interventions ADD COLUMN plan_snapshot TEXT NOT NULL DEFAULT '{}'")
         conn.execute("""
             CREATE TABLE IF NOT EXISTS intervention_targets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -95,15 +100,17 @@ _ensure_tables()
 # --- Intervention CRUD ---
 
 def create_intervention(issue_id: str, candidate_id: str, student_ids: List[str],
-                        teacher_id: str, scope_class: str = "", job_role: str = "") -> Dict[str, Any]:
+                        teacher_id: str, scope_class: str = "", job_role: str = "",
+                        plan_snapshot: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     iid = f"INT_{issue_id}_{int(time.time())}"
     now = time.time()
+    plan_json = json.dumps(plan_snapshot or {}, ensure_ascii=False)
     with _conn() as conn:
         conn.execute(
             """INSERT INTO interventions (intervention_id, issue_id, teacher_id, candidate_id,
-               status, scope_class, job_role, created_at, updated_at)
-               VALUES (?, ?, ?, ?, 'draft', ?, ?, ?, ?)""",
-            (iid, issue_id, teacher_id, candidate_id, scope_class, job_role, now, now)
+               status, scope_class, job_role, created_at, updated_at, plan_snapshot)
+               VALUES (?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?)""",
+            (iid, issue_id, teacher_id, candidate_id, scope_class, job_role, now, now, plan_json)
         )
         for sid in student_ids:
             conn.execute(
@@ -111,7 +118,7 @@ def create_intervention(issue_id: str, candidate_id: str, student_ids: List[str]
                 (iid, sid, now)
             )
         conn.commit()
-    return {"intervention_id": iid, "status": "draft"}
+    return {"intervention_id": iid, "status": "draft", "plan_snapshot": plan_snapshot or {}}
 
 def get_intervention(intervention_id: str) -> Optional[Dict[str, Any]]:
     with _conn() as conn:
@@ -123,9 +130,33 @@ def get_intervention(intervention_id: str) -> Optional[Dict[str, Any]]:
         tasks = [dict(r) for r in conn.execute(
             "SELECT * FROM intervention_tasks WHERE intervention_id = ?", (intervention_id,)).fetchall()]
         result = dict(row)
+        try:
+            result["plan_snapshot"] = json.loads(result.get("plan_snapshot") or "{}")
+        except (json.JSONDecodeError, TypeError):
+            result["plan_snapshot"] = {}
         result["targets"] = targets
         result["tasks"] = tasks
         return result
+
+
+def update_intervention_plan(intervention_id: str, plan_snapshot: Dict[str, Any],
+                             status: str = "draft", actor: str = "system") -> Dict[str, Any]:
+    """Persist teacher/AI edits to an intervention draft without changing formal state."""
+    now = time.time()
+    with _conn() as conn:
+        row = conn.execute("SELECT * FROM interventions WHERE intervention_id = ?", (intervention_id,)).fetchone()
+        if not row:
+            return {"ok": False, "error": "not found", "code": "NOT_FOUND"}
+        current = dict(row)["status"]
+        if status != current and status not in VALID_TRANSITIONS.get(current, []):
+            return {"ok": False, "error": f"invalid transition {current}->{status}", "code": "ILLEGAL_STATE"}
+        conn.execute(
+            "UPDATE interventions SET plan_snapshot = ?, status = ?, updated_at = ?, version = version + 1 WHERE intervention_id = ?",
+            (json.dumps(plan_snapshot or {}, ensure_ascii=False), status, now, intervention_id),
+        )
+        conn.commit()
+    return {"ok": True, "intervention_id": intervention_id, "status": status,
+            "plan_snapshot": plan_snapshot or {}}
 
 def transition_intervention(intervention_id: str, new_status: str, actor: str = "system") -> Dict[str, Any]:
     with _conn() as conn:
@@ -166,7 +197,7 @@ def list_interventions(teacher_id: str = "", scope_class: str = "") -> List[Dict
             rows = conn.execute("SELECT * FROM interventions WHERE teacher_id = ? ORDER BY updated_at DESC", (teacher_id,)).fetchall()
         else:
             rows = conn.execute("SELECT * FROM interventions ORDER BY updated_at DESC LIMIT 100").fetchall()
-        return [dict(r) for r in rows]
+        return [_with_plan(r) for r in rows]
 
 def get_student_interventions(student_id: str) -> List[Dict[str, Any]]:
     with _conn() as conn:
@@ -175,7 +206,16 @@ def get_student_interventions(student_id: str) -> List[Dict[str, Any]]:
             INNER JOIN intervention_targets t ON i.intervention_id = t.intervention_id
             WHERE t.student_id = ? ORDER BY i.updated_at DESC
         """, (student_id,)).fetchall()
-        return [dict(r) for r in rows]
+        return [_with_plan(r) for r in rows]
+
+
+def _with_plan(row) -> Dict[str, Any]:
+    result = dict(row)
+    try:
+        result["plan_snapshot"] = json.loads(result.get("plan_snapshot") or "{}")
+    except (json.JSONDecodeError, TypeError):
+        result["plan_snapshot"] = {}
+    return result
 
 # --- Outcome ---
 
