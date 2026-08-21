@@ -383,19 +383,6 @@ TeacherUI.initNav = function() {
   if (TeacherUI._navInitialized) return;
   TeacherUI._navInitialized = true;
   TeacherUI.loadClasses();
-  // Bind class management buttons
-  var manageBtn = document.getElementById("manageClassBtn");
-  if (manageBtn) manageBtn.addEventListener("click", function() { TeacherUI.openManageStudents(); });
-  var createBtn = document.getElementById("createClassBtn");
-  if (createBtn) createBtn.addEventListener("click", function() { TeacherUI.openCreateClass(); });
-  var tabs = document.querySelectorAll(".teacher-nav-tab");
-  tabs.forEach(function(tab) {
-    tab.addEventListener("click", function() {
-      tabs.forEach(function(t) { t.classList.remove("active"); });
-      this.classList.add("active");
-      TeacherUI.switchTab(this.dataset.tab);
-    });
-  });
   TeacherUI.switchTab("today");
 };
 
@@ -421,6 +408,13 @@ TeacherUI.switchTab = function(tabId) {
     feedback: TeacherUI.loadFeedback
   };
   if (loaders[tabId]) loaders[tabId]();
+};
+
+TeacherUI.showStudentList = function() {
+  document.querySelectorAll(".student-mgmt-btn").forEach(function(btn) {
+    btn.classList.toggle("active", btn.textContent.trim() === "学生列表");
+  });
+  TeacherUI.loadStudents();
 };
 
 // ============================================================

@@ -450,20 +450,6 @@
           <div id="jobProfile" class="job-card">
             <div class="muted">岗位画像加载中</div>
           </div>
-          <div id="teacherJobCard" class="job-card teacher-job-card role-teacher" style="display:none">
-            <div class="job-card-head">
-              <div>
-                <div class="muted">当前班级</div>
-                <strong id="teacherClassLabel" onclick="TeacherUI.toggleClassDropdown()">未选择班级</strong>
-              </div>
-              <span id="teacherClassMeta"></span>
-            </div>
-            <div class="teacher-class-actions">
-              <button id="manageClassBtn" class="btn-secondary" style="display:none" onclick="TeacherUI.openManageStudents()">管理学生</button>
-              <button id="createClassBtn" class="btn-primary" onclick="TeacherUI.openCreateClass()">创建班级</button>
-            </div>
-            <div id="classDropdown" class="class-dropdown" style="display:none"></div>
-          </div>
         </details>
 
 
@@ -730,6 +716,17 @@
           </section>
 
           <section id="workspaceStudentMgmt" class="workspace-panel role-teacher teacher-workspace-panel">
+            <div class="student-mgmt-classbar">
+              <span class="muted">当前班级</span>
+              <button type="button" id="teacherClassLabel" class="student-mgmt-class-select" onclick="TeacherUI.toggleClassDropdown()">未选择班级</button>
+              <span id="teacherClassMeta" class="class-bar-meta"></span>
+              <div id="classDropdown" class="class-dropdown" style="display:none"></div>
+            </div>
+            <div class="student-mgmt-actions">
+              <button type="button" id="createClassBtn" class="student-mgmt-btn" onclick="TeacherUI.openCreateClass()">创建班级</button>
+              <button type="button" id="manageClassBtn" class="student-mgmt-btn" onclick="TeacherUI.openManageStudents()">学生管理</button>
+              <button type="button" id="studentListBtn" class="student-mgmt-btn active" onclick="TeacherUI.showStudentList()">学生列表</button>
+            </div>
             <div id="tw-students"></div>
           </section>
 

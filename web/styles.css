@@ -1517,14 +1517,23 @@ body[data-role="teacher"] .workspace-tabs .role-teacher { display: inline-flex !
 body[data-role="teacher"] .workspace-panel.role-teacher { display: none; }
 body[data-role="teacher"] .workspace-panel.role-teacher.active { display: block; }
 
-/* Shared skeleton: teacher class card in sidebar */
-.tool-drawer details { position: relative; }
-.teacher-job-card { display: none; position: relative; }
-body[data-role="teacher"] #jobProfile { display: none !important; }
-body[data-role="teacher"] .teacher-job-card { display: block !important; }
-.teacher-class-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-#teacherClassMeta { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-#classDropdown { top: calc(100% + 6px); right: 0; min-width: 240px; }
+/* Student management toolbar inside the shared workspace shell */
+.student-mgmt-classbar {
+  position: relative; display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--glass);
+}
+.student-mgmt-class-select {
+  min-height: 38px; padding: 8px 12px; font-weight: 700; color: var(--text);
+  background: rgba(255,255,255,0.04); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); cursor: pointer;
+}
+#teacherClassMeta { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-size: 0.85rem; }
+#classDropdown { top: calc(100% + 6px); left: 0; right: auto; min-width: 240px; }
+.student-mgmt-actions { display: flex; gap: 8px; margin-bottom: 12px; }
+.student-mgmt-btn { min-height: 38px; padding: 8px 14px; font-size: 0.9rem; font-weight: 600; }
+.student-mgmt-btn.active { border-color: var(--primary); background: rgba(15,118,110,0.12); color: var(--primary-light); }
 
 /* Teacher modules rendered inside the shared workspace shell */
 .teacher-workspace-panel { min-height: 100%; }

@@ -119,7 +119,21 @@ for username in students:
   });
 }
 
+async function openStudentManagement(page) {
+  const overlayOpen = await page.locator("#workspaceOverlay").evaluate((el) =>
+    el.classList.contains("open")
+  );
+  if (!overlayOpen) {
+    await page.locator('[data-open-tool="studentMgmt"]').click();
+    await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
+  } else {
+    await page.locator('[data-workspace-panel="studentMgmt"]').click();
+  }
+  await expect(page.locator("#teacherClassLabel")).toBeVisible();
+}
+
 async function selectClass(page, name) {
+  await openStudentManagement(page);
   await page.locator("#teacherClassLabel").click();
   await expect(page.locator("#classDropdown")).toBeVisible();
   await page.locator(".class-dropdown-item", { hasText: name }).first().click();
@@ -181,6 +195,7 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
 
   await loginAsTeacher(page, "000", "123456");
 
+  await openStudentManagement(page);
   await page.locator("#createClassBtn").click();
   await expect(page.locator("#createClassModal")).toBeVisible();
   await page.locator("#newClassName").fill(`${createdPrefix}-UI`);
@@ -191,8 +206,7 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
 
   await selectClass(page, classAName);
 
-  await page.locator('[data-open-tool="teacherToday"]').click();
-  await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
+  await page.locator('[data-workspace-panel="teacherToday"]').click();
   await expect(page.locator("#todayTeachingContent .issue-card").first()).toBeVisible({ timeout: 15000 });
   await expect(page.locator("#todayTeachingContent")).toContainText("2 人");
   await page.locator("#todayTeachingContent .issue-card").first().click();
@@ -211,6 +225,7 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
   await expect(page.locator("#issueDetailDrawer")).not.toHaveClass(/open/);
 
   await page.locator("#closeWorkspace").click();
+  await openStudentManagement(page);
   await page.locator("#manageClassBtn").click();
   await expect(page.locator("#manageStudentsModal")).toBeVisible();
   await page.locator("#studentSearchInput").fill("003");
@@ -228,8 +243,7 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
   await page.locator("#manageStudentsModal .modal-close").click();
   await expect(page.locator("#manageStudentsModal")).toBeHidden();
 
-  await page.locator('[data-open-tool="studentMgmt"]').click();
-  await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
+  await page.locator('[data-workspace-panel="studentMgmt"]').click();
   await expect(page.locator("#teacherStudentListPane .student-card", { hasText: "001" }).first()).toBeVisible();
   await expect(page.locator("#teacherStudentListPane .student-card", { hasText: "006" })).toHaveCount(0);
   await page.locator('#teacherStudentListPane .student-card[data-student-id="001"]').click();
@@ -262,6 +276,7 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
   await expect(page.locator("#tw-feedback")).toContainText("教学反馈");
 
   await selectClass(page, classAName);
+  await page.locator("#closeWorkspace").click();
   await page.locator("#chatInput").fill("查看学生 008 的学习状态");
   await page.getByRole("button", { name: "发送" }).click();
   await expect(page.locator("#chatMessages")).toContainText("不属于当前班级", { timeout: 15000 });

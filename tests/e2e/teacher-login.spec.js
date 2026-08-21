@@ -11,10 +11,16 @@ test("teacher 000 login shows teacher workspace", async ({ page }) => {
   await expect(page.locator(".teacher-layout")).toHaveCount(0);
 
   // Key teacher UI elements
-  await expect(page.locator("#teacherClassLabel")).toBeVisible();
-  await expect(page.locator("#createClassBtn")).toBeVisible();
+  await expect(page.locator("#jobProfile")).toBeVisible();
   await expect(page.locator("#chatForm")).toBeVisible();
   await expect(page.locator(".launcher-panel.role-teacher")).toBeVisible();
+
+  await page.locator('[data-open-tool="studentMgmt"]').click();
+  await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
+  await expect(page.locator("#teacherClassLabel")).toBeVisible();
+  await expect(page.locator("#createClassBtn")).toBeVisible();
+  await expect(page.locator("#manageClassBtn")).toBeVisible();
+  await expect(page.locator("#studentListBtn")).toBeVisible();
 
   // No legacy landingStepStudents
   await expect(page.locator("#landingStepStudents")).toHaveCount(0);
