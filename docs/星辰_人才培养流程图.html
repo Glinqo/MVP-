@@ -110,6 +110,25 @@
       letter-spacing: 0.4px;
     }
 
+    .flow-title {
+      position: absolute;
+      z-index: 3;
+      left: 38px;
+      top: 200px;
+      color: #e2e8f0;
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: 7px;
+      line-height: 1.15;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      text-shadow: 0 0 18px rgba(20,184,166,0.24);
+    }
+
+    .flow-title span {
+      color: #14b8a6;
+    }
+
     .legend {
       display: flex;
       gap: 10px;
@@ -363,6 +382,7 @@
 <body>
   <div class="board">
     <div id="starfield"></div>
+    <div class="flow-title"><span>星辰</span> · 人才培养双线闭环流程图</div>
 
     <svg class="connectors" viewBox="0 0 1600 1420" aria-hidden="true">
       <defs>
