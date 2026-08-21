@@ -198,29 +198,8 @@
       background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent 42%);
     }
 
-    .node-head {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      margin-bottom: 7px;
-    }
-
-    .node-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 7px;
-      display: grid;
-      place-items: center;
-      font-size: 16px;
-      font-weight: 700;
-      color: #fff;
-      background: rgba(255,255,255,0.09);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-      flex: 0 0 auto;
-    }
-
     .node-title {
-      margin: 0;
+      margin: 0 0 7px;
       font-size: 24px;
       font-weight: 700;
       color: var(--text);
@@ -324,12 +303,8 @@
       width: 600px;
       height: 108px;
       padding: 18px 22px;
-      display: flex;
-      align-items: center;
+      display: block;
     }
-
-    .node.system.closure .node-head { margin: 0 14px 0 0; flex: 0 0 auto; }
-    .node.system.closure .node-sub { flex: 1 1 auto; }
 
     .lane-label {
       position: absolute;
@@ -389,19 +364,6 @@
   <div class="board">
     <div id="starfield"></div>
 
-    <div class="header">
-      <div class="title-block">
-        <div class="eyebrow">Xing Chen · Training Loop</div>
-        <h1>星辰 · 人才培养双线闭环流程图</h1>
-        <div class="subtitle">学生成长线 / 教学治理线，围绕岗位能力星图持续演化</div>
-      </div>
-      <div class="legend">
-        <span class="legend-item"><span class="legend-dot" style="color:#14b8a6;background:#14b8a6"></span>智能系统</span>
-        <span class="legend-item"><span class="legend-dot" style="color:#38bdf8;background:#38bdf8"></span>学生线</span>
-        <span class="legend-item"><span class="legend-dot" style="color:#fbbf24;background:#fbbf24"></span>教师线</span>
-      </div>
-    </div>
-
     <svg class="connectors" viewBox="0 0 1600 1420" aria-hidden="true">
       <defs>
         <marker id="arrow-system" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
@@ -449,78 +411,48 @@
     <div class="lane-label teacher">教 学 治 理 线</div>
 
     <section class="node input teacher">
-      <div class="node-head">
-        <span class="node-icon">教</span>
-        <h2 class="node-title">教师输入人才培养方案</h2>
-      </div>
-      <p class="node-sub">课程目标、岗位要求、实训标准与评价依据</p>
+      <h2 class="node-title">输入培养方案</h2>
+      <p class="node-sub">教师提交岗位培养要求与实训标准</p>
     </section>
 
     <section class="node system">
-      <div class="node-head">
-        <span class="node-icon">星</span>
-        <h2 class="node-title">星辰智能系统 · 确定人才培养目标</h2>
-      </div>
-      <p class="node-sub">解析培养方案，生成岗位能力星图、测评模型与培养诊断规则</p>
-      <span class="small-tag">岗位能力目标</span>
-      <span class="small-tag">测评模型</span>
-      <span class="small-tag">培养诊断</span>
+      <h2 class="node-title">确定培养目标</h2>
+      <p class="node-sub">星辰生成岗位能力星图与测评规则</p>
     </section>
 
     <section class="node student assessment">
-      <div class="node-head">
-        <span class="node-icon">学</span>
-        <h2 class="node-title">学生使用测评</h2>
-      </div>
-      <p class="node-sub">完成岗位能力测评，采集问答、答题、讲题与实训事件</p>
+      <h2 class="node-title">学生开展测评</h2>
+      <p class="node-sub">完成能力测评并采集学习事件</p>
     </section>
 
     <section class="node teacher assessment">
-      <div class="node-head">
-        <span class="node-icon">管</span>
-        <h2 class="node-title">管理人员 / 教师查看培养情况</h2>
-      </div>
-      <p class="node-sub">查看个人能力星图、班级星空分布与共性培养情况</p>
+      <h2 class="node-title">教师查看培养</h2>
+      <p class="node-sub">查看个人星图与班级共性情况</p>
     </section>
 
     <section class="node insight issue">
-      <div class="node-head">
-        <span class="node-icon">差</span>
-        <h2 class="node-title">个性问题诊断</h2>
-      </div>
-      <p class="node-sub">定位薄弱能力节点，识别个人知识缺口与能力短板</p>
+      <h2 class="node-title">个性问题诊断</h2>
+      <p class="node-sub">定位个人薄弱能力与知识缺口</p>
     </section>
 
     <section class="node teacher issue">
-      <div class="node-head">
-        <span class="node-icon">共</span>
-        <h2 class="node-title">共性问题识别</h2>
-      </div>
-      <p class="node-sub">发现班级共性短板、高频错误与教学重点偏差</p>
+      <h2 class="node-title">共性问题识别</h2>
+      <p class="node-sub">发现班级共性短板与教学重点</p>
     </section>
 
     <section class="node action">
-      <div class="node-head">
-        <span class="node-icon">研</span>
-        <h2 class="node-title">学生开展自主学习</h2>
-      </div>
-      <p class="node-sub">根据智能系统推荐，完成个性化资源学习、实训任务与复测</p>
+      <h2 class="node-title">学生自主学习</h2>
+      <p class="node-sub">按系统推荐完成资源学习与实训任务</p>
     </section>
 
     <section class="node teacher action">
-      <div class="node-head">
-        <span class="node-icon">调</span>
-        <h2 class="node-title">教师调整课程 / 实训内容</h2>
-      </div>
-      <p class="node-sub">结合系统反馈，优化课程设计、题库内容与实训任务安排</p>
+      <h2 class="node-title">教师调整实训</h2>
+      <p class="node-sub">结合反馈优化课程内容与实训安排</p>
     </section>
 
     <section class="node system closure">
-      <div class="node-head">
-        <span class="node-icon">回</span>
-        <h2 class="node-title">能力星图持续更新</h2>
-      </div>
-      <p class="node-sub">学习证据回流，目标动态优化，形成教学闭环</p>
+      <h2 class="node-title">星图持续更新</h2>
+      <p class="node-sub">学习证据回流并动态优化能力目标</p>
     </section>
   </div>
 
