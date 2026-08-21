@@ -39,7 +39,7 @@
     .board {
       position: relative;
       width: 1600px;
-      height: 1180px;
+      height: 1240px;
       overflow: hidden;
       background:
         radial-gradient(ellipse 70% 50% at 10% 90%, rgba(15,118,110,0.16) 0%, transparent 70%),
@@ -141,7 +141,7 @@
       position: absolute;
       inset: 0;
       width: 1600px;
-      height: 1180px;
+      height: 1240px;
       z-index: 1;
       pointer-events: none;
     }
@@ -256,31 +256,31 @@
 
     .node.input {
       left: 540px;
-      top: 90px;
+      top: 86px;
       width: 520px;
-      height: 92px;
+      height: 90px;
       padding: 18px 20px;
     }
 
     .node.system {
       left: 500px;
-      top: 250px;
+      top: 226px;
       width: 600px;
-      height: 132px;
+      height: 126px;
       padding: 20px 24px;
     }
 
-    .node.student.branch {
-      left: 120px;
-      top: 470px;
+    .node.student.assessment {
+      left: 550px;
+      top: 410px;
       width: 500px;
       height: 104px;
       padding: 18px 20px;
     }
 
-    .node.teacher.branch {
-      left: 980px;
-      top: 470px;
+    .node.teacher.assessment {
+      left: 550px;
+      top: 580px;
       width: 500px;
       height: 104px;
       padding: 18px 20px;
@@ -288,7 +288,7 @@
 
     .node.insight.issue {
       left: 120px;
-      top: 650px;
+      top: 760px;
       width: 500px;
       height: 96px;
       padding: 16px 20px;
@@ -296,7 +296,7 @@
 
     .node.teacher.issue {
       left: 980px;
-      top: 650px;
+      top: 760px;
       width: 500px;
       height: 96px;
       padding: 16px 20px;
@@ -304,7 +304,7 @@
 
     .node.action {
       left: 120px;
-      top: 820px;
+      top: 926px;
       width: 500px;
       height: 128px;
       padding: 18px 20px;
@@ -312,7 +312,7 @@
 
     .node.teacher.action {
       left: 980px;
-      top: 820px;
+      top: 926px;
       width: 500px;
       height: 128px;
       padding: 18px 20px;
@@ -320,7 +320,7 @@
 
     .node.system.closure {
       left: 500px;
-      top: 1020px;
+      top: 1110px;
       width: 600px;
       height: 82px;
       padding: 16px 22px;
@@ -334,7 +334,7 @@
     .lane-label {
       position: absolute;
       z-index: 2;
-      top: 438px;
+      top: 730px;
       width: 500px;
       text-align: center;
       color: var(--text-secondary);
@@ -360,7 +360,7 @@
     .loop-label {
       position: absolute;
       right: 70px;
-      top: 650px;
+      top: 700px;
       color: #a78bfa;
       font-size: 13px;
       font-weight: 700;
@@ -402,7 +402,7 @@
       </div>
     </div>
 
-    <svg class="connectors" viewBox="0 0 1600 1180" aria-hidden="true">
+    <svg class="connectors" viewBox="0 0 1600 1240" aria-hidden="true">
       <defs>
         <marker id="arrow-system" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
           <path d="M0,0 L8,4.5 L0,9 z" fill="#14b8a6"/>
@@ -419,26 +419,28 @@
       </defs>
 
       <!-- Input to system -->
-      <path class="connector-line system" d="M800,182 L800,250" marker-end="url(#arrow-system)"/>
+      <path class="connector-line system" d="M800,176 L800,226" marker-end="url(#arrow-system)"/>
 
-      <!-- System split to two lanes -->
-      <path class="connector-line student" d="M800,382 C800,432 370,418 370,470" marker-end="url(#arrow-student)"/>
-      <path class="connector-line teacher" d="M800,382 C800,432 1230,418 1230,470" marker-end="url(#arrow-teacher)"/>
+      <!-- System to student assessment -->
+      <path class="connector-line system" d="M800,352 L800,410" marker-end="url(#arrow-system)"/>
 
-      <!-- Student lane -->
-      <path class="connector-line student" d="M370,574 L370,650" marker-end="url(#arrow-student)"/>
-      <path class="connector-line student" d="M370,746 L370,820" marker-end="url(#arrow-student)"/>
+      <!-- Student assessment to teacher view -->
+      <path class="connector-line system" d="M800,514 L800,580" marker-end="url(#arrow-system)"/>
 
-      <!-- Teacher lane -->
-      <path class="connector-line teacher" d="M1230,574 L1230,650" marker-end="url(#arrow-teacher)"/>
-      <path class="connector-line teacher" d="M1230,746 L1230,820" marker-end="url(#arrow-teacher)"/>
+      <!-- Teacher view split to individual and common issues -->
+      <path class="connector-line student" d="M800,684 C800,726 370,706 370,760" marker-end="url(#arrow-student)"/>
+      <path class="connector-line teacher" d="M800,684 C800,726 1230,706 1230,760" marker-end="url(#arrow-teacher)"/>
+
+      <!-- Issue to action -->
+      <path class="connector-line student" d="M370,856 L370,926" marker-end="url(#arrow-student)"/>
+      <path class="connector-line teacher" d="M1230,856 L1230,926" marker-end="url(#arrow-teacher)"/>
 
       <!-- Branches converge to closure -->
-      <path class="connector-line system" d="M370,948 C370,993 620,1004 800,1020" marker-end="url(#arrow-system)"/>
-      <path class="connector-line system" d="M1230,948 C1230,993 980,1004 800,1020" marker-end="url(#arrow-system)"/>
+      <path class="connector-line system" d="M370,1054 C370,1088 610,1096 800,1110" marker-end="url(#arrow-system)"/>
+      <path class="connector-line system" d="M1230,1054 C1230,1088 990,1096 800,1110" marker-end="url(#arrow-system)"/>
 
       <!-- Feedback loop from closure back to system -->
-      <path class="connector-line dashed" d="M1100,1060 L1560,1060 L1560,316 L1100,316" marker-end="url(#arrow-purple)"/>
+      <path class="connector-line dashed" d="M1100,1151 L1560,1151 L1560,289 L1100,289" marker-end="url(#arrow-purple)"/>
     </svg>
 
     <div class="loop-label">数据回流 · 持续更新</div>
@@ -465,7 +467,7 @@
       <span class="small-tag">培养诊断</span>
     </section>
 
-    <section class="node student branch">
+    <section class="node student assessment">
       <div class="node-head">
         <span class="node-icon">学</span>
         <h2 class="node-title">学生使用测评</h2>
@@ -473,7 +475,7 @@
       <p class="node-sub">完成岗位能力测评，采集问答、答题、讲题与实训事件</p>
     </section>
 
-    <section class="node teacher branch">
+    <section class="node teacher assessment">
       <div class="node-head">
         <span class="node-icon">管</span>
         <h2 class="node-title">管理人员 / 教师查看培养情况</h2>
@@ -533,7 +535,7 @@
         star.className = "star";
         const size = Math.random() * 2.6 + 1.1;
         const x = Math.random() * 1600;
-        const y = Math.random() * 1180;
+        const y = Math.random() * 1240;
         const color = colors[Math.floor(Math.random() * colors.length)];
         star.style.left = x + "px";
         star.style.top = y + "px";
