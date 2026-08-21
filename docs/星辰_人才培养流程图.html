@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>星辰 · 人才培养双线闭环流程图</title>
+  <style>
+    :root {
+      --bg: #0a1628;
+      --bg-gradient: linear-gradient(135deg, #0a1628 0%, #1a2a4a 40%, #1e3a5f 100%);
+      --panel-solid: #0f1d35;
+      --glass: rgba(255,255,255,0.04);
+      --glass-hover: rgba(255,255,255,0.08);
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --muted: #64748b;
+      --line: rgba(255,255,255,0.10);
+      --line-strong: rgba(255,255,255,0.16);
+      --primary: #0f766e;
+      --primary-light: #14b8a6;
+      --accent-blue: #38bdf8;
+      --accent-purple: #a78bfa;
+      --warning: #fbbf24;
+      --weak: #fb7185;
+      --success: #22c55e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg-gradient);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    .board {
+      position: relative;
+      width: 1600px;
+      height: 1180px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 70% 50% at 10% 90%, rgba(15,118,110,0.16) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 90% 10%, rgba(56,189,248,0.11) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 50% 50%, rgba(168,85,247,0.07) 0%, transparent 60%),
+        var(--bg-gradient);
+    }
+
+    .board::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 22%, transparent 78%, rgba(0,0,0,0.22));
+    }
+
+    #starfield {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: #f8fafc;
+      box-shadow: 0 0 8px rgba(56,189,248,0.75);
+      opacity: 0.55;
+    }
+
+    .header {
+      position: absolute;
+      z-index: 3;
+      top: 24px;
+      left: 70px;
+      right: 70px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .title-block {
+      position: relative;
+    }
+
+    .eyebrow {
+      color: var(--primary-light);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0;
+      color: var(--text);
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      letter-spacing: 0.4px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding-bottom: 2px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      padding: 7px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .legend-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .connectors {
+      position: absolute;
+      inset: 0;
+      width: 1600px;
+      height: 1180px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .connector-line {
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.86;
+      filter: drop-shadow(0 0 4px rgba(20,184,166,0.25));
+    }
+
+    .connector-line.teacher {
+      stroke: #fbbf24;
+      filter: drop-shadow(0 0 5px rgba(251,191,36,0.28));
+    }
+
+    .connector-line.student {
+      stroke: #38bdf8;
+      filter: drop-shadow(0 0 5px rgba(56,189,248,0.30));
+    }
+
+    .connector-line.system {
+      stroke: #14b8a6;
+      filter: drop-shadow(0 0 6px rgba(20,184,166,0.42));
+    }
+
+    .connector-line.dashed {
+      stroke-dasharray: 7 8;
+      stroke: #a78bfa;
+      opacity: 0.72;
+      filter: drop-shadow(0 0 5px rgba(167,139,250,0.25));
+    }
+
+    .node {
+      position: absolute;
+      z-index: 2;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.045);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.035);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      overflow: hidden;
+    }
+
+    .node::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent 42%);
+    }
+
+    .node-head {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 7px;
+    }
+
+    .node-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(255,255,255,0.09);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+      flex: 0 0 auto;
+    }
+
+    .node-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.25;
+    }
+
+    .node-sub {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .node.teacher .node-icon { background: rgba(251,191,36,0.16); color: #fde68a; }
+    .node.teacher { border-color: rgba(251,191,36,0.30); }
+    .node.teacher .node-title { color: #fde68a; }
+
+    .node.student .node-icon { background: rgba(56,189,248,0.16); color: #bae6fd; }
+    .node.student { border-color: rgba(56,189,248,0.28); }
+    .node.student .node-title { color: #bae6fd; }
+
+    .node.system .node-icon { background: rgba(20,184,166,0.18); color: #99f6e4; }
+    .node.system { border-color: rgba(20,184,166,0.42); background: rgba(15,118,110,0.10); box-shadow: 0 0 34px rgba(20,184,166,0.13), 0 8px 30px rgba(0,0,0,0.34); }
+    .node.system .node-title { color: #99f6e4; }
+
+    .node.insight { border-color: rgba(167,139,250,0.34); }
+    .node.insight .node-icon { background: rgba(167,139,250,0.18); color: #ddd6fe; }
+    .node.insight .node-title { color: #ddd6fe; }
+
+    .node.action { border-color: rgba(34,197,94,0.28); }
+    .node.action .node-icon { background: rgba(34,197,94,0.16); color: #bbf7d0; }
+    .node.action .node-title { color: #bbf7d0; }
+
+    .node.input {
+      left: 540px;
+      top: 90px;
+      width: 520px;
+      height: 92px;
+      padding: 18px 20px;
+    }
+
+    .node.system {
+      left: 500px;
+      top: 250px;
+      width: 600px;
+      height: 132px;
+      padding: 20px 24px;
+    }
+
+    .node.student.branch {
+      left: 120px;
+      top: 470px;
+      width: 500px;
+      height: 104px;
+      padding: 18px 20px;
+    }
+
+    .node.teacher.branch {
+      left: 980px;
+      top: 470px;
+      width: 500px;
+      height: 104px;
+      padding: 18px 20px;
+    }
+
+    .node.insight.issue {
+      left: 120px;
+      top: 650px;
+      width: 500px;
+      height: 96px;
+      padding: 16px 20px;
+    }
+
+    .node.teacher.issue {
+      left: 980px;
+      top: 650px;
+      width: 500px;
+      height: 96px;
+      padding: 16px 20px;
+    }
+
+    .node.action {
+      left: 120px;
+      top: 820px;
+      width: 500px;
+      height: 128px;
+      padding: 18px 20px;
+    }
+
+    .node.teacher.action {
+      left: 980px;
+      top: 820px;
+      width: 500px;
+      height: 128px;
+      padding: 18px 20px;
+    }
+
+    .node.system.closure {
+      left: 500px;
+      top: 1020px;
+      width: 600px;
+      height: 82px;
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+    }
+
+    .node.system.closure .node-head { margin: 0 14px 0 0; flex: 0 0 auto; }
+    .node.system.closure .node-sub { flex: 1 1 auto; }
+
+    .lane-label {
+      position: absolute;
+      z-index: 2;
+      top: 438px;
+      width: 500px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+
+    .lane-label.student { left: 120px; }
+    .lane-label.teacher { left: 980px; }
+
+    .path-label {
+      position: absolute;
+      z-index: 2;
+      color: #a78bfa;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+
+    .loop-label {
+      position: absolute;
+      right: 70px;
+      top: 650px;
+      color: #a78bfa;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      z-index: 2;
+    }
+
+    .node .small-tag {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 7px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.035);
+      color: var(--text-secondary);
+      font-size: 11px;
+      line-height: 1;
+      padding: 5px 9px;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="board">
+    <div id="starfield"></div>
+
+    <div class="header">
+      <div class="title-block">
+        <div class="eyebrow">Xing Chen · Training Loop</div>
+        <h1>星辰 · 人才培养双线闭环流程图</h1>
+        <div class="subtitle">学生成长线 / 教学治理线，围绕岗位能力星图持续演化</div>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot" style="color:#14b8a6;background:#14b8a6"></span>智能系统</span>
+        <span class="legend-item"><span class="legend-dot" style="color:#38bdf8;background:#38bdf8"></span>学生线</span>
+        <span class="legend-item"><span class="legend-dot" style="color:#fbbf24;background:#fbbf24"></span>教师 / 管理线</span>
+      </div>
+    </div>
+
+    <svg class="connectors" viewBox="0 0 1600 1180" aria-hidden="true">
+      <defs>
+        <marker id="arrow-system" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L8,4.5 L0,9 z" fill="#14b8a6"/>
+        </marker>
+        <marker id="arrow-student" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L8,4.5 L0,9 z" fill="#38bdf8"/>
+        </marker>
+        <marker id="arrow-teacher" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L8,4.5 L0,9 z" fill="#fbbf24"/>
+        </marker>
+        <marker id="arrow-purple" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L8,4.5 L0,9 z" fill="#a78bfa"/>
+        </marker>
+      </defs>
+
+      <!-- Input to system -->
+      <path class="connector-line system" d="M800,182 L800,250" marker-end="url(#arrow-system)"/>
+
+      <!-- System split to two lanes -->
+      <path class="connector-line student" d="M800,382 C800,432 370,418 370,470" marker-end="url(#arrow-student)"/>
+      <path class="connector-line teacher" d="M800,382 C800,432 1230,418 1230,470" marker-end="url(#arrow-teacher)"/>
+
+      <!-- Student lane -->
+      <path class="connector-line student" d="M370,574 L370,650" marker-end="url(#arrow-student)"/>
+      <path class="connector-line student" d="M370,746 L370,820" marker-end="url(#arrow-student)"/>
+
+      <!-- Teacher lane -->
+      <path class="connector-line teacher" d="M1230,574 L1230,650" marker-end="url(#arrow-teacher)"/>
+      <path class="connector-line teacher" d="M1230,746 L1230,820" marker-end="url(#arrow-teacher)"/>
+
+      <!-- Branches converge to closure -->
+      <path class="connector-line system" d="M370,948 C370,993 620,1004 800,1020" marker-end="url(#arrow-system)"/>
+      <path class="connector-line system" d="M1230,948 C1230,993 980,1004 800,1020" marker-end="url(#arrow-system)"/>
+
+      <!-- Feedback loop from closure back to system -->
+      <path class="connector-line dashed" d="M1100,1060 L1560,1060 L1560,316 L1100,316" marker-end="url(#arrow-purple)"/>
+    </svg>
+
+    <div class="loop-label">数据回流 · 持续更新</div>
+
+    <div class="lane-label student">学 生 成 长 线</div>
+    <div class="lane-label teacher">教 学 治 理 线</div>
+
+    <section class="node input teacher">
+      <div class="node-head">
+        <span class="node-icon">教</span>
+        <h2 class="node-title">教师输入人才培养方案</h2>
+      </div>
+      <p class="node-sub">课程目标、岗位要求、实训标准与评价依据</p>
+    </section>
+
+    <section class="node system">
+      <div class="node-head">
+        <span class="node-icon">星</span>
+        <h2 class="node-title">星辰智能系统 · 确定人才培养目标</h2>
+      </div>
+      <p class="node-sub">解析培养方案，生成岗位能力星图、测评模型与培养诊断规则</p>
+      <span class="small-tag">岗位能力目标</span>
+      <span class="small-tag">测评模型</span>
+      <span class="small-tag">培养诊断</span>
+    </section>
+
+    <section class="node student branch">
+      <div class="node-head">
+        <span class="node-icon">学</span>
+        <h2 class="node-title">学生使用测评</h2>
+      </div>
+      <p class="node-sub">完成岗位能力测评，采集问答、答题、讲题与实训事件</p>
+    </section>
+
+    <section class="node teacher branch">
+      <div class="node-head">
+        <span class="node-icon">管</span>
+        <h2 class="node-title">管理人员 / 教师查看培养情况</h2>
+      </div>
+      <p class="node-sub">查看个人能力星图、班级星空分布与共性培养情况</p>
+    </section>
+
+    <section class="node insight issue">
+      <div class="node-head">
+        <span class="node-icon">差</span>
+        <h2 class="node-title">个性问题诊断</h2>
+      </div>
+      <p class="node-sub">定位薄弱能力节点，识别个人知识缺口与能力短板</p>
+    </section>
+
+    <section class="node teacher issue">
+      <div class="node-head">
+        <span class="node-icon">共</span>
+        <h2 class="node-title">共性问题识别</h2>
+      </div>
+      <p class="node-sub">发现班级共性短板、高频错误与教学重点偏差</p>
+    </section>
+
+    <section class="node action">
+      <div class="node-head">
+        <span class="node-icon">研</span>
+        <h2 class="node-title">学生开展自主学习</h2>
+      </div>
+      <p class="node-sub">根据智能系统推荐，完成个性化资源学习、实训任务与复测</p>
+    </section>
+
+    <section class="node teacher action">
+      <div class="node-head">
+        <span class="node-icon">调</span>
+        <h2 class="node-title">教师调整课程 / 实训内容</h2>
+      </div>
+      <p class="node-sub">结合系统反馈，优化课程设计、题库内容与实训任务安排</p>
+    </section>
+
+    <section class="node system closure">
+      <div class="node-head">
+        <span class="node-icon">回</span>
+        <h2 class="node-title">能力星图持续更新</h2>
+      </div>
+      <p class="node-sub">学习证据回流，目标动态优化，形成教学闭环</p>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const starfield = document.getElementById("starfield");
+      if (!starfield) return;
+      const colors = ["#f8fafc", "#7dd3fc", "#5eead4", "#ddd6fe", "#fde68a"];
+      const count = 96;
+      for (let i = 0; i < count; i += 1) {
+        const star = document.createElement("span");
+        star.className = "star";
+        const size = Math.random() * 2.6 + 1.1;
+        const x = Math.random() * 1600;
+        const y = Math.random() * 1180;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        star.style.left = x + "px";
+        star.style.top = y + "px";
+        star.style.width = size + "px";
+        star.style.height = size + "px";
+        star.style.background = color;
+        star.style.boxShadow = "0 0 " + (Math.random() * 8 + 4) + "px rgba(56,189,248,0.7)";
+        star.style.opacity = (Math.random() * 0.5 + 0.18).toFixed(2);
+        starfield.appendChild(star);
+      }
+    })();
+  </script>
+</body>
+</html>
