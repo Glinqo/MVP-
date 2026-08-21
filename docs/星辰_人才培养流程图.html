@@ -39,7 +39,7 @@
     .board {
       position: relative;
       width: 1600px;
-      height: 1240px;
+      height: 1420px;
       overflow: hidden;
       background:
         radial-gradient(ellipse 70% 50% at 10% 90%, rgba(15,118,110,0.16) 0%, transparent 70%),
@@ -88,7 +88,7 @@
 
     .eyebrow {
       color: var(--primary-light);
-      font-size: 12px;
+      font-size: 16px;
       font-weight: 700;
       letter-spacing: 3px;
       text-transform: uppercase;
@@ -97,7 +97,7 @@
 
     h1 {
       margin: 0;
-      font-size: 30px;
+      font-size: 40px;
       font-weight: 700;
       letter-spacing: 0;
       color: var(--text);
@@ -106,7 +106,7 @@
     .subtitle {
       margin-top: 8px;
       color: var(--text-secondary);
-      font-size: 14px;
+      font-size: 20px;
       letter-spacing: 0.4px;
     }
 
@@ -124,15 +124,15 @@
       border: 1px solid var(--line);
       border-radius: 999px;
       background: rgba(255,255,255,0.04);
-      padding: 7px 12px;
-      font-size: 12px;
+      padding: 9px 14px;
+      font-size: 17px;
       color: var(--text-secondary);
       white-space: nowrap;
     }
 
     .legend-dot {
-      width: 9px;
-      height: 9px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       box-shadow: 0 0 8px currentColor;
     }
@@ -141,7 +141,7 @@
       position: absolute;
       inset: 0;
       width: 1600px;
-      height: 1240px;
+      height: 1420px;
       z-index: 1;
       pointer-events: none;
     }
@@ -172,9 +172,9 @@
 
     .connector-line.dashed {
       stroke-dasharray: 7 8;
-      stroke: #a78bfa;
+      stroke: #14b8a6;
       opacity: 0.72;
-      filter: drop-shadow(0 0 5px rgba(167,139,250,0.25));
+      filter: drop-shadow(0 0 5px rgba(20,184,166,0.28));
     }
 
     .node {
@@ -206,12 +206,12 @@
     }
 
     .node-icon {
-      width: 22px;
-      height: 22px;
+      width: 28px;
+      height: 28px;
       border-radius: 7px;
       display: grid;
       place-items: center;
-      font-size: 12px;
+      font-size: 16px;
       font-weight: 700;
       color: #fff;
       background: rgba(255,255,255,0.09);
@@ -221,7 +221,7 @@
 
     .node-title {
       margin: 0;
-      font-size: 18px;
+      font-size: 24px;
       font-weight: 700;
       color: var(--text);
       line-height: 1.25;
@@ -230,7 +230,7 @@
     .node-sub {
       margin: 0;
       color: var(--text-secondary);
-      font-size: 13px;
+      font-size: 18px;
       line-height: 1.55;
     }
 
@@ -246,84 +246,84 @@
     .node.system { border-color: rgba(20,184,166,0.42); background: rgba(15,118,110,0.10); box-shadow: 0 0 34px rgba(20,184,166,0.13), 0 8px 30px rgba(0,0,0,0.34); }
     .node.system .node-title { color: #99f6e4; }
 
-    .node.insight { border-color: rgba(167,139,250,0.34); }
-    .node.insight .node-icon { background: rgba(167,139,250,0.18); color: #ddd6fe; }
-    .node.insight .node-title { color: #ddd6fe; }
+    .node.insight { border-color: rgba(56,189,248,0.28); }
+    .node.insight .node-icon { background: rgba(56,189,248,0.16); color: #bae6fd; }
+    .node.insight .node-title { color: #bae6fd; }
 
-    .node.action { border-color: rgba(34,197,94,0.28); }
-    .node.action .node-icon { background: rgba(34,197,94,0.16); color: #bbf7d0; }
-    .node.action .node-title { color: #bbf7d0; }
+    .node.action { border-color: rgba(56,189,248,0.28); }
+    .node.action .node-icon { background: rgba(56,189,248,0.16); color: #bae6fd; }
+    .node.action .node-title { color: #bae6fd; }
 
     .node.input {
       left: 540px;
-      top: 86px;
+      top: 120px;
       width: 520px;
-      height: 90px;
-      padding: 18px 20px;
+      height: 122px;
+      padding: 20px 22px;
     }
 
     .node.system {
       left: 500px;
-      top: 226px;
+      top: 282px;
       width: 600px;
-      height: 126px;
-      padding: 20px 24px;
+      height: 150px;
+      padding: 22px 24px;
     }
 
     .node.student.assessment {
       left: 550px;
-      top: 410px;
+      top: 488px;
       width: 500px;
-      height: 104px;
-      padding: 18px 20px;
+      height: 130px;
+      padding: 20px 22px;
     }
 
     .node.teacher.assessment {
       left: 550px;
-      top: 580px;
+      top: 668px;
       width: 500px;
-      height: 104px;
-      padding: 18px 20px;
+      height: 130px;
+      padding: 20px 22px;
     }
 
     .node.insight.issue {
       left: 120px;
-      top: 760px;
+      top: 872px;
       width: 500px;
-      height: 96px;
-      padding: 16px 20px;
+      height: 118px;
+      padding: 18px 20px;
     }
 
     .node.teacher.issue {
       left: 980px;
-      top: 760px;
+      top: 872px;
       width: 500px;
-      height: 96px;
-      padding: 16px 20px;
+      height: 118px;
+      padding: 18px 20px;
     }
 
     .node.action {
       left: 120px;
-      top: 926px;
+      top: 1048px;
       width: 500px;
-      height: 128px;
-      padding: 18px 20px;
+      height: 150px;
+      padding: 20px 22px;
     }
 
     .node.teacher.action {
       left: 980px;
-      top: 926px;
+      top: 1048px;
       width: 500px;
-      height: 128px;
-      padding: 18px 20px;
+      height: 150px;
+      padding: 20px 22px;
     }
 
     .node.system.closure {
       left: 500px;
-      top: 1110px;
+      top: 1258px;
       width: 600px;
-      height: 82px;
-      padding: 16px 22px;
+      height: 108px;
+      padding: 18px 22px;
       display: flex;
       align-items: center;
     }
@@ -334,11 +334,11 @@
     .lane-label {
       position: absolute;
       z-index: 2;
-      top: 730px;
+      top: 842px;
       width: 500px;
       text-align: center;
       color: var(--text-secondary);
-      font-size: 13px;
+      font-size: 17px;
       font-weight: 700;
       letter-spacing: 2px;
     }
@@ -360,9 +360,9 @@
     .loop-label {
       position: absolute;
       right: 70px;
-      top: 700px;
-      color: #a78bfa;
-      font-size: 13px;
+      top: 800px;
+      color: #5eead4;
+      font-size: 17px;
       font-weight: 700;
       letter-spacing: 2px;
       writing-mode: vertical-rl;
@@ -378,9 +378,9 @@
       border-radius: 999px;
       background: rgba(255,255,255,0.035);
       color: var(--text-secondary);
-      font-size: 11px;
+      font-size: 15px;
       line-height: 1;
-      padding: 5px 9px;
+      padding: 6px 12px;
       white-space: nowrap;
     }
   </style>
@@ -398,11 +398,11 @@
       <div class="legend">
         <span class="legend-item"><span class="legend-dot" style="color:#14b8a6;background:#14b8a6"></span>智能系统</span>
         <span class="legend-item"><span class="legend-dot" style="color:#38bdf8;background:#38bdf8"></span>学生线</span>
-        <span class="legend-item"><span class="legend-dot" style="color:#fbbf24;background:#fbbf24"></span>教师 / 管理线</span>
+        <span class="legend-item"><span class="legend-dot" style="color:#fbbf24;background:#fbbf24"></span>教师线</span>
       </div>
     </div>
 
-    <svg class="connectors" viewBox="0 0 1600 1240" aria-hidden="true">
+    <svg class="connectors" viewBox="0 0 1600 1420" aria-hidden="true">
       <defs>
         <marker id="arrow-system" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
           <path d="M0,0 L8,4.5 L0,9 z" fill="#14b8a6"/>
@@ -414,33 +414,33 @@
           <path d="M0,0 L8,4.5 L0,9 z" fill="#fbbf24"/>
         </marker>
         <marker id="arrow-purple" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
-          <path d="M0,0 L8,4.5 L0,9 z" fill="#a78bfa"/>
+          <path d="M0,0 L8,4.5 L0,9 z" fill="#14b8a6"/>
         </marker>
       </defs>
 
       <!-- Input to system -->
-      <path class="connector-line system" d="M800,176 L800,226" marker-end="url(#arrow-system)"/>
+      <path class="connector-line system" d="M800,242 L800,282" marker-end="url(#arrow-system)"/>
 
       <!-- System to student assessment -->
-      <path class="connector-line system" d="M800,352 L800,410" marker-end="url(#arrow-system)"/>
+      <path class="connector-line system" d="M800,432 L800,488" marker-end="url(#arrow-system)"/>
 
       <!-- Student assessment to teacher view -->
-      <path class="connector-line system" d="M800,514 L800,580" marker-end="url(#arrow-system)"/>
+      <path class="connector-line system" d="M800,618 L800,668" marker-end="url(#arrow-system)"/>
 
       <!-- Teacher view split to individual and common issues -->
-      <path class="connector-line student" d="M800,684 C800,726 370,706 370,760" marker-end="url(#arrow-student)"/>
-      <path class="connector-line teacher" d="M800,684 C800,726 1230,706 1230,760" marker-end="url(#arrow-teacher)"/>
+      <path class="connector-line student" d="M800,798 C800,840 370,810 370,872" marker-end="url(#arrow-student)"/>
+      <path class="connector-line teacher" d="M800,798 C800,840 1230,810 1230,872" marker-end="url(#arrow-teacher)"/>
 
       <!-- Issue to action -->
-      <path class="connector-line student" d="M370,856 L370,926" marker-end="url(#arrow-student)"/>
-      <path class="connector-line teacher" d="M1230,856 L1230,926" marker-end="url(#arrow-teacher)"/>
+      <path class="connector-line student" d="M370,990 L370,1048" marker-end="url(#arrow-student)"/>
+      <path class="connector-line teacher" d="M1230,990 L1230,1048" marker-end="url(#arrow-teacher)"/>
 
       <!-- Branches converge to closure -->
-      <path class="connector-line system" d="M370,1054 C370,1088 610,1096 800,1110" marker-end="url(#arrow-system)"/>
-      <path class="connector-line system" d="M1230,1054 C1230,1088 990,1096 800,1110" marker-end="url(#arrow-system)"/>
+      <path class="connector-line system" d="M370,1198 C370,1232 610,1240 800,1258" marker-end="url(#arrow-system)"/>
+      <path class="connector-line system" d="M1230,1198 C1230,1232 990,1240 800,1258" marker-end="url(#arrow-system)"/>
 
       <!-- Feedback loop from closure back to system -->
-      <path class="connector-line dashed" d="M1100,1151 L1560,1151 L1560,289 L1100,289" marker-end="url(#arrow-purple)"/>
+      <path class="connector-line dashed" d="M1100,1312 L1560,1312 L1560,357 L1100,357" marker-end="url(#arrow-purple)"/>
     </svg>
 
     <div class="loop-label">数据回流 · 持续更新</div>
@@ -535,7 +535,7 @@
         star.className = "star";
         const size = Math.random() * 2.6 + 1.1;
         const x = Math.random() * 1600;
-        const y = Math.random() * 1240;
+        const y = Math.random() * 1420;
         const color = colors[Math.floor(Math.random() * colors.length)];
         star.style.left = x + "px";
         star.style.top = y + "px";
