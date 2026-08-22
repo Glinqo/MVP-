@@ -208,7 +208,7 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
 
   await page.locator('[data-workspace-panel="teacherToday"]').click();
   await expect(page.locator("#todayTeachingContent .issue-card").first()).toBeVisible({ timeout: 15000 });
-  await expect(page.locator("#todayTeachingContent")).toContainText("2 人");
+  await expect(page.locator("#todayTeachingContent")).toContainText("2 名学生受到影响");
   await page.locator("#todayTeachingContent .issue-card").first().click();
   await expect(page.locator("#issueDetailDrawer")).toHaveClass(/open/);
   await expect(page.locator("#issueDetailDrawer")).toContainText("主要能力");
@@ -232,12 +232,12 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
   await expect(page.locator("#studentManageList .student-manage-row", { hasText: "003" }).first()).toBeVisible();
   await page.locator('#studentManageList .student-manage-check[data-username="003"]').check();
   await page.getByRole("button", { name: "加入班级" }).click();
-  await expect.poll(() => dialogs.length).toBeGreaterThan(0);
+  await expect(page.locator(".teacher-toast-success").last()).toContainText("已加入");
   await expect(page.locator("#studentManageList .student-manage-row", { hasText: "003" })).toContainText("已在本班");
 
   await page.locator('#studentManageList .student-manage-check[data-username="003"]').check();
   await page.getByRole("button", { name: "移除选中" }).click();
-  await expect.poll(() => dialogs.some((message) => message.includes("Removed"))).toBeTruthy();
+  await expect(page.locator(".teacher-toast-success").last()).toContainText("已移除");
   await page.locator("#studentSearchInput").fill("003");
   await expect(page.locator("#studentManageList .student-manage-row", { hasText: "003" })).not.toContainText("已在本班");
   await page.locator("#manageStudentsModal .modal-close").click();
@@ -247,12 +247,12 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
   await expect(page.locator("#teacherStudentListPane .student-card", { hasText: "001" }).first()).toBeVisible();
   await expect(page.locator("#teacherStudentListPane .student-card", { hasText: "006" })).toHaveCount(0);
   await page.locator('#teacherStudentListPane .student-card[data-student-id="001"]').click();
-  await expect(page.locator("#teacherStudentDetailPane")).toContainText("弱项");
-  await expect(page.locator("#teacherStudentDetailPane")).toContainText("sn_type_identify");
+  await expect(page.locator("#teacherStudentDetailPane")).toContainText("主要薄弱");
+  await expect(page.locator("#teacherStudentDetailPane")).toContainText("传感器类型识别");
 
   await page.locator('[data-workspace-panel="classInsights"]').click();
   await expect(page.locator("#tw-insights")).toContainText("班级洞察");
-  await expect(page.locator("#tw-insights")).toContainText("班级最薄弱能力");
+  await expect(page.locator("#tw-insights")).toContainText("最需要补强的能力");
   await expect(page.locator("#tw-insights")).toContainText("传感器类型识别");
   await expectGraphRendered(page, "#teacherClassGraphDiagram");
 
@@ -261,12 +261,12 @@ test("teacher functional baseline UI flows are usable", async ({ page }) => {
   await page.getByRole("button", { name: /草稿/ }).click();
   await expect(page.locator("#tw-feedback .comment-card").first()).toBeVisible();
   await page.locator("#tw-feedback .comment-card").first().click();
-  await expect(page.locator("#tw-feedback")).toContainText("评语详情");
-  await expect(page.locator("#tw-feedback")).toContainText("draft");
+  await expect(page.locator("#tw-feedback")).toContainText("教学反馈详情");
+  await expect(page.locator("#tw-feedback")).toContainText("草稿");
   await page.getByRole("button", { name: "审核", exact: true }).click();
-  await expect(page.locator("#tw-feedback")).toContainText("reviewed");
+  await expect(page.locator("#tw-feedback")).toContainText("待发布");
   await page.getByRole("button", { name: "发布", exact: true }).click();
-  await expect(page.locator("#tw-feedback")).toContainText("published");
+  await expect(page.locator("#tw-feedback")).toContainText("已发布");
   await page.getByRole("button", { name: "返回列表" }).click();
   await page.getByRole("button", { name: /草稿/ }).click();
   expect(await page.evaluate(() => window.TeacherUI?._commentFilter)).toBe("draft");

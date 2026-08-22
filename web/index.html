@@ -482,25 +482,25 @@
         <section class="launcher-panel role-teacher" style="display:none">
           <h2>教师工作台</h2>
           <div class="tool-launcher">
-            <button data-open-tool="studentMgmt" type="button">
-              <strong>学生管理</strong>
-              <span>学生列表、画像与学习证据</span>
-            </button>
-            <button data-open-tool="teacherJobGraph" type="button">
-              <strong>岗位图谱</strong>
-              <span>岗位数据、提案审核、版本治理</span>
+            <button data-open-tool="teacherToday" type="button">
+              <strong>今日教学</strong>
+              <span>教学问题与干预方案</span>
             </button>
             <button data-open-tool="classInsights" type="button">
               <strong>班级洞察</strong>
               <span>平均能力图谱与共性问题</span>
             </button>
-            <button data-open-tool="teacherToday" type="button">
-              <strong>今日教学</strong>
-              <span>教学问题与干预方案</span>
+            <button data-open-tool="studentMgmt" type="button">
+              <strong>学生</strong>
+              <span>学生列表、画像与学习证据</span>
             </button>
             <button data-open-tool="teacherComments" type="button">
-              <strong>教学评语</strong>
+              <strong>教学反馈</strong>
               <span>AI 撰写、审核与发布</span>
+            </button>
+            <button data-open-tool="teacherJobGraph" type="button">
+              <strong>岗位图谱</strong>
+              <span>岗位数据、提案审核、版本治理</span>
             </button>
           </div>
         </section>
@@ -524,17 +524,25 @@
           <button id="closeWorkspace" class="close-workspace" type="button">关闭</button>
         </header>
 
+        <div class="teacher-global-scope role-teacher" style="display:none">
+          <div class="teacher-scope-main">
+            <button type="button" id="teacherClassLabel" class="student-mgmt-class-select" onclick="TeacherUI.toggleClassDropdown()">未选择班级</button>
+            <span id="teacherClassMeta" class="class-bar-meta"></span>
+          </div>
+          <div id="classDropdown" class="class-dropdown" style="display:none"></div>
+        </div>
+
         <nav class="workspace-tabs" aria-label="功能工作台">
           <button class="active role-student" data-workspace-panel="knowledge" type="button">知识缺口</button>
           <button class="role-student" data-workspace-panel="graph" type="button">能力图谱</button>
           <button class="role-student" data-workspace-panel="plan" type="button">培养方案</button>
           <button class="role-student" data-workspace-panel="scenario" type="button">角色扮演</button>
           <button class="role-student" data-workspace-panel="quiz" type="button">自测</button>
-          <button data-workspace-panel="studentMgmt" type="button" class="role-teacher" style="display:none">学生管理</button>
-          <button data-workspace-panel="teacherJobGraph" type="button" class="role-teacher" style="display:none">岗位图谱</button>
-          <button data-workspace-panel="classInsights" type="button" class="role-teacher" style="display:none">班级洞察</button>
           <button data-workspace-panel="teacherToday" type="button" class="role-teacher" style="display:none">今日教学</button>
-          <button data-workspace-panel="teacherComments" type="button" class="role-teacher" style="display:none">教学评语</button>
+          <button data-workspace-panel="classInsights" type="button" class="role-teacher" style="display:none">班级洞察</button>
+          <button data-workspace-panel="studentMgmt" type="button" class="role-teacher" style="display:none">学生</button>
+          <button data-workspace-panel="teacherComments" type="button" class="role-teacher" style="display:none">教学反馈</button>
+          <button data-workspace-panel="teacherJobGraph" type="button" class="role-teacher" style="display:none">岗位图谱</button>
         </nav>
 
         <div class="workspace-body">
@@ -715,12 +723,6 @@
           </section>
 
           <section id="workspaceStudentMgmt" class="workspace-panel role-teacher teacher-workspace-panel">
-            <div class="student-mgmt-classbar">
-              <span class="muted">当前班级</span>
-              <button type="button" id="teacherClassLabel" class="student-mgmt-class-select" onclick="TeacherUI.toggleClassDropdown()">未选择班级</button>
-              <span id="teacherClassMeta" class="class-bar-meta"></span>
-              <div id="classDropdown" class="class-dropdown" style="display:none"></div>
-            </div>
             <div class="student-mgmt-actions">
               <button type="button" id="createClassBtn" class="student-mgmt-btn" onclick="TeacherUI.openCreateClass()">创建班级</button>
               <button type="button" id="manageClassBtn" class="student-mgmt-btn" onclick="TeacherUI.openManageStudents()">学生管理</button>

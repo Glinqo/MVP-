@@ -39,6 +39,24 @@ TeacherUI.escHtml = function(text) {
   return d.innerHTML;
 };
 
+TeacherUI.showToast = function(message, type) {
+  var toastRoot = document.getElementById("teacherToastRoot");
+  if (!toastRoot) {
+    toastRoot = document.createElement("div");
+    toastRoot.id = "teacherToastRoot";
+    document.body.appendChild(toastRoot);
+  }
+  var toast = document.createElement("div");
+  toast.className = "teacher-toast teacher-toast-" + (type || "info");
+  toast.textContent = message || "";
+  toastRoot.appendChild(toast);
+  setTimeout(function() { toast.classList.add("show"); }, 20);
+  setTimeout(function() {
+    toast.classList.remove("show");
+    setTimeout(function() { toast.remove(); }, 250);
+  }, 2600);
+};
+
 TeacherUI.updateAIContext = function(patch) {
   if (!patch) return TeacherUI.aiContext;
   Object.keys(patch).forEach(function(key) {
@@ -105,10 +123,55 @@ TeacherUI.uiContext = function() {
 // ---- 优先级 helper ----
 TeacherUI.priorityLevel = function(priority) {
   var p = parseFloat(priority);
-  if (isNaN(p)) return { level: "low", label: String(priority || "low") };
-  if (p >= 0.7) return { level: "high", label: p.toFixed(2) + " high" };
-  if (p >= 0.4) return { level: "medium", label: p.toFixed(2) + " mid" };
-  return { level: "low", label: p.toFixed(2) + " low" };
+  if (isNaN(p)) return { level: "low", label: "一般关注", score: null };
+  if (p >= 0.7) return { level: "high", label: "优先处理", score: p };
+  if (p >= 0.4) return { level: "medium", label: "建议关注", score: p };
+  return { level: "low", label: "一般关注", score: p };
+};
+
+TeacherUI.abilityLabel = function(id) {
+  if (!id) return "";
+  var labels = {
+    sn_type_identify: "传感器类型识别",
+    sn_wiring_rules: "传感器接线规则",
+    sn_signal_acq: "传感器信号采集",
+    sn_fault_diag: "传感器故障诊断",
+    pl_program_monitor: "PLC 程序监控",
+    pl_io_mapping: "PLC I/O 映射",
+    pl_logic_control: "PLC 逻辑控制",
+    pl_fault_diag: "PLC 故障诊断",
+    electrical_safety_check: "电气安全检查",
+    power_isolation_confirmation: "断电隔离确认",
+    sensor_output_logic: "传感器输出逻辑",
+    plc_input_common_terminal: "PLC 输入公共端",
+    plc_input_grouping: "PLC 输入分组",
+    input_led_compare: "输入灯对照",
+    io_mapping_table_build: "I/O 映射表建立",
+    no_response_power_path_check: "无响应电源路径检查",
+    no_response_sensor_side_check: "无响应传感器侧检查",
+    no_response_common_terminal_check: "无响应公共端检查",
+    no_response_address_mapping_check: "无响应地址映射检查",
+  };
+  if (labels[id]) return labels[id];
+  var node = null;
+  var jobGraph = (window.state && window.state.graphs && window.state.graphs.job) || {};
+  (jobGraph.nodes || []).forEach(function(item) {
+    if (item.id === id) node = item;
+  });
+  if (!node && window.state && window.state.graphs && window.state.graphs.student) {
+    (window.state.graphs.student.nodes || []).forEach(function(item) {
+      if (item.id === id) node = item;
+    });
+  }
+  return (node && (node.label || node.name || node.ability_name)) || id;
+};
+
+TeacherUI.commentStatusLabel = function(status) {
+  return {
+    draft: "草稿",
+    reviewed: "待发布",
+    published: "已发布"
+  }[status] || "草稿";
 };
 
 // ---- API helper ----
@@ -384,13 +447,13 @@ TeacherUI.addSelectedStudents = function() {
     student_usernames: TeacherUI._selectedStudents.slice()
   }).then(function(data) {
     if (data.ok) {
-      alert("Added " + data.added.length + " 人" + (data.already_in_class.length ? ", already in class " + data.already_in_class.length : ""));
+      TeacherUI.showToast("已加入 " + data.added.length + " 名学生", "success");
       TeacherUI._selectedStudents = [];
       TeacherUI.loadAvailableStudents();
       TeacherUI.loadClasses();
     }
   }).catch(function(e) {
-    alert("添加失败： " + e.message);
+    TeacherUI.showToast("加入失败，请重试", "error");
   });
 };
 
@@ -400,13 +463,13 @@ TeacherUI.removeSelectedStudents = function() {
     student_usernames: TeacherUI._selectedStudents.slice()
   }).then(function(data) {
     if (data.ok) {
-      alert("Removed " + data.removed.length + " 人");
+      TeacherUI.showToast("已移除 " + data.removed.length + " 名学生", "success");
       TeacherUI._selectedStudents = [];
       TeacherUI.loadAvailableStudents();
       TeacherUI.loadClasses();
     }
   }).catch(function(e) {
-    alert("移除失败： " + e.message);
+    TeacherUI.showToast("移除失败，请重试", "error");
   });
 };
 
@@ -436,10 +499,10 @@ TeacherUI.parseBatchInput = function() {
     else notFound.push(uname);
   });
   TeacherUI._batchParsedStudents = found;
-  var html = '<div><strong>Parse result</strong></div>';
-  html += '<div>Found ' + found.length + '</div>';
-  if (notFound.length) html += '<div style="color:#f87171">Not found: ' + notFound.join(", ") + '</div>';
-  if (found.length) html += '<div style="margin-top:8px"><button class="btn-primary" onclick="TeacherUI.addBatchStudents()">Add ' + found.length + ' found</button></div>';
+  var html = '<div><strong>解析结果</strong></div>';
+  html += '<div>已识别 ' + found.length + ' 名学生</div>';
+  if (notFound.length) html += '<div style="color:#f87171">未找到： ' + notFound.join(", ") + '</div>';
+  if (found.length) html += '<div style="margin-top:8px"><button class="btn-primary" onclick="TeacherUI.addBatchStudents()">加入 ' + found.length + ' 名学生</button></div>';
   resultEl.innerHTML = html;
 };
 
@@ -449,14 +512,14 @@ TeacherUI.addBatchStudents = function() {
     student_usernames: TeacherUI._batchParsedStudents.slice()
   }).then(function(data) {
     if (data.ok) {
-      alert("Added " + data.added.length + " 人" + (data.not_found.length ? ", not found " + data.not_found.length : ""));
+      TeacherUI.showToast("已加入 " + data.added.length + " 名学生", "success");
       TeacherUI._batchParsedStudents = [];
       document.getElementById("batchInputArea").style.display = "none";
       TeacherUI.loadAvailableStudents();
       TeacherUI.loadClasses();
     }
   }).catch(function(e) {
-    alert("添加失败： " + e.message);
+    TeacherUI.showToast("加入失败，请重试", "error");
   });
 };
 
@@ -507,20 +570,20 @@ TeacherUI.showStudentList = function() {
 TeacherUI.loadToday = function() {
   var c = document.getElementById("todayTeachingContent");
   if (!c) return;
-  c.innerHTML = '<div class="muted" style="padding:20px">加载教学问题中...</div>';
+  c.innerHTML = '<div class="teacher-empty-state">正在加载教学问题…</div>';
   var payload = {};
   if (TeacherUI.currentClassId) payload.class_id = TeacherUI.currentClassId;
   TeacherUI.fetchAuth("/api/v2/teacher/issues", "POST", payload).then(function(data) {
     var issues = data.issues || data || [];
     if (!issues.length) {
-      c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">当前没有足够证据形成需要优先处理的教学问题。</div>';
+      c.innerHTML = '<div class="teacher-empty-state"><strong>暂无需要处理的教学问题</strong><div>学生产生更多学习记录后，这里会自动汇总。</div></div>';
       return;
     }
     TeacherUI._issuesCache = issues;
     TeacherUI.renderIssueList(issues, c);
     TeacherUI.renderTodaySuggestion(issues);
   }).catch(function(e) {
-    c.innerHTML = '<div style="padding:20px;color:#f87171">加载失败。 <a href="#" onclick="TeacherUI.loadToday();return false">重试</a></div>';
+    c.innerHTML = '<div class="teacher-error-state">加载失败，请重试 <button class="btn-secondary" onclick="TeacherUI.loadToday()">重新加载</button></div>';
   });
 };
 
@@ -531,9 +594,13 @@ TeacherUI.renderIssueList = function(issues, container) {
     var pc = "badge-priority-" + pl.level;
     var students = issue.affected_students || [];
     var title = TeacherUI.escHtml(issue.title || issue.issue_id || "未知");
+    var ability = TeacherUI.abilityLabel(issue.primary_ability_id || "");
     html += '<div class="issue-card" data-issue-id="' + issue.issue_id + '">';
-    html += '<div class="issue-card-header"><span class="issue-card-title">' + title + '</span></div>';
-    html += '<div class="issue-card-meta"><span class="' + pc + '">' + pl.label + '</span><span>' + students.length + ' 人</span></div>';
+    html += '<div class="issue-card-header"><span class="' + pc + '">' + pl.label + '</span><span class="issue-card-arrow">查看详情 →</span></div>';
+    html += '<div class="issue-card-title">' + title + '</div>';
+    html += '<div class="issue-card-meta"><span>' + students.length + ' 名学生受到影响</span>';
+    if (ability) html += '<span>主要能力：' + TeacherUI.escHtml(ability) + '</span>';
+    html += '</div>';
     html += '</div>';
   });
   html += '</div>';
@@ -560,8 +627,8 @@ TeacherUI.openIssueDetail = function(issueId) {
   drawer.classList.add("open");
   var titleEl = drawer.querySelector(".issue-drawer-title");
   var bodyEl = drawer.querySelector(".issue-drawer-body") || drawer.querySelector(".issue-drawer-content");
-  if (titleEl) titleEl.textContent = "Loading...";
-  if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px">Loading issue detail...</div>';
+  if (titleEl) titleEl.textContent = "正在加载…";
+  if (bodyEl) bodyEl.innerHTML = '<div class="teacher-empty-state">正在加载教学问题详情…</div>';
 
   var closeBtn = drawer.querySelector(".issue-drawer-close");
   if (closeBtn && !closeBtn._boundClose) {
@@ -588,12 +655,12 @@ TeacherUI.openIssueDetail = function(issueId) {
       }
       if (found) TeacherUI.renderIssueDetail(found, drawer);
       else {
-        if (titleEl) titleEl.textContent = "Not Found";
-        if (bodyEl) bodyEl.innerHTML = '<div style="padding:40px;text-align:center">教学问题不存在或已过期。</div>';
+        if (titleEl) titleEl.textContent = "未找到";
+        if (bodyEl) bodyEl.innerHTML = '<div class="teacher-empty-state">未找到该教学问题。</div>';
       }
     }).catch(function() {
-      if (titleEl) titleEl.textContent = "Error";
-      if (bodyEl) bodyEl.innerHTML = '<div style="padding:40px;text-align:center;color:#f87171">Failed to load issue.</div>';
+      if (titleEl) titleEl.textContent = "加载失败";
+      if (bodyEl) bodyEl.innerHTML = '<div class="teacher-error-state">加载失败，请重试</div>';
     });
   }
 };
@@ -603,7 +670,7 @@ TeacherUI.renderIssueDetail = function(issue, drawer) {
   var bodyEl = drawer.querySelector(".issue-drawer-body") || drawer.querySelector(".issue-drawer-content");
   var pl = TeacherUI.priorityLevel(issue.priority);
   var students = issue.affected_students || [];
-  var ability = TeacherUI.escHtml(issue.primary_ability_id || "");
+  var ability = TeacherUI.escHtml(TeacherUI.abilityLabel(issue.primary_ability_id || ""));
   TeacherUI.updateAIContext({
     current_issue_id: issue.issue_id || TeacherUI.currentIssueId || "",
     current_issue_title: issue.title || issue.issue_id || "",
@@ -642,7 +709,7 @@ TeacherUI.renderIssueDetail = function(issue, drawer) {
     html += '<div class="detail-row" style="color:#94a3b8">暂无更细的重复过程证据。</div>';
   }
   html += '<details class="analysis-details"><summary>查看分析依据</summary>';
-  html += '<div class="detail-row"><span class="label">优先级</span><span class="badge-priority-' + pl.level + '">' + pl.label + '</span></div>';
+  html += '<div class="detail-row"><span class="label">优先级</span><span class="badge-priority-' + pl.level + '">' + pl.label + (pl.score !== null ? ' ' + pl.score.toFixed(2) : '') + '</span></div>';
   html += '<div class="detail-row"><span class="label">置信度</span><span>' + ((issue.confidence || 0) * 100).toFixed(0) + '%</span></div>';
   html += '<div class="detail-row"><span class="label">严重程度</span><span>' + ((issue.severity || 0) * 100).toFixed(0) + '%</span></div>';
   html += '</details>';
@@ -696,13 +763,14 @@ TeacherUI.askIssueWhy = function() {
   if (input) {
     input.value = "为什么？";
     input.focus();
+    if (typeof sendChat === "function") sendChat("为什么？");
   }
 };
 
 TeacherUI.generateCandidates = function() {
   var drawer = document.getElementById("issueDetailDrawer");
   var bodyEl = drawer ? (drawer.querySelector(".issue-drawer-body") || drawer.querySelector(".issue-drawer-content")) : null;
-  if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px">生成方案中...</div>';
+  if (bodyEl) bodyEl.innerHTML = '<div class="teacher-empty-state">正在生成教学方案…</div>';
 
   var issueId = TeacherUI.currentIssueId;
   var students = [];
@@ -728,7 +796,7 @@ TeacherUI.generateCandidates = function() {
     TeacherUI._candidatesCache = candidates;
     var html = '<div class="drawer-detail"><div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Intervention Candidates</div><h3 style="margin:0 0 12px;color:#e2e8f0">教学干预方案（' + candidates.length + '）</h3>';
     if (!candidates.length) {
-      html += '<div style="padding:20px;text-align:center">暂无可用干预方案。</div>';
+      html += '<div class="teacher-empty-state">暂无可用教学方案。</div>';
     } else {
       candidates.slice(0, 5).forEach(function(c, idx) {
         html += TeacherUI.renderCandidateCard(c, idx);
@@ -754,14 +822,14 @@ TeacherUI.generateCandidates = function() {
           if (drawer) drawer.classList.remove("open");
           var input = document.getElementById("chatInput");
           if (input) {
-            input.value = "改成20分钟，并把001单独安排。";
+            input.value = "我想调整这个方案，例如修改时长、教学方式或重点学生。";
             input.focus();
           }
         });
       }
     });
   }).catch(function(e) {
-    if (bodyEl) bodyEl.innerHTML = '<div style="padding:20px;color:#f87171">方案生成失败。</div>';
+    if (bodyEl) bodyEl.innerHTML = '<div class="teacher-error-state">加载失败，请重试</div>';
   });
 };
 
@@ -818,7 +886,7 @@ TeacherUI.renderCandidateCard = function(candidate, idx) {
   html += '<div class="candidate-body"><strong>教学目标</strong><div>' + TeacherUI.escHtml(plan.objective) + '</div></div>';
   html += '<div class="candidate-body"><strong>教学方式</strong><div>' + TeacherUI.escHtml(plan.method) + '</div></div>';
   html += '<div class="candidate-body"><strong>为什么推荐</strong><div>' + TeacherUI.escHtml(plan.why) + '</div></div>';
-  html += '<div class="candidate-actions"><button type="button" class="btn-primary candidate-adopt" data-candidate-id="' + cid + '">采用方案</button>';
+  html += '<div class="candidate-actions"><button type="button" class="btn-primary candidate-adopt" data-candidate-id="' + cid + '">查看方案</button>';
   html += '<button type="button" class="btn-secondary candidate-ai-adjust" data-candidate-id="' + cid + '">让 AI 调整</button></div>';
   html += '</div>';
   return html;
@@ -862,8 +930,8 @@ TeacherUI.openInterventionPreview = function(plan, candidateId, issueId, student
     html += '<div class="detail-row" style="color:#fbbf24"><span class="label">单独安排</span><span>' + TeacherUI.escHtml(plan.focus_students.join("、")) + '</span></div>';
   }
   html += '<div class="intervention-preview-actions">';
-  html += '<button type="button" class="btn-primary" onclick="TeacherUI.confirmIntervention()">确认创建</button>';
-  html += '<button type="button" class="btn-secondary" onclick="TeacherUI.modifyInterventionFromPreview()">让 AI 修改</button>';
+  html += '<button type="button" class="btn-primary" onclick="TeacherUI.confirmIntervention()">采用此方案</button>';
+  html += '<button type="button" class="btn-secondary" onclick="TeacherUI.modifyInterventionFromPreview()">让 AI 调整</button>';
   html += '<button type="button" class="btn-secondary" onclick="TeacherUI.closeInterventionPreview()">取消</button>';
   html += '</div></div>';
   if (bodyEl) bodyEl.innerHTML = html;
@@ -888,7 +956,7 @@ TeacherUI.modifyInterventionFromPreview = function() {
   if (typeof closeWorkspace === "function") closeWorkspace();
   var input = document.getElementById("chatInput");
   if (input) {
-    input.value = "改成20分钟，并把001单独安排。";
+    input.value = "我想调整这个方案，例如修改时长、教学方式或重点学生。";
     input.focus();
   }
 };
@@ -924,15 +992,14 @@ TeacherUI.renderInterventionCreated = function(data) {
   drawer.classList.add("open");
   var titleEl = drawer.querySelector(".issue-drawer-title");
   var bodyEl = drawer.querySelector(".issue-drawer-body") || drawer.querySelector(".issue-drawer-content");
-  if (titleEl) titleEl.textContent = "干预已创建";
+  if (titleEl) titleEl.textContent = "方案已保存";
   var html = '<div class="intervention-created">';
-  html += '<div class="detail-row"><span class="label">干预 ID</span><span>' + TeacherUI.escHtml(data.intervention_id || "") + '</span></div>';
-  html += '<div class="detail-row"><span class="label">状态</span><span>草稿</span></div>';
+  html += '<div class="detail-row"><span class="label">当前状态</span><span>方案草稿</span></div>';
   html += '<div class="detail-row"><span class="label">适用学生</span><span>' + TeacherUI.escHtml((TeacherUI._pendingIntervention ? TeacherUI._pendingIntervention.student_ids : []).join("、")) + '</span></div>';
-  html += '<div class="detail-row"><span class="label">说明</span><span>干预已进入正式草稿，教师确认后可进入执行。</span></div>';
+  html += '<div class="detail-row"><span class="label">说明</span><span>方案已保存，教师确认后即可用于教学。</span></div>';
   html += '<div style="margin-top:16px;display:flex;gap:8px">';
-  html += '<button type="button" class="btn-primary" onclick="TeacherUI.confirmInterventionStatus()">确认进入执行</button>';
-  html += '<button type="button" class="btn-secondary" onclick="TeacherUI.openInterventionDetail(\'' + TeacherUI.escHtml(data.intervention_id) + '\')">查看状态</button>';
+  html += '<button type="button" class="btn-primary" onclick="TeacherUI.confirmInterventionStatus()">确认用于教学</button>';
+  html += '<button type="button" class="btn-secondary" onclick="TeacherUI.openInterventionDetail(\'' + TeacherUI.escHtml(data.intervention_id) + '\')">查看技术信息</button>';
   html += '</div></div>';
   if (bodyEl) bodyEl.innerHTML = html;
 };
@@ -942,9 +1009,10 @@ TeacherUI.confirmInterventionStatus = function() {
   if (!interventionId) return;
   TeacherUI.fetchAuth("/api/v2/teacher/interventions/" + encodeURIComponent(interventionId) + "/confirm", "POST", {}).then(function(data) {
     if (!data.ok) throw new Error(data.error || "确认失败");
+    TeacherUI.showToast("方案已确认", "success");
     TeacherUI.renderInterventionStatus({ intervention_id: interventionId, status: "planned", plan_snapshot: TeacherUI.aiContext.current_intervention_draft || {} });
   }).catch(function(e) {
-    alert("确认失败：" + e.message);
+    TeacherUI.showToast("确认失败，请重试", "error");
   });
 };
 
@@ -967,16 +1035,21 @@ TeacherUI.renderInterventionStatus = function(data) {
   var titleEl = drawer.querySelector(".issue-drawer-title");
   var bodyEl = drawer.querySelector(".issue-drawer-body") || drawer.querySelector(".issue-drawer-content");
   var status = data.status || "draft";
-  var label = { draft: "草稿", planned: "已确认 / 待执行", reviewed: "已审核", assigned: "已分配", in_progress: "执行中", completed: "已完成", evaluated: "已评估" }[status] || status;
-  if (titleEl) titleEl.textContent = "干预状态";
+  var label = { draft: "方案草稿", planned: "已确认 · 待执行", reviewed: "待发布", assigned: "已分配", in_progress: "执行中", completed: "已完成", evaluated: "已评估" }[status] || status;
+  if (titleEl) titleEl.textContent = "方案状态";
   var plan = data.plan_snapshot || TeacherUI.aiContext.current_intervention_draft || {};
   var html = '<div class="intervention-status">';
-  html += '<div class="detail-row"><span class="label">干预 ID</span><span>' + TeacherUI.escHtml(data.intervention_id || "") + '</span></div>';
-  html += '<div class="detail-row"><span class="label">状态</span><span>' + TeacherUI.escHtml(label) + '</span></div>';
+  html += '<div class="detail-row"><span class="label">方案名称</span><span>' + TeacherUI.escHtml(plan.title || "教学干预方案") + '</span></div>';
+  html += '<div class="detail-row"><span class="label">状态</span><span class="teacher-status-badge">' + TeacherUI.escHtml(label) + '</span></div>';
   html += '<div class="detail-row"><span class="label">建议用时</span><span>' + TeacherUI.escHtml(String(plan.duration_minutes || 20)) + ' 分钟</span></div>';
   html += '<div class="detail-row"><span class="label">适用学生</span><span>' + TeacherUI.escHtml((plan.target_students || []).join("、") || "无") + '</span></div>';
+  html += '<details class="analysis-details"><summary>查看技术信息</summary>';
+  html += '<div class="detail-row"><span class="label">Intervention ID</span><span>' + TeacherUI.escHtml(data.intervention_id || "") + '</span></div>';
+  html += '<div class="detail-row"><span class="label">Candidate ID</span><span>' + TeacherUI.escHtml(plan.candidate_id || "") + '</span></div>';
+  html += '<div class="detail-row"><span class="label">Issue ID</span><span>' + TeacherUI.escHtml(plan.issue_id || "") + '</span></div>';
+  html += '</details>';
   if (status === "draft") {
-    html += '<div style="margin-top:16px;display:flex;gap:8px"><button class="btn-primary" onclick="TeacherUI.confirmInterventionStatus()">确认进入执行</button></div>';
+    html += '<div style="margin-top:16px;display:flex;gap:8px"><button class="btn-primary" onclick="TeacherUI.confirmInterventionStatus()">确认用于教学</button></div>';
   }
   html += '</div>';
   if (bodyEl) bodyEl.innerHTML = html;
@@ -989,10 +1062,10 @@ TeacherUI.loadInsights = function() {
   var c = document.getElementById("tw-insights");
   if (!c) return;
   if (!TeacherUI.currentClassId) {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">请先创建班级。</div>';
+    c.innerHTML = '<div class="teacher-empty-state">当前班级暂无学生，先添加学生后即可查看班级学情。</div>';
     return;
   }
-  c.innerHTML = '<div class="muted" style="padding:20px">Loading class insights...</div>';
+  c.innerHTML = '<div class="teacher-empty-state">正在加载班级洞察…</div>';
   var cid = TeacherUI.currentClassId;
   Promise.all([
     TeacherUI.fetchAuth("/api/teacher/class/overview?class_id=" + cid, "GET"),
@@ -1003,64 +1076,68 @@ TeacherUI.loadInsights = function() {
     var graph = results[1] || { nodes: [] };
     var issues = results[2] || { issues: [] };
     var issueList = issues.issues || [];
-    var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 8px">班级洞察</h3>';
-    html += '<div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap">';
-    html += '<span class="badge">学生数： ' + (overview.total_students || 0) + '</span>';
-    html += '<span class="badge">证据： ' + Math.round((overview.evidence_coverage || 0) * 100) + '%</span>';
-    html += '<span class="badge">共性问题： ' + issueList.length + '</span>';
     var risk = overview.risk_distribution || {};
-    if (risk.high) html += '<span class="badge badge-danger">高风险： ' + risk.high + '</span>';
-    if (risk.attention) html += '<span class="badge badge-warning">需关注： ' + risk.attention + '</span>';
-    html += '</div>';
+    var attention = Number(risk.high || 0) + Number(risk.attention || 0);
+    var html = '<div class="teacher-section">';
+    html += '<div class="teacher-section-title">班级整体情况</div>';
+    html += '<div class="teacher-summary-card">' + TeacherUI.escHtml(String(overview.total_students || 0)) + ' 名学生中，' + attention + ' 人当前需要重点关注</div>';
+    html += '<div class="teacher-metric-row">证据覆盖 ' + Math.round((overview.evidence_coverage || 0) * 100) + '% · 共性问题 ' + issueList.length + ' 个</div>';
     var weakest = overview.weakest_abilities || [];
     if (weakest.length) {
-      html += '<div style="margin-bottom:16px"><strong style="color:#e2e8f0">班级最薄弱能力</strong></div>';
+      html += '<div class="teacher-section-title">最需要补强的能力</div>';
       weakest.forEach(function(w, idx) {
         var masteryPct = Math.round((w.mean_mastery || 0) * 100);
         var ratioPct = Math.round((w.weak_ratio || 0) * 100);
         var abilityId = w.ability_id || w.id || "";
-        html += '<div class="insight-ability-row" data-ability-id="' + TeacherUI.escHtml(abilityId) + '" style="margin-bottom:8px;cursor:pointer">';
-        html += '<div style="display:flex;justify-content:space-between;color:#cbd5e1;font-size:0.9rem">';
-        html += '<span>' + (idx + 1) + '. ' + TeacherUI.escHtml(w.label || w.ability_id) + '</span>';
-        html += '<span>' + w.weak_student_count + ' 薄弱 · ' + ratioPct + '%</span>';
+        var label = TeacherUI.abilityLabel(abilityId) || w.label || w.ability_id;
+        html += '<div class="insight-ability-row teacher-list-card" data-ability-id="' + TeacherUI.escHtml(abilityId) + '">';
+        html += '<div class="teacher-list-card-head">';
+        html += '<strong>' + TeacherUI.escHtml(label) + '</strong>';
+        html += '<span class="teacher-risk-text">' + (w.weak_student_count || 0) + '人薄弱 · ' + ratioPct + '%</span>';
         html += '</div>';
-        html += '<div style="background:rgba(255,255,255,0.08);border-radius:4px;height:8px;margin-top:4px">';
-        html += '<div style="background:#f87171;height:8px;border-radius:4px;width:' + masteryPct + '%"></div>';
-        html += '</div>';
-        html += '<div style="display:flex;gap:6px;margin-top:6px">';
-        html += '<button type="button" class="btn-small" data-ability-action="why">解释为什么薄弱</button>';
-        html += '<button type="button" class="btn-small" data-ability-action="students">查看受影响学生</button>';
-        html += '<button type="button" class="btn-small" data-ability-action="group">生成分组教学</button>';
-        html += '</div>';
+        html += '<div class="teacher-metric-row">班级掌握度 ' + masteryPct + '%</div>';
+        html += '<div class="teacher-progress"><div class="teacher-progress-fill" style="width:' + masteryPct + '%"></div></div>';
+        html += '<div class="teacher-action-row"><button type="button" class="btn-secondary btn-small" data-ability-action="detail">查看详情</button></div>';
         html += '</div>';
       });
+    } else {
+      html += '<div class="teacher-empty-state">暂无足够能力数据。</div>';
     }
     html += '<div id="teacherClassGraphDiagram" style="width:100%;height:300px"></div>';
+    html += '<div id="teacherInsightAbilityDetail"></div>';
     html += '</div>';
     c.innerHTML = html;
     c.querySelectorAll(".insight-ability-row").forEach(function(row) {
       row.addEventListener("click", function(ev) {
         if (ev.target.closest("button")) return;
-        TeacherUI.updateAIContext({ current_ability_id: row.dataset.abilityId || null });
+        TeacherUI.openInsightAbility(row.dataset.abilityId || "");
       });
     });
     c.querySelectorAll("[data-ability-action]").forEach(function(btn) {
       btn.addEventListener("click", function() {
-        TeacherUI.updateAIContext({ current_ability_id: btn.closest(".insight-ability-row")?.dataset.abilityId || null });
-        var prompts = {
-          why: "解释这个能力为什么薄弱",
-          students: "查看受影响学生",
-          group: "生成分组教学"
-        };
-        TeacherUI.askAbility(prompts[btn.dataset.abilityAction] || "解释这个能力为什么薄弱");
+        TeacherUI.openInsightAbility(btn.closest(".insight-ability-row")?.dataset.abilityId || "");
       });
     });
     if (typeof renderGraphDiagram === "function" && (graph.nodes || []).length) {
       setTimeout(function() { renderGraphDiagram(graph, "teacherClassGraphDiagram"); }, 200);
     }
   }).catch(function() {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">班级洞察加载失败。</div>';
+    c.innerHTML = '<div class="teacher-error-state">加载失败，请重试 <button class="btn-secondary" onclick="TeacherUI.loadInsights()">重新加载</button></div>';
   });
+};
+
+TeacherUI.openInsightAbility = function(abilityId) {
+  if (!abilityId) return;
+  TeacherUI.updateAIContext({ current_ability_id: abilityId });
+  var detail = document.getElementById("teacherInsightAbilityDetail");
+  if (!detail) return;
+  var label = TeacherUI.abilityLabel(abilityId);
+  detail.innerHTML = '<div class="teacher-detail-group"><div class="teacher-section-title">' + TeacherUI.escHtml(label) + '</div>' +
+    '<div class="teacher-action-row">' +
+    '<button class="btn-secondary" onclick="TeacherUI.askAbility(\'解释这个能力为什么薄弱\')">让 AI 分析</button>' +
+    '<button class="btn-secondary" onclick="TeacherUI.askAbility(\'查看受影响学生\')">查看学生</button>' +
+    '<button class="btn-secondary" onclick="TeacherUI.askAbility(\'生成分组教学\')">生成分组教学</button>' +
+    '</div></div>';
 };
 
 // ============================================================
@@ -1071,25 +1148,25 @@ TeacherUI.loadStudents = function() {
   if (!c) return;
   c.innerHTML = '<div class="teacher-students-layout"><div id="teacherStudentListPane" style="flex:1;overflow-y:auto"></div><div id="teacherStudentDetailPane" style="flex:1;overflow-y:auto;border-left:1px solid #334155;padding:16px;display:none"></div></div>';
   var listPane = document.getElementById("teacherStudentListPane");
-  listPane.innerHTML = '<div class="muted" style="padding:20px">加载学生列表中...</div>';
+  listPane.innerHTML = '<div class="teacher-empty-state">正在加载学生…</div>';
 
   if (!TeacherUI.currentClassId) {
-    listPane.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">请先选择班级。</div>';
+    listPane.innerHTML = '<div class="teacher-empty-state">请先选择班级。</div>';
     return;
   }
   TeacherUI.fetchAuth("/api/teacher/classes/" + TeacherUI.currentClassId + "/students", "GET").then(function(data) {
     var students = data.students || [];
     if (!Array.isArray(students)) students = [];
     if (!students.length) {
-      listPane.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">当前班级暂无学生。</div>';
+      listPane.innerHTML = '<div class="teacher-empty-state"><strong>当前班级暂无学生</strong><div>先添加学生后即可查看班级学情。</div></div>';
       return;
     }
     var html = '<div class="student-list" style="overflow-y:auto;max-height:calc(100vh - 200px)">';
     students.forEach(function(s) {
       var sid = String(s.student_id || s.id || s.username || "");
       var name = TeacherUI.escHtml(String(s.nickname || s.name || sid));
-      var weak = (s.weak_abilities || []).slice(0, 2).join(", ");
-      html += '<div class="student-card" data-student-id="' + sid + '" style="padding:12px;border-bottom:1px solid #1e293b;cursor:pointer">';
+      var weak = (s.weak_abilities || []).slice(0, 2).map(TeacherUI.abilityLabel).join(", ");
+      html += '<div class="student-card teacher-list-card" data-student-id="' + sid + '">';
       html += '<div style="font-weight:600;color:#e2e8f0">' + name + ' (' + sid + ')</div>';
       if (weak) html += '<div style="font-size:0.85em;color:#94a3b8">弱项： ' + TeacherUI.escHtml(weak) + '</div>';
       html += '</div>';
@@ -1100,28 +1177,31 @@ TeacherUI.loadStudents = function() {
       card.addEventListener("click", function() { TeacherUI.lookupStudent(card.dataset.studentId); });
     });
   }).catch(function(e) {
-    listPane.innerHTML = '<div style="padding:20px;color:#f87171">学生列表加载失败。</div>';
+    listPane.innerHTML = '<div class="teacher-error-state">加载失败，请重试 <button class="btn-secondary" onclick="TeacherUI.loadStudents()">重新加载</button></div>';
   });
 };
 
 TeacherUI.lookupStudent = function(studentId) {
   TeacherUI.updateAIContext({ current_student_id: String(studentId || "") });
+  document.querySelectorAll(".student-card").forEach(function(card) {
+    card.classList.toggle("active", card.dataset.studentId === String(studentId));
+  });
   var detailPane = document.getElementById("teacherStudentDetailPane");
   if (!detailPane) {
     var old = document.getElementById("studentDetailContent");
-    if (old) old.innerHTML = '<div style="padding:20px">Loading student ' + studentId + ' ...</div>';
+    if (old) old.innerHTML = '<div style="padding:20px">正在加载学生详情…</div>';
     if (typeof fetchStudentDetail === "function") { fetchStudentDetail(studentId); return; }
     if (typeof loadStudentDetail === "function") { loadStudentDetail(studentId); return; }
     return;
   }
   detailPane.style.display = "block";
-  detailPane.innerHTML = '<div style="padding:20px">加载学生详情中...</div>';
+  detailPane.innerHTML = '<div class="teacher-empty-state">正在加载学生详情…</div>';
   var jobId = TeacherUI.currentClass ? TeacherUI.currentClass.job_role : "";
   var detailUrl = "/api/teacher/students/" + studentId;
   if (TeacherUI.currentClassId) detailUrl += "?class_id=" + TeacherUI.currentClassId;
   TeacherUI.fetchAuth(detailUrl, "GET").then(function(data) {
     if (data.error) {
-      detailPane.innerHTML = '<div style="padding:20px;color:#f87171">No data for student ' + studentId + '</div>';
+      detailPane.innerHTML = '<div class="teacher-empty-state">暂无该学生数据。</div>';
       return;
     }
     var name = TeacherUI.escHtml(String(data.nickname || studentId));
@@ -1129,39 +1209,36 @@ TeacherUI.lookupStudent = function(studentId) {
     var strong = (data.strong_abilities || []).slice(0, 5);
     var patterns = data.diagnostic_patterns || [];
     var recentEvents = data.recent_events || [];
-    var html = '<div class="student-detail"><h3>' + name + ' (' + studentId + ')</h3>';
+    var html = '<div class="student-detail teacher-section"><h3>' + name + ' (' + TeacherUI.escHtml(studentId) + ')</h3>';
+    html += '<div class="teacher-status-badge">需要关注</div>';
+    html += '<div class="teacher-section-title">主要薄弱</div>';
+    html += '<div class="teacher-detail-group">' + (weak.length ? weak.map(TeacherUI.abilityLabel).map(TeacherUI.escHtml).join("、") : "暂无明确薄弱项") + '</div>';
+    if (patterns.length) {
+      html += '<div class="teacher-section-title">最近表现</div>';
+      var firstPattern = typeof patterns[0] === "string" ? patterns[0] : (patterns[0].pattern_name || patterns[0].name || patterns[0].type || "存在共性问题");
+      html += '<div class="teacher-detail-group">' + TeacherUI.escHtml(firstPattern) + '</div>';
+    }
+    html += '<div class="teacher-section-title">能力情况</div>';
+    html += '<div class="teacher-metric-row">强项：' + (strong.length ? strong.map(TeacherUI.abilityLabel).map(TeacherUI.escHtml).join("、") : "暂无") + '</div>';
+    html += '<div class="teacher-metric-row">薄弱：' + (weak.length ? weak.map(TeacherUI.abilityLabel).map(TeacherUI.escHtml).join("、") : "暂无") + '</div>';
+    html += '<div class="teacher-section-title">学习依据</div>';
+    if (data.overall_score !== undefined) html += '<div class="teacher-metric-row">测评分：<strong>' + TeacherUI.escHtml(String(data.overall_score)) + '</strong></div>';
+    if (data.evidence_coverage) html += '<div class="teacher-metric-row">证据覆盖 ' + Math.round(data.evidence_coverage * 100) + '%</div>';
+    if (recentEvents.length) {
+      html += '<div class="teacher-detail-group">' + recentEvents.slice(0, 5).map(function(ev) {
+        var desc = typeof ev === "string" ? ev : (ev.event_type || ev.type || ev.action || "学习事件");
+        return '<div>- ' + TeacherUI.escHtml(desc) + '</div>';
+      }).join("") + '</div>';
+    }
     html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0">';
-    html += '<button class="btn-secondary" onclick="TeacherUI.askStudent(\'总结该生\')">总结该生</button>';
+    html += '<button class="btn-secondary" onclick="TeacherUI.askStudent(\'总结该生\')">让 AI 分析该生</button>';
     html += '<button class="btn-secondary" onclick="TeacherUI.askStudent(\'为什么他最近表现不好？\')">为什么薄弱</button>';
     html += '<button class="btn-secondary" onclick="TeacherUI.askStudent(\'生成针对性任务\')">生成针对性任务</button>';
     html += '</div>';
-    html += '<div class="detail-row"><span>状态： <strong>' + TeacherUI.escHtml(String(data.status || "未知")) + '</strong></span></div>';
-    if (data.overall_score !== undefined) html += '<div class="detail-row"><span>测评分： <strong>' + data.overall_score + '</strong></span></div>';
-    if (data.evidence_count) html += '<div class="detail-row"><span>证据： ' + data.evidence_count + ' events</span></div>';
-    if (data.evidence_coverage) html += '<div class="detail-row"><span>覆盖率： ' + Math.round(data.evidence_coverage * 100) + '%</span></div>';
-    html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
-    if (weak.length) html += '<div class="detail-row"><span style="color:#f87171">弱项： ' + weak.map(TeacherUI.escHtml).join(", ") + '</span></div>';
-    if (strong.length) html += '<div class="detail-row"><span style="color:#22c55e">强项： ' + strong.map(TeacherUI.escHtml).join(", ") + '</span></div>';
-    if (patterns.length) {
-      html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
-      html += '<div class="detail-row"><strong>诊断模式</strong></div>';
-      patterns.slice(0, 5).forEach(function(p) {
-        var label = typeof p === "string" ? p : (p.pattern_name || p.name || p.type || JSON.stringify(p));
-        html += '<div class="detail-row" style="color:#fbbf24">- ' + TeacherUI.escHtml(label) + '</div>';
-      });
-    }
-    if (recentEvents.length) {
-      html += '<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0">';
-      html += '<div class="detail-row"><strong>最近学习</strong></div>';
-      recentEvents.slice(0, 5).forEach(function(ev) {
-        var desc = typeof ev === "string" ? ev : (ev.event_type || ev.type || ev.action || "Learning event");
-        html += '<div class="detail-row" style="color:#94a3b8">- ' + TeacherUI.escHtml(desc) + '</div>';
-      });
-    }
     html += '</div>';
     detailPane.innerHTML = html;
   }).catch(function(e) {
-    detailPane.innerHTML = '<div style="padding:20px;color:#f87171">学生详情加载失败。</div>';
+    detailPane.innerHTML = '<div class="teacher-error-state">加载失败，请重试 <button class="btn-secondary" onclick="TeacherUI.lookupStudent(\'' + TeacherUI.escHtml(studentId) + '\')">重新加载</button></div>';
   });
 };
 
@@ -1192,43 +1269,45 @@ TeacherUI.loadFeedback = function() {
   var c = document.getElementById("tw-feedback");
   if (!c) return;
   if (!TeacherUI.currentClassId) {
-    c.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">请先选择班级。</div>';
+    c.innerHTML = '<div class="teacher-empty-state">请先选择班级。</div>';
     return;
   }
-  c.innerHTML = '<div class="muted" style="padding:20px">加载教学反馈中...</div>';
+  c.innerHTML = '<div class="teacher-empty-state">正在加载教学反馈…</div>';
   var url = "/api/teacher/comments?class_id=" + TeacherUI.currentClassId;
   if (TeacherUI._commentFilter !== "all") url += "&status=" + TeacherUI._commentFilter;
   TeacherUI.fetchAuth(url, "GET").then(function(data) {
     var stats = data.stats || {};
     var comments = data.comments || [];
-    var html = '<div style="padding:16px"><h3 style="color:#e2e8f0;margin:0 0 12px">教学反馈</h3>';
+    var html = '<div class="teacher-section"><div class="teacher-section-title">教学反馈</div>';
     html += '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
-    var filters = [["all", "全部"], ["draft", "草稿"], ["reviewed", "已审核"], ["published", "已发布"]];
+    var filters = [["all", "全部"], ["draft", "草稿"], ["reviewed", "待发布"], ["published", "已发布"]];
     filters.forEach(function(f) {
       var active = TeacherUI._commentFilter === f[0] ? "background:#14b8a6;color:#fff" : "background:rgba(255,255,255,0.08)";
-      html += '<button style="padding:6px 12px;border-radius:6px;border:none;cursor:pointer;' + active + '" onclick="TeacherUI.setCommentFilter(\'' + f[0] + '\')">' + f[1] + ' (' + (stats[f[0]] || comments.length) + ')</button>';
+      var count = stats[f[0]] !== undefined ? stats[f[0]] : comments.length;
+      html += '<button style="padding:6px 12px;border-radius:6px;border:none;cursor:pointer;' + active + '" onclick="TeacherUI.setCommentFilter(\'' + f[0] + '\')">' + f[1] + ' (' + count + ')</button>';
     });
     html += '</div>';
     if (!comments.length) {
-      html += '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.4)">暂无评语。</div>';
+      html += '<div class="teacher-empty-state">暂无教学反馈。</div>';
     } else {
       comments.forEach(function(cm) {
         var sid = TeacherUI.escHtml(String(cm.student_id || ""));
-        var status = TeacherUI.escHtml(String(cm.status || "draft"));
+        var status = TeacherUI.commentStatusLabel(cm.status || "draft");
+        var studentName = TeacherUI.escHtml(String(cm.student_name || cm.nickname || ""));
         var content = TeacherUI.escHtml(String(cm.content || cm.ai_draft || "").slice(0, 80));
         var evidenceCount = 0;
         evidenceCount = (cm.evidence || []).length;
-        html += '<div class="comment-card" style="padding:12px;border:1px solid #334155;border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="TeacherUI.openCommentDetail(' + cm.id + ')">';
-        html += '<div style="font-weight:600;color:#e2e8f0">Student ' + sid + ' <span class="badge">' + status + '</span></div>';
+        html += '<div class="comment-card teacher-list-card" onclick="TeacherUI.openCommentDetail(' + cm.id + ')">';
+        html += '<div style="font-weight:600;color:#e2e8f0">' + (studentName ? studentName + ' · ' + sid : '学生 ' + sid) + ' <span class="teacher-status-badge">' + TeacherUI.escHtml(status) + '</span></div>';
         html += '<div style="color:#94a3b8;margin-top:4px">' + content + '</div>';
-        html += '<div style="color:#64748b;font-size:0.8rem;margin-top:4px">' + evidenceCount + ' 条证据</div>';
+        html += '<div style="color:#64748b;font-size:0.8rem;margin-top:4px">' + evidenceCount + ' 条学习依据</div>';
         html += '</div>';
       });
     }
     html += '</div>';
     c.innerHTML = html;
   }).catch(function() {
-    c.innerHTML = '<div style="padding:20px;color:rgba(255,255,255,0.4)">评语加载失败。</div>';
+    c.innerHTML = '<div class="teacher-error-state">加载失败，请重试 <button class="btn-secondary" onclick="TeacherUI.loadFeedback()">重新加载</button></div>';
   });
 };
 
@@ -1243,10 +1322,10 @@ TeacherUI.openCommentDetail = function(commentId) {
   TeacherUI.fetchAuth("/api/teacher/comments/" + commentId, "GET").then(function(cm) {
     var evidence = [];
     evidence = cm.evidence || [];
-    var html = '<div style="padding:16px"><button class="btn-secondary" style="margin-bottom:8px" onclick="TeacherUI.loadFeedback()">返回列表</button>';
-    html += '<h3 style="color:#e2e8f0;margin:0 0 8px">评语详情</h3>';
+    var html = '<div class="teacher-section"><button class="btn-secondary" style="margin-bottom:8px" onclick="TeacherUI.loadFeedback()">返回列表</button>';
+    html += '<div class="teacher-section-title">教学反馈详情</div>';
     html += '<div class="detail-row"><span>学生： ' + TeacherUI.escHtml(String(cm.student_id || "")) + '</span></div>';
-    html += '<div class="detail-row"><span>状态： <strong>' + TeacherUI.escHtml(String(cm.status || "draft")) + '</strong></span></div>';
+    html += '<div class="detail-row"><span>状态： <strong>' + TeacherUI.escHtml(TeacherUI.commentStatusLabel(cm.status || "draft")) + '</strong></span></div>';
     if (cm.period_start) html += '<div class="detail-row"><span>周期： ' + cm.period_start + ' ~ ' + (cm.period_end || "") + '</span></div>';
     if (cm.ai_draft) html += '<div class="detail-row" style="margin-top:8px"><strong>AI 初稿</strong><p style="color:#94a3b8">' + TeacherUI.escHtml(cm.ai_draft) + '</p></div>';
     html += '<div class="detail-row"><strong>正文</strong><p style="color:#cbd5e1">' + TeacherUI.escHtml(cm.content || "") + '</p></div>';
@@ -1274,7 +1353,7 @@ TeacherUI.openCommentDetail = function(commentId) {
     html += '</div>';
     c.innerHTML = html;
   }).catch(function() {
-    c.innerHTML = '<div style="padding:20px;color:#f87171">评语详情加载失败。</div>';
+    c.innerHTML = '<div class="teacher-error-state">加载失败，请重试 <button class="btn-secondary" onclick="TeacherUI.openCommentDetail(' + commentId + ')">重新加载</button></div>';
   });
 };
 
@@ -1282,7 +1361,7 @@ TeacherUI.reviewComment = function(commentId) {
   TeacherUI.fetchAuth("/api/teacher/comments/" + commentId + "/review", "POST", {}).then(function() {
     TeacherUI.openCommentDetail(commentId);
   }).catch(function(e) {
-    alert("审核 failed: " + e.message);
+    TeacherUI.showToast("审核失败，请重试", "error");
   });
 };
 
@@ -1290,7 +1369,7 @@ TeacherUI.publishComment = function(commentId) {
   TeacherUI.fetchAuth("/api/teacher/comments/" + commentId + "/publish", "POST", {}).then(function() {
     TeacherUI.openCommentDetail(commentId);
   }).catch(function(e) {
-    alert("发布 failed: " + e.message);
+    TeacherUI.showToast("发布失败，请重试", "error");
   });
 };
 
