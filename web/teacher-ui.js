@@ -383,7 +383,6 @@ TeacherUI.initNav = function() {
   if (TeacherUI._navInitialized) return;
   TeacherUI._navInitialized = true;
   TeacherUI.loadClasses();
-  TeacherUI.switchTab("today");
 };
 
 TeacherUI.switchTab = function(tabId) {

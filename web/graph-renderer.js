@@ -49,6 +49,8 @@ class ForceGraph {
         if (dim.includes('mechanical') || dim.includes('机械')) return '#fb923c';
         if (dim.includes('electrical') || dim.includes('电气')) return '#38bdf8';
         if (dim.includes('communication') || dim.includes('通信') || dim.includes('网络')) return '#f472b6';
+        if (dim.includes('robot_operation')) return '#38bdf8';
+        if (dim.includes('robot_troubleshooting')) return '#34d399';
         const colors = ['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c','#38bdf8','#f472b6'];
         const hash = (node.id || '').split('').reduce((a,ch)=>a+ch.charCodeAt(0),0);
         return colors[hash % colors.length];

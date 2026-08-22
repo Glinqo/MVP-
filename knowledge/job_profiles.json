@@ -572,52 +572,59 @@
         "高职机电一体化实训学生",
         "入职 0-6 个月设备调试新人"
       ],
-      "job_context": "在自动化产线或机电设备工作站中，完成机器人操作等相关领域的装调、监控和故障排查。",
+      "job_context": "在自动化产线或机器人工作站中，完成机器人示教、通信联调、工作站安全防护和故障诊断维护。",
       "core_job_tasks": [
-        "机器人操作相关基础操作",
-        "故障排查相关综合排故"
+        "完成机器人示教、程序编写与轨迹调试",
+        "完成机器人与 PLC、视觉及外围设备的信号联调",
+        "落实工作站安全围栏、急停与联锁防护",
+        "识别报警并完成伺服、I/O 与通信故障诊断维护"
       ],
       "ability_chain": [
-        "rt_task_understanding",
-        "es_safety_rules",
-        "es_power_isolation",
-        "es_instrument_use",
-        "es_low_voltage",
-        "es_diagram_reading",
-        "sn_type_identify",
-        "sn_wiring_rules",
-        "sn_signal_acq",
-        "sn_fault_diag",
-        "sn_actuator_link",
-        "pl_io_mapping",
-        "pl_program_monitor",
-        "pl_logic_control",
-        "pl_fault_diag",
-        "pl_device_integration",
-        "tr_inspection",
-        "tr_fault_classify",
-        "tr_signal_chain",
-        "tr_system_diag",
-        "tr_record_feedback",
-        "rt_training_recommend"
+        "ir_01",
+        "ir_02",
+        "ir_03",
+        "ir_04",
+        "ir_05",
+        "ir_21",
+        "ir_22",
+        "ir_06",
+        "ir_07",
+        "ir_08",
+        "ir_09",
+        "ir_10",
+        "ir_23",
+        "ir_24",
+        "ir_11",
+        "ir_12",
+        "ir_13",
+        "ir_14",
+        "ir_15",
+        "ir_25",
+        "ir_16",
+        "ir_17",
+        "ir_18",
+        "ir_19",
+        "ir_20"
       ],
       "ability_areas": [
-        "机器人操作",
-        "I/O 通信",
-        "工作站安全",
-        "故障排查"
+        "机器人操作与示教",
+        "通信与信号联调",
+        "工作站安全防护",
+        "故障诊断与维护"
       ],
       "course_mapping": [],
       "training_stages": [
         {
-          "stage": "机器人操作",
-          "goal": "掌握机器人操作相关知识与技能。",
+          "stage": "机器人操作与示教",
+          "goal": "掌握机器人基础操作、示教器使用、坐标系设定、程序编写和轨迹调试。",
           "ability_ids": [
             "ir_01",
             "ir_02",
             "ir_03",
             "ir_04",
-            "ir_05"
+            "ir_05",
+            "ir_21",
+            "ir_22"
           ],
           "evidence": [
             "机器人操作实操记录",
@@ -625,29 +632,32 @@
           ]
         },
         {
-          "stage": "I/O 通信",
-          "goal": "掌握I/O 通信相关知识与技能。",
+          "stage": "通信与信号联调",
+          "goal": "掌握机器人 I/O、PLC、工业网络、视觉及外围设备的信号联调。",
           "ability_ids": [
             "ir_06",
             "ir_07",
             "ir_08",
             "ir_09",
-            "ir_10"
+            "ir_10",
+            "ir_23",
+            "ir_24"
           ],
           "evidence": [
-            "I/O 通信实操记录",
-            "I/O 通信考核成绩"
+            "通信联调实操记录",
+            "通信联调考核成绩"
           ]
         },
         {
-          "stage": "工作站安全",
-          "goal": "掌握工作站安全相关知识与技能。",
+          "stage": "工作站安全防护",
+          "goal": "掌握安全围栏、急停回路、安全联锁、安全程序和防护区域监控。",
           "ability_ids": [
             "ir_11",
             "ir_12",
             "ir_13",
             "ir_14",
-            "ir_15"
+            "ir_15",
+            "ir_25"
           ],
           "evidence": [
             "工作站安全实操记录",
@@ -655,8 +665,8 @@
           ]
         },
         {
-          "stage": "故障排查",
-          "goal": "掌握故障排查相关知识与技能。",
+          "stage": "故障诊断与维护",
+          "goal": "掌握报警识别、伺服系统、I/O、通信故障诊断与维护记录反馈。",
           "ability_ids": [
             "ir_16",
             "ir_17",
@@ -665,8 +675,8 @@
             "ir_20"
           ],
           "evidence": [
-            "故障排查实操记录",
-            "故障排查考核成绩"
+            "故障诊断实操记录",
+            "故障诊断考核成绩"
           ]
         }
       ],
@@ -676,8 +686,8 @@
         "llm_role": "解释错因、组织反馈和生成学习建议，不自由改分",
         "teacher_review": "涉及真实设备操作时由教师或实训指导人员复核"
       },
-      "mvp_focus_task": "机器人操作与工作站安全实训",
-      "safety_notice": "接线和拆线前先断电；调试前确认急停、气源、电源和设备状态。",
+      "mvp_focus_task": "机器人示教与工作站安全联调",
+      "safety_notice": "操作机器人前确认使能状态、速度倍率、急停和防护区域；调试前先确认人员站位与安全联锁。",
       "sources": [
         "project_curated",
         "MVP 场景: 工业机器人系统运维员职业新人培训"

@@ -750,6 +750,521 @@
         "plc_control_debug",
         "equipment_inspection_troubleshooting"
       ]
+    },
+    {
+      "id": "ir_01",
+      "name": "机器人基础操作",
+      "level": "core",
+      "description": "掌握工业机器人控制柜、示教器和轴运动的基本概念，能安全完成点动与简单动作。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_01"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_operation"
+      ]
+    },
+    {
+      "id": "ir_02",
+      "name": "示教器安全使用",
+      "level": "core",
+      "description": "熟悉示教器界面、使能键和速度倍率，养成上电前确认安全条件的习惯。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_02"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_operation"
+      ]
+    },
+    {
+      "id": "ir_03",
+      "name": "坐标系设定",
+      "level": "core",
+      "description": "理解关节、基座、工具和用户坐标系的区别，能进行基础坐标系选择与设定。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_03"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_operation"
+      ]
+    },
+    {
+      "id": "ir_04",
+      "name": "机器人程序编写",
+      "level": "core",
+      "description": "掌握运动指令、等待与逻辑指令的基本用法，能编写简单机器人作业程序。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_04"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_operation"
+      ]
+    },
+    {
+      "id": "ir_05",
+      "name": "轨迹调试",
+      "level": "core",
+      "description": "能规划直线与圆弧轨迹，识别过冲、抖动和路径偏差等典型问题。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_05"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_operation"
+      ]
+    },
+    {
+      "id": "ir_21",
+      "name": "原点校准与转数计数",
+      "level": "core",
+      "description": "掌握各轴回零、转数计数器更新和机械原点核对方法。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_operation"
+      ]
+    },
+    {
+      "id": "ir_22",
+      "name": "工具坐标系标定",
+      "level": "core",
+      "description": "能使用 TCP 四点法或直接输入法标定工具坐标系，并验证末端精度。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_operation"
+      ]
+    },
+    {
+      "id": "ir_06",
+      "name": "机器人 I/O 配置",
+      "level": "core",
+      "description": "掌握机器人数字量/模拟量 I/O 的地址配置与信号映射。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_06"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_communication"
+      ]
+    },
+    {
+      "id": "ir_07",
+      "name": "PLC 通信联调",
+      "level": "core",
+      "description": "能完成机器人与 PLC 的通信参数配置和信号联调。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_07"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_communication"
+      ]
+    },
+    {
+      "id": "ir_08",
+      "name": "信号交互验证",
+      "level": "core",
+      "description": "能按检查、操作、验证、记录流程完成机器人与外围设备的信号交互验证。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_08"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_communication"
+      ]
+    },
+    {
+      "id": "ir_09",
+      "name": "工业网络检查",
+      "level": "core",
+      "description": "理解 EtherNet/IP、PROFINET 等工业网络基本概念，能检查网络状态与参数。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_09"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_communication"
+      ]
+    },
+    {
+      "id": "ir_10",
+      "name": "通信异常处理",
+      "level": "core",
+      "description": "能按理论、实操和安全结合的方法处理机器人通信异常。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_10"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_communication"
+      ]
+    },
+    {
+      "id": "ir_23",
+      "name": "视觉与手眼标定",
+      "level": "core",
+      "description": "了解 Eye-in-Hand 与 Eye-to-Hand 的差异，能配合视觉系统完成基础标定。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_communication"
+      ]
+    },
+    {
+      "id": "ir_24",
+      "name": "外围设备联调",
+      "level": "core",
+      "description": "能联调夹爪、变位机、输送线和安全门等外围设备。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_communication"
+      ]
+    },
+    {
+      "id": "ir_11",
+      "name": "工作站安全规范",
+      "level": "core",
+      "description": "掌握机器人工作站的人员站位、隔离区域和操作权限等安全规范。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_11"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_safety"
+      ]
+    },
+    {
+      "id": "ir_12",
+      "name": "安全围栏与安全门",
+      "level": "core",
+      "description": "能检查安全围栏、安全门开关和区域防护装置的有效性。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_12"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_safety"
+      ]
+    },
+    {
+      "id": "ir_13",
+      "name": "急停回路验证",
+      "level": "core",
+      "description": "掌握急停回路原理，能验证急停和停止回路的可靠性。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_13"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_safety"
+      ]
+    },
+    {
+      "id": "ir_14",
+      "name": "安全联锁调试",
+      "level": "core",
+      "description": "能调试机器人与工作站之间的安全联锁逻辑。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_14"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_safety"
+      ]
+    },
+    {
+      "id": "ir_15",
+      "name": "安全程序编写",
+      "level": "core",
+      "description": "能在机器人程序中加入安全速度、区域限制和安全逻辑。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_15"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_safety"
+      ]
+    },
+    {
+      "id": "ir_25",
+      "name": "防护区域监控",
+      "level": "core",
+      "description": "掌握光栅、扫描仪等区域监控装置的安装位置和状态判断。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_safety"
+      ]
+    },
+    {
+      "id": "ir_16",
+      "name": "机器人报警识别",
+      "level": "core",
+      "description": "能阅读机器人报警代码，识别运动、通信和安全类报警。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_16"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_troubleshooting"
+      ]
+    },
+    {
+      "id": "ir_17",
+      "name": "伺服系统故障排查",
+      "level": "core",
+      "description": "能结合报警和历史数据排查伺服驱动、电机和减速机故障。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_17"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_troubleshooting"
+      ]
+    },
+    {
+      "id": "ir_18",
+      "name": "I/O 故障诊断",
+      "level": "core",
+      "description": "能定位机器人 I/O 信号缺失、短路和地址错误等故障。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_18"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_troubleshooting"
+      ]
+    },
+    {
+      "id": "ir_19",
+      "name": "通信故障处理",
+      "level": "core",
+      "description": "能处理机器人与 PLC、视觉或上位机之间的通信故障。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_19"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_troubleshooting"
+      ]
+    },
+    {
+      "id": "ir_20",
+      "name": "维护记录与反馈",
+      "level": "core",
+      "description": "能规范记录维护过程，形成故障现象、证据、结论和训练建议闭环。",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [
+        "Q_indu_20"
+      ],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "robot_troubleshooting"
+      ]
     }
   ]
 }

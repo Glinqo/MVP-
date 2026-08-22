@@ -678,7 +678,11 @@ function computeDimensionScores(graph) {
     { id: "electrical_safety", label: "电气安全", color: "#f87171", match: function(ids) { return ids.some(function(d) { return d.indexOf("electrical_safety") === 0; }); } },
     { id: "sensor_signal", label: "传感器诊断", color: "#fbbf24", match: function(ids) { return ids.some(function(d) { return d.indexOf("sensor_signal") === 0; }); } },
     { id: "plc_control", label: "PLC控制", color: "#60a5fa", match: function(ids) { return ids.some(function(d) { return d.indexOf("plc_control") === 0; }); } },
-    { id: "troubleshooting", label: "排故诊断", color: "#34d399", match: function(ids) { return ids.some(function(d) { return d.indexOf("equipment_inspection") === 0 || d.indexOf("troubleshooting") >= 0; }); } }
+    { id: "troubleshooting", label: "排故诊断", color: "#34d399", match: function(ids) { return ids.some(function(d) { return d.indexOf("equipment_inspection") === 0 || d.indexOf("troubleshooting") >= 0; }); } },
+    { id: "robot_operation", label: "机器人操作与示教", color: "#38bdf8", match: function(ids) { return ids.some(function(d) { return d.indexOf("robot_operation") === 0; }); } },
+    { id: "robot_communication", label: "通信与信号联调", color: "#f472b6", match: function(ids) { return ids.some(function(d) { return d.indexOf("robot_communication") === 0; }); } },
+    { id: "robot_safety", label: "工作站安全防护", color: "#f87171", match: function(ids) { return ids.some(function(d) { return d.indexOf("robot_safety") === 0; }); } },
+    { id: "robot_troubleshooting", label: "故障诊断与维护", color: "#34d399", match: function(ids) { return ids.some(function(d) { return d.indexOf("robot_troubleshooting") === 0; }); } }
   ];
   var blocks = [];
   dims.forEach(function(dim) {
