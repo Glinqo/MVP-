@@ -1,7 +1,7 @@
 import json
 
 from .assist import assist
-from .data_loader import primary_job_profile
+from .data_loader import job_profile_by_id, primary_job_profile
 from .feedback import append_session_event
 from .graph import build_student_ability_graph
 from .intent import classify_intent
@@ -64,7 +64,22 @@ TOOLS = [
 ]
 
 
-def welcome_questions():
+def welcome_questions(job_role=None):
+    profile = job_profile_by_id(job_role) if job_role else primary_job_profile()
+    if profile.get("id") == "industrial_robot_maintenance":
+        return [
+            "用示教器点动前，我应该先确认使能键、速度倍率和防护区域哪些安全条件？",
+            "示教器使能键按住后机器人不动，应该先查模式开关、速度倍率还是急停回路？",
+            "机器人与 PLC 的 I/O 握手失败，应该先检查通信参数、信号映射还是安全门联锁？",
+            "机器人工具坐标系 TCP 不准，应该先重新标定还是先核对机械原点？",
+        ]
+    core_tasks = [task for task in profile.get("core_job_tasks", []) if task]
+    if len(core_tasks) >= 2:
+        return [
+            f"{core_tasks[0]}，应该先做什么？",
+            f"{core_tasks[1]}，我该怎么开始？",
+            "这个岗位的第一步应该先掌握哪些能力？",
+        ]
     return [
         "传感器动作灯亮但 PLC 没输入，应该先查哪里？",
         "我怎么判断 NPN/PNP 和 PLC 公共端是否匹配？",
@@ -101,7 +116,7 @@ def chat_start(payload=None):
             f"当前重点训练任务是：{focus_task}。你可以直接描述问题；"
             "如果涉及接线、通电监控或设备动作，我会先提醒安全，再帮你定位能力和知识缺口。"
         ),
-        "suggested_questions": welcome_questions(),
+        "suggested_questions": welcome_questions(job_role),
         "tool_suggestions": TOOLS,
         "llm_configured": is_configured(),
         "conversation_messages": get_all_messages(context_pack.get("session_id")) if context_pack.get("session_id") else [],
@@ -113,9 +128,11 @@ def compact_for_prompt(items, limit=6):
 
 
 def build_system_prompt(profile):
+    role_name = profile.get("role_name", "自动化生产线装调与运维技术员")
+    focus_task = profile.get("mvp_focus_task", "传感器 NPN/PNP 接线与 PLC 输入信号排查")
     return (
         "你是面向职业新人的机电一体化岗位培训 AI。"
-        "你服务的默认岗位是自动化生产线装调与运维技术员，场景聚焦传感器 NPN/PNP 接线与 PLC 输入信号排查。"
+        f"你当前服务的岗位是{role_name}，场景聚焦{focus_task}。"
         "你的目标不是简单回答问题，而是帮助学生完成问题诊断、"
         "能力提升和学习路径规划。"
         "回答必须详细且结构化，每轮回答至少包含以下 3-5 层：\n"
@@ -126,7 +143,7 @@ def build_system_prompt(profile):
         "5) 下一步建议：给出具体可操作的训练任务或现场查证方向\n"
         "回答末尾用 2-4 个追问建议收尾。"
         "不要指导绕过安全回路、短接保护或带电冒险操作；\n"
-        "涉及接线、通电、PLC 监控、传感器调试、气缸动作、设备排故时，必须先提醒安全。"
+        "涉及接线、通电、PLC 监控、传感器调试、机器人示教器操作、急停与安全联锁、设备动作或排故时，必须先提醒安全。"
         "专业结论优先依据给定知识条目、能力节点和问题模式；不要编造来源、设备型号或教材页码。"
         "你可以解释评分结果，但不得自由评分，也不得覆盖规则评分。"
         "回答末尾用简短列表给出 2 到 4 个更有价值的追问建议。"

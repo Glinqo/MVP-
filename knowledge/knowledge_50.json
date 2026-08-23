@@ -4000,6 +4000,546 @@
       ],
       "difficulty": "medium",
       "_imported_from": "MECH-KB-004"
+    },
+    {
+      "id": "R001",
+      "topic": "机器人基础操作",
+      "ability_node_id": "ir_01",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "掌握工业机器人控制柜、示教器和轴运动的基本概念，能安全完成点动与简单动作。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_01"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "机器人基础操作相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "机器人基础操作",
+        "工业机器人",
+        "robot_operation"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R002",
+      "topic": "示教器安全使用",
+      "ability_node_id": "ir_02",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "熟悉示教器界面、使能键和速度倍率，养成上电前确认安全条件的习惯。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_02"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "示教器安全使用相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "示教器安全使用",
+        "工业机器人",
+        "robot_operation"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R003",
+      "topic": "坐标系设定",
+      "ability_node_id": "ir_03",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "理解关节、基座、工具和用户坐标系的区别，能进行基础坐标系选择与设定。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_03"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "坐标系设定相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "坐标系设定",
+        "工业机器人",
+        "robot_operation"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R004",
+      "topic": "机器人程序编写",
+      "ability_node_id": "ir_04",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "掌握运动指令、等待与逻辑指令的基本用法，能编写简单机器人作业程序。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_04"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "机器人程序编写相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "机器人程序编写",
+        "工业机器人",
+        "robot_operation"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R005",
+      "topic": "轨迹调试",
+      "ability_node_id": "ir_05",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能规划直线与圆弧轨迹，识别过冲、抖动和路径偏差等典型问题。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_05"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "轨迹调试相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "轨迹调试",
+        "工业机器人",
+        "robot_operation"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R006",
+      "topic": "原点校准与转数计数",
+      "ability_node_id": "ir_21",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "掌握各轴回零、转数计数器更新和机械原点核对方法。",
+      "common_errors": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "原点校准与转数计数相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "原点校准与转数计数",
+        "工业机器人",
+        "robot_operation"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R007",
+      "topic": "工具坐标系标定",
+      "ability_node_id": "ir_22",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能使用 TCP 四点法或直接输入法标定工具坐标系，并验证末端精度。",
+      "common_errors": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "工具坐标系标定相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "工具坐标系标定",
+        "工业机器人",
+        "robot_operation"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R008",
+      "topic": "机器人 I/O 配置",
+      "ability_node_id": "ir_06",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "掌握机器人数字量/模拟量 I/O 的地址配置与信号映射。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_06"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "机器人 I/O 配置相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "机器人 I/O 配置",
+        "工业机器人",
+        "robot_communication"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R009",
+      "topic": "PLC 通信联调",
+      "ability_node_id": "ir_07",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能完成机器人与 PLC 的通信参数配置和信号联调。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_07"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "PLC 通信联调相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "PLC 通信联调",
+        "工业机器人",
+        "robot_communication"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R010",
+      "topic": "信号交互验证",
+      "ability_node_id": "ir_08",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能按检查、操作、验证、记录流程完成机器人与外围设备的信号交互验证。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_08"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "信号交互验证相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "信号交互验证",
+        "工业机器人",
+        "robot_communication"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R011",
+      "topic": "工业网络检查",
+      "ability_node_id": "ir_09",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "理解 EtherNet/IP、PROFINET 等工业网络基本概念，能检查网络状态与参数。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_09"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "工业网络检查相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "工业网络检查",
+        "工业机器人",
+        "robot_communication"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R012",
+      "topic": "通信异常处理",
+      "ability_node_id": "ir_10",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能按理论、实操和安全结合的方法处理机器人通信异常。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_10"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "通信异常处理相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "通信异常处理",
+        "工业机器人",
+        "robot_communication"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R013",
+      "topic": "视觉与手眼标定",
+      "ability_node_id": "ir_23",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "了解 Eye-in-Hand 与 Eye-to-Hand 的差异，能配合视觉系统完成基础标定。",
+      "common_errors": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "视觉与手眼标定相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "视觉与手眼标定",
+        "工业机器人",
+        "robot_communication"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R014",
+      "topic": "外围设备联调",
+      "ability_node_id": "ir_24",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能联调夹爪、变位机、输送线和安全门等外围设备。",
+      "common_errors": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "外围设备联调相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "外围设备联调",
+        "工业机器人",
+        "robot_communication"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R015",
+      "topic": "工作站安全规范",
+      "ability_node_id": "ir_11",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "掌握机器人工作站的人员站位、隔离区域和操作权限等安全规范。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_11"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "工作站安全规范相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "工作站安全规范",
+        "工业机器人",
+        "robot_safety"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R016",
+      "topic": "安全围栏与安全门",
+      "ability_node_id": "ir_12",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能检查安全围栏、安全门开关和区域防护装置的有效性。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_12"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "安全围栏与安全门相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "安全围栏与安全门",
+        "工业机器人",
+        "robot_safety"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R017",
+      "topic": "急停回路验证",
+      "ability_node_id": "ir_13",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "掌握急停回路原理，能验证急停和停止回路的可靠性。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_13"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "急停回路验证相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "急停回路验证",
+        "工业机器人",
+        "robot_safety"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R018",
+      "topic": "安全联锁调试",
+      "ability_node_id": "ir_14",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能调试机器人与工作站之间的安全联锁逻辑。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_14"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "安全联锁调试相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "安全联锁调试",
+        "工业机器人",
+        "robot_safety"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R019",
+      "topic": "安全程序编写",
+      "ability_node_id": "ir_15",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能在机器人程序中加入安全速度、区域限制和安全逻辑。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_15"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "安全程序编写相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "安全程序编写",
+        "工业机器人",
+        "robot_safety"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R020",
+      "topic": "防护区域监控",
+      "ability_node_id": "ir_25",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "掌握光栅、扫描仪等区域监控装置的安装位置和状态判断。",
+      "common_errors": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "防护区域监控相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "防护区域监控",
+        "工业机器人",
+        "robot_safety"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R021",
+      "topic": "机器人报警识别",
+      "ability_node_id": "ir_16",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能阅读机器人报警代码，识别运动、通信和安全类报警。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_16"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "机器人报警识别相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "机器人报警识别",
+        "工业机器人",
+        "robot_troubleshooting"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R022",
+      "topic": "伺服系统故障排查",
+      "ability_node_id": "ir_17",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能结合报警和历史数据排查伺服驱动、电机和减速机故障。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_17"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "伺服系统故障排查相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "伺服系统故障排查",
+        "工业机器人",
+        "robot_troubleshooting"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R023",
+      "topic": "I/O 故障诊断",
+      "ability_node_id": "ir_18",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能定位机器人 I/O 信号缺失、短路和地址错误等故障。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_18"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "I/O 故障诊断相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "I/O 故障诊断",
+        "工业机器人",
+        "robot_troubleshooting"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R024",
+      "topic": "通信故障处理",
+      "ability_node_id": "ir_19",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能处理机器人与 PLC、视觉或上位机之间的通信故障。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_19"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "通信故障处理相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "通信故障处理",
+        "工业机器人",
+        "robot_troubleshooting"
+      ],
+      "difficulty": "basic"
+    },
+    {
+      "id": "R025",
+      "topic": "维护记录与反馈",
+      "ability_node_id": "ir_20",
+      "job_task": "工业机器人系统运维员岗位实训",
+      "content": "能规范记录维护过程，形成故障现象、证据、结论和训练建议闭环。",
+      "common_errors": [],
+      "related_questions": [
+        "Q_indu_20"
+      ],
+      "related_tasks": [],
+      "source": "工业机器人系统运维员岗位知识库",
+      "equipment": [],
+      "fault_symptom": "维护记录与反馈相关异常",
+      "safety_requirement": "操作机器人前确认使能状态、速度倍率、急停和防护区域。",
+      "keywords": [
+        "维护记录与反馈",
+        "工业机器人",
+        "robot_troubleshooting"
+      ],
+      "difficulty": "basic"
     }
   ]
 }

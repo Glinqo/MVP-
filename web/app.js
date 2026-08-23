@@ -486,6 +486,16 @@ function deleteMessage(id) {
 function renderJobProfile(profile) {
   state.jobProfile = profile;
   const tasks = (profile.core_job_tasks || []).slice(0, 4);
+  const chatInput = $("chatInput");
+  if (chatInput) {
+    if (profile.role_name === "工业机器人系统运维员") {
+      chatInput.placeholder = "直接问：示教器使能后机器人不动，应该先查什么？";
+    } else if (profile.role_name === "机电设备维修工") {
+      chatInput.placeholder = "直接问：设备出现异响，应该先查哪里？";
+    } else {
+      chatInput.placeholder = "直接问：传感器动作灯亮但 PLC 没输入，为什么？";
+    }
+  }
   $("jobStrip").innerHTML = `
     <span>${escapeHtml(profile.role_name || "自动化生产线装调与运维技术员")}</span>
     <strong>${escapeHtml(profile.learner_stage || "职业新人")}</strong>
@@ -785,7 +795,7 @@ function splitLabel(label, maxLength = 12) {
 function graphDimensionLegend() {
   return [
     { label: "电气安全", fill: "#fef2f2", stroke: "#dc2626" },
-    { label: "传感器诊断", fill: "#eff6ff", stroke: "#2563eb" },
+    { label: "传感器诊断", fill: "#fffbeb", stroke: "#fbbf24" },
     { label: "PLC 控制", fill: "#ecfdf5", stroke: "#059669" },
     { label: "排故诊断", fill: "#f5f3ff", stroke: "#7c3aed" }
   ];
@@ -2929,6 +2939,7 @@ async function bootstrapApplication() {
 
 // Backward compatibility
 function bootOnce() { return bootstrapApplication(); }
+function boot() { return bootOnce(); }
 
 
 /*

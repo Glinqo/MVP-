@@ -129,7 +129,7 @@ def format_context_for_prompt(context_pack):
     return "\n".join(line for line in lines if line)
 
 
-def bootstrap_questions(context_pack):
+def bootstrap_questions(context_pack, job_role=None):
     weak = context_pack.get("weak_abilities", [])
     recommended = context_pack.get("recommended_next", [])
     if weak:
@@ -143,6 +143,21 @@ def bootstrap_questions(context_pack):
             f"我下一步怎么练“{recommended[0]['ability_name']}”？",
             "能不能给我一张今天的训练单？",
             "做题错了以后怎么反映到个人图谱？",
+        ]
+    profile = job_profile_by_id(job_role) if job_role else primary_job_profile()
+    if profile.get("id") == "industrial_robot_maintenance":
+        return [
+            "用示教器点动前，我应该先确认使能键、速度倍率和防护区域哪些安全条件？",
+            "示教器使能键按住后机器人不动，应该先查模式开关、速度倍率还是急停回路？",
+            "机器人与 PLC 的 I/O 握手失败，应该先检查通信参数、信号映射还是安全门联锁？",
+            "机器人工具坐标系 TCP 不准，应该先重新标定还是先核对机械原点？",
+        ]
+    core_tasks = [task for task in profile.get("core_job_tasks", []) if task]
+    if len(core_tasks) >= 2:
+        return [
+            f"{core_tasks[0]}，应该先做什么？",
+            f"{core_tasks[1]}，我该怎么开始？",
+            "这个岗位的第一步应该先掌握哪些能力？",
         ]
     return [
         "传感器动作灯亮但 PLC 没输入，应该先查哪里？",
@@ -161,7 +176,7 @@ def student_bootstrap(session_id=None):
         "job_profile": profile,
         "learner_context": context_pack,
         "student_graph": build_student_ability_graph(context_pack.get("session_id")),
-        "suggested_questions": bootstrap_questions(context_pack),
+        "suggested_questions": bootstrap_questions(context_pack, job_role),
         "tool_suggestions": [
             {"id": "student_graph", "label": "查看个人能力图谱"},
             {"id": "plan", "label": "生成个人培养方案"},

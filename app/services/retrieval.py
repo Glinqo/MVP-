@@ -2,7 +2,7 @@ import re
 import logging
 from functools import lru_cache
 
-from .data_loader import load_data
+from .data_loader import load_data, job_profile_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -348,6 +348,29 @@ def _format_results(scored: list) -> list[dict]:
     ]
 
 
+def _job_role_knowledge_ids(job_role):
+    """Return knowledge IDs that belong to the requested job ability chain."""
+    profile = job_profile_by_id(job_role) if job_role else None
+    if not profile:
+        return None
+    chain = profile.get("ability_chain", [])
+    data = load_data()
+    ids = {
+        item.get("id")
+        for item in data["knowledge"]
+        if item.get("ability_node_id") in chain
+    }
+    return ids or None
+
+
+def _filter_knowledge_results(results, job_role):
+    ids = _job_role_knowledge_ids(job_role)
+    if ids is None:
+        return results
+    filtered = [item for item in results if item.get("id") in ids]
+    return filtered or results
+
+
 # ===================================================================
 # 主检索入口（对外接口保持兼容）
 # ===================================================================
@@ -358,10 +381,11 @@ def search_knowledge(query, limit=5, **kwargs):
 
     优先使用向量+关键词混合检索；向量模块不可用时自动降级为纯关键词检索。
     """
+    job_role = kwargs.get("job_role")
     try:
         from .vector_index import vector_available
         if vector_available():
-            return hybrid_search(query, limit)
+            return _filter_knowledge_results(hybrid_search(query, limit), job_role)
     except ImportError:
         pass
     except Exception:
@@ -393,7 +417,7 @@ def search_knowledge(query, limit=5, **kwargs):
             scored.append((score + graph_bonus, item, matched_terms, ability))
 
     scored.sort(key=lambda pair: (-pair[0], pair[1].get("id", "")))
-    return [
+    results = [
         {
             "id": item.get("id"),
             "topic": item.get("topic"),
@@ -408,6 +432,7 @@ def search_knowledge(query, limit=5, **kwargs):
         }
         for score, item, matched_terms, ability in scored[:limit]
     ]
+    return _filter_knowledge_results(results, job_role)
 
 
 def refs_for_ability_ids(ability_ids):
