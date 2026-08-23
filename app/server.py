@@ -60,12 +60,18 @@ from app.services.auth import login, get_user, save_identity, teacher_required
 from app.middleware import find_authed_user  # noqa: E402
 from app.middleware import require_student_owner  # noqa: E402  # noqa: E402
 from app.services.v2_facade import (  # noqa: E402
+    complete_intervention as v2_complete_intervention,
+    confirm_intervention as v2_confirm_intervention,
+    create_intervention as v2_create_intervention,
     discover_issues as v2_discover_issues,
     emit_event as v2_emit_event,
     evaluate_intervention as v2_evaluate_intervention,
+    get_intervention as v2_get_intervention,
     generate_candidates as v2_generate_candidates,
     get_events as v2_get_events,
     get_student_state as v2_get_student_state,
+    list_interventions as v2_list_interventions,
+    update_intervention_plan as v2_update_intervention_plan,
 )
 from app.services.student_assessment_report import list_student_sessions, generate_individual_report, generate_class_report  # noqa: E402
 from app.services.teacher_students import list_teacher_students, get_teacher_student_detail, save_teacher_student_selection  # noqa: E402
@@ -380,6 +386,34 @@ class MVPHandler(BaseHTTPRequestHandler):
             if not user or not teacher_required(user):
                 return self.send_error_json(403, "需要教师权限")
             return self.send_json(teacher_summary())
+
+        if path == "/api/v2/teacher/interventions":
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            class_id = query_params.get("class_id", [None])[0]
+            if class_id:
+                auth = require_teacher_class(user, class_id)
+                if not auth["ok"]:
+                    return self.send_error_json(auth["status"], auth["error"])
+            return self.send_json({
+                "interventions": v2_list_interventions(
+                    str(user.get("id", "")),
+                    scope_class=str(class_id) if class_id else ""
+                )
+            })
+
+        if path.startswith("/api/v2/teacher/interventions/"):
+            user = find_authed_user(self)
+            if not user or not teacher_required(user):
+                return self.send_error_json(403, "需要教师权限")
+            intervention_id = path.rsplit("/", 1)[-1]
+            existing = v2_get_intervention(intervention_id)
+            if existing.get("status") == "not_found":
+                return self.send_error_json(404, "干预不存在")
+            if str(existing.get("teacher_id", "")) != str(user.get("id", "")):
+                return self.send_error_json(403, "无权查看该干预")
+            return self.send_json(existing)
 
         if path == "/api/graph/job/proposals/pending":
             user = find_authed_user(self)
@@ -1162,9 +1196,10 @@ class MVPHandler(BaseHTTPRequestHandler):
             if path == "/api/diagnose":
                 return self.send_json(diagnose(payload))
             if path == "/api/student/assess/start":
-                return self.send_json(ia_start(payload.get("session_id", ""), payload.get("job_role")))
-                job_role = payload.get("job_role", None)
-                return self.send_json(ia_start(session_id, job_role))
+                session_id = payload.get("session_id", "")
+                if not session_id:
+                    return self.send_error_json(400, "session_id is required")
+                return self.send_json(ia_start(session_id, payload.get("job_role")))
 
             if path == "/api/student/assess/answer":
                 session_id = payload.get("session_id", "")
@@ -1223,15 +1258,18 @@ class MVPHandler(BaseHTTPRequestHandler):
                 return self.send_json(data)
 
             if path == "/api/plan/task_feedback":
+                session_id = payload.get("session_id", "")
+                task_id = payload.get("task_id", "")
+                ability_id = payload.get("ability_id", "")
+                if not session_id:
+                    return self.send_error_json(400, "session_id is required")
+                if not task_id:
+                    return self.send_error_json(400, "task_id is required")
+                if not ability_id:
+                    return self.send_error_json(400, "ability_id is required")
                 user = find_authed_user(self)
                 if not user:
                     return self.send_error_json(401, "请先登录")
-                session_id = payload.get("session_id", "")
-                if not session_id:
-                    return self.send_error_json(400, "session_id is required")
-                task_id = payload.get("task_id", "")
-                if not task_id:
-                    return self.send_error_json(400, "task_id is required")
                 ability_id = payload.get("ability_id") or (payload.get("ability_ids", [None])[0] if payload.get("ability_ids") else None)
                 if not ability_id:
                     return self.send_error_json(400, "ability_id or ability_ids is required")
@@ -1295,6 +1333,76 @@ class MVPHandler(BaseHTTPRequestHandler):
                     job_role=payload.get("job_role") or (auth.get("class") or {}).get("job_role", ""),
                 )
                 return self.send_json({"candidates": cands})
+            if path == "/api/v2/teacher/interventions":
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                class_id = payload.get("class_id")
+                auth = require_teacher_class(user, class_id)
+                if not auth["ok"]:
+                    return self.send_error_json(auth["status"], auth["error"])
+                roster = get_class_students(int(class_id), user["id"])
+                roster_ids = {s["username"] for s in (roster or {}).get("students", [])}
+                student_ids = [str(s) for s in (payload.get("student_ids") or []) if str(s) in roster_ids]
+                if not student_ids:
+                    return self.send_error_json(400, "至少需要一名当前班级学生")
+                issue_id = payload.get("issue_id", "")
+                candidate_id = payload.get("candidate_id", "")
+                if not issue_id or not candidate_id:
+                    return self.send_error_json(400, "issue_id 和 candidate_id 均为必填")
+                result = v2_create_intervention(
+                    issue_id,
+                    candidate_id,
+                    student_ids,
+                    str(user.get("id", "")),
+                    scope_class=str(class_id),
+                    job_role=payload.get("job_role") or (auth.get("class") or {}).get("job_role", ""),
+                    plan_snapshot=payload.get("plan") or {},
+                )
+                return self.send_json(result)
+            if path.startswith("/api/v2/teacher/interventions/") and path.endswith("/plan"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                intervention_id = path.split("/")[-2]
+                plan = payload.get("plan")
+                if not isinstance(plan, dict):
+                    return self.send_error_json(400, "plan 必须是对象")
+                existing = v2_get_intervention(intervention_id)
+                if existing.get("status") == "not_found":
+                    return self.send_error_json(404, "干预不存在")
+                if str(existing.get("teacher_id", "")) != str(user.get("id", "")):
+                    return self.send_error_json(403, "无权修改该干预")
+                result = v2_update_intervention_plan(intervention_id, plan, teacher_id=str(user.get("id", "")))
+                return self.send_json(result)
+            if path.startswith("/api/v2/teacher/interventions/") and path.endswith("/confirm"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                intervention_id = path.split("/")[-2]
+                existing = v2_get_intervention(intervention_id)
+                if existing.get("status") == "not_found":
+                    return self.send_error_json(404, "干预不存在")
+                if str(existing.get("teacher_id", "")) != str(user.get("id", "")):
+                    return self.send_error_json(403, "无权确认该干预")
+                result = v2_confirm_intervention(intervention_id, str(user.get("id", "")))
+                if not result.get("ok"):
+                    return self.send_error_json(409, result.get("error", "状态流转失败"))
+                return self.send_json(result)
+            if path.startswith("/api/v2/teacher/interventions/") and path.endswith("/complete"):
+                user = find_authed_user(self)
+                if not user or not teacher_required(user):
+                    return self.send_error_json(403, "需要教师权限")
+                intervention_id = path.split("/")[-2]
+                existing = v2_get_intervention(intervention_id)
+                if existing.get("status") == "not_found":
+                    return self.send_error_json(404, "干预不存在")
+                if str(existing.get("teacher_id", "")) != str(user.get("id", "")):
+                    return self.send_error_json(403, "无权完成该干预")
+                result = v2_complete_intervention(intervention_id, str(user.get("id", "")))
+                if not result.get("ok"):
+                    return self.send_error_json(409, result.get("error", "状态流转失败"))
+                return self.send_json(result)
             if path == "/api/v2/teacher/interventions/evaluate":
                 user = find_authed_user(self)
                 if not user: return self.send_error_json(401, "请先登录")

@@ -1,5 +1,8 @@
-const assert = require("assert");
-const { scoreDiagnostic } = require("../xingchen/code_module_scoring");
+import assert from "node:assert";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const { scoreDiagnostic } = require("../xingchen/code_module_scoring.cjs");
 
 const allCorrect = {
   answers: {
