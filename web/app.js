@@ -2929,6 +2929,7 @@ async function bootstrapApplication() {
 
 // Backward compatibility
 function bootOnce() { return bootstrapApplication(); }
+function boot() { return bootOnce(); }
 
 
 /*
