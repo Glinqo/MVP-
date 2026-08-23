@@ -750,6 +750,3293 @@
         "plc_control_debug",
         "equipment_inspection_troubleshooting"
       ]
+    },
+    {
+      "id": "mw_01",
+      "name": "机械装配基础",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_1"
+      ]
+    },
+    {
+      "id": "mw_02",
+      "name": "机械制图识读",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_1"
+      ]
+    },
+    {
+      "id": "mw_03",
+      "name": "装配图识读",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_1"
+      ]
+    },
+    {
+      "id": "mw_04",
+      "name": "零部件拆装",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_1"
+      ]
+    },
+    {
+      "id": "mw_05",
+      "name": "传动机构调整",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_1"
+      ]
+    },
+    {
+      "id": "mw_06",
+      "name": "电气符号识读",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_2"
+      ]
+    },
+    {
+      "id": "mw_07",
+      "name": "电气原理图识读",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_2"
+      ]
+    },
+    {
+      "id": "mw_08",
+      "name": "接线图识读",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_2"
+      ]
+    },
+    {
+      "id": "mw_09",
+      "name": "关于电气元件识别，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_2"
+      ]
+    },
+    {
+      "id": "mw_10",
+      "name": "低压电器选型",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_2"
+      ]
+    },
+    {
+      "id": "mw_11",
+      "name": "关于设备点检流程，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_3"
+      ]
+    },
+    {
+      "id": "mw_12",
+      "name": "关于点检标准识读，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_3"
+      ]
+    },
+    {
+      "id": "mw_13",
+      "name": "运行参数记录",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_3"
+      ]
+    },
+    {
+      "id": "mw_14",
+      "name": "关于异常状态识别，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_3"
+      ]
+    },
+    {
+      "id": "mw_15",
+      "name": "关于点检报告编写，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_3"
+      ]
+    },
+    {
+      "id": "mw_16",
+      "name": "常见故障分类",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_4"
+      ]
+    },
+    {
+      "id": "mw_17",
+      "name": "关于故障排查顺序，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_4"
+      ]
+    },
+    {
+      "id": "mw_18",
+      "name": "关于机械故障诊断，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_4"
+      ]
+    },
+    {
+      "id": "mw_19",
+      "name": "电气故障诊断",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_4"
+      ]
+    },
+    {
+      "id": "mw_20",
+      "name": "关于维修记录反馈，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "mechanical_electrical_maintenance_worker → 机电设备维修工"
+      ],
+      "radar_dimension_ids": [
+        "mechanical_electrical_maintenance_worker_dim_4"
+      ]
+    },
+    {
+      "id": "at_01",
+      "name": "电气安全规范",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_1"
+      ]
+    },
+    {
+      "id": "at_02",
+      "name": "断电隔离",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_1"
+      ]
+    },
+    {
+      "id": "at_03",
+      "name": "直流电源检查",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_1"
+      ]
+    },
+    {
+      "id": "at_04",
+      "name": "万用表使用",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_1"
+      ]
+    },
+    {
+      "id": "at_05",
+      "name": "传感器类型识别",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_2"
+      ]
+    },
+    {
+      "id": "at_06",
+      "name": "传感器规格识读",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_2"
+      ]
+    },
+    {
+      "id": "at_07",
+      "name": "传感器输出逻辑",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_2"
+      ]
+    },
+    {
+      "id": "at_08",
+      "name": "传感器状态判断",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_2"
+      ]
+    },
+    {
+      "id": "at_09",
+      "name": "关于传感器接线规范，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_2"
+      ]
+    },
+    {
+      "id": "at_10",
+      "name": "传感器接线诊断",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_2"
+      ]
+    },
+    {
+      "id": "at_11",
+      "name": "关于PLC输入公共端，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "at_12",
+      "name": "关于PLC输入分组，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "at_13",
+      "name": "PLC地址映射",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "at_14",
+      "name": "关于I/O映射表编制，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "at_15",
+      "name": "关于程序变量查找，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "at_16",
+      "name": "PLC信号监控",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "at_17",
+      "name": "关于信号灯对比判断，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "at_18",
+      "name": "关于气动元件识别，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_4"
+      ]
+    },
+    {
+      "id": "at_19",
+      "name": "气动回路识读",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_4"
+      ]
+    },
+    {
+      "id": "at_20",
+      "name": "关于气动回路接线，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_4"
+      ]
+    },
+    {
+      "id": "at_21",
+      "name": "at_21",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_4"
+      ]
+    },
+    {
+      "id": "at_22",
+      "name": "at_22",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_4"
+      ]
+    },
+    {
+      "id": "at_23",
+      "name": "at_23",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_5"
+      ]
+    },
+    {
+      "id": "at_24",
+      "name": "at_24",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_5"
+      ]
+    },
+    {
+      "id": "at_25",
+      "name": "at_25",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_5"
+      ]
+    },
+    {
+      "id": "at_26",
+      "name": "at_26",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_5"
+      ]
+    },
+    {
+      "id": "at_27",
+      "name": "at_27",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_6"
+      ]
+    },
+    {
+      "id": "at_28",
+      "name": "at_28",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_6"
+      ]
+    },
+    {
+      "id": "at_29",
+      "name": "at_29",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_6"
+      ]
+    },
+    {
+      "id": "at_30",
+      "name": "at_30",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_6"
+      ]
+    },
+    {
+      "id": "at_31",
+      "name": "at_31",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_6"
+      ]
+    },
+    {
+      "id": "at_32",
+      "name": "at_32",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_6"
+      ]
+    },
+    {
+      "id": "at_33",
+      "name": "at_33",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_line_commissioning_maintenance → 自动化生产线装调与运维技术员"
+      ],
+      "radar_dimension_ids": [
+        "automation_line_commissioning_maintenance_dim_6"
+      ]
+    },
+    {
+      "id": "ad_01",
+      "name": "传感器类型识别",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "ad_02",
+      "name": "传感器输出逻辑",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "ad_03",
+      "name": "传感器状态判断",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "ad_04",
+      "name": "传感器接线规范",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "ad_05",
+      "name": "信号采集验证",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "ad_06",
+      "name": "PLC地址映射",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "ad_07",
+      "name": "I/O映射表编制",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "ad_08",
+      "name": "程序变量查找",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "ad_09",
+      "name": "关于PLC信号监控，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "ad_10",
+      "name": "启停控制调试",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "ad_11",
+      "name": "关于执行器类型识别，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "ad_12",
+      "name": "关于气动回路接线，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "ad_13",
+      "name": "伺服参数设置",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "ad_14",
+      "name": "关于执行器联动调试，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "ad_15",
+      "name": "关于动作顺序验证，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "ad_16",
+      "name": "试运行流程",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "ad_17",
+      "name": "关于运行参数监测，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "ad_18",
+      "name": "关于动作逻辑验证，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "ad_19",
+      "name": "异常状态记录",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "ad_20",
+      "name": "关于调试报告编写，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "automation_equipment_debugger → 自动化设备调试员"
+      ],
+      "radar_dimension_ids": [
+        "automation_equipment_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "ir_01",
+      "name": "机器人基本操作",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_1"
+      ]
+    },
+    {
+      "id": "ir_02",
+      "name": "示教器使用",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_1"
+      ]
+    },
+    {
+      "id": "ir_03",
+      "name": "坐标系设定",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_1"
+      ]
+    },
+    {
+      "id": "ir_04",
+      "name": "程序编写基础",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_1"
+      ]
+    },
+    {
+      "id": "ir_05",
+      "name": "轨迹调试",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_1"
+      ]
+    },
+    {
+      "id": "ir_06",
+      "name": "机器人I/O配置",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_2"
+      ]
+    },
+    {
+      "id": "ir_07",
+      "name": "PLC通信联调",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_2"
+      ]
+    },
+    {
+      "id": "ir_08",
+      "name": "信号交互验证",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_2"
+      ]
+    },
+    {
+      "id": "ir_09",
+      "name": "关于网络通信检查，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_2"
+      ]
+    },
+    {
+      "id": "ir_10",
+      "name": "通信异常处理",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_2"
+      ]
+    },
+    {
+      "id": "ir_11",
+      "name": "关于工作站安全规范，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "ir_12",
+      "name": "关于安全围栏检查，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "ir_13",
+      "name": "急停回路验证",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "ir_14",
+      "name": "关于安全联锁调试，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "ir_15",
+      "name": "关于安全程序编写，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_3"
+      ]
+    },
+    {
+      "id": "ir_16",
+      "name": "机器人报警识别",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_4"
+      ]
+    },
+    {
+      "id": "ir_17",
+      "name": "关于伺服故障排查，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_4"
+      ]
+    },
+    {
+      "id": "ir_18",
+      "name": "关于I/O故障诊断，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_4"
+      ]
+    },
+    {
+      "id": "ir_19",
+      "name": "通信故障处理",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_4"
+      ]
+    },
+    {
+      "id": "ir_20",
+      "name": "关于维护记录反馈，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "industrial_robot_maintenance → 工业机器人系统运维员"
+      ],
+      "radar_dimension_ids": [
+        "industrial_robot_maintenance_dim_4"
+      ]
+    },
+    {
+      "id": "pc_01",
+      "name": "低压电器识别",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_1"
+      ]
+    },
+    {
+      "id": "pc_02",
+      "name": "断路器选型",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_1"
+      ]
+    },
+    {
+      "id": "pc_03",
+      "name": "接触器接线",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_1"
+      ]
+    },
+    {
+      "id": "pc_04",
+      "name": "继电器逻辑",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_1"
+      ]
+    },
+    {
+      "id": "pc_05",
+      "name": "电气安全规范",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_1"
+      ]
+    },
+    {
+      "id": "pc_06",
+      "name": "PLC硬件配置",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_2"
+      ]
+    },
+    {
+      "id": "pc_07",
+      "name": "PLC编程基础",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_2"
+      ]
+    },
+    {
+      "id": "pc_08",
+      "name": "梯形图编写",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_2"
+      ]
+    },
+    {
+      "id": "pc_09",
+      "name": "关于程序调试，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_2"
+      ]
+    },
+    {
+      "id": "pc_10",
+      "name": "程序优化",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_2"
+      ]
+    },
+    {
+      "id": "pc_11",
+      "name": "关于PLC地址映射，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_3"
+      ]
+    },
+    {
+      "id": "pc_12",
+      "name": "关于I/O映射表编制，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_3"
+      ]
+    },
+    {
+      "id": "pc_13",
+      "name": "输入输出接线",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_3"
+      ]
+    },
+    {
+      "id": "pc_14",
+      "name": "关于信号监控，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_3"
+      ]
+    },
+    {
+      "id": "pc_15",
+      "name": "关于变量查找，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_3"
+      ]
+    },
+    {
+      "id": "pc_16",
+      "name": "启停控制逻辑",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_4"
+      ]
+    },
+    {
+      "id": "pc_17",
+      "name": "关于互锁逻辑设计，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_4"
+      ]
+    },
+    {
+      "id": "pc_18",
+      "name": "关于顺序控制，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_4"
+      ]
+    },
+    {
+      "id": "pc_19",
+      "name": "定时计数控制",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_4"
+      ]
+    },
+    {
+      "id": "pc_20",
+      "name": "关于控制回路调试，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_electrical_control_technician → PLC 电气控制技术员"
+      ],
+      "radar_dimension_ids": [
+        "plc_electrical_control_technician_dim_4"
+      ]
+    },
+    {
+      "id": "sn_01",
+      "name": "传感器类型识别",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "sn_02",
+      "name": "传感器规格识读",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "sn_03",
+      "name": "传感器接线规范",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "sn_04",
+      "name": "传感器接线诊断",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "sn_05",
+      "name": "传感器状态判断",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "sn_06",
+      "name": "信号类型识别",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "sn_07",
+      "name": "模拟量采集",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "sn_08",
+      "name": "数字量采集",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "sn_09",
+      "name": "关于信号转换，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "sn_10",
+      "name": "信号异常排查",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "sn_11",
+      "name": "关于工业以太网基础，以下哪项理解是正确",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "sn_12",
+      "name": "关于现场总线配置，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "sn_13",
+      "name": "通信协议理解",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "sn_14",
+      "name": "关于网络拓扑识读，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "sn_15",
+      "name": "关于通信参数设置，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "sn_16",
+      "name": "数据采集配置",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "sn_17",
+      "name": "关于数据报文分析，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "sn_18",
+      "name": "关于数据异常处理，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "sn_19",
+      "name": "采集系统调试",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "sn_20",
+      "name": "关于调试报告编写，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_industrial_network_debugger → 传感器与工业网络调试员"
+      ],
+      "radar_dimension_ids": [
+        "sensor_industrial_network_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "sd_01",
+      "name": "伺服电机基础",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "sd_02",
+      "name": "步进电机基础",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "sd_03",
+      "name": "驱动器识别",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "sd_04",
+      "name": "电机接线规范",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "sd_05",
+      "name": "电源检查",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_1"
+      ]
+    },
+    {
+      "id": "sd_06",
+      "name": "驱动器参数设置",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "sd_07",
+      "name": "电子齿轮比",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "sd_08",
+      "name": "加减速设置",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "sd_09",
+      "name": "关于限位保护配置，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "sd_10",
+      "name": "回零参数设置",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_2"
+      ]
+    },
+    {
+      "id": "sd_11",
+      "name": "关于运动控制指令，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "sd_12",
+      "name": "关于定位控制，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "sd_13",
+      "name": "速度控制",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "sd_14",
+      "name": "关于转矩控制，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "sd_15",
+      "name": "关于多轴联动，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_3"
+      ]
+    },
+    {
+      "id": "sd_16",
+      "name": "定位偏差分析",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "sd_17",
+      "name": "关于振动异常排查，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "sd_18",
+      "name": "关于过载故障处理，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "sd_19",
+      "name": "回零异常排查",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "sd_20",
+      "name": "关于维护记录编写，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "servo_step_drive_debugger → 伺服/步进驱动调试员"
+      ],
+      "radar_dimension_ids": [
+        "servo_step_drive_debugger_dim_4"
+      ]
+    },
+    {
+      "id": "cm_01",
+      "name": "机械传动基础",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_1"
+      ]
+    },
+    {
+      "id": "cm_02",
+      "name": "丝杠导轨检查",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_1"
+      ]
+    },
+    {
+      "id": "cm_03",
+      "name": "主轴系统检查",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_1"
+      ]
+    },
+    {
+      "id": "cm_04",
+      "name": "润滑系统维护",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_1"
+      ]
+    },
+    {
+      "id": "cm_05",
+      "name": "传动精度调整",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_1"
+      ]
+    },
+    {
+      "id": "cm_06",
+      "name": "电气安全规范",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_2"
+      ]
+    },
+    {
+      "id": "cm_07",
+      "name": "电气元件检查",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_2"
+      ]
+    },
+    {
+      "id": "cm_08",
+      "name": "接线端子检查",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_2"
+      ]
+    },
+    {
+      "id": "cm_09",
+      "name": "关于电源电压检测，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_2"
+      ]
+    },
+    {
+      "id": "cm_10",
+      "name": "电气图纸识读",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_2"
+      ]
+    },
+    {
+      "id": "cm_11",
+      "name": "关于报警代码解读，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_3"
+      ]
+    },
+    {
+      "id": "cm_12",
+      "name": "关于常见报警分类，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_3"
+      ]
+    },
+    {
+      "id": "cm_13",
+      "name": "报警信息分析",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_3"
+      ]
+    },
+    {
+      "id": "cm_14",
+      "name": "关于系统自诊断，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_3"
+      ]
+    },
+    {
+      "id": "cm_15",
+      "name": "关于报警排查流程，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_3"
+      ]
+    },
+    {
+      "id": "cm_16",
+      "name": "日常维护流程",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_4"
+      ]
+    },
+    {
+      "id": "cm_17",
+      "name": "关于定期保养项目，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_4"
+      ]
+    },
+    {
+      "id": "cm_18",
+      "name": "关于精度检测校准，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_4"
+      ]
+    },
+    {
+      "id": "cm_19",
+      "name": "维护记录编写",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_4"
+      ]
+    },
+    {
+      "id": "cm_20",
+      "name": "关于备件管理基础，以下哪项理解是正确的？",
+      "level": "core",
+      "description": "",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "cnc_maintenance_worker → 数控设备维护员"
+      ],
+      "radar_dimension_ids": [
+        "cnc_maintenance_worker_dim_4"
+      ]
     }
   ]
 }
