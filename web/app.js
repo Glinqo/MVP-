@@ -2787,8 +2787,8 @@ async function sendChat(message) {
           job_role: (typeof TeacherUI !== "undefined" && TeacherUI.currentClass && TeacherUI.currentClass.job_role) || state.jobProfile?.id,
           class_id: (typeof TeacherUI !== "undefined" && TeacherUI.currentClassId) || null,
           history: history,
-          ui_context: state.uiContext || {},
-          context: state.teacherContext || {}
+          ui_context: (typeof TeacherUI !== "undefined" && TeacherUI.uiContext) ? TeacherUI.uiContext() : (state.uiContext || {}),
+          context: (typeof TeacherUI !== "undefined" && TeacherUI.aiContext) ? TeacherUI.aiContext : (state.teacherContext || {})
         })
       });
       applyTeacherChatResult(data, text);
@@ -2929,7 +2929,6 @@ async function bootstrapApplication() {
 
 // Backward compatibility
 function bootOnce() { return bootstrapApplication(); }
-function boot() { return bootOnce(); }
 
 
 /*
@@ -4013,13 +4012,21 @@ function applyTeacherChatResult(data, userMsg) {
   var actions = data.actions || [];
   var contextUpdate = data.context_update || {};
 
-  // Store context for next messages
+  // Store context for next messages, using TeacherUI as the single source of truth.
   state.teacherContext = state.teacherContext || {};
   for (var k in contextUpdate) {
     if (contextUpdate.hasOwnProperty(k)) state.teacherContext[k] = contextUpdate[k];
   }
+  if (typeof TeacherUI !== "undefined" && TeacherUI.applyContextUpdate) {
+    TeacherUI.applyContextUpdate(contextUpdate);
+  }
 
-  var meta = { evidence: evidence, data_cards: dataCards, actions: actions, intent: data.intent };
+  var meta = {
+    evidence_used: evidence,
+    remediation_cards: dataCards,
+    actions: actions,
+    intent: data.intent
+  };
   addTeacherMessage("assistant", answer, meta);
 }
 
@@ -4046,12 +4053,8 @@ addMessage = function(role, content, meta) {
     for (var i = 0; i < actions.length; i++) {
       var a = actions[i];
       if (!a) continue;
-      html += '<button type="button" class="btn-small ai-action-btn" data-action-type="' + escapeHtml(a.type || "") + '"';
-      if (a.module) html += ' data-action-module="' + escapeHtml(a.module) + '"';
-      if (a.view) html += ' data-action-view="' + escapeHtml(a.view) + '"';
-      if (a.student_id) html += ' data-action-student="' + escapeHtml(a.student_id) + '"';
-      if (a.comment_id) html += ' data-action-comment="' + escapeHtml(String(a.comment_id)) + '"';
-      html += '>' + escapeHtml(a.label || a.type) + '</button>';
+      var actionJson = JSON.stringify(a || {});
+      html += '<button type="button" class="btn-small ai-action-btn" data-action-type="' + escapeHtml(a.type || "") + '" data-action-json="' + escapeHtml(actionJson) + '">' + escapeHtml(a.label || a.type) + '</button>';
     }
     html += '</div>';
     var body = lastMsg.querySelector(".message-body");
@@ -4064,10 +4067,18 @@ document.addEventListener("click", function(e) {
   var btn = e.target.closest(".ai-action-btn");
   if (!btn) return;
   var type = btn.dataset.actionType;
-  var module = btn.dataset.actionModule;
-  var view = btn.dataset.actionView;
-  var studentId = btn.dataset.actionStudent;
-  var commentId = btn.dataset.actionComment;
+  var action = {};
+  if (btn.dataset.actionJson) {
+    try { action = JSON.parse(btn.dataset.actionJson); } catch (_) { action = {}; }
+  }
+  action.type = action.type || type;
+  var module = action.module;
+  var view = action.view;
+  var studentId = action.student_id;
+  var commentId = action.comment_id;
+  if (typeof TeacherUI !== "undefined" && TeacherUI.executeAIAction && TeacherUI.executeAIAction(action)) {
+    return;
+  }
 
   if (type === "navigate" && module && typeof openWorkspace === "function") {
     openWorkspace(module);

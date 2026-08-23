@@ -242,7 +242,7 @@ def next_best_action(ability_id, status, confidence=None):
         return "补充现场证据，确认是否真的形成能力缺口。"
     return "先在真实问题或自测中产生证据，再更新个人图谱。"
 
-def node_payload(ability_id, key, status="normal", label=None, **extra):
+def node_payload(ability_id, key, status="normal", **extra):
 
     ability = load_data()["ability_by_id"].get(ability_id, {})
 
@@ -252,7 +252,7 @@ def node_payload(ability_id, key, status="normal", label=None, **extra):
 
         "key": key,
 
-        "label": label or ability_label(ability_id),
+        "label": ability_label(ability_id),
 
         "status": status,
 
@@ -368,7 +368,7 @@ def build_ability_graph(highlight_ability_ids=None):
 
         nodes.append(node_payload(ability_id, node_key, status))
 
-        lines.append(f'  {node_key}["{mermaid_text(label_overrides.get(ability_id) or ability_label(ability_id))}"]')
+        lines.append(f'  {node_key}["{mermaid_text(ability_label(ability_id))}"]')
 
 
 
@@ -404,15 +404,13 @@ def build_ability_graph(highlight_ability_ids=None):
 
 
 
-def industry_demand_index(job_role=None):
+def industry_demand_index():
 
     demand = {}
 
     demand_sources = []
 
     for snapshot in load_data()["industry_demand_snapshots"] + confirmed_job_snapshots():
-        if job_role and snapshot.get("job_role") not in (None, "", job_role):
-            continue
 
         source_summary = {
 
@@ -651,9 +649,8 @@ def build_job_ability_graph(job_role=None):
         role_name = requested_role
 
     chain = [item for item in profile.get("ability_chain", CORE_CHAIN) if item in data["ability_by_id"]]
-    label_overrides = profile.get("ability_labels", {})
 
-    demand, demand_sources = industry_demand_index(role_name)
+    demand, demand_sources = industry_demand_index()
 
     extra_ids = [ability_id for ability_id in demand if ability_id not in chain]
 
@@ -700,7 +697,6 @@ def build_job_ability_graph(job_role=None):
                 node_key,
 
                 status,
-                label=label_overrides.get(ability_id),
 
                 demand_weight=demand_item.get("weight", 0),
 
@@ -1007,11 +1003,11 @@ def build_student_ability_graph(session_id=None, job_role=None):
 
     for index in range(len(chain) - 1):
 
-        if chain[index] in key_by_id and chain[index + 1] in key_by_id:
+        if chain[index] in key_by_id and CORE_CHAIN[index + 1] in key_by_id:
 
-            edges.append({"from": chain[index], "to": chain[index + 1], "type": "personal_chain"})
+            edges.append({"from": chain[index], "to": CORE_CHAIN[index + 1], "type": "personal_chain"})
 
-            lines.append(f"  {key_by_id[chain[index]]} --> {key_by_id[chain[index + 1]]}")
+            lines.append(f"  {key_by_id[chain[index]]} --> {key_by_id[CORE_CHAIN[index + 1]]}")
 
 
 
