@@ -404,15 +404,13 @@ def build_ability_graph(highlight_ability_ids=None):
 
 
 
-def industry_demand_index(job_role=None):
+def industry_demand_index():
 
     demand = {}
 
     demand_sources = []
 
     for snapshot in load_data()["industry_demand_snapshots"] + confirmed_job_snapshots():
-        if job_role and snapshot.get("job_role") not in (None, "", job_role):
-            continue
 
         source_summary = {
 
@@ -652,7 +650,7 @@ def build_job_ability_graph(job_role=None):
 
     chain = [item for item in profile.get("ability_chain", CORE_CHAIN) if item in data["ability_by_id"]]
 
-    demand, demand_sources = industry_demand_index(role_name)
+    demand, demand_sources = industry_demand_index()
 
     extra_ids = [ability_id for ability_id in demand if ability_id not in chain]
 
@@ -1005,11 +1003,11 @@ def build_student_ability_graph(session_id=None, job_role=None):
 
     for index in range(len(chain) - 1):
 
-        if chain[index] in key_by_id and chain[index + 1] in key_by_id:
+        if chain[index] in key_by_id and CORE_CHAIN[index + 1] in key_by_id:
 
-            edges.append({"from": chain[index], "to": chain[index + 1], "type": "personal_chain"})
+            edges.append({"from": chain[index], "to": CORE_CHAIN[index + 1], "type": "personal_chain"})
 
-            lines.append(f"  {key_by_id[chain[index]]} --> {key_by_id[chain[index + 1]]}")
+            lines.append(f"  {key_by_id[chain[index]]} --> {key_by_id[CORE_CHAIN[index + 1]]}")
 
 
 
