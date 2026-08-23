@@ -165,6 +165,10 @@ class ForceGraph {
             }
         });
 
+        (graphData?.edges || []).forEach(edge => {
+            addEdge(edge.from, edge.to);
+        });
+
         const root = nodes.find(n => n.status === "root" || n.is_virtual);
         if (root) {
             nodes.forEach(n => {
