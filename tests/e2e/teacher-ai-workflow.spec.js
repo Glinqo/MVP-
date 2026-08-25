@@ -112,6 +112,7 @@ async function openStudentManagement(page) {
   await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
   await page.locator('[data-workspace-panel="studentMgmt"]').click();
   await expect(page.locator("#teacherClassLabel")).toBeVisible();
+  await expect(page.locator("#teacherClassLabel")).not.toHaveText("未选择班级", { timeout: 15000 });
 }
 
 async function selectClass(page, name) {

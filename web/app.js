@@ -52,6 +52,7 @@ var state = {
 };
 
 const DEFAULT_JOB_ROLE = "自动化生产线装调与运维技术员";
+const DEFAULT_JOB_ROLE_ID = "automation_line_commissioning_maintenance_newcomer";
 
 // ── Persistence helpers ──────────────────────────────────────────
 function userKey(key) {
@@ -1085,7 +1086,20 @@ function renderGraph(graph, type = "job") {
 }
 
 function jobAdminRole() {
-  return ($("jobAdminRole")?.value || DEFAULT_JOB_ROLE).trim() || DEFAULT_JOB_ROLE;
+  if (typeof TeacherUI !== "undefined" && TeacherUI.currentClass && TeacherUI.currentClass.job_role) {
+    return TeacherUI.currentClass.job_role;
+  }
+  var input = $("jobAdminRole");
+  var fromInput = (input?.dataset?.jobRoleId || "").trim();
+  return fromInput || DEFAULT_JOB_ROLE_ID;
+}
+
+function jobAdminRoleLabel() {
+  var role = jobAdminRole();
+  if (typeof TeacherUI !== "undefined" && TeacherUI.jobRoleLabel) {
+    return TeacherUI.jobRoleLabel(role);
+  }
+  return role || DEFAULT_JOB_ROLE;
 }
 
 function setJobAdminStatus(message, tone = "muted") {
@@ -1122,7 +1136,7 @@ function renderJobAdminSummary(data) {
       <div class="metric"><strong>${escapeHtml(proposals.length)}</strong><span>待审核提案</span></div>
       <div class="metric"><strong>${escapeHtml(versions.length)}</strong><span>图谱快照</span></div>
     </div>
-    <p class="muted">当前岗位：${escapeHtml(jobAdminRole())}；正式图谱中已有 ${escapeHtml(confirmedCount)} 个节点带确认提案证据。</p>
+    <p class="muted">当前岗位：${escapeHtml(jobAdminRoleLabel())}；正式图谱中已有 ${escapeHtml(confirmedCount)} 个节点带确认提案证据。</p>
   `;
 }
 
@@ -2019,8 +2033,8 @@ function workspaceTitle(panel) {
     tasks: "实训任务",
     teacherToday: "今日教学",
     classInsights: "班级洞察",
-    studentMgmt: "学生管理",
-    teacherComments: "教学评语",
+    studentMgmt: "学生",
+    teacherComments: "教学反馈",
     teacherJobGraph: "岗位图谱"
   };
   return titles[panel] || panel;
@@ -3897,7 +3911,7 @@ function updateStudentSelectCount() {
 async function finishStudentSelection() {
   var selected = teacherSelectedStudents || [];
   if (!selected.length) {
-    alert("请至少选择一个学生");
+    if (typeof TeacherUI !== "undefined" && TeacherUI.showToast) TeacherUI.showToast("请至少选择一个学生", "error");
     return;
   }
   localStorage.setItem("mcp_teacher_selected_students", JSON.stringify(selected));
@@ -3957,6 +3971,8 @@ function setRoleVisibility(role) {
   if (h1) {
     h1.textContent = role === "teacher" ? "机电岗位培训 AI · 教师端" : "机电岗位培训 AI";
   }
+  var eyebrow = document.querySelector(".workspace-header .eyebrow");
+  if (eyebrow) eyebrow.textContent = role === "teacher" ? "教师工作台" : "功能工作台";
   var chatInput = document.getElementById("chatInput");
   if (chatInput && role === "teacher") {
     chatInput.placeholder = "直接提问，请教学助手帮你分析什么？";
@@ -3971,29 +3987,35 @@ var showRoleUI = setRoleVisibility;
 
 
 async function batchReview() {
-  if (!commentState.selectedIds.length) { alert("请先选择评语"); return; }
+  if (!commentState.selectedIds.length) {
+    if (typeof TeacherUI !== "undefined" && TeacherUI.showToast) TeacherUI.showToast("请先选择评语", "error");
+    return;
+  }
   try {
     var resp = await fetch("/api/teacher/comments/review-batch", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
       body: JSON.stringify({ comment_ids: commentState.selectedIds })
     });
-    alert("批量审核完成");
+    if (typeof TeacherUI !== "undefined" && TeacherUI.showToast) TeacherUI.showToast("批量审核完成", "success");
     loadComments();
-  } catch (e) { alert("批量审核失败: " + (e.message || "网络错误")); }
+  } catch (e) {
+    if (typeof TeacherUI !== "undefined" && TeacherUI.showToast) TeacherUI.showToast("批量审核失败，请重试", "error");
+  }
 }
 
 async function batchPublish() {
-  if (!confirm("仅发布\"已审核\"状态的评语。确认继续？")) return;
   try {
     var resp = await fetch("/api/teacher/comments/publish-batch", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },
       body: JSON.stringify({ comment_ids: commentState.selectedIds.length > 0 ? commentState.selectedIds : [] })
     });
-    alert("批量发布完成（仅已审核评语被发布）");
+    if (typeof TeacherUI !== "undefined" && TeacherUI.showToast) TeacherUI.showToast("批量发布完成（仅已审核评语被发布）", "success");
     loadComments();
-  } catch (e) { alert("批量发布失败: " + (e.message || "网络错误")); }
+  } catch (e) {
+    if (typeof TeacherUI !== "undefined" && TeacherUI.showToast) TeacherUI.showToast("批量发布失败，请重试", "error");
+  }
 }
 
 // Wire up
@@ -4183,7 +4205,7 @@ async function loadJobGraphDiagram() {
   if (!container) return;
   container.innerHTML = '<div class="muted">加载图谱中...</div>';
   try {
-    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var jobRole = jobAdminRole();
     var resp = await fetch("/api/graph/job?job_role=" + encodeURIComponent(jobRole));
     if (!resp.ok) { container.innerHTML = '<div class="muted">加载失败</div>'; return; }
     var graph = await resp.json();
@@ -4206,7 +4228,7 @@ async function loadVersionHistory() {
   if (!container) return;
   container.innerHTML = '<div class="muted">加载中...</div>';
   try {
-    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var jobRole = jobAdminRole();
     var resp = await fetch("/api/graph/job/versions?job_role=" + encodeURIComponent(jobRole));
     if (!resp.ok) { container.innerHTML = '<div class="muted">加载失败</div>'; return; }
     var data = await resp.json();
@@ -4250,7 +4272,7 @@ async function showVersionDiff(v1, v2) {
   panel.style.display = "block";
   content.innerHTML = '<div class="muted">加载 Diff...</div>';
   try {
-    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var jobRole = jobAdminRole();
     var resp = await fetch("/api/graph/job/versions/diff?v1=" + encodeURIComponent(v1) + "&v2=" + encodeURIComponent(v2) + "&job_role=" + encodeURIComponent(jobRole));
     if (!resp.ok) { content.innerHTML = '<div class="muted">Diff 加载失败</div>'; return; }
     var diff = await resp.json();
@@ -4306,7 +4328,7 @@ async function executeRollback(targetVersion) {
   var content = document.getElementById("versionRollbackContent");
   if (!content) return;
   try {
-    var jobRole = document.getElementById("jobAdminRole")?.value || "automation_line_commissioning_maintenance_newcomer";
+    var jobRole = jobAdminRole();
     var resp = await fetch("/api/graph/job/versions/rollback", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: "Bearer " + (localStorage.getItem("mcp_auth_token") || "") },

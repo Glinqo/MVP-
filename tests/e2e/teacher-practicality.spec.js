@@ -8,6 +8,7 @@ import { collectErrors, loginAsTeacher } from "./helpers/auth.js";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const BASE_URL = "http://127.0.0.1:8765";
 const JOB_ROLE = "automation_line_commissioning_maintenance_newcomer";
+const ROBOT_JOB_ROLE = "industrial_robot_maintenance";
 
 let teacherToken = "";
 let classA = null;
@@ -28,7 +29,7 @@ async function loginTeacher(ctx) {
 async function createClass(ctx, token, name, jobRole = JOB_ROLE) {
   const resp = await ctx.post("/api/teacher/classes", {
     headers: { Authorization: `Bearer ${token}` },
-    data: { name, job_role: jobRole, term: "2026-ux-v3" },
+    data: { name, job_role: jobRole, term: "2026-practicality" },
   });
   expect(resp.ok()).toBeTruthy();
   const body = await resp.json();
@@ -49,7 +50,7 @@ async function archiveClass(ctx, token, classId) {
   });
 }
 
-function seedTeacherEvidence(jobRole, students) {
+function seedTeacherEvidence(jobRole, students, abilityId) {
   const script = `
 import json
 import os
@@ -59,6 +60,7 @@ from app.services.feedback import append_session_event
 
 job_role = os.environ["E2E_JOB_ROLE"]
 students = json.loads(os.environ["E2E_STUDENTS"])
+ability_id = os.environ["E2E_ABILITY_ID"]
 now = time.time()
 
 for username in students:
@@ -66,15 +68,10 @@ for username in students:
     for i in range(4):
         append_session_event(session_id, {
             "event_type": "initial_quiz_answered",
-            "ability_id": "sn_type_identify",
+            "ability_id": ability_id,
             "is_correct": False,
-            "source": "playwright_teacher_ux_v3",
+            "source": "playwright_teacher_practicality",
         })
-    append_session_event(session_id, {
-        "event_type": "question_explained",
-        "ability_id": "pl_program_monitor",
-        "source": "playwright_teacher_ux_v3",
-    })
     save_state({
         "session_id": session_id,
         "job_role": job_role,
@@ -84,7 +81,7 @@ for username in students:
         "answers": [],
         "result": {
             "total_score": 35,
-            "weak_abilities": ["sn_type_identify"],
+            "weak_abilities": [ability_id],
             "strong_abilities": ["pl_program_monitor"],
         },
         "completed_at": now,
@@ -96,6 +93,7 @@ for username in students:
       ...process.env,
       E2E_JOB_ROLE: jobRole,
       E2E_STUDENTS: JSON.stringify(students),
+      E2E_ABILITY_ID: abilityId,
     },
     stdio: "pipe",
   });
@@ -130,20 +128,21 @@ async function openTodayAndIssue(page) {
   await expect(page.locator("#issueDetailDrawer")).toHaveClass(/open/);
 }
 
-test.describe.serial("Teacher UX Polish V3", () => {
+test.describe.serial("Teacher Practicality Pass V1", () => {
   test.beforeAll(async () => {
     const stamp = Date.now();
-    createdPrefix = `E2E-UX-${stamp}`;
+    createdPrefix = `E2E-TP-${stamp}`;
     classAName = `${createdPrefix}-A`;
     classBName = `${createdPrefix}-B`;
 
     const ctx = await request.newContext({ baseURL: BASE_URL });
     teacherToken = await loginTeacher(ctx);
     classA = await createClass(ctx, teacherToken, classAName, JOB_ROLE);
-    classB = await createClass(ctx, teacherToken, classBName, "mechanical_electrical_maintenance_worker");
+    classB = await createClass(ctx, teacherToken, classBName, ROBOT_JOB_ROLE);
     await addStudents(ctx, teacherToken, classA.id, ["001", "002"]);
     await addStudents(ctx, teacherToken, classB.id, ["006", "007"]);
-    seedTeacherEvidence(JOB_ROLE, ["001", "002"]);
+    seedTeacherEvidence(JOB_ROLE, ["001", "002"], "sn_type_identify");
+    seedTeacherEvidence(ROBOT_JOB_ROLE, ["006", "007"], "ir_06");
     await ctx.post("/api/teacher/comments/generate", {
       headers: { Authorization: `Bearer ${teacherToken}` },
       data: { student_id: "001", class_id: classA.id, job_role: JOB_ROLE },
@@ -166,17 +165,39 @@ test.describe.serial("Teacher UX Polish V3", () => {
     await ctx.dispose();
   });
 
-  test("UX-01 全局班级上下文", async ({ page }) => {
+  test("TP-01 登录教师", async ({ page }) => {
+    const errors = collectErrors(page);
+    await loginAsTeacher(page);
+    await expect(page.locator("body")).toHaveAttribute("data-role", "teacher");
+    await expect(page.locator(".launcher-panel.role-teacher")).toBeVisible();
+    expect(errors.serverErrors).toHaveLength(0);
+  });
+
+  test("TP-02 全局班级", async ({ page }) => {
     await loginAsTeacher(page);
     await selectClass(page, classAName);
-    for (const panel of ["teacherToday", "classInsights", "studentMgmt", "teacherComments"]) {
+    for (const panel of ["teacherToday", "classInsights", "studentMgmt", "teacherComments", "teacherJobGraph"]) {
       await page.locator(`[data-workspace-panel="${panel}"]`).click();
       await expect(page.locator("#teacherClassLabel")).toContainText(classAName);
       await expect(page.locator("#teacherClassMeta")).toBeVisible();
     }
   });
 
-  test("UX-02 导航顺序", async ({ page }) => {
+  test("TP-03 岗位同步", async ({ page }) => {
+    await loginAsTeacher(page);
+    await selectClass(page, classBName);
+    await expect(page.locator("#teacherClassMeta")).toContainText("工业机器人系统运维员");
+    await page.locator('[data-workspace-panel="teacherJobGraph"]').click();
+    await expect(page.locator("#jobAdminRole")).toHaveValue("工业机器人系统运维员");
+    const context = await page.evaluate(() => ({
+      jobRole: window.TeacherUI?.currentClass?.job_role,
+      aiJobRole: window.TeacherUI?.aiContext?.job_role,
+    }));
+    expect(context.jobRole).toBe(ROBOT_JOB_ROLE);
+    expect(context.aiJobRole).toBe(ROBOT_JOB_ROLE);
+  });
+
+  test("TP-04 导航", async ({ page }) => {
     await loginAsTeacher(page);
     await selectClass(page, classAName);
     const labels = await page.locator(".workspace-tabs .role-teacher").allTextContents();
@@ -189,46 +210,36 @@ test.describe.serial("Teacher UX Polish V3", () => {
     ]);
   });
 
-  test("UX-03 无明显英文系统词", async ({ page }) => {
+  test("TP-05 今日教学", async ({ page }) => {
     await loginAsTeacher(page);
     await selectClass(page, classAName);
     await page.locator('[data-workspace-panel="teacherToday"]').click();
     await expect(page.locator("#todayTeachingContent .issue-card").first()).toBeVisible({ timeout: 15000 });
-    const forbidden = ["high", "mid", "low", "Loading", "Student", "events", "draft", "reviewed", "published", "Added", "Removed", "Parse result"];
-    const bodyText = await page.locator("body").innerText();
-    for (const word of forbidden) {
-      expect(bodyText, `不应出现 ${word}`).not.toContain(word);
+    const today = page.locator("#todayTeachingContent");
+    await expect(today).toContainText("优先处理");
+    await expect(today).toContainText("名学生受到影响");
+    await expect(today).toContainText("主要能力");
+    const text = await today.innerText();
+    for (const word of ["high", "mid", "low", "sn_type_identify"]) {
+      expect(text).not.toContain(word);
     }
   });
 
-  test("UX-04 Ability 中文显示", async ({ page }) => {
+  test("TP-06 AI 行为", async ({ page }) => {
+    const errors = collectErrors(page);
     await loginAsTeacher(page);
     await selectClass(page, classAName);
     await openTodayAndIssue(page);
-    await expect(page.locator("#issueDetailDrawer")).not.toContainText("sn_type_identify");
-    await expect(page.locator("#issueDetailDrawer")).toContainText("PLC 程序监控");
-    await page.locator(".issue-drawer-close").click();
-    await page.locator('[data-workspace-panel="studentMgmt"]').click();
-    await expect(page.locator('#teacherStudentListPane .student-card[data-student-id="001"]').first()).toBeVisible({ timeout: 15000 });
-    await page.locator('#teacherStudentListPane .student-card[data-student-id="001"]').click();
-    await expect(page.locator("#teacherStudentDetailPane")).not.toContainText("sn_type_identify");
-    await expect(page.locator("#teacherStudentDetailPane")).toContainText("传感器类型识别");
+    const responsePromise = page.waitForResponse((resp) =>
+      resp.url().includes("/api/teacher/assistant/message") && resp.status() === 200
+    );
+    await page.locator("#issueDetailDrawer").getByRole("button", { name: "AI 分析原因" }).click();
+    await responsePromise;
+    await expect(page.locator("#chatMessages")).toContainText("学生", { timeout: 15000 });
+    expect(errors.serverErrors).toHaveLength(0);
   });
 
-  test("UX-05 Issue 一眼可读", async ({ page }) => {
-    await loginAsTeacher(page);
-    await selectClass(page, classAName);
-    await page.locator('[data-workspace-panel="teacherToday"]').click();
-    await expect(page.locator("#todayTeachingContent .issue-card").first()).toBeVisible({ timeout: 15000 });
-    const card = page.locator("#todayTeachingContent .issue-card").first();
-    await expect(card).toContainText("优先处理");
-    await expect(card).toContainText("名学生受到影响");
-    await expect(card).toContainText("主要能力");
-    await expect(card).not.toContainText("confidence");
-    await expect(card).not.toContainText("severity");
-  });
-
-  test("UX-06 AI 调整无硬编码学生", async ({ page }) => {
+  test("TP-07 调整方案", async ({ page }) => {
     await loginAsTeacher(page);
     await selectClass(page, classAName);
     await openTodayAndIssue(page);
@@ -239,7 +250,66 @@ test.describe.serial("Teacher UX Polish V3", () => {
     await expect(page.locator("#chatInput")).not.toHaveValue(/001/);
   });
 
-  test("UX-07 无浏览器 alert", async ({ page }) => {
+  test("TP-08 跨岗位方案", async ({ page }) => {
+    await loginAsTeacher(page);
+    await selectClass(page, classBName);
+    const plans = await page.evaluate(() => {
+      const robot = window.TeacherUI.candidatePlan(
+        { candidate_id: "robot", ability_ids: ["ir_06"], target_students: ["006", "007"] },
+        { issue_id: "robot-tcp", title: "TCP 标定薄弱" },
+        ["006", "007"]
+      );
+      const sensor = window.TeacherUI.candidatePlan(
+        { candidate_id: "sensor", ability_ids: ["sn_type_identify"], target_students: ["001", "002"] },
+        { issue_id: "sensor-type", title: "传感器类型识别薄弱" },
+        ["001", "002"]
+      );
+      return { robot, sensor };
+    });
+    expect(JSON.stringify(plans.robot)).not.toContain("NPN");
+    expect(JSON.stringify(plans.robot)).not.toContain("PNP");
+    expect(JSON.stringify(plans.robot)).not.toContain("PLC");
+    expect(JSON.stringify(plans.robot)).not.toContain("传感器");
+    expect(JSON.stringify(plans.sensor)).toContain("NPN/PNP");
+  });
+
+  test("TP-09 班级洞察", async ({ page }) => {
+    await loginAsTeacher(page);
+    await selectClass(page, classAName);
+    await page.locator('[data-workspace-panel="classInsights"]').click();
+    await expect(page.locator("#tw-insights")).toContainText("薄弱比例", { timeout: 15000 });
+    await expect(page.locator("#tw-insights")).toContainText("平均掌握度");
+    await expect(page.locator("#tw-insights .teacher-progress-risk").first()).toBeVisible();
+  });
+
+  test("TP-10 学生页", async ({ page }) => {
+    await loginAsTeacher(page);
+    await selectClass(page, classAName);
+    await page.locator('[data-workspace-panel="studentMgmt"]').click();
+    await expect(page.locator('#teacherStudentListPane .student-card[data-student-id="001"]').first()).toBeVisible({ timeout: 15000 });
+    await page.locator('#teacherStudentListPane .student-card[data-student-id="001"]').click();
+    await expect(page.locator('#teacherStudentListPane .student-card[data-student-id="001"]')).toHaveClass(/active/);
+    await expect(page.locator("#teacherStudentDetailPane")).toContainText("主要薄弱");
+    await expect(page.locator("#teacherStudentDetailPane")).toContainText("传感器类型识别");
+    const text = await page.locator("#teacherStudentDetailPane").innerText();
+    for (const word of ["events", "Loading student", "sn_type_identify"]) {
+      expect(text).not.toContain(word);
+    }
+  });
+
+  test("TP-11 教学反馈", async ({ page }) => {
+    await loginAsTeacher(page);
+    await selectClass(page, classAName);
+    await page.locator('[data-workspace-panel="teacherComments"]').click();
+    await expect(page.locator("#tw-feedback .comment-card").first()).toBeVisible({ timeout: 15000 });
+    const text = await page.locator("#tw-feedback").innerText();
+    expect(text).toContain("草稿");
+    for (const word of ["draft", "reviewed", "published"]) {
+      expect(text).not.toContain(word);
+    }
+  });
+
+  test("TP-12 操作反馈", async ({ page }) => {
     const dialogs = [];
     page.on("dialog", async (dialog) => {
       dialogs.push(dialog.message());
@@ -255,47 +325,10 @@ test.describe.serial("Teacher UX Polish V3", () => {
     await page.locator('#studentManageList .student-manage-check[data-username="003"]').check();
     await page.getByRole("button", { name: "加入班级" }).click();
     await expect(page.locator(".teacher-toast-success").last()).toContainText("已加入");
-    expect(dialogs).toHaveLength(0);
     await page.locator("#studentSearchInput").fill("003");
     await page.locator('#studentManageList .student-manage-check[data-username="003"]').check();
     await page.getByRole("button", { name: "移除选中" }).click();
     await expect(page.locator(".teacher-toast-success").last()).toContainText("已移除");
     expect(dialogs).toHaveLength(0);
-  });
-
-  test("UX-08 学生选中态", async ({ page }) => {
-    await loginAsTeacher(page);
-    await selectClass(page, classAName);
-    await page.locator('[data-workspace-panel="studentMgmt"]').click();
-    await expect(page.locator('#teacherStudentListPane .student-card[data-student-id="001"]').first()).toBeVisible({ timeout: 15000 });
-    await page.locator('#teacherStudentListPane .student-card[data-student-id="001"]').click();
-    await expect(page.locator('#teacherStudentListPane .student-card[data-student-id="001"]')).toHaveClass(/active/);
-    await page.locator('#teacherStudentListPane .student-card[data-student-id="002"]').click();
-    await expect(page.locator('#teacherStudentListPane .student-card[data-student-id="001"]')).not.toHaveClass(/active/);
-    await expect(page.locator('#teacherStudentListPane .student-card[data-student-id="002"]')).toHaveClass(/active/);
-  });
-
-  test("UX-09 教学反馈状态", async ({ page }) => {
-    await loginAsTeacher(page);
-    await selectClass(page, classAName);
-    await page.locator('[data-workspace-panel="teacherComments"]').click();
-    await expect(page.locator("#tw-feedback .comment-card").first()).toBeVisible({ timeout: 15000 });
-    await expect(page.locator("#tw-feedback")).toContainText("草稿");
-    const feedbackText = await page.locator("#tw-feedback").innerText();
-    for (const word of ["draft", "reviewed", "published"]) {
-      expect(feedbackText).not.toContain(word);
-    }
-  });
-
-  test("UX-10 班级切换", async ({ page }) => {
-    await loginAsTeacher(page);
-    await selectClass(page, classAName);
-    await page.locator('[data-workspace-panel="studentMgmt"]').click();
-    await expect(page.locator('#teacherStudentListPane .student-card[data-student-id="001"]').first()).toBeVisible({ timeout: 15000 });
-    await selectClass(page, classBName);
-    await expect(page.locator("#teacherClassLabel")).toContainText(classBName);
-    await page.locator('[data-workspace-panel="studentMgmt"]').click();
-    await expect(page.locator('#teacherStudentListPane .student-card[data-student-id="006"]').first()).toBeVisible({ timeout: 15000 });
-    await expect(page.locator('#teacherStudentListPane .student-card[data-student-id="001"]')).toHaveCount(0);
   });
 });

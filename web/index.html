@@ -420,8 +420,8 @@
         <div class="modal-footer">
           <span id="studentSelectionCount" style="margin-right:auto">已选择 0 人</span>
           <button class="btn-secondary" onclick="TeacherUI.closeManageStudents()">取消</button>
-          <button class="btn-danger" onclick="TeacherUI.removeSelectedStudents()">移除选中</button>
-          <button class="btn-primary" onclick="TeacherUI.addSelectedStudents()">加入班级</button>
+          <button id="removeSelectedStudentsBtn" class="btn-danger" onclick="TeacherUI.removeSelectedStudents()">移除选中</button>
+          <button id="addSelectedStudentsBtn" class="btn-primary" onclick="TeacherUI.addSelectedStudents()">加入班级</button>
         </div>
       </div>
     </div>
@@ -571,7 +571,7 @@
                 <p class="muted">正式图谱 · 岗位数据 · 更新审核 · 版本管理</p>
               </div>
               <div style="display:flex;gap:6px;">
-                <input id="jobAdminRole" type="text" value="自动化生产线装调与运维技术员" style="padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);width:200px;" />
+                <input id="jobAdminRole" type="text" value="" data-job-role-id="" style="padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);width:200px;" />
                 <button id="refreshJobAdmin" type="button">刷新</button>
               </div>
             </div>
