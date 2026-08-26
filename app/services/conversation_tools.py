@@ -72,7 +72,7 @@ def search_knowledge_tool(query, limit=5):
         return ToolResult(tool_name="search_knowledge", success=False, error=str(e))
 
 
-def run_diagnosis_tool(conversation_state=None, active_task=None):
+def run_diagnosis_tool(conversation_state=None, active_task=None, job_role=None):
     """Phase 8: Run fault diagnosis with progress tracking and next-best-check."""
     try:
         active_task = active_task or {}
@@ -80,7 +80,7 @@ def run_diagnosis_tool(conversation_state=None, active_task=None):
         if active_task.get("slots"):
             context = slots_to_assist_context(active_task["slots"])
         user_input = active_task.get("topic", "") if active_task else ""
-        result = assist({"user_input": user_input, "context": context})
+        result = assist({"user_input": user_input, "context": context, "job_role": job_role})
         pattern = result.get("matched_pattern", {})
         pattern_id = pattern.get("id", "") if pattern else ""
 

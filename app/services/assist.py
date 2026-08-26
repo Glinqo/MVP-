@@ -1,9 +1,38 @@
-from .data_loader import load_data, primary_job_profile
+from .data_loader import load_data, primary_job_profile, job_profile_by_id
 from .graph import build_ability_graph, normalize_ability_id
 from .safety import safety_notice
 
 
 UNKNOWN_VALUES = {"", None, "unknown", "未确认", "不知道", "不清楚"}
+
+
+ROBOT_PATTERN = {
+    "id": "industrial_robot_fault",
+    "title": "工业机器人故障诊断",
+    "typical_symptom": "机器人示教、坐标、通信、伺服或安全联锁异常。",
+    "priority": 200,
+    "match_terms": [],
+    "required_context": [],
+    "clarifying_questions": [],
+    "direct_answer": "机器人问题优先按安全条件、示教器状态、坐标系/TCP、I/O 通信、伺服报警和急停安全联锁分层排查。先确认使能键、速度倍率、模式开关、防护区域和急停回路正常，再核对程序轨迹、工具坐标系和机械原点。",
+    "first_checks": [
+        "确认示教器使能键、速度倍率、模式开关和急停回路状态。",
+        "核对工具坐标系 TCP、用户坐标系和机械原点。",
+        "检查机器人与 PLC、视觉及外围设备的 I/O 信号映射。",
+        "查看伺服报警、轴状态和安全联锁是否触发。",
+    ],
+    "fault_candidates": [
+        "使能键或模式开关未到位",
+        "TCP 标定或机械原点偏差",
+        "I/O 通信或信号映射错误",
+        "伺服/减速机故障",
+        "安全联锁或急停回路触发",
+    ],
+    "highlighted_abilities": [],
+    "related_knowledge": [],
+    "related_tasks": [],
+    "source": "project_curated",
+}
 
 
 def normalize_value(value):
@@ -77,7 +106,10 @@ def score_pattern(pattern, text):
     return score + int(pattern.get("priority", 0)) / 1000
 
 
-def choose_pattern(user_input, context):
+def choose_pattern(user_input, context, job_role=None):
+    if job_role == "industrial_robot_maintenance":
+        return ROBOT_PATTERN
+
     data = load_data()
     patterns = data["problem_patterns"]
     by_id = {pattern.get("id"): pattern for pattern in patterns}
@@ -204,7 +236,9 @@ def assist(payload):
     payload = payload or {}
     user_input = payload.get("user_input", "")
     context = payload.get("context", {}) or {}
-    pattern = choose_pattern(user_input, context)
+    job_role = payload.get("job_role")
+    pattern = choose_pattern(user_input, context, job_role)
+    profile = job_profile_by_id(job_role) if job_role else primary_job_profile()
     missing = missing_required_context(pattern, context)
     highlighted = build_highlighted_abilities(pattern)
     highlighted_ids = [item["id"] for item in highlighted]
@@ -218,7 +252,7 @@ def assist(payload):
 
     return {
         "status": status,
-        "job_profile": primary_job_profile(),
+        "job_profile": profile,
         "matched_pattern": {
             "id": pattern.get("id"),
             "title": pattern.get("title"),

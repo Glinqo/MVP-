@@ -339,7 +339,7 @@ def chat_message(payload):
     if intent == "diagnosis" and not active_task:
         pattern = {}
         if intent_result and intent_result.get("source") != "task_continuation":
-            pre = assist({"user_input": message, "context": effective_context})
+            pre = assist({"user_input": message, "context": effective_context, "job_role": profile.get("id")})
             pattern = pre.get("matched_pattern", {})
         start_task(
             session_id,
@@ -401,6 +401,7 @@ def chat_message(payload):
         tool_args = action.get("args", {})
         if tool_name == "run_diagnosis":
             tool_args["active_task"] = active_task
+            tool_args["job_role"] = profile.get("id")
         if tool_name in ("get_student_graph", "generate_quiz", "generate_learning_plan"):
             tool_args["session_id"] = session_id
         result = execute_tool(tool_name, **tool_args)
@@ -470,7 +471,7 @@ def chat_message(payload):
 
 
 # ---- Legacy intent-based routing (fallback only) ----
-    assist_result = assist({"user_input": message, "context": effective_context})
+    assist_result = assist({"user_input": message, "context": effective_context, "job_role": profile.get("id")})
     evidence_used = evidence_used_from_assist(assist_result, effective_context)
     reasoning_steps = reasoning_steps_from_assist(assist_result)
     knowledge_refs = knowledge_refs_from_assist(message, assist_result)
@@ -614,7 +615,7 @@ def _route_by_intent(intent, payload, intent_result, session_id, active_task, ef
     if intent == "clarify":
         return _finalize(handle_clarify(payload, intent_result), session_id)
     # Default: run diagnosis
-    assist_result = assist({"user_input": message, "context": effective_context})
+    assist_result = assist({"user_input": message, "context": effective_context, "job_role": profile.get("id")})
     answer = fallback_answer(assist_result)
     result = {
         "answer": answer,
