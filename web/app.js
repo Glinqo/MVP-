@@ -485,6 +485,7 @@ function deleteMessage(id) {
 
 function renderJobProfile(profile) {
   state.jobProfile = profile;
+  if (profile && profile.role_name) state.jobName = profile.role_name;
   const tasks = (profile.core_job_tasks || []).slice(0, 4);
   const chatInput = $("chatInput");
   if (chatInput) {

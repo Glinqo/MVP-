@@ -26,6 +26,10 @@ def tokenize(text):
     ascii_tokens = re.findall(r"[a-z0-9]+", raw)
     chinese_chunks = re.findall(r"[\u4e00-\u9fff]{2,}", raw)
     tokens = ascii_tokens + chinese_chunks
+    for chunk in chinese_chunks:
+        for n in (3, 2):
+            if len(chunk) >= n:
+                tokens.extend(chunk[i:i + n] for i in range(len(chunk) - n + 1))
 
     domain_terms = [
         "传感器",
@@ -44,6 +48,16 @@ def tokenize(text):
         "监控",
         "端子",
         "无响应",
+        "机器人",
+        "示教器",
+        "坐标系",
+        "标定",
+        "伺服",
+        "报警",
+        "通信",
+        "安全门",
+        "急停",
+        "工具坐标系",
     ]
     tokens.extend(term for term in domain_terms if term in raw)
     return [token for token in tokens if token]
@@ -385,7 +399,9 @@ def search_knowledge(query, limit=5, **kwargs):
     try:
         from .vector_index import vector_available
         if vector_available():
-            return _filter_knowledge_results(hybrid_search(query, limit), job_role)
+            results = _filter_knowledge_results(hybrid_search(query, limit), job_role)
+            if results:
+                return results
     except ImportError:
         pass
     except Exception:
