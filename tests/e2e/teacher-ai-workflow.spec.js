@@ -112,6 +112,7 @@ async function openStudentManagement(page) {
   await expect(page.locator("#workspaceOverlay")).toHaveClass(/open/);
   await page.locator('[data-workspace-panel="studentMgmt"]').click();
   await expect(page.locator("#teacherClassLabel")).toBeVisible();
+  await expect(page.locator("#teacherClassLabel")).not.toHaveText("未选择班级", { timeout: 15000 });
 }
 
 async function selectClass(page, name) {
@@ -204,7 +205,7 @@ test.describe.serial("Teacher AI Workflow V2", () => {
     await expect(page.locator("#issueDetailDrawer .candidate-card").first()).toBeVisible({ timeout: 15000 });
     await expect(page.locator("#issueDetailDrawer")).toContainText("建议用时");
     await expect(page.locator("#issueDetailDrawer")).toContainText("教学目标");
-    await expect(page.locator("#issueDetailDrawer")).toContainText("采用方案");
+    await expect(page.locator("#issueDetailDrawer")).toContainText("查看方案");
     expect(errors.serverErrors).toHaveLength(0);
   });
 
@@ -218,7 +219,7 @@ test.describe.serial("Teacher AI Workflow V2", () => {
     await page.getByRole("button", { name: "生成干预方案" }).click();
     await expect(page.locator("#issueDetailDrawer .candidate-card").first()).toBeVisible({ timeout: 15000 });
     await page.locator("#issueDetailDrawer .candidate-adopt").first().click();
-    await page.locator("#issueDetailDrawer").getByRole("button", { name: "让 AI 修改" }).click();
+    await page.locator("#issueDetailDrawer").getByRole("button", { name: "让 AI 调整" }).click();
     await ask(page, "改成20分钟，并把001单独安排。");
     await expect(page.locator("#chatMessages")).toContainText("20 分钟", { timeout: 15000 });
     await expect(page.locator("#chatMessages")).toContainText("001");
@@ -236,9 +237,9 @@ test.describe.serial("Teacher AI Workflow V2", () => {
     await page.getByRole("button", { name: "生成干预方案" }).click();
     await expect(page.locator("#issueDetailDrawer .candidate-card").first()).toBeVisible({ timeout: 15000 });
     await page.locator("#issueDetailDrawer .candidate-adopt").first().click();
-    await page.getByRole("button", { name: "确认创建" }).click();
-    await expect(page.locator("#issueDetailDrawer")).toContainText("干预 ID", { timeout: 15000 });
-    await expect(page.locator("#issueDetailDrawer")).toContainText("草稿");
+    await page.getByRole("button", { name: "采用此方案" }).click();
+    await expect(page.locator("#issueDetailDrawer")).toContainText("方案已保存", { timeout: 15000 });
+    await expect(page.locator("#issueDetailDrawer")).toContainText("方案草稿");
     expect(errors.pageErrors).toHaveLength(0);
     expect(errors.serverErrors).toHaveLength(0);
   });
@@ -291,12 +292,12 @@ test.describe.serial("Teacher AI Workflow V2", () => {
     await page.locator("#chatMessages .ai-action-btn", { hasText: "生成方案" }).click();
     await expect(page.locator("#issueDetailDrawer .candidate-card").first()).toBeVisible({ timeout: 15000 });
     await page.locator("#issueDetailDrawer .candidate-adopt").first().click();
-    await page.getByRole("button", { name: "让 AI 修改" }).click();
+    await page.getByRole("button", { name: "让 AI 调整" }).click();
     await ask(page, "改成20分钟，并把001单独安排。");
     await expect(page.locator("#chatMessages")).toContainText("20 分钟", { timeout: 15000 });
     await page.locator("#chatMessages .ai-action-btn", { hasText: "采用方案" }).click();
-    await page.getByRole("button", { name: "确认创建" }).click();
-    await expect(page.locator("#issueDetailDrawer")).toContainText("干预 ID", { timeout: 15000 });
+    await page.getByRole("button", { name: "采用此方案" }).click();
+    await expect(page.locator("#issueDetailDrawer")).toContainText("方案已保存", { timeout: 15000 });
 
     expect(errors.pageErrors).toHaveLength(0);
     expect(errors.serverErrors).toHaveLength(0);
