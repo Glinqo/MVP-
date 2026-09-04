@@ -61,6 +61,12 @@ function userKey(key) {
   return uname ? (key + "_" + uname) : key;
 }
 
+function studentSessionId(username, jobRole) {
+  var uname = String(username || "").trim();
+  var role = String(jobRole || "").trim();
+  return role ? role + "-" + uname : (uname || "demo-" + Date.now());
+}
+
 function persistSession() {
   localStorage.setItem(userKey("mcp_session_id"), state.sessionId);
   try {
@@ -87,7 +93,9 @@ function restoreMessages() {
 function createNewChat() {
   // Save current session before creating new one
   persistSession();
-  var newId = "demo-" + Date.now();
+  var uname = (state.currentUser && state.currentUser.username) || localStorage.getItem("mcp_login_user") || "";
+  var role = state.selectedJobId || (state.jobProfile && (state.jobProfile.id || state.jobProfile.role_name)) || "";
+  var newId = studentSessionId(uname, role);
   state.sessionId = newId;
   state.messages = [];
   localStorage.setItem(userKey("mcp_session_id"), newId);
@@ -614,9 +622,13 @@ async function openExplainDrawer(payload) {
       })
     });
     renderExplanation(data);
-    await refreshStudentGraph();
-    await loadGraphUpdates();
-    await loadStudentDashboard();
+    try {
+      await refreshStudentGraph();
+      await loadGraphUpdates();
+      await loadStudentDashboard();
+    } catch (refreshError) {
+      console.warn("Explanation rendered, background refresh failed:", refreshError.message);
+    }
   } catch (error) {
     $("explainTitle").textContent = "讲解失败";
     $("explainContent").innerHTML = `<p class="muted">${escapeHtml(error.message)}</p>`;
@@ -3741,9 +3753,10 @@ async function doLogin() {
       localStorage.setItem(userKey("mcp_identity"), data.user.identity || "student");
       state.selectedJobId = data.user.job_role;
       state.jobName = data.user.job_role;
-      state.sessionId = data.user.job_role + "-s";
+      state.sessionId = studentSessionId(data.user.username, data.user.job_role);
       state.messages = [];
       state.jobProfile = { id: data.user.job_role, role_name: data.user.job_role };
+      persistSession();
       var overlay = document.getElementById("landingOverlay");
       overlay.classList.add("fade-out");
       setTimeout(function() {
@@ -3852,8 +3865,8 @@ function selectJob(jobId, event) {
 
   // Student: use assessment flow
   state.selectedJobId = jobId;
-  state.sessionId = "demo-" + Date.now();
-  localStorage.setItem("mcp_session_id", state.sessionId);
+  state.sessionId = studentSessionId(localStorage.getItem("mcp_login_user"), jobId);
+  localStorage.setItem(userKey("mcp_session_id"), state.sessionId);
   state.messages = [];
   state.jobProfile = { id: jobId, role_name: state.jobName || jobId };
   dismissLanding().then(function() {
