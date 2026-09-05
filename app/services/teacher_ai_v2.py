@@ -361,6 +361,33 @@ def handle_teacher_message_v2(message: str, job_role: str = None, teacher_id: st
         else:
             result["answer"] = "请指定学生编号以查询诊断模式。"
 
+    elif any(kw in msg for kw in ["教学反馈", "评语", "生成反馈", "反馈草稿"]):
+        result["intent"] = "generate_comment"
+        import re
+        m = re.search(r"(\d{3})", msg)
+        sid = m.group(1) if m else student_id
+        if not sid:
+            result["answer"] = "请指定学生编号，例如：给 005 生成本周教学反馈草稿。"
+            result["actions"] = [{"type": "navigate", "module": "studentMgmt", "label": "学生管理"}]
+        else:
+            from app.services.teacher_comments import generate_comment
+            gen = generate_comment(
+                student_id=str(sid),
+                teacher_id=str(tid or ""),
+                job_role=jr,
+                class_id=int(class_id) if class_id else None,
+            )
+            if gen.get("ok"):
+                result["answer"] = f"已为 {sid} 生成教学反馈草稿。"
+                result["data_cards"] = [gen.get("comment", {})]
+                result["actions"] = [
+                    {"type": "navigate", "module": "teacherComments", "label": "查看教学反馈"},
+                    {"type": "open_comment", "comment_id": gen.get("comment", {}).get("id"), "label": "查看草稿"},
+                ]
+                result["context_update"] = {"last_student_id": str(sid), "current_student_id": str(sid)}
+            else:
+                result["answer"] = gen.get("error", "生成教学反馈草稿失败。")
+
     elif any(kw in msg for kw in ["草稿", "创建干预", "draft", "采用"]):
         result["intent"] = "draft_intervention"
         issue_id = issue_id or ctx.get("last_issue_id", "")
