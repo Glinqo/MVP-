@@ -8,6 +8,8 @@ import json
 from pathlib import Path
 from datetime import datetime
 
+from .graph_update_engine import normalize_ability_id
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -72,13 +74,15 @@ def build_coverage_matrix(traces=None):
             scenario_ability_map[sid] = {"title": model.get("title", sid), "ability_ids": []}
         for hyp in model.get("hypotheses", []):
             for aid in hyp.get("related_abilities", []):
-                if aid not in scenario_ability_map[sid]["ability_ids"]:
-                    scenario_ability_map[sid]["ability_ids"].append(aid)
+                canonical = normalize_ability_id(aid)
+                if canonical not in scenario_ability_map[sid]["ability_ids"]:
+                    scenario_ability_map[sid]["ability_ids"].append(canonical)
         # Also from diagnostic actions
         for action in model.get("diagnostic_actions", []):
             for aid in action.get("related_abilities", []):
-                if aid not in scenario_ability_map[sid]["ability_ids"]:
-                    scenario_ability_map[sid]["ability_ids"].append(aid)
+                canonical = normalize_ability_id(aid)
+                if canonical not in scenario_ability_map[sid]["ability_ids"]:
+                    scenario_ability_map[sid]["ability_ids"].append(canonical)
 
     # Build variant-ability mapping
     variant_ability_map = {}
@@ -91,7 +95,7 @@ def build_coverage_matrix(traces=None):
             fault_abilities = []
             for hyp in model.get("hypotheses", []):
                 if hyp["id"] == fault_id:
-                    fault_abilities = hyp.get("related_abilities", [])
+                    fault_abilities = [normalize_ability_id(aid) for aid in hyp.get("related_abilities", [])]
                     break
             variant_ability_map[vid] = {
                 "scenario_id": sid,
@@ -187,11 +191,12 @@ def _trace_coverage(traces):
             ability_ids = event.get("ability_ids", [])
             timestamp = event.get("timestamp") or datetime.now().isoformat()
             for aid in ability_ids:
-                key = f"{sid}:{aid}"
+                canonical = normalize_ability_id(aid)
+                key = f"{sid}:{canonical}"
                 if key not in result or timestamp > result[key].get("last_verified", ""):
                     result[key] = {
                         "scenario_id": sid,
-                        "ability_id": aid,
+                        "ability_id": canonical,
                         "last_verified": timestamp,
                     }
     return result

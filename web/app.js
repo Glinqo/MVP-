@@ -61,12 +61,6 @@ function userKey(key) {
   return uname ? (key + "_" + uname) : key;
 }
 
-function studentSessionId(username, jobRole) {
-  var uname = String(username || "").trim();
-  var role = String(jobRole || "").trim();
-  return role ? role + "-" + uname : (uname || "demo-" + Date.now());
-}
-
 function persistSession() {
   localStorage.setItem(userKey("mcp_session_id"), state.sessionId);
   try {
@@ -90,12 +84,15 @@ function restoreMessages() {
   } catch (e) { return []; }
 }
 
+function nextStudentSessionId(jobRole) {
+  var username = (state.currentUser && state.currentUser.username) || localStorage.getItem("mcp_login_user") || "";
+  var role = jobRole || state.selectedJobId || localStorage.getItem("mcp_job_id") || "";
+  return username ? (role + "-" + username + "-" + Date.now()) : ("demo-" + Date.now());
+}
 function createNewChat() {
   // Save current session before creating new one
   persistSession();
-  var uname = (state.currentUser && state.currentUser.username) || localStorage.getItem("mcp_login_user") || "";
-  var role = state.selectedJobId || (state.jobProfile && (state.jobProfile.id || state.jobProfile.role_name)) || "";
-  var newId = studentSessionId(uname, role);
+  var newId = nextStudentSessionId();
   state.sessionId = newId;
   state.messages = [];
   localStorage.setItem(userKey("mcp_session_id"), newId);
@@ -463,6 +460,12 @@ function renderMessages() {
     const extras = message.role === "assistant" ? renderMessageCards(message.meta) : "";
     var _ts = message.time ? (typeof formatMsgTime==="function"?formatMsgTime(message.time):"") : "";
     var _btns = "";
+    if (message.id && message.role === "user") {
+      _btns += '<button type="button" class="msg-action-btn edit" data-msg-action="edit" data-msg-id="' + escapeHtml(message.id) + '" title="编辑">✎</button>';
+    }
+    if (message.id && message.role !== "typing") {
+      _btns += '<button type="button" class="msg-action-btn del" data-msg-action="delete" data-msg-id="' + escapeHtml(message.id) + '" title="删除">✕</button>';
+    }
     var footerHtml = message.id ? '<div class="msg-footer"><span class="msg-time">' + _ts + '</span><span class="msg-actions">' + _btns + '</span></div>' : "";
     return `
       <article class="message ${message.role}">
@@ -478,7 +481,34 @@ function renderMessages() {
     `;
   }).join("");
   attachAskButtons($("chatMessages"));
+  bindMessageActionButtons();
   $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
+}
+
+function startEditMessage(id) {
+  var idx = state.messages.findIndex(function(m) { return m.id === id; });
+  if (idx === -1) return;
+  var msg = state.messages[idx];
+  if (msg.role !== "user") return;
+  state.editingMessageId = id;
+  var input = document.getElementById("chatInput");
+  if (input) { input.value = msg.content || ""; input.focus(); }
+  var send = document.getElementById("sendChat");
+  if (send) send.textContent = "更新消息";
+}
+
+function bindMessageActionButtons() {
+  var root = document.getElementById("chatMessages");
+  if (!root || root._msgActionsBound) return;
+  root._msgActionsBound = true;
+  root.addEventListener("click", function(ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest("[data-msg-action]") : null;
+    if (!btn) return;
+    var action = btn.dataset.msgAction;
+    var id = btn.dataset.msgId;
+    if (action === "edit") { startEditMessage(id); return; }
+    if (action === "delete") { if (confirm("删除这条消息？")) deleteMessage(id); }
+  });
 }
 
 function deleteMessage(id) {
@@ -612,8 +642,9 @@ async function openExplainDrawer(payload) {
   $("explainContent").classList.add("muted");
   $("explainContent").innerHTML = "正在根据题目、知识库和个人图谱生成讲解...";
   $("explainFollowups").innerHTML = "";
+  let data;
   try {
-    const data = await api("/api/explain", {
+    data = await api("/api/explain", {
       method: "POST",
       body: JSON.stringify({
         session_id: state.sessionId,
@@ -621,17 +652,18 @@ async function openExplainDrawer(payload) {
         ...payload
       })
     });
-    renderExplanation(data);
-    try {
-      await refreshStudentGraph();
-      await loadGraphUpdates();
-      await loadStudentDashboard();
-    } catch (refreshError) {
-      console.warn("Explanation rendered, background refresh failed:", refreshError.message);
-    }
   } catch (error) {
     $("explainTitle").textContent = "讲解失败";
     $("explainContent").innerHTML = `<p class="muted">${escapeHtml(error.message)}</p>`;
+    return;
+  }
+  renderExplanation(data);
+  try {
+    await refreshStudentGraph();
+    await loadGraphUpdates();
+    await loadStudentDashboard();
+  } catch (error) {
+    console.warn("Explanation rendered, but background refresh failed:", error);
   }
 }
 
@@ -673,24 +705,44 @@ function statusLabel(status) {
 }
 
 function peerDistributionData(node) {
-  // TF-4: Remove fake 48-person peer distribution.
-  // Backend ClassProjection is required for real percentile data.
-  return { scores: [], groupMean: 0, insufficient: true };
+  var score = node && node.mastery_score;
+  if (score === undefined || score === null) score = node && node.cognitive_mastery_score;
+  // TF-4: Real ClassProjection data is not available yet.
+  return { scores: [], groupMean: 0, insufficient: true, userScore: score };
 }
 
 function renderPeerDistribution(node, compact) {
-  var d = peerDistributionData(node);
-  var html = '<div class="peer-dist' + (compact ? ' compact' : '') + '">';
-  html += '<div class="peer-dist-head"><span>群体水平对比</span><span class="peer-dist-percent">超过 ' + d.percentile + '% 用户</span></div>';
+  var d = peerDistributionData(node) || {};
+  var scores = Array.isArray(d.scores) ? d.scores : [];
+  var userScore = d.userScore;
+  if (userScore === undefined || userScore === null) userScore = "";
+  var percentile = d.percentile;
+  var noGroupData = d.insufficient === true || scores.length < 2 || percentile === undefined || percentile === null;
+  var ownText = userScore === "" ? "暂无" : escapeHtml(userScore);
+  var base = '<div class="peer-dist' + (compact ? ' compact' : '') + '">';
+  if (noGroupData) {
+    return base +
+      '<div class="peer-dist-head"><span>群体水平对比</span><span class="peer-dist-percent">暂无群体数据</span></div>' +
+      '<div class="peer-dist-empty">当前暂无同岗位群体对比数据，先保留你的个人分数。</div>' +
+      '<div class="peer-dist-meta"><span>高</span><span>你的分数：' + ownText + '</span><span>低</span></div>' +
+      '</div>';
+  }
+  var html = base;
+  html += '<div class="peer-dist-head"><span>群体水平对比</span><span class="peer-dist-percent">超过 ' + percentile + '% 用户</span></div>';
   html += '<div class="peer-dist-track">';
-  d.scores.forEach(function(sc, idx) {
-    var pos = idx / (d.scores.length - 1) * 100;
-    html += '<span class="peer-dot" title="' + sc + '分" style="left:' + pos.toFixed(1) + '%"></span>';
-  });
-  var userPos = 100 - d.percentile;
-  html += '<span class="peer-dot me" title="我的 ' + d.userScore + '分" style="left:' + userPos.toFixed(1) + '%"></span>';
+  if (scores.length === 1) {
+    html += '<span class="peer-dot" style="left:50%"></span>';
+  } else {
+    scores.forEach(function(sc, idx) {
+      var pos = idx / (scores.length - 1) * 100;
+      html += '<span class="peer-dot" title="' + escapeHtml(sc) + '分" style="left:' + pos.toFixed(1) + '%"></span>';
+    });
+  }
+  var percentileNum = parseFloat(percentile);
+  var userPos = isFinite(percentileNum) ? (100 - percentileNum) : 50;
+  html += '<span class="peer-dot me" title="我的 ' + ownText + '分" style="left:' + userPos.toFixed(1) + '%"></span>';
   html += '</div>';
-  html += '<div class="peer-dist-meta"><span>高</span><span>你的分数：' + d.userScore + '</span><span>低</span></div>';
+  html += '<div class="peer-dist-meta"><span>高</span><span>你的分数：' + ownText + '</span><span>低</span></div>';
   html += '</div>';
   return html;
 }
@@ -901,8 +953,8 @@ function renderGraphDiagram(graph, targetId) {
     target.innerHTML = '';
     state.graphRenderers[targetId] = new ForceGraph(targetId, {
       onNodeClick: (node, g) => {
-        const d = g.nodes.find(n => n.id === node.id);
-        if (d) showGraphNodeDetail(d, g);
+        const d = (g && Array.isArray(g.nodes)) ? (g.nodes.find(n => n.id === node.id) || node) : node;
+        showGraphNodeDetail(d, g || { nodes: [] });
       }
     });
   }
@@ -986,8 +1038,9 @@ function renderProcessMetrics(node) {
 }
 
 function renderEvidenceTimeline(node, events) {
-  const normalized = node.normalized_events || [];
-  const process = node.process_evidence || [];
+  const normalized = Array.isArray(node.normalized_events) ? node.normalized_events : [];
+  const process = Array.isArray(node.process_evidence) ? node.process_evidence : [];
+  events = Array.isArray(events) ? events : [];
   const merged = [
     ...normalized.map((event) => ({
       type: event.event_type,
@@ -1020,53 +1073,83 @@ function renderEvidenceTimeline(node, events) {
 }
 
 function showGraphNodeDetail(node, graph) {
-  const events = node.evidence_events || [];
-  // graphEvidencePanel removed
-  $("nodeDetailContent").innerHTML = `
-    <h3>${escapeHtml(node.label)}</h3>
+  node = node || {};
+  graph = graph || { nodes: [] };
+  const fallbackGraph = (graph && Array.isArray(graph.nodes)) ? graph : (state.graphs && (state.graphs.student || state.graphs.job || state.graphs.current)) || {};
+  if (node.id && Array.isArray(fallbackGraph.nodes)) {
+    const fullNode = fallbackGraph.nodes.find(function(n) { return String(n && n.id) === String(node.id); });
+    if (fullNode) node = Object.assign({}, fullNode, node);
+  }
+  const drawerEl = document.getElementById("nodeDetailDrawer");
+  const contentEl = document.getElementById("nodeDetailContent");
+  if (drawerEl) {
+    drawerEl.classList.add("open");
+    drawerEl.setAttribute("aria-hidden", "false");
+    drawerEl.scrollTop = 0;
+  }
+  if (!contentEl) return;
+  const nodeLabel = node.label || node.name || node.id || "能力节点";
+  const evidence = Array.isArray(node.evidence) ? node.evidence : [];
+  const reasons = Array.isArray(node.update_reasons) ? node.update_reasons : [];
+  const evidenceItems = [];
+  function addEvidenceItem(item) {
+    if (typeof item === "string") { evidenceItems.push(item); return; }
+    if (item && (item.reason || item.note || item.label || item.value)) {
+      evidenceItems.push(item.reason || item.note || item.label || item.value);
+    }
+  }
+  evidence.forEach(addEvidenceItem);
+  reasons.forEach(addEvidenceItem);
+  const latestEvidence = Array.isArray(node.latest_evidence) ? node.latest_evidence : [];
+  const events = Array.isArray(node.evidence_events) ? node.evidence_events : [];
+  let html = "";
+  try {
+    html = `
+    <h3>${escapeHtml(nodeLabel)}</h3>
     <p>状态：${escapeHtml(node.status_label || statusLabel(node.status))}</p>
+    ${node.description ? `<p class="muted">${escapeHtml(node.description)}</p>` : ""}
     <div class="score-grid">
       <div class="metric"><strong>${escapeHtml(node.mastery_score ?? "-")}</strong><span>掌握度</span></div>
       <div class="metric"><strong>${escapeHtml(node.cognitive_mastery_score ?? "-")}</strong><span>认知综合分</span></div>
       <div class="metric"><strong>${escapeHtml(node.confidence ?? "-")}</strong><span>置信度</span></div>
       <div class="metric"><strong>${escapeHtml(node.evidence_count ?? 0)}</strong><span>证据总数</span></div>
-      <div class="metric"><strong>${escapeHtml(node.uncertainty ?? "-")}</strong><span>不确定性</span></div>
     </div>
-
-    ${$("graphViewStudent")?.classList.contains("active") ? renderPeerDistribution(node, false) : ""}
+    ${($("graphViewStudent") && $("graphViewStudent").classList.contains("active")) ? renderPeerDistribution(node, false) : ""}
+    <h3>图谱依据 / 证据</h3>
+    ${evidenceItems.length ? `<ul class="compact-list">${evidenceItems.map(function(item) { return "<li>" + escapeHtml(item) + "</li>"; }).join("")}</ul>` : `<p class="muted">暂无记录</p>`}
     <h3>最新证据</h3>
-    ${node.latest_evidence && node.latest_evidence.length ? `
-      <ul class="item-list">
-        ${node.latest_evidence.slice(0, 3).map(function(ev) {
-          return '<li><div style="font-size:12px">' + escapeHtml(ev.evidence_snippet || '') + '</div><div class="muted">' + escapeHtml(ev.source_type || '') + ' · ' + escapeHtml(ev.extracted_at || '') + ' · conf=' + escapeHtml(ev.confidence || '') + '</div></li>';
-        }).join("")}
-      </ul>
-    ` : '<p class="muted">暂无最新证据</p>'}
+    ${latestEvidence.length ? `<ul class="item-list">${latestEvidence.slice(0, 3).map(function(ev) { return "<li><div style=font-size:12px>" + escapeHtml(ev && (ev.evidence_snippet || ev.content || ev.note || "")) + "</div><div class=muted>" + escapeHtml(ev && (ev.source_type || ev.source || "")) + " · conf=" + escapeHtml(ev && ev.confidence || "") + "</div></li>"; }).join("")}</ul>` : `<p class="muted">暂无最新证据</p>`}
     <h3>下一步</h3>
     <p>${escapeHtml(node.next_best_action || "先查看讲解，再完成一个关联训练任务。")}</p>
     ${node.why_next ? `<p class="muted">推荐理由：${escapeHtml(node.why_next)}</p>` : ""}
     <h3>证据时间线</h3>
     ${renderEvidenceTimeline(node, events)}
     <div class="question-actions">
-      <button type="button" data-ask="${escapeHtml(`请讲解“${node.label}”这个能力，结合我的问题说明怎么练。`)}" data-explain-type="ability" data-ability-id="${escapeHtml(node.id)}" data-event-type="ability_explained">问 AI 讲解</button>
+      <button type="button" data-ask="${escapeHtml("请讲解“" + nodeLabel + "”这个能力，结合我的问题说明怎么练。")}" data-explain-type="ability" data-ability-id="${escapeHtml(node.id)}" data-event-type="ability_explained">问 AI 讲解</button>
       <button type="button" data-plan-node="${escapeHtml(node.id)}">生成培养方案</button>
     </div>
   `;
-  attachAskButtons($("nodeDetailContent"));
-  $("nodeDetailContent").querySelectorAll("[data-plan-node]").forEach((button) => {
-    button.addEventListener("click", () => {
-      openWorkspace("plan");
-      loadPersonalizedPlan("today", button.dataset.planNode);
+  } catch (error) {
+    html = `<h3>${escapeHtml(nodeLabel)}</h3><p class="muted">节点详情加载失败：${escapeHtml(error && error.message ? error.message : "未知错误")}</p>`;
+  }
+  contentEl.innerHTML = html;
+  try {
+    attachAskButtons(contentEl);
+    contentEl.querySelectorAll("[data-plan-node]").forEach(function(button) {
+      button.addEventListener("click", function() {
+        openWorkspace("plan");
+        loadPersonalizedPlan("today", button.dataset.planNode);
+      });
     });
-  });
-  $("nodeDetailDrawer").classList.add("open");
-  $("nodeDetailDrawer").setAttribute("aria-hidden", "false");
-  // Scroll to top and flash to indicate content changed
-  $("nodeDetailDrawer").scrollTop = 0;
-  $("nodeDetailDrawer").classList.add("node-detail-flash");
-  setTimeout(function() {
-    $("nodeDetailDrawer").classList.remove("node-detail-flash");
-  }, 400);
+  } catch (error) {
+    console.warn("Node detail actions failed:", error);
+  }
+  if (drawerEl) {
+    drawerEl.classList.add("open");
+    drawerEl.setAttribute("aria-hidden", "false");
+    drawerEl.classList.add("node-detail-flash");
+    setTimeout(function() { drawerEl.classList.remove("node-detail-flash"); }, 400);
+  }
 }
 
 function closeNodeDetail() {
@@ -2044,9 +2127,8 @@ function workspaceTitle(panel) {
     jobAdmin: "岗位管理",
     knowledge: "知识缺口",
     tasks: "实训任务",
-    teacherToday: "今日教学",
     classInsights: "班级洞察",
-    studentMgmt: "学生",
+    studentMgmt: "学生管理",
     teacherComments: "教学反馈",
     teacherJobGraph: "岗位图谱"
   };
@@ -2065,7 +2147,6 @@ function setWorkspacePanel(panel) {
     section.classList.toggle("active", section.id === "workspace" + domPanel.charAt(0).toUpperCase() + domPanel.slice(1));
   });
   var teacherTabByPanel = {
-    teacherToday: "today",
     classInsights: "insights",
     studentMgmt: "students",
     teacherComments: "feedback"
@@ -2533,7 +2614,32 @@ async function fetchTrainingPlans(jobName) {
   try {
     var r = await fetch('/training-plans.json');
     var allPlans = await r.json();
-    return allPlans[jobName] || {};
+    var direct = allPlans[jobName];
+    if (direct) return direct;
+    var candidates = [
+      state.jobProfile && state.jobProfile.role_name,
+      state.jobName,
+      state.selectedJobId,
+      localStorage.getItem("mcp_job_name"),
+      localStorage.getItem("mcp_job_id")
+    ];
+    for (var i = 0; i < candidates.length; i++) {
+      var key = candidates[i];
+      if (key && allPlans[key]) return allPlans[key];
+    }
+    var roleNames = {
+      "automation_line_commissioning_maintenance_newcomer": "自动化生产线装调与运维技术员",
+      "mechanical_electrical_maintenance_worker": "机电设备维修工",
+      "automation_equipment_debugger": "自动化设备调试员",
+      "industrial_robot_maintenance": "工业机器人系统运维员",
+      "plc_electrical_control_technician": "PLC电气控制技术员",
+      "sensor_industrial_network_debugger": "传感器与工业网络调试员",
+      "servo_step_drive_debugger": "伺服/步进驱动调试员",
+      "cnc_maintenance_worker": "数控设备维护员"
+    };
+    var roleName = roleNames[jobName] || roleNames[state.selectedJobId] || roleNames[localStorage.getItem("mcp_job_id") || ""];
+    if (roleName && allPlans[roleName]) return allPlans[roleName];
+    return {};
   } catch (e) { console.error('fetchTrainingPlans', e); return {}; }
 }
 
@@ -2697,6 +2803,12 @@ async function loadTrainingPlans(planMode) {
   if (!jobName) { document.getElementById('personalizedPlan').innerHTML = '<div class="muted">请先选择岗位</div>'; return; }
   document.getElementById('personalizedPlan').innerHTML = '<div class="muted">加载中...</div>';
  var planData = await fetchTrainingPlans(jobName);
+  if (!planData || !planData.stages || !planData.stages.length) {
+    if (typeof loadPersonalizedPlan === "function") {
+      await loadPersonalizedPlan(planMode);
+      return;
+    }
+  }
   // Load saved stage order
   if (planData && planData.stages) {
     var savedKey = 'stages_order_' + (state.jobName || 'default').replace(/\s+/g, '_');
@@ -3505,6 +3617,11 @@ async function studentBoot() {
     if (dbg) dbg.style.display = "none";
     var jobId = localStorage.getItem("mcp_job_id") || "automation_line_commissioning_maintenance_newcomer";
 
+    var studentUsername = localStorage.getItem("mcp_login_user") || (state.currentUser && state.currentUser.username) || "";
+    if (studentUsername && state.sessionId.indexOf("-" + studentUsername) === -1) {
+      state.sessionId = nextStudentSessionId(jobId);
+      localStorage.setItem("mcp_session_id", state.sessionId);
+    }
     // P8-A/E: Load student class learning context with namespace + multi-class selection
     try {
       var classResp = await api("/api/student/classes");
@@ -3753,10 +3870,9 @@ async function doLogin() {
       localStorage.setItem(userKey("mcp_identity"), data.user.identity || "student");
       state.selectedJobId = data.user.job_role;
       state.jobName = data.user.job_role;
-      state.sessionId = studentSessionId(data.user.username, data.user.job_role);
+      state.sessionId = nextStudentSessionId(data.user.job_role);
       state.messages = [];
       state.jobProfile = { id: data.user.job_role, role_name: data.user.job_role };
-      persistSession();
       var overlay = document.getElementById("landingOverlay");
       overlay.classList.add("fade-out");
       setTimeout(function() {
@@ -3865,8 +3981,8 @@ function selectJob(jobId, event) {
 
   // Student: use assessment flow
   state.selectedJobId = jobId;
-  state.sessionId = studentSessionId(localStorage.getItem("mcp_login_user"), jobId);
-  localStorage.setItem(userKey("mcp_session_id"), state.sessionId);
+  state.sessionId = nextStudentSessionId(jobId);
+  localStorage.setItem("mcp_session_id", state.sessionId);
   state.messages = [];
   state.jobProfile = { id: jobId, role_name: state.jobName || jobId };
   dismissLanding().then(function() {

@@ -9,6 +9,7 @@ from app.services.initial_assessment import (
 )
 from app.services.assessment_store import load_state, save_state, _ensure_table, _conn
 from app.services.learning_event_store import append_normalized_event
+from app.services.graph_update_engine import normalize_ability_id
 
 
 class InitialAssessmentTest(unittest.TestCase):
@@ -164,7 +165,9 @@ class InitialAssessmentTest(unittest.TestCase):
         valid_ids = {n["id"] for n in nodes if isinstance(n, dict) and "id" in n}
         qs = _load_questions()
         for q in qs:
-            self.assertIn(q.ability_id, valid_ids, f"{q.qid}: {q.ability_id} not in ability_nodes")
+            canonical = normalize_ability_id(q.ability_id)
+            self.assertIn(canonical, valid_ids,
+                          f"{q.qid}: {q.ability_id} -> {canonical} not in ability_nodes")
 
     # 16. All dimensions covered
     def test_16_all_dimensions(self):
@@ -216,12 +219,14 @@ class InitialAssessmentTest(unittest.TestCase):
     def test_20_task_feedback_writes_event(self):
         from app.services.personalized_plan import evaluate_task_feedback
         r = evaluate_task_feedback({
-            "session_id": "u20", "ability_id": "sensor_selection",
-            "task_id": "t1", "student_response": "Yes",
-            "expected_outcome": "Yes"
+            "session_id": "u20",
+            "task_id": "T001",
+            "student_feedback": "已完成断电确认，并完成传感器接线检查，PLC 输入灯正常点亮。",
         })
-        self.assertGreaterEqual(r["score"], 0.5)
-        self.assertIn("feedback", r)
+        self.assertEqual(r.get("task_id"), "T001")
+        self.assertIn("is_passed", r)
+        self.assertIn("evaluation_result", r)
+        self.assertIn("updated_abilities", r)
 
     # 21. HTTP missing params returns 400-like error
     def test_21_missing_params_error(self):

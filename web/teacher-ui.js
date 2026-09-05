@@ -1,12 +1,12 @@
 ﻿// === teacher-ui.js - Teacher Decision Workspace (TF-6C Runtime Closure) ===
 var TeacherUI = {
-  currentTab: "today",
+  currentTab: "students",
   currentIssueId: null,
   messages: [],
   aiContext: {
     class_id: null,
     job_role: "",
-    current_tab: "today",
+    current_tab: "students",
     current_issue_id: null,
     current_issue_title: "",
     current_student_ids: [],
@@ -25,7 +25,6 @@ var TeacherUI = {
   _batchParsedStudents: [],
   _allStudents: [],
   workspacePanelForTab: {
-    today: "teacherToday",
     insights: "classInsights",
     students: "studentMgmt",
     feedback: "teacherComments"
@@ -73,7 +72,7 @@ TeacherUI.updateAIContext = function(patch) {
 TeacherUI.syncAIContext = function() {
   TeacherUI.aiContext.class_id = TeacherUI.currentClassId || null;
   TeacherUI.aiContext.job_role = TeacherUI.currentClass ? (TeacherUI.currentClass.job_role || "") : "";
-  TeacherUI.aiContext.current_tab = TeacherUI.currentTab || "today";
+  TeacherUI.aiContext.current_tab = TeacherUI.currentTab || "students";
   if (window.state) {
     window.state.teacherContext = window.state.teacherContext || {};
     Object.keys(TeacherUI.aiContext).forEach(function(key) {
@@ -116,7 +115,7 @@ TeacherUI.uiContext = function() {
     visible_ability_id: TeacherUI.aiContext.current_ability_id,
     visible_candidate_id: TeacherUI.aiContext.current_candidate_id,
     visible_intervention_id: TeacherUI.aiContext.current_intervention_id,
-    visible_panel: TeacherUI.workspacePanelForTab[TeacherUI.aiContext.current_tab] || "teacherToday"
+    visible_panel: TeacherUI.workspacePanelForTab[TeacherUI.aiContext.current_tab] || "studentMgmt"
   };
 };
 
@@ -251,7 +250,7 @@ TeacherUI.loadClasses = function() {
     }
     TeacherUI.setCurrentClass(selected, false);
     TeacherUI.renderClassDropdown();
-    TeacherUI.switchTab(TeacherUI.currentTab || "today");
+    TeacherUI.switchTab(TeacherUI.currentTab || "students");
   }).catch(function(e) {
     console.warn("Load classes failed:", e.message);
     TeacherUI.setCurrentClass(null);
@@ -633,7 +632,6 @@ TeacherUI.switchTab = function(tabId) {
     });
   }
   var loaders = {
-    today: TeacherUI.loadToday,
     insights: TeacherUI.loadInsights,
     students: TeacherUI.loadStudents,
     feedback: TeacherUI.loadFeedback
@@ -1538,7 +1536,7 @@ TeacherUI.executeAIAction = function(action) {
     return true;
   }
   if (type === "open_issue" && action.issue_id) {
-    if (typeof openWorkspace === "function") openWorkspace("teacherToday");
+    if (typeof openWorkspace === "function") openWorkspace("classInsights");
     setTimeout(function() { TeacherUI.openIssueDetail(action.issue_id); }, 250);
     return true;
   }
@@ -1558,7 +1556,7 @@ TeacherUI.executeAIAction = function(action) {
       current_issue_id: action.issue_id || TeacherUI.aiContext.current_issue_id,
       current_student_ids: action.student_ids || TeacherUI.aiContext.current_student_ids
     });
-    if (typeof openWorkspace === "function") openWorkspace("teacherToday");
+    if (typeof openWorkspace === "function") openWorkspace("classInsights");
     setTimeout(function() {
       if (action.issue_id) TeacherUI.openIssueDetail(action.issue_id);
       setTimeout(function() { TeacherUI.generateCandidates(); }, 500);

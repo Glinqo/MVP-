@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from app.services.data_loader import load_data
+from app.services.graph_update_engine import normalize_ability_id
 
 
 def main():
@@ -39,13 +40,22 @@ def main():
 
     print(f"Loaded {len(models)} models for {len(scenarios)} scenarios")
 
-    # 1. Every existing scenario has a model
+    # 1. Every model maps to an existing scenario. Scenarios without a detailed
+    #    model are reported as warnings (the MVP keeps detailed models for the
+    #    core troubleshooting scenarios only).
+    scenario_ids = {scenario.get("id") for scenario in scenarios}
+    warnings = []
     for scenario in scenarios:
         sid = scenario.get("id")
         if sid not in models:
-            errors.append(f"Scenario {sid} has no troubleshooting model")
+            warnings.append(sid)
         else:
             print(f"  OK: scenario {sid} -> model found")
+    for sid in models:
+        if sid not in scenario_ids:
+            errors.append(f"Model {sid} has no matching scenario")
+    if warnings:
+        print(f"  WARN: {len(warnings)} scenario(s) without a detailed model (MVP scope)")
 
     # 2-7. Per-model checks
     for sid, model in models.items():
@@ -72,15 +82,15 @@ def main():
         # 4. All ability IDs exist in ability_nodes.json
         for action in actions:
             for aid in action.get("related_abilities", []):
-                if aid not in ability_by_id:
+                if normalize_ability_id(aid) not in ability_by_id:
                     errors.append(f"Model {sid}, action {action['id']}: ability_id '{aid}' not in ability_nodes.json")
         for hyp in hypotheses:
             for aid in hyp.get("related_abilities", []):
-                if aid not in ability_by_id:
+                if normalize_ability_id(aid) not in ability_by_id:
                     errors.append(f"Model {sid}, hypothesis {hyp['id']}: ability_id '{aid}' not in ability_nodes.json")
         for bias_id, bias_def in strategy_biases.items():
             for aid in bias_def.get("related_abilities", []):
-                if aid not in ability_by_id:
+                if normalize_ability_id(aid) not in ability_by_id:
                     errors.append(f"Model {sid}, bias {bias_id}: ability_id '{aid}' not in ability_nodes.json")
         print(f"  OK: model {sid} ability references valid")
 

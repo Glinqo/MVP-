@@ -1319,6 +1319,8 @@ button:active{transform:translateY(0)}
 .peer-dist{margin:10px 0;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:8px}
 .peer-dist.compact{padding:8px 10px}
 .peer-dist-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px}
+.peer-dist-empty{color:var(--muted);font-size:11px;line-height:1.5;padding:6px 0 2px}
+.peer-dist.compact .peer-dist-empty{font-size:10px;padding:4px 0 1px}
 .peer-dist-percent{color:#22d3ee;font-weight:700;white-space:nowrap}
 .peer-dist-track{position:relative;height:30px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.07));border:1px solid rgba(255,255,255,0.07);border-radius:6px}
 .peer-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:rgba(148,163,184,0.45);z-index:1}
@@ -1508,6 +1510,8 @@ body[data-role="student"] .role-teacher { display: none !important; }
 body[data-role="teacher"] .teacher-layout { display: none !important; }
 body[data-role="student"] .teacher-layout { display: none !important; }
 body[data-role="teacher"] .student-layout { display: grid !important; }
+/* Teacher mode adds a class-scope row inside workspace shell */
+body[data-role="teacher"] .workspace-shell { grid-template-rows: auto auto auto minmax(0, 1fr); }
 body[data-role="teacher"] .launcher-panel.role-student { display: none !important; }
 body[data-role="teacher"] .launcher-panel.role-teacher { display: block !important; }
 body[data-role="teacher"] .feedback-row,

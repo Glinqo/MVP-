@@ -315,9 +315,10 @@ class ForceGraph {
 
         // Click handler
         if (this.onNodeClick) {
+            this._latestGraphData = graphData || { nodes: [] };
             this.selNodes.on("click", (ev, d) => {
                 ev.stopPropagation();
-                this.onNodeClick(d, graphData);
+                if (this._latestGraphData) this.onNodeClick(d, this._latestGraphData);
             });
         }
 

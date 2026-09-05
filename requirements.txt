@@ -1,0 +1,10 @@
+# Runtime dependency for JWT-based teacher/student authentication.
+PyJWT>=2.8
+
+# Job intelligence updater (scripts/job_intelligence_update.py and its tests).
+beautifulsoup4>=4.12
+
+# Optional dependencies (only needed when rebuilding the FAISS vector index):
+# numpy
+# faiss-cpu
+# sentence-transformers

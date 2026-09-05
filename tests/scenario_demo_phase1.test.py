@@ -1,6 +1,9 @@
 ﻿import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from app.services.scenario import scenario_by_id, start_scenario, step_scenario, list_scenarios
 

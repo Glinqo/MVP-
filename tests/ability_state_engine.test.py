@@ -7,13 +7,15 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from app.services.ability_state_engine import compute_ability_state, _generate_recommendation
+from app.services.data_loader import load_data
 
 
 def test_all_abilities_have_complete_structure():
-    """All 25 abilities have complete state structures."""
+    """All abilities from knowledge data have complete state structures."""
     state = compute_ability_state("default")
     abilities = state.get("abilities", {})
-    assert len(abilities) == 25, f"Expected 25 abilities, got {len(abilities)}"
+    expected = len(load_data()["abilities"])
+    assert len(abilities) == expected, f"Expected {expected} abilities, got {len(abilities)}"
 
     required_fields = [
         "knowledge_mastery", "procedure_mastery", "transfer_score", "safety_score",
@@ -58,9 +60,9 @@ def test_status_has_reason():
 
 def test_single_ability_query():
     """Querying a single ability returns just that ability."""
-    state = compute_ability_state("default", ability_id="electrical_safety_check")
+    state = compute_ability_state("default", ability_id="es_safety_rules")
     assert "ability_id" in state
-    assert state["ability_id"] == "electrical_safety_check"
+    assert state["ability_id"] == "es_safety_rules"
     assert "status" in state
     print("PASS: test_single_ability_query")
 
@@ -69,7 +71,8 @@ def test_recommendation_has_type():
     """Every recommendation has a valid type."""
     state = compute_ability_state("default")
     valid_types = {"explain", "quiz", "scenario_practice", "cross_scenario",
-                   "safety_review", "reflection", "targeted_training", "evidence_building"}
+                   "safety_review", "reflection", "targeted_training", "evidence_building",
+                   "safety_gate", "explain_then_recall"}
     for aid, astate in state["abilities"].items():
         rec = astate.get("recommended_action", {})
         assert rec.get("type") in valid_types, f"Invalid recommendation type {rec.get('type')} for {aid}"

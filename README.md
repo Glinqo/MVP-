@@ -67,6 +67,12 @@ tests/       最小评分测试与样例输入输出
 
 ## 快速验证
 
+先安装运行时依赖：
+
+```powershell
+pip install -r requirements.txt
+```
+
 在仓库父目录运行评分测试：
 
 ```powershell

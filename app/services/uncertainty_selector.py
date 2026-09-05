@@ -16,6 +16,7 @@ Avoids:
 import random
 from .graph import build_student_ability_graph
 from .coverage_matrix import build_coverage_matrix, get_abilities_needing_validation
+from .graph_update_engine import normalize_ability_id
 from .strategy_profile import build_cumulative_strategy_profile
 from .diagnostic_trace import list_student_traces
 from .scenario_composer import (
@@ -116,7 +117,9 @@ def select_next_training_scenario(session_id, last_scenario_id=None, preferred_d
 
     reason = "?".join(reason_parts) + "?"
 
-    target_abilities = best.get("target_abilities", [])
+    target_abilities = list(dict.fromkeys(
+        normalize_ability_id(a) for a in best.get("target_abilities", [])
+    ))
     target_strategy_test = best.get("target_strategy_test")
 
     return {

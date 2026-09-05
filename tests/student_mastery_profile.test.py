@@ -73,7 +73,7 @@ def test_trace_to_mastery_profile():
     assert graph["mastery_profile"]["trace_count"] >= 1
     assert graph["mastery_profile"]["aggregated_process_metrics"]
 
-    safety_node = node_by_id(graph, "electrical_safety_check")
+    safety_node = node_by_id(graph, "es_safety_rules")
     for key in [
         "knowledge_mastery",
         "procedure_mastery",
@@ -92,9 +92,9 @@ def test_trace_to_mastery_profile():
     assert safety_node["normalized_events"] or safety_node["process_evidence"]
 
     profile = build_student_mastery_profile(SESSION, graph["nodes"])
-    assert profile["abilities"]["electrical_safety_check"]["cognitive_mastery_score"] == safety_node["cognitive_mastery_score"]
+    assert profile["abilities"]["es_safety_rules"]["cognitive_mastery_score"] == safety_node["cognitive_mastery_score"]
     print(
-        "  PASS: electrical_safety_check",
+        "  PASS: es_safety_rules",
         safety_node["knowledge_mastery"],
         safety_node["procedure_mastery"],
         safety_node["transfer_score"],
