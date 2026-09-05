@@ -212,7 +212,7 @@ TeacherUI.jobRoleLabel = function(id) {
 TeacherUI.commentStatusLabel = function(status) {
   return {
     draft: "草稿",
-    reviewed: "待发布",
+    reviewed: "已审核",
     published: "已发布"
   }[status] || "草稿";
 };
@@ -1381,7 +1381,7 @@ TeacherUI.loadFeedback = function() {
     var comments = data.comments || [];
     var html = '<div class="teacher-section"><div class="teacher-section-title">教学反馈</div>';
     html += '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
-    var filters = [["all", "全部"], ["draft", "草稿"], ["reviewed", "待发布"], ["published", "已发布"]];
+    var filters = [["all", "全部"], ["draft", "草稿"], ["published", "已发布"]];
     filters.forEach(function(f) {
       var active = TeacherUI._commentFilter === f[0] ? "background:#14b8a6;color:#fff" : "background:rgba(255,255,255,0.08)";
       var count = stats[f[0]] !== undefined ? stats[f[0]] : 0;
@@ -1439,10 +1439,7 @@ TeacherUI.openCommentDetail = function(commentId) {
       });
     }
     html += '<div style="display:flex;gap:8px;margin-top:16px">';
-    if (cm.status === "draft") {
-      html += '<button class="btn-primary" onclick="TeacherUI.reviewComment(' + commentId + ')">审核</button>';
-    }
-    if (cm.status === "reviewed") {
+    if (cm.status === "draft" || cm.status === "reviewed") {
       html += '<button class="btn-primary" onclick="TeacherUI.publishComment(' + commentId + ')">发布</button>';
     }
     html += '</div>';

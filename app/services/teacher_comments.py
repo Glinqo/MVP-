@@ -141,13 +141,14 @@ def publish_comment(comment_id: int) -> Dict:
     c = get_comment(comment_id)
     if not c:
         return {"ok": False, "error": "评语不存在"}
-    if c["status"] != "reviewed":
-        return {"ok": False, "error": "只有已审核评语才能发布"}
+    if c["status"] not in ("draft", "reviewed"):
+        return {"ok": False, "error": "只有未发布评语才能发布"}
     now = time.time()
+    reviewed_at = c.get("reviewed_at") or now
     with _conn() as conn:
         conn.execute(
-            "UPDATE teacher_comments SET status = 'published', published_at = ?, updated_at = ? WHERE id = ?",
-            (now, now, comment_id)
+            "UPDATE teacher_comments SET status = 'published', reviewed_at = ?, published_at = ?, updated_at = ? WHERE id = ?",
+            (reviewed_at, now, now, comment_id)
         )
         conn.commit()
     return {"ok": True, "comment": get_comment(comment_id)}
@@ -213,14 +214,14 @@ def review_comments_batch(comment_ids: List[int]) -> Dict:
     return {"ok": True, "results": results}
 
 def publish_comments_batch(comment_ids: List[int]) -> Dict:
-    """批量发布已审核评语（只发布 reviewed 状态，跳过 draft）。"""
+    """批量发布未发布评语（草稿或已审核均可直接发布）。"""
     results = []
     for cid in comment_ids:
         c = get_comment(cid)
-        if c and c["status"] == "reviewed":
+        if c and c["status"] in ("draft", "reviewed"):
             results.append(publish_comment(cid))
         else:
-            results.append({"ok": False, "error": "仅已审核评语可发布", "comment_id": cid})
+            results.append({"ok": False, "error": "仅未发布评语可发布", "comment_id": cid})
     return {"ok": True, "results": results}
 
 # ── 学生端 ──
