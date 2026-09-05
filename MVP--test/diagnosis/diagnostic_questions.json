@@ -1,0 +1,380 @@
+{
+  "version": "0.2.0",
+  "scenario": "传感器 NPN/PNP 接线与 PLC 输入信号排查",
+  "source": "PLC 实训指导书/教师确认资料/课程标准待补充",
+  "questions": [
+    {
+      "id": "Q001",
+      "type": "single_choice",
+      "question": "三线 PNP 传感器检测到工件时，黑色输出线常见的有效信号状态是什么？",
+      "options": [
+        {"id": "A", "text": "输出端接近 DC24V"},
+        {"id": "B", "text": "输出端接近 0V"},
+        {"id": "C", "text": "输出端状态与 PLC 输入公共端无关"},
+        {"id": "D", "text": "输出端只影响 HMI 颜色显示"}
+      ],
+      "correct_answer": "A",
+      "ability_id": "sensor_type_identification",
+      "explanation": "PNP 传感器常见为上拉输出，检测有效时输出端接近 DC24V。接入 PLC 前仍要核对传感器说明书和输入公共端接法。",
+      "wrong_feedback": "你可能把 PNP 与 NPN 的输出方向混淆了。先看传感器型号和接线图，再判断有效时输出端接近 DC24V 还是 0V。",
+      "remediation_resources": ["K011", "K012", "K013"],
+      "remediation_tasks": ["T001"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q002",
+      "type": "multiple_choice",
+      "question": "填写 PLC I/O 映射表时，哪些字段是排查传感器输入信号必须记录的？",
+      "options": [
+        {"id": "A", "text": "现场元件名称"},
+        {"id": "B", "text": "端子号或接线位置"},
+        {"id": "C", "text": "PLC 输入地址"},
+        {"id": "D", "text": "程序变量或符号名"},
+        {"id": "E", "text": "HMI 背景颜色"}
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "ability_id": "plc_io_address_mapping",
+      "explanation": "I/O 映射表要把现场元件、端子号、PLC 地址和程序变量对应起来，便于从现场信号追踪到程序逻辑。",
+      "wrong_feedback": "你的映射表字段还不完整。排查输入信号时，至少要能从元件追到端子、地址和变量。",
+      "remediation_resources": ["K021", "K022", "K025"],
+      "remediation_tasks": ["T001"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q003",
+      "type": "single_choice",
+      "question": "三线 PNP 传感器接入 PLC 输入点时，最需要同时确认哪一项？",
+      "options": [
+        {"id": "A", "text": "PLC 输出继电器容量"},
+        {"id": "B", "text": "PLC 输入公共端是否接到匹配电位"},
+        {"id": "C", "text": "触摸屏按钮颜色"},
+        {"id": "D", "text": "气缸缸径大小"}
+      ],
+      "correct_answer": "B",
+      "ability_id": "plc_input_common_terminal",
+      "explanation": "PNP/NPN 能否被 PLC 正确识别，关键在于传感器输出类型和 PLC 输入公共端电位是否匹配。",
+      "wrong_feedback": "你没有抓住输入公共端这个关键点。传感器动作灯亮，不代表 PLC 输入回路已经闭合。",
+      "remediation_resources": ["K006", "K016", "K018", "K020"],
+      "remediation_tasks": ["T001"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q004",
+      "type": "multiple_choice",
+      "question": "气缸不动作时，哪些检查属于“电气/程序/气路”分层排查？",
+      "options": [
+        {"id": "A", "text": "确认相关输入条件是否成立"},
+        {"id": "B", "text": "查看 PLC 输出点或程序输出条件"},
+        {"id": "C", "text": "检查电磁阀线圈或输出接线"},
+        {"id": "D", "text": "检查气源压力和气源阀"},
+        {"id": "E", "text": "检查节流阀、负载或机械卡滞"},
+        {"id": "F", "text": "先调整 HMI 主题颜色"}
+      ],
+      "correct_answer": ["A", "B", "C", "D", "E"],
+      "ability_id": "input_no_response_fault_scope",
+      "explanation": "气缸不动作不能只看程序或只看气路，应按输入条件、程序输出、电磁阀、气源压力、节流阀和机械状态分层排查。",
+      "wrong_feedback": "你的排查层级不完整。气缸不动作需要区分输入条件、程序输出、电磁阀动作和气路机械问题。",
+      "remediation_resources": ["K041", "K042", "K043", "K044", "K045", "K046", "K047"],
+      "remediation_tasks": ["T003"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q005",
+      "type": "ordering",
+      "question": "传感器有动作灯，但 PLC 输入点无响应。请按推荐排查顺序排序。",
+      "options": [
+        {"id": "A", "text": "先断电并确认急停、气源和设备安全状态"},
+        {"id": "B", "text": "确认 DC24V、0V 和传感器供电"},
+        {"id": "C", "text": "确认传感器输出端是否有有效信号"},
+        {"id": "D", "text": "检查输出线、端子和 PLC 输入点接线"},
+        {"id": "E", "text": "检查 PLC 输入公共端与 NPN/PNP 是否匹配"},
+        {"id": "F", "text": "核对 PLC 地址映射和程序变量"}
+      ],
+      "correct_answer": ["A", "B", "C", "D", "E", "F"],
+      "ability_id": "input_no_response_fault_scope",
+      "explanation": "输入点无响应应按安全、电源、传感器输出、接线、公共端、地址和程序变量的顺序排查。",
+      "wrong_feedback": "你的排查顺序还不够稳定。先保证安全，再从电源和信号链路逐层定位，不要一开始就改程序或换线。",
+      "remediation_resources": ["K001", "K034", "K038", "K048"],
+      "remediation_tasks": ["T005"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q006",
+      "type": "single_choice",
+      "question": "准备调整传感器接线前，第一步应该做什么？",
+      "options": [
+        {"id": "A", "text": "断电并确认急停、气源和设备处于安全状态"},
+        {"id": "B", "text": "直接拔下传感器黑线观察 PLC 变化"},
+        {"id": "C", "text": "先强制 PLC 输出让设备动作"},
+        {"id": "D", "text": "先修改程序变量名"}
+      ],
+      "correct_answer": "A",
+      "ability_id": "electrical_safety_check",
+      "explanation": "接线和拆线前必须先断电，并确认急停、气源和设备状态；不确定时请教师或实训指导人员确认。",
+      "wrong_feedback": "你忽略了接线安全。任何传感器接线调整都应先断电并确认设备状态，不能带电拔插或强制动作。",
+      "remediation_resources": ["K001", "K002", "K003"],
+      "remediation_tasks": ["T001"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q007",
+      "type": "single_choice",
+      "question": "PLC 梯形图中的常开触点表示什么含义？",
+      "options": [
+        {"id": "A", "text": "现场传感器必须是物理常开结构"},
+        {"id": "B", "text": "对应变量为真时，该程序触点逻辑导通"},
+        {"id": "C", "text": "该触点只能用于输出线圈"},
+        {"id": "D", "text": "该触点与在线监控状态无关"}
+      ],
+      "correct_answer": "B",
+      "ability_id": "program_variable_lookup",
+      "explanation": "梯形图常开触点表示变量为真时逻辑导通，它是程序逻辑符号，不等同于现场元件的物理结构。",
+      "wrong_feedback": "你可能把 PLC 程序触点和现场物理触点混在一起了。判断程序条件时要看变量当前状态。",
+      "remediation_resources": ["K026", "K027", "K028"],
+      "remediation_tasks": ["T005"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q008",
+      "type": "multiple_choice",
+      "question": "传感器动作灯亮，但 PLC 输入指示灯和在线监控都没有变化。优先检查哪些内容？",
+      "options": [
+        {"id": "A", "text": "传感器输出线是否接到正确输入点"},
+        {"id": "B", "text": "PLC 输入公共端是否接对"},
+        {"id": "C", "text": "NPN/PNP 输出类型是否与输入模块匹配"},
+        {"id": "D", "text": "输入模块端子是否松动或跨组接错"},
+        {"id": "E", "text": "先修改定时器时间"},
+        {"id": "F", "text": "先调整 HMI 页面配色"}
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "ability_id": "plc_input_monitoring",
+      "explanation": "传感器灯亮但 PLC 输入无变化，优先查输出线、公共端、NPN/PNP 匹配和输入端子，再看地址与程序。",
+      "wrong_feedback": "你可能过早进入程序修改。此类现象应先确认传感器输出到 PLC 输入模块的硬件链路。",
+      "remediation_resources": ["K029", "K030", "K031", "K032"],
+      "remediation_tasks": ["T001"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q009",
+      "type": "single_choice",
+      "question": "准备进入 PLC 在线监控并可能让设备动作前，最合理的第一步是什么？",
+      "options": [
+        {"id": "A", "text": "确认急停、气源、电源、运动区域和同组人员站位，必要时请教师确认"},
+        {"id": "B", "text": "先强制输出，看看设备是否有反应"},
+        {"id": "C", "text": "先拔掉传感器输出线，避免程序报警"},
+        {"id": "D", "text": "只要电脑能连上 PLC，就可以直接运行"}
+      ],
+      "correct_answer": "A",
+      "ability_id": "electrical_safety_check",
+      "explanation": "在线监控和设备调试可能引发输出动作，必须先确认急停、气源、电源、运动区域和人员站位，不确定时请教师确认。",
+      "wrong_feedback": "你忽略了在线监控和调试的安全边界。能连上 PLC 不代表设备可以安全动作。",
+      "remediation_resources": ["K059", "K060", "K033"],
+      "remediation_tasks": ["T001"],
+      "source": "全国标准信息公共服务平台 GB/T 5226.1-2019 + 项目安全规则"
+    },
+    {
+      "id": "Q010",
+      "type": "single_choice",
+      "question": "NPN 传感器有效时输出端常接近 0V。若 PLC 输入回路要被正确识别，公共端通常应接到哪一侧形成回路？",
+      "options": [
+        {"id": "A", "text": "公共端悬空即可"},
+        {"id": "B", "text": "公共端接正侧，传感器输出提供到 0V 的通路"},
+        {"id": "C", "text": "公共端一定接地线 PE"},
+        {"id": "D", "text": "公共端接法与输入信号无关"}
+      ],
+      "correct_answer": "B",
+      "ability_id": "plc_input_common_terminal",
+      "explanation": "NPN 常见为下拉/切换负端输出，有效时输出端接近 0V。PLC 输入公共端通常需要接到正侧以形成输入电流回路，最终以模块手册为准。",
+      "wrong_feedback": "你可能只记住 NPN 名称，但没有把输出方向和输入公共端电流路径连起来。",
+      "remediation_resources": ["K053", "K055", "K016"],
+      "remediation_tasks": ["T002"],
+      "source": "AutomationDirect Sinking and Sourcing Sensor Wiring Basics + Balluff PNP/NPN wiring"
+    },
+    {
+      "id": "Q011",
+      "type": "single_choice",
+      "question": "PNP 传感器有效时输出端常接近 DC24V。PLC 输入公共端通常应怎样接，才容易形成有效输入回路？",
+      "options": [
+        {"id": "A", "text": "公共端接 0V 侧"},
+        {"id": "B", "text": "公共端悬空"},
+        {"id": "C", "text": "公共端接到同一输入点"},
+        {"id": "D", "text": "公共端只接 HMI 通信线"}
+      ],
+      "correct_answer": "A",
+      "ability_id": "sensor_wiring_judgement",
+      "explanation": "PNP 常见为上拉/切换正端输出，有效时输出端接近 DC24V。输入公共端通常接 0V 侧以形成回路，最终仍要看 PLC 输入模块说明。",
+      "wrong_feedback": "你可能把 PNP 与 NPN 的公共端关系混淆了。先判断输出端有效电位，再看输入公共端参考电位。",
+      "remediation_resources": ["K053", "K054", "K062"],
+      "remediation_tasks": ["T002"],
+      "source": "AutomationDirect Sinking and Sourcing Sensor Wiring Basics + Balluff PNP/NPN wiring"
+    },
+    {
+      "id": "Q012",
+      "type": "single_choice",
+      "question": "现场 PLC 输入 LED 已经亮，但软件在线监控中你看的地址没有变化。最优先怀疑哪一类问题？",
+      "options": [
+        {"id": "A", "text": "传感器一定没有供电"},
+        {"id": "B", "text": "气源压力一定不足"},
+        {"id": "C", "text": "监控地址、模块起始地址、工程连接或变量映射不一致"},
+        {"id": "D", "text": "NPN/PNP 一定接反"}
+      ],
+      "correct_answer": "C",
+      "ability_id": "plc_io_address_mapping",
+      "explanation": "输入 LED 亮说明输入模块可能已收到信号，软件监控无变化时应优先核对监控地址、模块配置、工程连接和变量映射。",
+      "wrong_feedback": "你没有利用输入 LED 这个证据。LED 已亮时，不应优先回到传感器供电，而要核对软件侧地址与变量。",
+      "remediation_resources": ["K056", "K057", "K061"],
+      "remediation_tasks": ["T004"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充 + 江海职业技术学院人才培养方案"
+    },
+    {
+      "id": "Q013",
+      "type": "multiple_choice",
+      "question": "传感器动作灯不亮或闪烁不稳定时，优先检查哪些证据？",
+      "options": [
+        {"id": "A", "text": "DC24V/0V 供电是否正常"},
+        {"id": "B", "text": "检测距离、安装角度和目标材质是否满足要求"},
+        {"id": "C", "text": "传感器型号、动作方式和指示灯含义是否确认"},
+        {"id": "D", "text": "线缆和端子是否松动"},
+        {"id": "E", "text": "先修改 PLC 定时器参数"}
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "ability_id": "sensor_led_observation",
+      "explanation": "动作灯不亮或不稳定，优先查传感器供电、安装检测条件、型号说明和端子线缆，再考虑 PLC 程序。",
+      "wrong_feedback": "你可能过早进入程序修改。动作灯异常首先说明传感器侧证据不足。",
+      "remediation_resources": ["K010", "K037", "K058"],
+      "remediation_tasks": ["T001"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q014",
+      "type": "single_choice",
+      "question": "关于 PLC 输入公共端分组，哪项判断更符合现场排查要求？",
+      "options": [
+        {"id": "A", "text": "一个 PLC 上所有输入点一定共用同一个公共端"},
+        {"id": "B", "text": "应确认目标输入点属于哪个公共端组，避免跨组接错"},
+        {"id": "C", "text": "公共端只影响输出点，与输入无关"},
+        {"id": "D", "text": "公共端分组只影响 HMI 显示"}
+      ],
+      "correct_answer": "B",
+      "ability_id": "plc_input_grouping",
+      "explanation": "部分 PLC 输入按若干点共用公共端分组，跨组接错会导致局部输入无响应，因此要确认目标输入点所属公共端组。",
+      "wrong_feedback": "你忽略了公共端分组。不能假设所有输入都共用同一公共端。",
+      "remediation_resources": ["K017", "K019", "K053"],
+      "remediation_tasks": ["T002"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q015",
+      "type": "ordering",
+      "question": "输入 LED 已亮，但程序动作没有发生。请按推荐排查顺序排序。",
+      "options": [
+        {"id": "A", "text": "确认设备处于安全调试状态"},
+        {"id": "B", "text": "用 I/O 映射表确认现场输入点和 PLC 地址"},
+        {"id": "C", "text": "在正确地址上观察在线监控状态"},
+        {"id": "D", "text": "查程序变量或触点引用是否为该地址"},
+        {"id": "E", "text": "查模式、互锁、报警、顺序步等程序条件"},
+        {"id": "F", "text": "若动作仍无输出，再查输出点、电磁阀或执行机构"}
+      ],
+      "correct_answer": ["A", "B", "C", "D", "E", "F"],
+      "ability_id": "program_variable_lookup",
+      "explanation": "输入 LED 亮后，排查重点从硬件输入链路转向地址映射、程序变量、互锁条件和输出执行链路。",
+      "wrong_feedback": "你的程序侧排查顺序不稳定。输入 LED 已亮时，不应继续只查传感器本体。",
+      "remediation_resources": ["K023", "K028", "K061"],
+      "remediation_tasks": ["T004", "T005"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q016",
+      "type": "single_choice",
+      "question": "端子号与 PLC I/O 地址的关系，哪项说法正确？",
+      "options": [
+        {"id": "A", "text": "端子号就是 PLC 程序中的输入地址"},
+        {"id": "B", "text": "端子号是接线位置，PLC 地址是程序识别位置，需要通过图纸或映射表对应"},
+        {"id": "C", "text": "只要传感器灯亮，就不需要记录端子号"},
+        {"id": "D", "text": "端子号只用于气路排查"}
+      ],
+      "correct_answer": "B",
+      "ability_id": "plc_io_address_mapping",
+      "explanation": "端子号与 PLC 地址不是同一概念，排故时要建立现场端子到 PLC 地址再到程序变量的对应关系。",
+      "wrong_feedback": "你把接线位置和程序地址混为一谈了。I/O 映射表就是用来消除这种混淆。",
+      "remediation_resources": ["K022", "K025", "K057"],
+      "remediation_tasks": ["T004"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q017",
+      "type": "multiple_choice",
+      "question": "关于常见三线制传感器线色，哪些说法适合作为初步判断？",
+      "options": [
+        {"id": "A", "text": "棕线常用于 DC24V 正"},
+        {"id": "B", "text": "蓝线常用于 0V"},
+        {"id": "C", "text": "黑线常用于输出信号"},
+        {"id": "D", "text": "最终仍应以传感器说明书和端子图为准"},
+        {"id": "E", "text": "黑线一定是保护接地线"}
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "ability_id": "sensor_wiring_judgement",
+      "explanation": "棕蓝黑是常见三线制传感器线色规律，但只能作为初步判断，最终要核对说明书和现场端子图。",
+      "wrong_feedback": "你可能机械记线色，或者把黑线误认为保护地。线色要和说明书、端子图一起判断。",
+      "remediation_resources": ["K005", "K007", "K008"],
+      "remediation_tasks": ["T001"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q018",
+      "type": "multiple_choice",
+      "question": "气缸不动作时，哪些证据能帮助区分电气、程序、电磁阀和气路机械问题？",
+      "options": [
+        {"id": "A", "text": "相关输入条件是否成立"},
+        {"id": "B", "text": "PLC 输出点或电磁阀线圈是否得电"},
+        {"id": "C", "text": "气源压力、气源阀和节流阀状态"},
+        {"id": "D", "text": "机构是否卡滞或不到位"},
+        {"id": "E", "text": "HMI 主题颜色是否美观"}
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "ability_id": "input_no_response_fault_scope",
+      "explanation": "气缸不动作要分层看输入、程序输出、电磁阀和气路机械证据，不能只看单一层。",
+      "wrong_feedback": "你没有形成气缸不动作的分层证据链。先区分电气输入、程序输出、电磁阀和气路机械。",
+      "remediation_resources": ["K041", "K043", "K065"],
+      "remediation_tasks": ["T003"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "Q019",
+      "type": "multiple_choice",
+      "question": "哪些学习事件可以作为学生个人能力图谱更新证据？",
+      "options": [
+        {"id": "A", "text": "聊天问题命中了某个能力节点"},
+        {"id": "B", "text": "确定性自测题答错并映射到薄弱能力"},
+        {"id": "C", "text": "学生点击讲题并完成追问"},
+        {"id": "D", "text": "完成实训任务或提交反馈"},
+        {"id": "E", "text": "LLM 没有依据地自由给分"}
+      ],
+      "correct_answer": ["A", "B", "C", "D"],
+      "ability_id": "diagnosis_record_feedback",
+      "explanation": "个人图谱应由问答命中、自测错题、讲题、任务和反馈等可追踪事件更新，不能让 LLM 无依据自由给分。",
+      "wrong_feedback": "你需要区分“可审计学习证据”和“模型自由判断”。图谱更新要保留来源和事件。",
+      "remediation_resources": ["K050", "K063", "K066"],
+      "remediation_tasks": ["T005"],
+      "source": "项目图谱更新机制"
+    },
+    {
+      "id": "Q020",
+      "type": "single_choice",
+      "question": "岗位能力图谱要定期自更新，哪种做法最符合本 MVP 边界？",
+      "options": [
+        {"id": "A", "text": "让 LLM 每天自动抓取全网并直接覆盖正式图谱"},
+        {"id": "B", "text": "只按学生错题决定岗位图谱，不看企业和行业要求"},
+        {"id": "C", "text": "人工导入企业/行业/课程材料，生成待确认建议，经教师确认后写入图谱快照"},
+        {"id": "D", "text": "不保留 source，只展示好看的图"}
+      ],
+      "correct_answer": "C",
+      "ability_id": "personalized_training_task_recommendation",
+      "explanation": "岗位图谱更新应保留材料来源、采集时间和教师确认状态。未确认内容只作为建议，不直接覆盖正式图谱。",
+      "wrong_feedback": "你忽略了岗位图谱的来源和确认机制。MVP 不做全网自动爬虫，也不让 LLM 直接改正式图谱。",
+      "remediation_resources": ["K051", "K064", "K066"],
+      "remediation_tasks": ["T005"],
+      "source": "项目图谱更新机制 + 教育部专业教学标准"
+    }
+  ]
+}

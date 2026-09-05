@@ -1,0 +1,26 @@
+{
+  "version": "0.1.0-test",
+  "policy": {
+    "enabled": true,
+    "respect_robots_txt": true,
+    "max_sources_per_run": 1,
+    "request_interval_seconds": 0,
+    "timeout_seconds": 5,
+    "max_bytes_per_source": 200000,
+    "user_agent": "mechatronics-agent-mvp-test"
+  },
+  "target_job_role": "自动化生产线装调与运维技术员",
+  "global_keywords": ["PLC", "传感器", "NPN", "PNP", "公共端", "在线监控"],
+  "sources": [
+    {
+      "id": "fixture_job_posting",
+      "enabled": true,
+      "type": "local_file",
+      "path": "tests/fixtures/job_postings_sample.html",
+      "source_type": "test_fixture",
+      "source": "tests/fixtures/job_postings_sample.html",
+      "job_role": "自动化生产线装调与运维技术员",
+      "keywords": ["PLC 输入", "公共端", "I/O 地址", "在线监控"]
+    }
+  ]
+}

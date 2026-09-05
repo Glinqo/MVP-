@@ -1,0 +1,1728 @@
+{
+  "version": "0.2.0",
+  "source": "project_curated",
+  "description": "结构化故障诊断模型（含variants和difficulty_profiles）- Phase 5扩展",
+  "models": [
+    {
+      "scenario_id": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
+      "title": "传感器灯亮但 PLC 输入灯不亮",
+      "fault_states": {
+        "initial": {
+          "sensor_led": "on",
+          "plc_input_led": "off",
+          "online_monitor": "off",
+          "power_status": "unknown",
+          "sensor_type_known": false,
+          "common_terminal_connected": "unknown",
+          "wiring_verified": false
+        },
+        "after_safety_check": {
+          "sensor_led": "on",
+          "plc_input_led": "off",
+          "online_monitor": "off",
+          "power_off_safety": true,
+          "sensor_type_known": false,
+          "common_terminal_connected": "unknown",
+          "wiring_verified": false
+        }
+      },
+      "hypotheses": [
+        {
+          "id": "HYP_COMMON_TERMINAL_OPEN",
+          "label": "PLC 输入公共端未接或接错",
+          "description": "输入回路不成立，传感器输出信号无法到达 PLC 输入端",
+          "related_abilities": [
+            "plc_input_common_terminal",
+            "plc_input_grouping"
+          ],
+          "supporting_evidence": [
+            "公共端悬空",
+            "该组所有输入灯都不亮"
+          ],
+          "refuting_evidence": [
+            "公共端已正确接入且该组其他输入灯正常"
+          ]
+        },
+        {
+          "id": "HYP_SENSOR_WIRING_WRONG",
+          "label": "传感器输出线接错或松动",
+          "description": "黑色输出线未正确接入对应输入点，或接线松动",
+          "related_abilities": [
+            "sensor_wiring_judgement"
+          ],
+          "supporting_evidence": [
+            "输出线端子螺丝松动",
+            "输出线颜色与说明书不一致"
+          ],
+          "refuting_evidence": [
+            "输出线端子紧固且线色与说明书一致"
+          ]
+        },
+        {
+          "id": "HYP_PLC_MODULE_FAULT",
+          "label": "PLC 输入模块硬件故障",
+          "description": "输入模块本身损坏，无法接收信号",
+          "related_abilities": [
+            "plc_input_monitoring",
+            "input_no_response_fault_scope"
+          ],
+          "supporting_evidence": [
+            "公共端和接线均正常但输入灯仍不亮",
+            "该组所有输入点均无响应"
+          ],
+          "refuting_evidence": [
+            "该组其他输入点正常工作",
+            "公共端修复后输入灯恢复"
+          ]
+        },
+        {
+          "id": "HYP_SENSOR_TYPE_MISMATCH",
+          "label": "NPN/PNP 传感器类型与公共端不匹配",
+          "description": "NPN 传感器配了 0V 公共端，或 PNP 传感器配了 24V 公共端",
+          "related_abilities": [
+            "sensor_type_identification",
+            "sensor_output_logic"
+          ],
+          "supporting_evidence": [
+            "传感器输出逻辑方向与公共端电位不匹配"
+          ],
+          "refuting_evidence": [
+            "传感器类型与公共端电位匹配"
+          ]
+        },
+        {
+          "id": "HYP_PROGRAM_ISSUE",
+          "label": "PLC 程序问题",
+          "description": "程序地址映射错误或程序未运行",
+          "related_abilities": [
+            "plc_io_address_mapping",
+            "program_variable_lookup"
+          ],
+          "supporting_evidence": [
+            "输入灯亮但在线监控地址不对"
+          ],
+          "refuting_evidence": [
+            "输入灯不亮，尚未到达程序层"
+          ]
+        }
+      ],
+      "diagnostic_actions": [
+        {
+          "id": "CHECK_SAFETY",
+          "label": "确认安全状态（断电、急停、气源）",
+          "description": "检查并确认设备已断电、急停按下、气源关闭",
+          "category": "optimal",
+          "required_state": {},
+          "produces_state": {
+            "power_off_safety": true
+          },
+          "requires_hypothesis": null,
+          "evidence_gained": "安全条件已确认",
+          "related_abilities": [
+            "electrical_safety_check"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "CHECK_SENSOR_TYPE",
+          "label": "识别传感器 NPN/PNP 类型",
+          "description": "查看传感器铭牌或说明书，判断输出类型",
+          "category": "valid",
+          "required_state": {
+            "power_off_safety": true
+          },
+          "produces_state": {
+            "sensor_type_known": true
+          },
+          "requires_hypothesis": null,
+          "evidence_gained": "传感器类型（NPN/PNP）已确定",
+          "related_abilities": [
+            "sensor_type_identification"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "CHECK_COMMON_TERMINAL",
+          "label": "检查 PLC 输入公共端接线",
+          "description": "查看 PLC 输入模块公共端是否接入，接入的是 24V 还是 0V",
+          "category": "optimal",
+          "required_state": {
+            "power_off_safety": true
+          },
+          "produces_state": {
+            "common_terminal_connected": "checked"
+          },
+          "requires_hypothesis": null,
+          "evidence_gained": "公共端接线状态已确认",
+          "related_abilities": [
+            "plc_input_common_terminal"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "CHECK_WIRING",
+          "label": "检查传感器输出线接线",
+          "description": "核对传感器黑线是否接入正确的 PLC 输入端子",
+          "category": "valid",
+          "required_state": {
+            "power_off_safety": true
+          },
+          "produces_state": {
+            "wiring_verified": true
+          },
+          "requires_hypothesis": null,
+          "evidence_gained": "传感器输出线接线状态已确认",
+          "related_abilities": [
+            "sensor_wiring_judgement"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "REWIRE_WITHOUT_SAFETY",
+          "label": "直接改线（未断电确认）",
+          "description": "未断电就直接改接传感器输出线或更换输入点",
+          "category": "unsafe",
+          "required_state": {},
+          "produces_state": {},
+          "requires_hypothesis": null,
+          "evidence_gained": null,
+          "related_abilities": [
+            "electrical_safety_check"
+          ],
+          "strategy_bias": "safety_bypass"
+        },
+        {
+          "id": "MODIFY_PROGRAM_PREMATURE",
+          "label": "先修改 PLC 程序",
+          "description": "在输入灯不亮时先修改程序地址",
+          "category": "premature",
+          "required_state": {},
+          "produces_state": {},
+          "requires_hypothesis": null,
+          "evidence_gained": null,
+          "related_abilities": [
+            "plc_io_address_mapping",
+            "input_no_response_fault_scope"
+          ],
+          "strategy_bias": "jump_to_program"
+        },
+        {
+          "id": "REPLACE_MODULE_NO_EVIDENCE",
+          "label": "直接更换 PLC 模块",
+          "description": "在未排除接线和公共端问题前直接更换模块",
+          "category": "unsupported_hypothesis",
+          "required_state": {},
+          "produces_state": {},
+          "requires_hypothesis": "HYP_PLC_MODULE_FAULT",
+          "evidence_gained": null,
+          "related_abilities": [
+            "input_no_response_fault_scope"
+          ],
+          "strategy_bias": "replace_first"
+        },
+        {
+          "id": "VERIFY_TRIPLE_STATE",
+          "label": "验证三联状态",
+          "description": "同时确认传感器灯、PLC 输入灯、在线监控三联状态",
+          "category": "optimal",
+          "required_state": {
+            "common_terminal_connected": "checked"
+          },
+          "produces_state": {},
+          "requires_hypothesis": null,
+          "evidence_gained": "三联状态同步确认",
+          "related_abilities": [
+            "plc_input_monitoring"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "SKIP_VERIFICATION",
+          "label": "跳过状态验证",
+          "description": "修复后未验证三联状态就结束排故",
+          "category": "closure_missing",
+          "required_state": {},
+          "produces_state": {},
+          "requires_hypothesis": null,
+          "evidence_gained": null,
+          "related_abilities": [
+            "plc_input_monitoring"
+          ],
+          "strategy_bias": "closure_missing"
+        }
+      ],
+      "completion_requirements": {
+        "required_state": {
+          "power_off_safety": true,
+          "common_terminal_connected": "checked"
+        },
+        "required_actions": [
+          "CHECK_SAFETY",
+          "CHECK_COMMON_TERMINAL"
+        ],
+        "closure_action": "VERIFY_TRIPLE_STATE"
+      },
+      "strategy_biases": {
+        "safety_bypass": {
+          "label": "安全规程意识薄弱",
+          "description": "排故时习惯跳过安全确认步骤",
+          "related_abilities": [
+            "electrical_safety_check"
+          ]
+        },
+        "jump_to_program": {
+          "label": "过早归因于程序问题",
+          "description": "未排除硬件/接线问题前直接修改程序",
+          "related_abilities": [
+            "input_no_response_fault_scope"
+          ]
+        },
+        "replace_first": {
+          "label": "替换优先策略",
+          "description": "习惯直接更换模块而不先做证据收集",
+          "related_abilities": [
+            "input_no_response_fault_scope"
+          ]
+        },
+        "closure_missing": {
+          "label": "闭环验证缺失",
+          "description": "修复后不验证就结束排故",
+          "related_abilities": [
+            "plc_input_monitoring"
+          ]
+        }
+      },
+      "states": [
+        {
+          "id": "STATE_INITIAL",
+          "label": "????",
+          "known_facts": [
+            "sensor_led=on",
+            "plc_input_led=off",
+            "online_monitor=off"
+          ],
+          "remaining_hypotheses": [
+            "HYP_COMMON_TERMINAL_OPEN",
+            "HYP_SENSOR_WIRING_WRONG",
+            "HYP_PLC_MODULE_FAULT",
+            "HYP_SENSOR_TYPE_MISMATCH",
+            "HYP_PROGRAM_ISSUE"
+          ],
+          "flags": {
+            "safety_confirmed": false,
+            "common_terminal_checked": false,
+            "wiring_verified": false,
+            "root_cause_identified": false,
+            "repair_verified": false
+          }
+        },
+        {
+          "id": "STATE_SAFETY_CONFIRMED",
+          "label": "??????????",
+          "known_facts": [
+            "sensor_led=on",
+            "plc_input_led=off",
+            "power_off_safety=true"
+          ],
+          "remaining_hypotheses": [
+            "HYP_COMMON_TERMINAL_OPEN",
+            "HYP_SENSOR_WIRING_WRONG",
+            "HYP_PLC_MODULE_FAULT",
+            "HYP_SENSOR_TYPE_MISMATCH"
+          ],
+          "flags": {
+            "safety_confirmed": true,
+            "common_terminal_checked": false,
+            "wiring_verified": false,
+            "root_cause_identified": false,
+            "repair_verified": false
+          }
+        },
+        {
+          "id": "STATE_COMMON_TERMINAL_CHECKED",
+          "label": "??????",
+          "known_facts": [
+            "sensor_led=on",
+            "plc_input_led=off",
+            "power_off_safety=true",
+            "common_terminal_connected=checked"
+          ],
+          "remaining_hypotheses": [
+            "HYP_COMMON_TERMINAL_OPEN",
+            "HYP_SENSOR_WIRING_WRONG",
+            "HYP_PLC_MODULE_FAULT",
+            "HYP_SENSOR_TYPE_MISMATCH"
+          ],
+          "flags": {
+            "safety_confirmed": true,
+            "common_terminal_checked": true,
+            "wiring_verified": false,
+            "root_cause_identified": false,
+            "repair_verified": false
+          }
+        },
+        {
+          "id": "STATE_WIRING_CHECKED",
+          "label": "?????",
+          "known_facts": [
+            "sensor_led=on",
+            "plc_input_led=off",
+            "power_off_safety=true",
+            "wiring_verified=true"
+          ],
+          "remaining_hypotheses": [
+            "HYP_COMMON_TERMINAL_OPEN",
+            "HYP_SENSOR_WIRING_WRONG",
+            "HYP_PLC_MODULE_FAULT",
+            "HYP_SENSOR_TYPE_MISMATCH"
+          ],
+          "flags": {
+            "safety_confirmed": true,
+            "common_terminal_checked": false,
+            "wiring_verified": true,
+            "root_cause_identified": false,
+            "repair_verified": false
+          }
+        },
+        {
+          "id": "STATE_ROOT_CAUSE_FOUND",
+          "label": "?????",
+          "known_facts": [
+            "sensor_led=on",
+            "plc_input_led=off",
+            "power_off_safety=true",
+            "common_terminal_connected=checked",
+            "root_cause_identified=true"
+          ],
+          "remaining_hypotheses": [],
+          "flags": {
+            "safety_confirmed": true,
+            "common_terminal_checked": true,
+            "wiring_verified": false,
+            "root_cause_identified": true,
+            "repair_verified": false
+          }
+        },
+        {
+          "id": "STATE_REPAIR_VERIFIED",
+          "label": "?????????????",
+          "known_facts": [
+            "sensor_led=on",
+            "plc_input_led=on",
+            "online_monitor=on"
+          ],
+          "remaining_hypotheses": [],
+          "flags": {
+            "safety_confirmed": true,
+            "common_terminal_checked": true,
+            "wiring_verified": false,
+            "root_cause_identified": true,
+            "repair_verified": true
+          }
+        }
+      ],
+      "transitions": [
+        {
+          "id": "TR_CHECK_SAFETY",
+          "from_state": "STATE_INITIAL",
+          "action_id": "CHECK_SAFETY",
+          "to_state": "STATE_SAFETY_CONFIRMED",
+          "classification": "optimal",
+          "strategy_id": "safe_signal_chain_strategy"
+        },
+        {
+          "id": "TR_CHECK_COMMON_SAFE",
+          "from_state": "STATE_SAFETY_CONFIRMED",
+          "action_id": "CHECK_COMMON_TERMINAL",
+          "to_state": "STATE_COMMON_TERMINAL_CHECKED",
+          "classification": "optimal",
+          "strategy_id": "safe_signal_chain_strategy"
+        },
+        {
+          "id": "TR_VERIFY_FROM_COMMON",
+          "from_state": "STATE_COMMON_TERMINAL_CHECKED",
+          "action_id": "VERIFY_TRIPLE_STATE",
+          "to_state": "STATE_REPAIR_VERIFIED",
+          "classification": "optimal",
+          "strategy_id": "safe_signal_chain_strategy"
+        },
+        {
+          "id": "TR_CHECK_WIRING_SAFE",
+          "from_state": "STATE_SAFETY_CONFIRMED",
+          "action_id": "CHECK_WIRING",
+          "to_state": "STATE_WIRING_CHECKED",
+          "classification": "valid",
+          "strategy_id": "wiring_first_strategy"
+        },
+        {
+          "id": "TR_CHECK_COMMON_FROM_WIRING",
+          "from_state": "STATE_WIRING_CHECKED",
+          "action_id": "CHECK_COMMON_TERMINAL",
+          "to_state": "STATE_COMMON_TERMINAL_CHECKED",
+          "classification": "valid",
+          "strategy_id": "wiring_first_strategy"
+        },
+        {
+          "id": "TR_VERIFY_FROM_WIRING",
+          "from_state": "STATE_WIRING_CHECKED",
+          "action_id": "VERIFY_TRIPLE_STATE",
+          "to_state": "STATE_REPAIR_VERIFIED",
+          "classification": "valid_but_inefficient",
+          "strategy_id": "wiring_first_strategy"
+        },
+        {
+          "id": "TR_CHECK_SENSOR_TYPE_SAFE",
+          "from_state": "STATE_SAFETY_CONFIRMED",
+          "action_id": "CHECK_SENSOR_TYPE",
+          "to_state": "STATE_SAFETY_CONFIRMED",
+          "classification": "valid_but_inefficient",
+          "strategy_id": "measurement_first_strategy"
+        },
+        {
+          "id": "TR_REWIRE_UNSAFE",
+          "from_state": "STATE_INITIAL",
+          "action_id": "REWIRE_WITHOUT_SAFETY",
+          "to_state": "STATE_INITIAL",
+          "classification": "unsafe",
+          "strategy_id": null,
+          "deviation": "safety_bypass"
+        },
+        {
+          "id": "TR_MODIFY_PROGRAM_PREMATURE",
+          "from_state": "STATE_INITIAL",
+          "action_id": "MODIFY_PROGRAM_PREMATURE",
+          "to_state": "STATE_INITIAL",
+          "classification": "premature",
+          "strategy_id": null,
+          "deviation": "jump_to_program"
+        },
+        {
+          "id": "TR_MODIFY_PROGRAM_SAFE",
+          "from_state": "STATE_SAFETY_CONFIRMED",
+          "action_id": "MODIFY_PROGRAM_PREMATURE",
+          "to_state": "STATE_SAFETY_CONFIRMED",
+          "classification": "premature",
+          "strategy_id": null,
+          "deviation": "jump_to_program"
+        },
+        {
+          "id": "TR_REPLACE_MODULE_NO_EV",
+          "from_state": "STATE_INITIAL",
+          "action_id": "REPLACE_MODULE_NO_EVIDENCE",
+          "to_state": "STATE_INITIAL",
+          "classification": "unsupported_hypothesis",
+          "strategy_id": null,
+          "deviation": "replace_first"
+        },
+        {
+          "id": "TR_SKIP_VERIFY",
+          "from_state": "STATE_COMMON_TERMINAL_CHECKED",
+          "action_id": "SKIP_VERIFICATION",
+          "to_state": "STATE_ROOT_CAUSE_FOUND",
+          "classification": "closure_missing",
+          "strategy_id": null,
+          "deviation": "closure_missing"
+        },
+        {
+          "id": "TR_REPEAT_SAFETY",
+          "from_state": "STATE_SAFETY_CONFIRMED",
+          "action_id": "CHECK_SAFETY",
+          "to_state": "STATE_SAFETY_CONFIRMED",
+          "classification": "repeated_low_value",
+          "strategy_id": null
+        },
+        {
+          "id": "TR_REPEAT_COMMON",
+          "from_state": "STATE_COMMON_TERMINAL_CHECKED",
+          "action_id": "CHECK_COMMON_TERMINAL",
+          "to_state": "STATE_COMMON_TERMINAL_CHECKED",
+          "classification": "repeated_low_value",
+          "strategy_id": null
+        },
+        {
+          "id": "TR_REPEAT_WIRING",
+          "from_state": "STATE_WIRING_CHECKED",
+          "action_id": "CHECK_WIRING",
+          "to_state": "STATE_WIRING_CHECKED",
+          "classification": "repeated_low_value",
+          "strategy_id": null
+        }
+      ],
+      "strategies": [
+        {
+          "id": "safe_signal_chain_strategy",
+          "label": "?????????????",
+          "description": "?????? -> ??????? -> ??????",
+          "priority": 1,
+          "valid": true,
+          "optimal_sequence": [
+            "CHECK_SAFETY",
+            "CHECK_COMMON_TERMINAL",
+            "VERIFY_TRIPLE_STATE"
+          ]
+        },
+        {
+          "id": "wiring_first_strategy",
+          "label": "??????????",
+          "description": "?????? -> ???????? -> ?????",
+          "priority": 2,
+          "valid": true,
+          "optimal_sequence": [
+            "CHECK_SAFETY",
+            "CHECK_WIRING",
+            "CHECK_COMMON_TERMINAL",
+            "VERIFY_TRIPLE_STATE"
+          ]
+        },
+        {
+          "id": "measurement_first_strategy",
+          "label": "?????????????",
+          "description": "?????? -> ???????? -> ????????",
+          "priority": 3,
+          "valid": true,
+          "optimal_sequence": [
+            "CHECK_SAFETY",
+            "CHECK_SENSOR_TYPE",
+            "CHECK_COMMON_TERMINAL",
+            "VERIFY_TRIPLE_STATE"
+          ]
+        }
+      ],
+      "terminal_states": [
+        "STATE_REPAIR_VERIFIED"
+      ],
+      "variants": [
+        {
+          "id": "V_COMMON_TERMINAL_OPEN",
+          "fault_id": "HYP_COMMON_TERMINAL_OPEN",
+          "label": "公共端开路",
+          "initial_facts": {
+            "sensor_led": "on",
+            "plc_input_led": "off",
+            "online_monitor": "off"
+          },
+          "hidden_facts": {
+            "common_terminal_connected": false,
+            "sensor_type": "NPN",
+            "wiring_correct": true
+          },
+          "expected_root_cause": "HYP_COMMON_TERMINAL_OPEN",
+          "allowed_actions": [
+            "CHECK_SAFETY",
+            "CHECK_SENSOR_TYPE",
+            "CHECK_COMMON_TERMINAL",
+            "CHECK_WIRING",
+            "VERIFY_TRIPLE_STATE",
+            "REPLACE_MODULE_NO_EVIDENCE"
+          ]
+        },
+        {
+          "id": "V_SENSOR_WIRING_WRONG",
+          "fault_id": "HYP_SENSOR_WIRING_WRONG",
+          "label": "传感器接线错误",
+          "initial_facts": {
+            "sensor_led": "on",
+            "plc_input_led": "off",
+            "online_monitor": "off"
+          },
+          "hidden_facts": {
+            "common_terminal_connected": true,
+            "sensor_type": "NPN",
+            "wiring_correct": false,
+            "output_wire_loose": true
+          },
+          "expected_root_cause": "HYP_SENSOR_WIRING_WRONG",
+          "allowed_actions": [
+            "CHECK_SAFETY",
+            "CHECK_SENSOR_TYPE",
+            "CHECK_COMMON_TERMINAL",
+            "CHECK_WIRING",
+            "VERIFY_TRIPLE_STATE"
+          ]
+        },
+        {
+          "id": "V_SENSOR_TYPE_MISMATCH",
+          "fault_id": "HYP_SENSOR_TYPE_MISMATCH",
+          "label": "NPN/PNP类型不匹配",
+          "initial_facts": {
+            "sensor_led": "on",
+            "plc_input_led": "off",
+            "online_monitor": "off"
+          },
+          "hidden_facts": {
+            "common_terminal_connected": true,
+            "sensor_type": "PNP",
+            "common_terminal_polarity": "0V",
+            "wiring_correct": true
+          },
+          "expected_root_cause": "HYP_SENSOR_TYPE_MISMATCH",
+          "allowed_actions": [
+            "CHECK_SAFETY",
+            "CHECK_SENSOR_TYPE",
+            "CHECK_COMMON_TERMINAL",
+            "CHECK_WIRING",
+            "VERIFY_TRIPLE_STATE"
+          ]
+        }
+      ],
+      "difficulty_profiles": null
+    },
+    {
+      "scenario_id": "SCN_PLC_LED_ON_MONITOR_OFF",
+      "title": "PLC 输入灯亮但在线监控不变",
+      "fault_states": {
+        "initial": {
+          "sensor_led": "on",
+          "plc_input_led": "on",
+          "online_monitor": "off",
+          "io_address_verified": false,
+          "program_variable_verified": false
+        }
+      },
+      "hypotheses": [
+        {
+          "id": "HYP_ADDRESS_MISMATCH",
+          "label": "I/O 地址映射错误",
+          "description": "物理输入点与程序监控地址不一致",
+          "related_abilities": [
+            "plc_io_address_mapping",
+            "io_mapping_table_build"
+          ],
+          "supporting_evidence": [
+            "输入灯亮但监控地址不变",
+            "物理端子号与监控地址不对应"
+          ],
+          "refuting_evidence": [
+            "地址表核对一致"
+          ]
+        },
+        {
+          "id": "HYP_VARIABLE_MISMATCH",
+          "label": "程序变量引用错误",
+          "description": "程序变量绑定了错误的输入地址或未绑定",
+          "related_abilities": [
+            "program_variable_lookup"
+          ],
+          "supporting_evidence": [
+            "地址正确但变量值不变"
+          ],
+          "refuting_evidence": [
+            "变量绑定地址与物理输入一致"
+          ]
+        },
+        {
+          "id": "HYP_MONITOR_SOFTWARE",
+          "label": "监控软件问题",
+          "description": "监控软件配置或连接问题",
+          "related_abilities": [
+            "plc_input_monitoring"
+          ],
+          "supporting_evidence": [
+            "地址和变量均正确但监控不更新"
+          ],
+          "refuting_evidence": [
+            "输入灯说明模块侧有信号，问题可能在监控层"
+          ]
+        }
+      ],
+      "diagnostic_actions": [
+        {
+          "id": "CHECK_ADDRESS_MAPPING",
+          "label": "核对 I/O 地址映射表",
+          "description": "检查物理端子与 PLC 地址、程序变量的对应关系",
+          "category": "optimal",
+          "required_state": {},
+          "produces_state": {
+            "io_address_verified": true
+          },
+          "requires_hypothesis": null,
+          "evidence_gained": "地址映射关系已核对",
+          "related_abilities": [
+            "plc_io_address_mapping"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "CHECK_VARIABLE_BINDING",
+          "label": "核对程序变量绑定",
+          "description": "检查程序中的变量是否绑定到正确的输入地址",
+          "category": "valid",
+          "required_state": {
+            "io_address_verified": true
+          },
+          "produces_state": {
+            "program_variable_verified": true
+          },
+          "requires_hypothesis": null,
+          "evidence_gained": "程序变量绑定已核对",
+          "related_abilities": [
+            "program_variable_lookup"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "REPLACE_SENSOR_PREMATURE",
+          "label": "优先更换传感器",
+          "description": "输入灯已亮时优先更换传感器",
+          "category": "premature",
+          "required_state": {},
+          "produces_state": {},
+          "requires_hypothesis": null,
+          "evidence_gained": null,
+          "related_abilities": [
+            "input_no_response_fault_scope"
+          ],
+          "strategy_bias": "replace_first"
+        },
+        {
+          "id": "SHORT_OUTPUT_ILLEGAL",
+          "label": "短接输出信号验证",
+          "description": "用短接方式验证信号",
+          "category": "unsafe",
+          "required_state": {},
+          "produces_state": {},
+          "requires_hypothesis": null,
+          "evidence_gained": null,
+          "related_abilities": [
+            "electrical_safety_check"
+          ],
+          "strategy_bias": "safety_bypass"
+        }
+      ],
+      "completion_requirements": {
+        "required_state": {
+          "io_address_verified": true,
+          "program_variable_verified": true
+        },
+        "required_actions": [
+          "CHECK_ADDRESS_MAPPING"
+        ],
+        "closure_action": null
+      },
+      "strategy_biases": {
+        "replace_first": {
+          "label": "替换优先策略",
+          "description": "习惯直接更换传感器而不先核对地址",
+          "related_abilities": [
+            "input_no_response_fault_scope"
+          ]
+        },
+        "safety_bypass": {
+          "label": "安全规程意识薄弱",
+          "description": "使用不安全方式验证信号",
+          "related_abilities": [
+            "electrical_safety_check"
+          ]
+        }
+      },
+      "states": [
+        {
+          "id": "STATE_INITIAL",
+          "label": "????",
+          "known_facts": [
+            "sensor_led=on",
+            "plc_input_led=on",
+            "online_monitor=off"
+          ],
+          "remaining_hypotheses": [
+            "HYP_ADDRESS_MISMATCH",
+            "HYP_VARIABLE_MISMATCH",
+            "HYP_MONITOR_SOFTWARE"
+          ],
+          "flags": {
+            "address_verified": false,
+            "variable_verified": false,
+            "monitor_verified": false
+          }
+        },
+        {
+          "id": "STATE_ADDRESS_CHECKED",
+          "label": "???????",
+          "known_facts": [
+            "sensor_led=on",
+            "plc_input_led=on",
+            "io_address_verified=true"
+          ],
+          "remaining_hypotheses": [
+            "HYP_ADDRESS_MISMATCH",
+            "HYP_VARIABLE_MISMATCH",
+            "HYP_MONITOR_SOFTWARE"
+          ],
+          "flags": {
+            "address_verified": true,
+            "variable_verified": false,
+            "monitor_verified": false
+          }
+        },
+        {
+          "id": "STATE_VARIABLE_CHECKED",
+          "label": "???????",
+          "known_facts": [
+            "sensor_led=on",
+            "plc_input_led=on",
+            "io_address_verified=true",
+            "program_variable_verified=true"
+          ],
+          "remaining_hypotheses": [
+            "HYP_MONITOR_SOFTWARE"
+          ],
+          "flags": {
+            "address_verified": true,
+            "variable_verified": true,
+            "monitor_verified": true
+          }
+        }
+      ],
+      "transitions": [
+        {
+          "id": "TR_CHECK_ADDRESS",
+          "from_state": "STATE_INITIAL",
+          "action_id": "CHECK_ADDRESS_MAPPING",
+          "to_state": "STATE_ADDRESS_CHECKED",
+          "classification": "optimal",
+          "strategy_id": "address_then_variable_strategy"
+        },
+        {
+          "id": "TR_CHECK_VARIABLE",
+          "from_state": "STATE_ADDRESS_CHECKED",
+          "action_id": "CHECK_VARIABLE_BINDING",
+          "to_state": "STATE_VARIABLE_CHECKED",
+          "classification": "optimal",
+          "strategy_id": "address_then_variable_strategy"
+        },
+        {
+          "id": "TR_REPLACE_SENSOR_PREMATURE_MON",
+          "from_state": "STATE_INITIAL",
+          "action_id": "REPLACE_SENSOR_PREMATURE",
+          "to_state": "STATE_INITIAL",
+          "classification": "premature",
+          "strategy_id": null,
+          "deviation": "replace_first"
+        },
+        {
+          "id": "TR_SHORT_ILLEGAL_MON",
+          "from_state": "STATE_INITIAL",
+          "action_id": "SHORT_OUTPUT_ILLEGAL",
+          "to_state": "STATE_INITIAL",
+          "classification": "unsafe",
+          "strategy_id": null,
+          "deviation": "safety_bypass"
+        }
+      ],
+      "strategies": [
+        {
+          "id": "address_then_variable_strategy",
+          "label": "????????",
+          "description": "PLC????? -> ??I/O???? -> ??????",
+          "priority": 1,
+          "valid": true,
+          "optimal_sequence": [
+            "CHECK_ADDRESS_MAPPING",
+            "CHECK_VARIABLE_BINDING"
+          ]
+        }
+      ],
+      "terminal_states": [
+        "STATE_VARIABLE_CHECKED"
+      ],
+      "variants": [
+        {
+          "id": "V_IO_MAPPING_ERROR",
+          "fault_id": "HYP_ADDRESS_MISMATCH",
+          "label": "IO地址映射错误",
+          "initial_facts": {
+            "sensor_led": "on",
+            "plc_input_led": "on",
+            "online_monitor_same_address": false
+          },
+          "hidden_facts": {
+            "physical_input": "I0.2",
+            "monitor_address": "I0.3",
+            "mapping_correct": false
+          },
+          "expected_root_cause": "HYP_ADDRESS_MISMATCH",
+          "allowed_actions": [
+            "CHECK_SAFETY",
+            "CHECK_ADDRESS_MAPPING",
+            "CHECK_VARIABLE_BINDING",
+            "VERIFY_TRIPLE_STATE"
+          ]
+        },
+        {
+          "id": "V_VARIABLE_MISMATCH",
+          "fault_id": "HYP_VARIABLE_MISMATCH",
+          "label": "程序变量不匹配",
+          "initial_facts": {
+            "sensor_led": "on",
+            "plc_input_led": "on",
+            "online_monitor_same_address": false
+          },
+          "hidden_facts": {
+            "physical_input": "I0.2",
+            "monitor_address": "I0.2",
+            "variable_not_bound": true
+          },
+          "expected_root_cause": "HYP_VARIABLE_MISMATCH",
+          "allowed_actions": [
+            "CHECK_SAFETY",
+            "CHECK_ADDRESS_MAPPING",
+            "CHECK_VARIABLE_BINDING",
+            "VERIFY_TRIPLE_STATE"
+          ]
+        }
+      ],
+      "difficulty_profiles": null
+    },
+    {
+      "scenario_id": "SCN_SENSOR_LED_OFF",
+      "title": "传感器灯不亮或不稳定",
+      "fault_states": {
+        "initial": {
+          "sensor_led": "off_or_unstable",
+          "dc24v_checked": false,
+          "distance_checked": false,
+          "target_material_checked": false
+        }
+      },
+      "hypotheses": [
+        {
+          "id": "HYP_POWER_SUPPLY",
+          "label": "传感器供电异常",
+          "description": "DC24V 供电未接通或电压异常",
+          "related_abilities": [
+            "dc24v_power_check",
+            "multimeter_voltage_measurement"
+          ],
+          "supporting_evidence": [
+            "棕蓝线之间无 24V",
+            "电源端子松动"
+          ],
+          "refuting_evidence": [
+            "棕蓝线之间 24V 正常"
+          ]
+        },
+        {
+          "id": "HYP_DETECTION_DISTANCE",
+          "label": "检测距离过大",
+          "description": "传感器与目标距离超过额定检测范围",
+          "related_abilities": [
+            "sensor_led_observation"
+          ],
+          "supporting_evidence": [
+            "目标靠近后动作灯亮"
+          ],
+          "refuting_evidence": [
+            "距离在额定范围内但灯仍不亮"
+          ]
+        },
+        {
+          "id": "HYP_TARGET_MATERIAL",
+          "label": "目标材质不匹配",
+          "description": "目标材质不适合该传感器类型",
+          "related_abilities": [
+            "sensor_type_identification"
+          ],
+          "supporting_evidence": [
+            "同类传感器对金属目标正常响应"
+          ],
+          "refuting_evidence": [
+            "传感器说明书中目标材质覆盖当前材质"
+          ]
+        },
+        {
+          "id": "HYP_SENSOR_DEFECT",
+          "label": "传感器本体故障",
+          "description": "传感器内部损坏",
+          "related_abilities": [
+            "input_no_response_fault_scope",
+            "no_response_sensor_side_check"
+          ],
+          "supporting_evidence": [
+            "供电、距离、材质均正常但灯不亮"
+          ],
+          "refuting_evidence": [
+            "更换传感器后正常"
+          ]
+        }
+      ],
+      "diagnostic_actions": [
+        {
+          "id": "CHECK_DC24V",
+          "label": "检查 DC24V 供电",
+          "description": "测量传感器棕蓝线之间的 24V DC 电压",
+          "category": "optimal",
+          "required_state": {},
+          "produces_state": {
+            "dc24v_checked": true
+          },
+          "requires_hypothesis": null,
+          "evidence_gained": "传感器供电状态已确认",
+          "related_abilities": [
+            "dc24v_power_check"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "CHECK_DISTANCE_AND_TARGET",
+          "label": "检查检测距离和目标材质",
+          "description": "确认检测距离在额定范围内，目标材质符合传感器类型",
+          "category": "valid",
+          "required_state": {
+            "dc24v_checked": true
+          },
+          "produces_state": {
+            "distance_checked": true,
+            "target_material_checked": true
+          },
+          "requires_hypothesis": null,
+          "evidence_gained": "检测距离和目标材质已确认",
+          "related_abilities": [
+            "sensor_led_observation",
+            "sensor_type_identification"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "MODIFY_PROGRAM_PREMATURE_LED_OFF",
+          "label": "直接修改 PLC 程序",
+          "description": "传感器灯都不亮时先修改程序",
+          "category": "premature",
+          "required_state": {},
+          "produces_state": {},
+          "requires_hypothesis": null,
+          "evidence_gained": null,
+          "related_abilities": [
+            "input_no_response_fault_scope"
+          ],
+          "strategy_bias": "jump_to_program"
+        }
+      ],
+      "completion_requirements": {
+        "required_state": {
+          "dc24v_checked": true,
+          "distance_checked": true,
+          "target_material_checked": true
+        },
+        "required_actions": [
+          "CHECK_DC24V"
+        ],
+        "closure_action": null
+      },
+      "strategy_biases": {
+        "jump_to_program": {
+          "label": "过早归因于程序问题",
+          "description": "传感器灯不亮时未排查传感器侧直接改程序",
+          "related_abilities": [
+            "input_no_response_fault_scope"
+          ]
+        }
+      },
+      "states": [
+        {
+          "id": "STATE_INITIAL",
+          "label": "????",
+          "known_facts": [
+            "sensor_led=off_or_unstable"
+          ],
+          "remaining_hypotheses": [
+            "HYP_POWER_SUPPLY",
+            "HYP_DETECTION_DISTANCE",
+            "HYP_TARGET_MATERIAL",
+            "HYP_SENSOR_DEFECT"
+          ],
+          "flags": {
+            "dc24v_checked": false,
+            "distance_checked": false,
+            "sensor_side_complete": false
+          }
+        },
+        {
+          "id": "STATE_DC24V_CHECKED",
+          "label": "?????",
+          "known_facts": [
+            "dc24v_checked=true"
+          ],
+          "remaining_hypotheses": [
+            "HYP_DETECTION_DISTANCE",
+            "HYP_TARGET_MATERIAL",
+            "HYP_SENSOR_DEFECT"
+          ],
+          "flags": {
+            "dc24v_checked": true,
+            "distance_checked": false,
+            "sensor_side_complete": false
+          }
+        },
+        {
+          "id": "STATE_SENSOR_SIDE_COMPLETE",
+          "label": "????????",
+          "known_facts": [
+            "dc24v_checked=true",
+            "distance_checked=true",
+            "target_material_checked=true"
+          ],
+          "remaining_hypotheses": [
+            "HYP_SENSOR_DEFECT"
+          ],
+          "flags": {
+            "dc24v_checked": true,
+            "distance_checked": true,
+            "sensor_side_complete": true
+          }
+        }
+      ],
+      "transitions": [
+        {
+          "id": "TR_CHECK_DC24V",
+          "from_state": "STATE_INITIAL",
+          "action_id": "CHECK_DC24V",
+          "to_state": "STATE_DC24V_CHECKED",
+          "classification": "optimal",
+          "strategy_id": "power_then_distance_strategy"
+        },
+        {
+          "id": "TR_CHECK_DISTANCE",
+          "from_state": "STATE_DC24V_CHECKED",
+          "action_id": "CHECK_DISTANCE_AND_TARGET",
+          "to_state": "STATE_SENSOR_SIDE_COMPLETE",
+          "classification": "optimal",
+          "strategy_id": "power_then_distance_strategy"
+        },
+        {
+          "id": "TR_CHECK_DISTANCE_DIRECT",
+          "from_state": "STATE_INITIAL",
+          "action_id": "CHECK_DISTANCE_AND_TARGET",
+          "to_state": "STATE_SENSOR_SIDE_COMPLETE",
+          "classification": "valid",
+          "strategy_id": "distance_first_strategy"
+        },
+        {
+          "id": "TR_MODIFY_PROG_PREMATURE_LEDOFF",
+          "from_state": "STATE_INITIAL",
+          "action_id": "MODIFY_PROGRAM_PREMATURE_LED_OFF",
+          "to_state": "STATE_INITIAL",
+          "classification": "premature",
+          "strategy_id": null,
+          "deviation": "jump_to_program"
+        }
+      ],
+      "strategies": [
+        {
+          "id": "power_then_distance_strategy",
+          "label": "??????????",
+          "description": "?????? -> ??24V?? -> ???????",
+          "priority": 1,
+          "valid": true,
+          "optimal_sequence": [
+            "CHECK_DC24V",
+            "CHECK_DISTANCE_AND_TARGET"
+          ]
+        },
+        {
+          "id": "distance_first_strategy",
+          "label": "???????????",
+          "description": "?????? -> ???????????",
+          "priority": 2,
+          "valid": true,
+          "optimal_sequence": [
+            "CHECK_DISTANCE_AND_TARGET",
+            "CHECK_DC24V"
+          ]
+        }
+      ],
+      "terminal_states": [
+        "STATE_SENSOR_SIDE_COMPLETE"
+      ],
+      "variants": [
+        {
+          "id": "V_POWER_SUPPLY_FAIL",
+          "fault_id": "HYP_POWER_SUPPLY",
+          "label": "DC24V供电故障",
+          "initial_facts": {
+            "sensor_led": "off",
+            "power_indicator": "off"
+          },
+          "hidden_facts": {
+            "dc24v_present": false,
+            "wiring_correct": true,
+            "detection_distance": "normal"
+          },
+          "expected_root_cause": "HYP_POWER_SUPPLY",
+          "allowed_actions": [
+            "CHECK_DC24V",
+            "CHECK_DISTANCE_AND_TARGET",
+            "MODIFY_PROGRAM_PREMATURE_LED_OFF"
+          ]
+        },
+        {
+          "id": "V_DETECTION_DISTANCE",
+          "fault_id": "HYP_DETECTION_DISTANCE",
+          "label": "检测距离不当",
+          "initial_facts": {
+            "sensor_led": "off",
+            "power_indicator": "on"
+          },
+          "hidden_facts": {
+            "dc24v_present": true,
+            "wiring_correct": true,
+            "detection_distance": "too_far"
+          },
+          "expected_root_cause": "HYP_DETECTION_DISTANCE",
+          "allowed_actions": [
+            "CHECK_DC24V",
+            "CHECK_DISTANCE_AND_TARGET",
+            "MODIFY_PROGRAM_PREMATURE_LED_OFF"
+          ]
+        }
+      ],
+      "difficulty_profiles": null
+    },
+    {
+      "scenario_id": "SCN_CYLINDER_NO_ACTION",
+      "title": "气缸不动作的分层排查",
+      "fault_states": {
+        "initial": {
+          "cylinder_action": "none",
+          "emergency_stop_checked": false,
+          "air_source_checked": false,
+          "electrical_output_checked": false,
+          "program_condition_checked": false
+        }
+      },
+      "hypotheses": [
+        {
+          "id": "HYP_ELECTRICAL_NO_OUTPUT",
+          "label": "PLC 电气输出问题",
+          "description": "PLC 输出灯未亮，问题在电气输入/输出层",
+          "related_abilities": [
+            "input_no_response_fault_scope",
+            "plc_input_monitoring"
+          ],
+          "supporting_evidence": [
+            "输出灯不亮",
+            "输入条件已满足"
+          ],
+          "refuting_evidence": [
+            "输出灯亮"
+          ]
+        },
+        {
+          "id": "HYP_PROGRAM_CONDITION",
+          "label": "程序条件不满足",
+          "description": "程序中的输出条件未全部满足",
+          "related_abilities": [
+            "program_variable_lookup",
+            "no_response_address_mapping_check"
+          ],
+          "supporting_evidence": [
+            "输出灯亮但电磁阀未得电",
+            "程序中有互锁条件未满足"
+          ],
+          "refuting_evidence": [
+            "所有程序条件在线监控为 TRUE"
+          ]
+        },
+        {
+          "id": "HYP_AIR_SUPPLY",
+          "label": "气源或气路问题",
+          "description": "气源压力不足、节流阀关闭或管路堵塞",
+          "related_abilities": [
+            "input_no_response_fault_scope"
+          ],
+          "supporting_evidence": [
+            "电磁阀得电但气缸不动作",
+            "气源压力表读数异常"
+          ],
+          "refuting_evidence": [
+            "气源压力正常，手动操作电磁阀气缸动作"
+          ]
+        },
+        {
+          "id": "HYP_MECHANICAL_JAM",
+          "label": "机械卡滞",
+          "description": "气缸或连接机构卡死",
+          "related_abilities": [
+            "input_no_response_fault_scope"
+          ],
+          "supporting_evidence": [
+            "气源正常、电磁阀得电但气缸不动"
+          ],
+          "refuting_evidence": [
+            "手动可推动活塞"
+          ]
+        }
+      ],
+      "diagnostic_actions": [
+        {
+          "id": "LAYERED_CHECK_ELECTRICAL",
+          "label": "分层检查：先电气输入/输出",
+          "description": "先确认 PLC 输入条件是否满足、输出灯是否亮",
+          "category": "optimal",
+          "required_state": {},
+          "produces_state": {
+            "electrical_output_checked": true
+          },
+          "requires_hypothesis": null,
+          "evidence_gained": "电气输入/输出状态已确认",
+          "related_abilities": [
+            "plc_input_monitoring"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "LAYERED_CHECK_PROGRAM",
+          "label": "分层检查：程序条件",
+          "description": "检查程序输出条件是否满足",
+          "category": "valid",
+          "required_state": {
+            "electrical_output_checked": true
+          },
+          "produces_state": {
+            "program_condition_checked": true
+          },
+          "requires_hypothesis": null,
+          "evidence_gained": "程序条件状态已确认",
+          "related_abilities": [
+            "program_variable_lookup"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "LAYERED_CHECK_AIR",
+          "label": "分层检查：气源和气路",
+          "description": "检查气源压力和节流阀状态",
+          "category": "valid",
+          "required_state": {
+            "electrical_output_checked": true,
+            "program_condition_checked": true
+          },
+          "produces_state": {
+            "air_source_checked": true
+          },
+          "requires_hypothesis": null,
+          "evidence_gained": "气源和气路状态已确认",
+          "related_abilities": [
+            "input_no_response_fault_scope"
+          ],
+          "strategy_bias": null
+        },
+        {
+          "id": "MANUAL_VALVE_UNSAFE",
+          "label": "直接手动拨动电磁阀",
+          "description": "不确认安全直接手动操作电磁阀让气缸动作",
+          "category": "unsafe",
+          "required_state": {},
+          "produces_state": {},
+          "requires_hypothesis": null,
+          "evidence_gained": null,
+          "related_abilities": [
+            "electrical_safety_check"
+          ],
+          "strategy_bias": "safety_bypass"
+        }
+      ],
+      "completion_requirements": {
+        "required_state": {
+          "emergency_stop_checked": true,
+          "electrical_output_checked": true,
+          "program_condition_checked": true,
+          "air_source_checked": true
+        },
+        "required_actions": [
+          "LAYERED_CHECK_ELECTRICAL"
+        ],
+        "closure_action": null
+      },
+      "strategy_biases": {
+        "safety_bypass": {
+          "label": "安全规程意识薄弱",
+          "description": "执行机构调试前未确认安全",
+          "related_abilities": [
+            "electrical_safety_check"
+          ]
+        }
+      },
+      "states": [
+        {
+          "id": "STATE_INITIAL",
+          "label": "????",
+          "known_facts": [
+            "cylinder_action=none"
+          ],
+          "remaining_hypotheses": [
+            "HYP_ELECTRICAL_NO_OUTPUT",
+            "HYP_PROGRAM_CONDITION",
+            "HYP_AIR_SUPPLY",
+            "HYP_MECHANICAL_JAM"
+          ],
+          "flags": {
+            "electrical_checked": false,
+            "program_checked": false,
+            "air_checked": false,
+            "mechanical_checked": false
+          }
+        },
+        {
+          "id": "STATE_ELECTRICAL_CHECKED",
+          "label": "??????",
+          "known_facts": [
+            "electrical_output_checked=true"
+          ],
+          "remaining_hypotheses": [
+            "HYP_PROGRAM_CONDITION",
+            "HYP_AIR_SUPPLY",
+            "HYP_MECHANICAL_JAM"
+          ],
+          "flags": {
+            "electrical_checked": true,
+            "program_checked": false,
+            "air_checked": false,
+            "mechanical_checked": false
+          }
+        },
+        {
+          "id": "STATE_PROGRAM_CHECKED",
+          "label": "??????",
+          "known_facts": [
+            "electrical_output_checked=true",
+            "program_condition_checked=true"
+          ],
+          "remaining_hypotheses": [
+            "HYP_AIR_SUPPLY",
+            "HYP_MECHANICAL_JAM"
+          ],
+          "flags": {
+            "electrical_checked": true,
+            "program_checked": true,
+            "air_checked": false,
+            "mechanical_checked": false
+          }
+        },
+        {
+          "id": "STATE_AIR_CHECKED",
+          "label": "??????",
+          "known_facts": [
+            "electrical_output_checked=true",
+            "program_condition_checked=true",
+            "air_source_checked=true"
+          ],
+          "remaining_hypotheses": [
+            "HYP_MECHANICAL_JAM"
+          ],
+          "flags": {
+            "electrical_checked": true,
+            "program_checked": true,
+            "air_checked": true,
+            "mechanical_checked": false
+          }
+        },
+        {
+          "id": "STATE_FULL_DIAGNOSIS",
+          "label": "??????",
+          "known_facts": [
+            "electrical_output_checked=true",
+            "program_condition_checked=true",
+            "air_source_checked=true",
+            "mechanical_checked=true"
+          ],
+          "remaining_hypotheses": [],
+          "flags": {
+            "electrical_checked": true,
+            "program_checked": true,
+            "air_checked": true,
+            "mechanical_checked": true
+          }
+        }
+      ],
+      "transitions": [
+        {
+          "id": "TR_CHECK_ELECTRICAL",
+          "from_state": "STATE_INITIAL",
+          "action_id": "LAYERED_CHECK_ELECTRICAL",
+          "to_state": "STATE_ELECTRICAL_CHECKED",
+          "classification": "optimal",
+          "strategy_id": "layered_strategy"
+        },
+        {
+          "id": "TR_CHECK_PROGRAM",
+          "from_state": "STATE_ELECTRICAL_CHECKED",
+          "action_id": "LAYERED_CHECK_PROGRAM",
+          "to_state": "STATE_PROGRAM_CHECKED",
+          "classification": "optimal",
+          "strategy_id": "layered_strategy"
+        },
+        {
+          "id": "TR_CHECK_AIR",
+          "from_state": "STATE_PROGRAM_CHECKED",
+          "action_id": "LAYERED_CHECK_AIR",
+          "to_state": "STATE_AIR_CHECKED",
+          "classification": "optimal",
+          "strategy_id": "layered_strategy"
+        },
+        {
+          "id": "TR_CHECK_AIR_FROM_ELEC",
+          "from_state": "STATE_ELECTRICAL_CHECKED",
+          "action_id": "LAYERED_CHECK_AIR",
+          "to_state": "STATE_AIR_CHECKED",
+          "classification": "valid",
+          "strategy_id": "layered_alt_strategy"
+        },
+        {
+          "id": "TR_MANUAL_VALVE_UNSAFE",
+          "from_state": "STATE_INITIAL",
+          "action_id": "MANUAL_VALVE_UNSAFE",
+          "to_state": "STATE_INITIAL",
+          "classification": "unsafe",
+          "strategy_id": null,
+          "deviation": "safety_bypass"
+        }
+      ],
+      "strategies": [
+        {
+          "id": "layered_strategy",
+          "label": "???????->??->??",
+          "description": "?????/?? -> ???? -> ???? -> ??",
+          "priority": 1,
+          "valid": true,
+          "optimal_sequence": [
+            "LAYERED_CHECK_ELECTRICAL",
+            "LAYERED_CHECK_PROGRAM",
+            "LAYERED_CHECK_AIR"
+          ]
+        },
+        {
+          "id": "layered_alt_strategy",
+          "label": "???????->??->??",
+          "description": "??? -> ?? -> ???",
+          "priority": 2,
+          "valid": true,
+          "optimal_sequence": [
+            "LAYERED_CHECK_ELECTRICAL",
+            "LAYERED_CHECK_AIR",
+            "LAYERED_CHECK_PROGRAM"
+          ]
+        }
+      ],
+      "terminal_states": [
+        "STATE_AIR_CHECKED",
+        "STATE_FULL_DIAGNOSIS"
+      ],
+      "variants": [
+        {
+          "id": "V_ELECTRICAL_NO_OUTPUT",
+          "fault_id": "HYP_ELECTRICAL_NO_OUTPUT",
+          "label": "电气输出故障",
+          "initial_facts": {
+            "cylinder_action": "none",
+            "air_pressure": "normal"
+          },
+          "hidden_facts": {
+            "plc_output_led": "off",
+            "program_condition_met": true,
+            "valve_coil_ok": false
+          },
+          "expected_root_cause": "HYP_ELECTRICAL_NO_OUTPUT",
+          "allowed_actions": [
+            "LAYERED_CHECK_ELECTRICAL",
+            "LAYERED_CHECK_PROGRAM",
+            "LAYERED_CHECK_AIR",
+            "MANUAL_VALVE_UNSAFE"
+          ]
+        },
+        {
+          "id": "V_AIR_SUPPLY",
+          "fault_id": "HYP_AIR_SUPPLY",
+          "label": "气源故障",
+          "initial_facts": {
+            "cylinder_action": "none",
+            "air_pressure": "low"
+          },
+          "hidden_facts": {
+            "plc_output_led": "on",
+            "program_condition_met": true,
+            "valve_coil_ok": true,
+            "air_supply_blocked": true
+          },
+          "expected_root_cause": "HYP_AIR_SUPPLY",
+          "allowed_actions": [
+            "LAYERED_CHECK_ELECTRICAL",
+            "LAYERED_CHECK_PROGRAM",
+            "LAYERED_CHECK_AIR",
+            "MANUAL_VALVE_UNSAFE"
+          ]
+        }
+      ],
+      "difficulty_profiles": null
+    }
+  ],
+  "difficulty_profiles": {
+    "beginner": {
+      "initial_evidence_visibility": 0.8,
+      "hint_level": 3,
+      "distractor_count": 1,
+      "label": "初级"
+    },
+    "intermediate": {
+      "initial_evidence_visibility": 0.5,
+      "hint_level": 1,
+      "distractor_count": 2,
+      "label": "中级"
+    },
+    "advanced": {
+      "initial_evidence_visibility": 0.2,
+      "hint_level": 0,
+      "distractor_count": 3,
+      "label": "高级"
+    }
+  },
+  "neighbor_counterexample_pairs": [
+    {
+      "id": "NCP_SIGNAL_CHAIN_LAYER_SWITCH",
+      "label": "信号链路层级切换",
+      "description": "PLC输入灯不亮 vs 输入灯亮但监控不变 — 检查学生是否根据关键证据切换排故层级",
+      "scenario_a": {
+        "scenario_id": "SCN_SENSOR_LED_ON_PLC_LED_OFF",
+        "title": "传感器灯亮但PLC输入灯不亮",
+        "key_evidence": "输入灯不亮",
+        "expected_priority": "输入回路/接线/公共端"
+      },
+      "scenario_b": {
+        "scenario_id": "SCN_PLC_LED_ON_MONITOR_OFF",
+        "title": "PLC输入灯亮但在线监控不变",
+        "key_evidence": "输入灯已亮",
+        "expected_priority": "地址映射/程序变量/在线监控"
+      },
+      "target_strategy_test": "signal_chain_layer_switch",
+      "bias_if_both_wrong": "program_first_bias",
+      "target_abilities": [
+        "plc_input_common_terminal",
+        "plc_io_address_mapping",
+        "plc_input_monitoring"
+      ]
+    },
+    {
+      "id": "NCP_SENSOR_VS_CYLINDER_SCOPE",
+      "label": "传感器侧 vs 执行侧故障范围判断",
+      "description": "传感器灯不亮 vs 气缸不动作 — 检查学生是否正确判断故障范围",
+      "scenario_a": {
+        "scenario_id": "SCN_SENSOR_LED_OFF",
+        "title": "传感器灯不亮",
+        "key_evidence": "动作灯不亮",
+        "expected_priority": "供电/检测距离/传感器本体"
+      },
+      "scenario_b": {
+        "scenario_id": "SCN_CYLINDER_NO_ACTION",
+        "title": "气缸不动作",
+        "key_evidence": "气缸不动作",
+        "expected_priority": "电气/程序/气路分层排查"
+      },
+      "target_strategy_test": "fault_scope_judgment",
+      "bias_if_both_wrong": "scope_misidentification",
+      "target_abilities": [
+        "sensor_led_observation",
+        "input_no_response_fault_scope",
+        "dc24v_power_check"
+      ]
+    }
+  ]
+}

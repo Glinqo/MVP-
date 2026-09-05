@@ -1,0 +1,102 @@
+{
+  "version": "1.0.0",
+  "description": "Old Ability ID -> V2 Canonical ID mapping for backward compatibility",
+  "mappings": [
+    {
+      "old_id": "electrical_safety_check",
+      "canonical_id": "es_safety_rules"
+    },
+    {
+      "old_id": "power_isolation",
+      "canonical_id": "es_power_isolation"
+    },
+    {
+      "old_id": "sensor_wiring_judgement",
+      "canonical_id": "sn_wiring_diag"
+    },
+    {
+      "old_id": "sensor_type_identification",
+      "canonical_id": "sn_type_identify"
+    },
+    {
+      "old_id": "sensor_led_observation",
+      "canonical_id": "sn_state_read"
+    },
+    {
+      "old_id": "dc24v_power_check",
+      "canonical_id": "es_power_check"
+    },
+    {
+      "old_id": "plc_input_common_terminal",
+      "canonical_id": "pl_common_terminal"
+    },
+    {
+      "old_id": "plc_input_monitoring",
+      "canonical_id": "pl_monitoring"
+    },
+    {
+      "old_id": "plc_io_address_mapping",
+      "canonical_id": "pl_io_mapping"
+    },
+    {
+      "old_id": "program_variable_lookup",
+      "canonical_id": "pl_var_lookup"
+    },
+    {
+      "old_id": "input_no_response_fault_scope",
+      "canonical_id": "rt_scope_check"
+    },
+    {
+      "old_id": "no_response_power_path_check",
+      "canonical_id": "es_path_check"
+    },
+    {
+      "old_id": "electrical_safety",
+      "canonical_id": "es_safety_rules"
+    },
+    {
+      "old_id": "emergency_stop",
+      "canonical_id": "es_emergency_stop"
+    },
+    {
+      "old_id": "hmi_basic",
+      "canonical_id": "pl_hmi_basic"
+    },
+    {
+      "old_id": "input_common_terminal",
+      "canonical_id": "pl_common_terminal"
+    },
+    {
+      "old_id": "motor_control",
+      "canonical_id": "tr_motor_control"
+    },
+    {
+      "old_id": "plc_basic_principle",
+      "canonical_id": "rt_plc_basic"
+    },
+    {
+      "old_id": "plc_wiring",
+      "canonical_id": "sn_plc_wiring"
+    },
+    {
+      "old_id": "safety_ppe",
+      "canonical_id": "es_safety_ppe"
+    },
+    {
+      "old_id": "sensor_selection",
+      "canonical_id": "sn_type_identify"
+    },
+    {
+      "old_id": "sensor_wiring",
+      "canonical_id": "sn_wiring_diag"
+    },
+    {
+      "old_id": "troubleshoot_order",
+      "canonical_id": "rt_scope_check"
+    },
+    {
+      "old_id": "vfd_basic",
+      "canonical_id": "tr_vfd_basic"
+    }
+  ]
+}

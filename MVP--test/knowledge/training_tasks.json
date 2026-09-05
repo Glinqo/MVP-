@@ -1,0 +1,96 @@
+{
+  "version": "0.2.0",
+  "source": "机电一体化智能体_知识库导入版_V1/知识库2.md 来源依据待核验",
+  "tasks": [
+    {
+      "id": "T001",
+      "title": "三线制传感器输入验证",
+      "node_ids": ["electrical_safety_check", "sensor_type_identification", "sensor_wiring_judgement", "plc_input_monitoring"],
+      "difficulty": "basic",
+      "estimated_minutes": 25,
+      "deliverable": "完成安全检查记录、传感器类型判断、接线图标注和 PLC 输入监控截图",
+      "source": "机电一体化智能体_知识库导入版_V1"
+    },
+    {
+      "id": "T002",
+      "title": "NPN/PNP 与 PLC 输入公共端匹配训练",
+      "node_ids": ["sensor_output_logic", "plc_input_common_terminal", "no_response_common_terminal_check"],
+      "difficulty": "basic",
+      "estimated_minutes": 20,
+      "deliverable": "判断 4 个传感器接入 PLC 输入公共端的接线方案是否正确，并写出理由",
+      "source": "知识库2.md 来源依据待核验"
+    },
+    {
+      "id": "T003",
+      "title": "气缸不动作分层排查",
+      "node_ids": ["input_no_response_fault_scope", "program_variable_lookup", "no_response_address_mapping_check"],
+      "difficulty": "medium",
+      "estimated_minutes": 30,
+      "deliverable": "填写电气输入、程序输出、电磁阀、气源压力、节流阀和机械卡滞检查记录",
+      "source": "机电一体化智能体_知识库导入版_V1"
+    },
+    {
+      "id": "T004",
+      "title": "I/O 映射表补全训练",
+      "node_ids": ["plc_io_address_mapping", "io_mapping_table_build", "program_variable_lookup"],
+      "difficulty": "basic",
+      "estimated_minutes": 20,
+      "deliverable": "完成元件名称、端子号、PLC 地址、程序变量和当前状态五列表",
+      "source": "机电一体化智能体_知识库导入版_V1"
+    },
+    {
+      "id": "T005",
+      "title": "输入点无响应故障复盘",
+      "node_ids": ["input_no_response_fault_scope", "plc_input_monitoring", "diagnosis_record_feedback"],
+      "difficulty": "medium",
+      "estimated_minutes": 45,
+      "deliverable": "提交故障现象、检查顺序、关键证据、定位结论和下一步训练建议",
+      "source": "机电一体化智能体_知识库导入版_V1"
+    },
+    {
+      "id": "T006",
+      "title": "三联状态证据记录训练",
+      "node_ids": ["input_led_compare", "plc_input_monitoring", "diagnosis_record_feedback"],
+      "difficulty": "basic",
+      "estimated_minutes": 20,
+      "deliverable": "记录 3 组传感器动作灯、PLC 输入 LED、在线监控地址状态，并写出故障层级判断",
+      "source": "project_curated + K056"
+    },
+    {
+      "id": "T007",
+      "title": "公共端分组与跨组接线判断",
+      "node_ids": ["plc_input_common_terminal", "plc_input_grouping", "no_response_common_terminal_check"],
+      "difficulty": "medium",
+      "estimated_minutes": 25,
+      "deliverable": "标注输入模块公共端分组，判断 4 个接线方案是否跨组或电位不匹配",
+      "source": "project_curated + AutomationDirect/Balluff source notes"
+    },
+    {
+      "id": "T008",
+      "title": "输入 LED 亮但程序不动作排查",
+      "node_ids": ["plc_io_address_mapping", "program_variable_lookup", "no_response_address_mapping_check"],
+      "difficulty": "medium",
+      "estimated_minutes": 35,
+      "deliverable": "完成端子-地址-变量-模式互锁-输出链路排查表",
+      "source": "project_curated + K061"
+    },
+    {
+      "id": "T009",
+      "title": "岗位能力图谱证据卡整理",
+      "node_ids": ["personalized_training_task_recommendation", "diagnosis_record_feedback", "role_task_understanding"],
+      "difficulty": "medium",
+      "estimated_minutes": 30,
+      "deliverable": "把 1 段岗位材料拆成能力节点、证据、权重和 source 字段，生成待确认图谱更新建议",
+      "source": "教育部专业教学标准 + project graph update mechanism"
+    },
+    {
+      "id": "T010",
+      "title": "职业新人 7 天补强计划复盘",
+      "node_ids": ["personalized_training_task_recommendation", "diagnosis_record_feedback"],
+      "difficulty": "basic",
+      "estimated_minutes": 20,
+      "deliverable": "根据个人图谱导出今日训练单和 7 天计划，完成一次已掌握/仍不会/需要更基础讲解反馈",
+      "source": "project personalized_plan service"
+    }
+  ]
+}

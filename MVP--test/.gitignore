@@ -1,0 +1,48 @@
+﻿__pycache__/
+*.pyc
+.env
+.DS_Store
+node_modules/
+data/sessions/*.json
+!data/sessions/.gitkeep
+data/job_intelligence_runs.json
+data/job_intelligence_raw/
+web/node_modules/
+web/pnpm-lock.yaml
+.codex-audit/
+demo_test.py
+
+# Runtime session & memory data
+data/sessions.db
+data/memory/
+
+# Runtime evidence data
+data/evidence/
+data/raw_jobs/
+
+# Temp files
+.codex-audit/
+demo_test.py
+_git_push_temp*
+_phase*
+_builder*
+ .tmp-playwright/
+ web/.pnpm-store/
+
+
+# Runtime SQLite files
+data/*.db-shm
+data/*.db-wal
+
+# Temp debug artifacts
+_*.py
+debug_*.png
+*.db
+*.db-wal
+*.db-shm
+data/graph_update_events.json
+node_modules/
+playwright-report/
+test-results/
+blob-report/
+playwright/.auth/

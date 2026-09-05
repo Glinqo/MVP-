@@ -1,0 +1,5244 @@
+{
+  "version": "0.3.0",
+  "source": "project_curated",
+  "job_question_sets": {
+    "automation_line_commissioning_maintenance_newcomer": [
+      {
+        "id": "Q_auto_01",
+        "type": "single_choice",
+        "question": "在自动化生产线装调与运维技术员的日常工作中，岗位任务理解最需要关注的是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "设备的品牌和外观"
+          },
+          {
+            "id": "B",
+            "text": "操作流程、安全规范和关键参数"
+          },
+          {
+            "id": "C",
+            "text": "仅关注最终产品是否合格"
+          },
+          {
+            "id": "D",
+            "text": "只需要记住操作按钮位置"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "role_task_understanding",
+        "explanation": "岗位任务理解的核心在于掌握规范流程和关键指标，而非表面信息。",
+        "wrong_feedback": "请回顾岗位基础要求，关注操作规范和安全标准。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_02",
+        "type": "single_choice",
+        "question": "进行电气安全规范操作前，第一步应该做什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "直接开始操作"
+          },
+          {
+            "id": "B",
+            "text": "检查设备状态并确认安全条件"
+          },
+          {
+            "id": "C",
+            "text": "先查阅操作手册再动手"
+          },
+          {
+            "id": "D",
+            "text": "询问同事后再操作"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "electrical_safety_check",
+        "explanation": "电气安全规范的首要原则是安全第一，必须先确认设备和环境安全。",
+        "wrong_feedback": "安全永远是第一位，不能跳过安全检查直接操作。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_03",
+        "type": "single_choice",
+        "question": "关于断电隔离操作，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "power_isolation_confirmation",
+        "explanation": "断电隔离操作要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_04",
+        "type": "single_choice",
+        "question": "关于直流电源检查，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "dc24v_power_check",
+        "explanation": "直流电源检查要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_05",
+        "type": "single_choice",
+        "question": "关于万用表使用，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "multimeter_voltage_measurement",
+        "explanation": "万用表使用要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_06",
+        "type": "single_choice",
+        "question": "执行传感器类型识别任务时，正确的操作顺序是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "先操作后检查"
+          },
+          {
+            "id": "B",
+            "text": "检查→操作→验证→记录"
+          },
+          {
+            "id": "C",
+            "text": "操作→记录→检查"
+          },
+          {
+            "id": "D",
+            "text": "验证→操作→检查"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sensor_type_identification",
+        "explanation": "标准化作业流程：先检查确认条件，再执行操作，然后验证结果，最后记录。",
+        "wrong_feedback": "请按照标准化作业流程思考：检查→操作→验证→记录的顺序。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_07",
+        "type": "multiple_choice",
+        "question": "在传感器规格识读过程中，需要使用哪些工具或仪器？",
+        "options": [
+          {
+            "id": "A",
+            "text": "万用表或检测仪器"
+          },
+          {
+            "id": "B",
+            "text": "专用拆装工具"
+          },
+          {
+            "id": "C",
+            "text": "个人手机"
+          },
+          {
+            "id": "D",
+            "text": "标准作业指导书"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "D"
+        ],
+        "ability_id": "sensor_nameplate_reading",
+        "explanation": "传感器规格识读需要专业检测仪器、专用工具和标准指导书，不能用手机替代。",
+        "wrong_feedback": "请区分哪些是专业工具，哪些是不相关物品。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_08",
+        "type": "single_choice",
+        "question": "当传感器输出逻辑出现异常时，最合理的做法是？",
+        "options": [
+          {
+            "id": "A",
+            "text": "忽略异常继续操作"
+          },
+          {
+            "id": "B",
+            "text": "停止操作，按排查流程定位问题"
+          },
+          {
+            "id": "C",
+            "text": "直接更换设备"
+          },
+          {
+            "id": "D",
+            "text": "等待他人来修理"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sensor_output_logic",
+        "explanation": "发现异常应先停机，按排查流程系统性地定位问题，而不是盲目处理。",
+        "wrong_feedback": "异常状态必须及时处理，按流程排查，不能忽视或盲目更换。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_09",
+        "type": "single_choice",
+        "question": "关于传感器状态判断，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sensor_led_observation",
+        "explanation": "传感器状态判断需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_10",
+        "type": "multiple_choice",
+        "question": "在自动化生产线装调与运维技术员的传感器接线规范中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "sensor_wiring_color_code",
+        "explanation": "传感器接线规范需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_11",
+        "type": "single_choice",
+        "question": "关于传感器接线诊断，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sensor_wiring_judgement",
+        "explanation": "传感器接线诊断需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_12",
+        "type": "single_choice",
+        "question": "关于PLC输入公共端，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "plc_input_common_terminal",
+        "explanation": "PLC输入公共端需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_13",
+        "type": "multiple_choice",
+        "question": "在自动化生产线装调与运维技术员的PLC输入分组中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "plc_input_grouping",
+        "explanation": "PLC输入分组需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_14",
+        "type": "single_choice",
+        "question": "关于PLC地址映射，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "plc_io_address_mapping",
+        "explanation": "PLC地址映射需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_15",
+        "type": "single_choice",
+        "question": "关于I/O映射表编制，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "io_mapping_table_build",
+        "explanation": "I/O映射表编制需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_16",
+        "type": "multiple_choice",
+        "question": "在自动化生产线装调与运维技术员的程序变量查找中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "program_variable_lookup",
+        "explanation": "程序变量查找需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_17",
+        "type": "single_choice",
+        "question": "关于PLC信号监控，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "plc_input_monitoring",
+        "explanation": "PLC信号监控需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_18",
+        "type": "single_choice",
+        "question": "关于信号灯对比判断，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "input_led_compare",
+        "explanation": "信号灯对比判断需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_19",
+        "type": "multiple_choice",
+        "question": "在自动化生产线装调与运维技术员的故障定位分析中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "input_no_response_fault_scope",
+        "explanation": "故障定位分析需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_20",
+        "type": "single_choice",
+        "question": "关于电源链路排查，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "no_response_power_path_check",
+        "explanation": "电源链路排查需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      }
+    ],
+    "mechanical_electrical_maintenance_worker": [
+      {
+        "id": "Q_mech_01",
+        "type": "single_choice",
+        "question": "在机电设备维修工的日常工作中，机械装配基础最需要关注的是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "设备的品牌和外观"
+          },
+          {
+            "id": "B",
+            "text": "操作流程、安全规范和关键参数"
+          },
+          {
+            "id": "C",
+            "text": "仅关注最终产品是否合格"
+          },
+          {
+            "id": "D",
+            "text": "只需要记住操作按钮位置"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_01",
+        "explanation": "机械装配基础的核心在于掌握规范流程和关键指标，而非表面信息。",
+        "wrong_feedback": "请回顾岗位基础要求，关注操作规范和安全标准。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_02",
+        "type": "single_choice",
+        "question": "进行机械制图识读操作前，第一步应该做什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "直接开始操作"
+          },
+          {
+            "id": "B",
+            "text": "检查设备状态并确认安全条件"
+          },
+          {
+            "id": "C",
+            "text": "先查阅操作手册再动手"
+          },
+          {
+            "id": "D",
+            "text": "询问同事后再操作"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_02",
+        "explanation": "机械制图识读的首要原则是安全第一，必须先确认设备和环境安全。",
+        "wrong_feedback": "安全永远是第一位，不能跳过安全检查直接操作。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_03",
+        "type": "single_choice",
+        "question": "关于装配图识读，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_03",
+        "explanation": "装配图识读要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_04",
+        "type": "single_choice",
+        "question": "关于零部件拆装，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_04",
+        "explanation": "零部件拆装要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_05",
+        "type": "single_choice",
+        "question": "关于传动机构调整，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_05",
+        "explanation": "传动机构调整要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_06",
+        "type": "single_choice",
+        "question": "执行电气符号识读任务时，正确的操作顺序是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "先操作后检查"
+          },
+          {
+            "id": "B",
+            "text": "检查→操作→验证→记录"
+          },
+          {
+            "id": "C",
+            "text": "操作→记录→检查"
+          },
+          {
+            "id": "D",
+            "text": "验证→操作→检查"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_06",
+        "explanation": "标准化作业流程：先检查确认条件，再执行操作，然后验证结果，最后记录。",
+        "wrong_feedback": "请按照标准化作业流程思考：检查→操作→验证→记录的顺序。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_07",
+        "type": "multiple_choice",
+        "question": "在电气原理图识读过程中，需要使用哪些工具或仪器？",
+        "options": [
+          {
+            "id": "A",
+            "text": "万用表或检测仪器"
+          },
+          {
+            "id": "B",
+            "text": "专用拆装工具"
+          },
+          {
+            "id": "C",
+            "text": "个人手机"
+          },
+          {
+            "id": "D",
+            "text": "标准作业指导书"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "D"
+        ],
+        "ability_id": "mw_07",
+        "explanation": "电气原理图识读需要专业检测仪器、专用工具和标准指导书，不能用手机替代。",
+        "wrong_feedback": "请区分哪些是专业工具，哪些是不相关物品。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_08",
+        "type": "single_choice",
+        "question": "当接线图识读出现异常时，最合理的做法是？",
+        "options": [
+          {
+            "id": "A",
+            "text": "忽略异常继续操作"
+          },
+          {
+            "id": "B",
+            "text": "停止操作，按排查流程定位问题"
+          },
+          {
+            "id": "C",
+            "text": "直接更换设备"
+          },
+          {
+            "id": "D",
+            "text": "等待他人来修理"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_08",
+        "explanation": "发现异常应先停机，按排查流程系统性地定位问题，而不是盲目处理。",
+        "wrong_feedback": "异常状态必须及时处理，按流程排查，不能忽视或盲目更换。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_09",
+        "type": "single_choice",
+        "question": "关于电气元件识别，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_09",
+        "explanation": "电气元件识别需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_10",
+        "type": "multiple_choice",
+        "question": "在机电设备维修工的低压电器选型中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "mw_10",
+        "explanation": "低压电器选型需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_11",
+        "type": "single_choice",
+        "question": "关于设备点检流程，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_11",
+        "explanation": "设备点检流程需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_12",
+        "type": "single_choice",
+        "question": "关于点检标准识读，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_12",
+        "explanation": "点检标准识读需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_13",
+        "type": "multiple_choice",
+        "question": "在机电设备维修工的运行参数记录中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "mw_13",
+        "explanation": "运行参数记录需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_14",
+        "type": "single_choice",
+        "question": "关于异常状态识别，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_14",
+        "explanation": "异常状态识别需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_15",
+        "type": "single_choice",
+        "question": "关于点检报告编写，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_15",
+        "explanation": "点检报告编写需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_16",
+        "type": "multiple_choice",
+        "question": "在机电设备维修工的常见故障分类中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "mw_16",
+        "explanation": "常见故障分类需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_17",
+        "type": "single_choice",
+        "question": "关于故障排查顺序，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_17",
+        "explanation": "故障排查顺序需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_18",
+        "type": "single_choice",
+        "question": "关于机械故障诊断，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_18",
+        "explanation": "机械故障诊断需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_19",
+        "type": "multiple_choice",
+        "question": "在机电设备维修工的电气故障诊断中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "mw_19",
+        "explanation": "电气故障诊断需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_mech_20",
+        "type": "single_choice",
+        "question": "关于维修记录反馈，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "mw_20",
+        "explanation": "维修记录反馈需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      }
+    ],
+    "automation_line_commissioning_maintenance": [
+      {
+        "id": "Q_auto_01",
+        "type": "single_choice",
+        "question": "在自动化生产线装调与运维技术员的日常工作中，电气安全规范最需要关注的是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "设备的品牌和外观"
+          },
+          {
+            "id": "B",
+            "text": "操作流程、安全规范和关键参数"
+          },
+          {
+            "id": "C",
+            "text": "仅关注最终产品是否合格"
+          },
+          {
+            "id": "D",
+            "text": "只需要记住操作按钮位置"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_01",
+        "explanation": "电气安全规范的核心在于掌握规范流程和关键指标，而非表面信息。",
+        "wrong_feedback": "请回顾岗位基础要求，关注操作规范和安全标准。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_02",
+        "type": "single_choice",
+        "question": "进行断电隔离操作操作前，第一步应该做什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "直接开始操作"
+          },
+          {
+            "id": "B",
+            "text": "检查设备状态并确认安全条件"
+          },
+          {
+            "id": "C",
+            "text": "先查阅操作手册再动手"
+          },
+          {
+            "id": "D",
+            "text": "询问同事后再操作"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_02",
+        "explanation": "断电隔离操作的首要原则是安全第一，必须先确认设备和环境安全。",
+        "wrong_feedback": "安全永远是第一位，不能跳过安全检查直接操作。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_03",
+        "type": "single_choice",
+        "question": "关于直流电源检查，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_03",
+        "explanation": "直流电源检查要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_04",
+        "type": "single_choice",
+        "question": "关于万用表使用，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_04",
+        "explanation": "万用表使用要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_05",
+        "type": "single_choice",
+        "question": "关于传感器类型识别，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_05",
+        "explanation": "传感器类型识别要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_06",
+        "type": "single_choice",
+        "question": "执行传感器规格识读任务时，正确的操作顺序是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "先操作后检查"
+          },
+          {
+            "id": "B",
+            "text": "检查→操作→验证→记录"
+          },
+          {
+            "id": "C",
+            "text": "操作→记录→检查"
+          },
+          {
+            "id": "D",
+            "text": "验证→操作→检查"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_06",
+        "explanation": "标准化作业流程：先检查确认条件，再执行操作，然后验证结果，最后记录。",
+        "wrong_feedback": "请按照标准化作业流程思考：检查→操作→验证→记录的顺序。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_07",
+        "type": "multiple_choice",
+        "question": "在传感器输出逻辑过程中，需要使用哪些工具或仪器？",
+        "options": [
+          {
+            "id": "A",
+            "text": "万用表或检测仪器"
+          },
+          {
+            "id": "B",
+            "text": "专用拆装工具"
+          },
+          {
+            "id": "C",
+            "text": "个人手机"
+          },
+          {
+            "id": "D",
+            "text": "标准作业指导书"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "D"
+        ],
+        "ability_id": "at_07",
+        "explanation": "传感器输出逻辑需要专业检测仪器、专用工具和标准指导书，不能用手机替代。",
+        "wrong_feedback": "请区分哪些是专业工具，哪些是不相关物品。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_08",
+        "type": "single_choice",
+        "question": "当传感器状态判断出现异常时，最合理的做法是？",
+        "options": [
+          {
+            "id": "A",
+            "text": "忽略异常继续操作"
+          },
+          {
+            "id": "B",
+            "text": "停止操作，按排查流程定位问题"
+          },
+          {
+            "id": "C",
+            "text": "直接更换设备"
+          },
+          {
+            "id": "D",
+            "text": "等待他人来修理"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_08",
+        "explanation": "发现异常应先停机，按排查流程系统性地定位问题，而不是盲目处理。",
+        "wrong_feedback": "异常状态必须及时处理，按流程排查，不能忽视或盲目更换。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_09",
+        "type": "single_choice",
+        "question": "关于传感器接线规范，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_09",
+        "explanation": "传感器接线规范需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_10",
+        "type": "multiple_choice",
+        "question": "在自动化生产线装调与运维技术员的传感器接线诊断中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "at_10",
+        "explanation": "传感器接线诊断需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_11",
+        "type": "single_choice",
+        "question": "关于PLC输入公共端，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_11",
+        "explanation": "PLC输入公共端需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_12",
+        "type": "single_choice",
+        "question": "关于PLC输入分组，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_12",
+        "explanation": "PLC输入分组需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_13",
+        "type": "multiple_choice",
+        "question": "在自动化生产线装调与运维技术员的PLC地址映射中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "at_13",
+        "explanation": "PLC地址映射需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_14",
+        "type": "single_choice",
+        "question": "关于I/O映射表编制，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_14",
+        "explanation": "I/O映射表编制需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_15",
+        "type": "single_choice",
+        "question": "关于程序变量查找，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_15",
+        "explanation": "程序变量查找需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_16",
+        "type": "multiple_choice",
+        "question": "在自动化生产线装调与运维技术员的PLC信号监控中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "at_16",
+        "explanation": "PLC信号监控需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_17",
+        "type": "single_choice",
+        "question": "关于信号灯对比判断，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_17",
+        "explanation": "信号灯对比判断需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_18",
+        "type": "single_choice",
+        "question": "关于气动元件识别，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_18",
+        "explanation": "气动元件识别需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_19",
+        "type": "multiple_choice",
+        "question": "在自动化生产线装调与运维技术员的气动回路识读中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "at_19",
+        "explanation": "气动回路识读需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_20",
+        "type": "single_choice",
+        "question": "关于气动回路接线，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "at_20",
+        "explanation": "气动回路接线需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      }
+    ],
+    "automation_equipment_debugger": [
+      {
+        "id": "Q_auto_01",
+        "type": "single_choice",
+        "question": "在自动化设备调试员的日常工作中，传感器类型识别最需要关注的是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "设备的品牌和外观"
+          },
+          {
+            "id": "B",
+            "text": "操作流程、安全规范和关键参数"
+          },
+          {
+            "id": "C",
+            "text": "仅关注最终产品是否合格"
+          },
+          {
+            "id": "D",
+            "text": "只需要记住操作按钮位置"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_01",
+        "explanation": "传感器类型识别的核心在于掌握规范流程和关键指标，而非表面信息。",
+        "wrong_feedback": "请回顾岗位基础要求，关注操作规范和安全标准。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_02",
+        "type": "single_choice",
+        "question": "进行传感器输出逻辑操作前，第一步应该做什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "直接开始操作"
+          },
+          {
+            "id": "B",
+            "text": "检查设备状态并确认安全条件"
+          },
+          {
+            "id": "C",
+            "text": "先查阅操作手册再动手"
+          },
+          {
+            "id": "D",
+            "text": "询问同事后再操作"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_02",
+        "explanation": "传感器输出逻辑的首要原则是安全第一，必须先确认设备和环境安全。",
+        "wrong_feedback": "安全永远是第一位，不能跳过安全检查直接操作。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_03",
+        "type": "single_choice",
+        "question": "关于传感器状态判断，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_03",
+        "explanation": "传感器状态判断要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_04",
+        "type": "single_choice",
+        "question": "关于传感器接线规范，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_04",
+        "explanation": "传感器接线规范要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_05",
+        "type": "single_choice",
+        "question": "关于信号采集验证，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_05",
+        "explanation": "信号采集验证要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_06",
+        "type": "single_choice",
+        "question": "执行PLC地址映射任务时，正确的操作顺序是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "先操作后检查"
+          },
+          {
+            "id": "B",
+            "text": "检查→操作→验证→记录"
+          },
+          {
+            "id": "C",
+            "text": "操作→记录→检查"
+          },
+          {
+            "id": "D",
+            "text": "验证→操作→检查"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_06",
+        "explanation": "标准化作业流程：先检查确认条件，再执行操作，然后验证结果，最后记录。",
+        "wrong_feedback": "请按照标准化作业流程思考：检查→操作→验证→记录的顺序。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_07",
+        "type": "multiple_choice",
+        "question": "在I/O映射表编制过程中，需要使用哪些工具或仪器？",
+        "options": [
+          {
+            "id": "A",
+            "text": "万用表或检测仪器"
+          },
+          {
+            "id": "B",
+            "text": "专用拆装工具"
+          },
+          {
+            "id": "C",
+            "text": "个人手机"
+          },
+          {
+            "id": "D",
+            "text": "标准作业指导书"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "D"
+        ],
+        "ability_id": "ad_07",
+        "explanation": "I/O映射表编制需要专业检测仪器、专用工具和标准指导书，不能用手机替代。",
+        "wrong_feedback": "请区分哪些是专业工具，哪些是不相关物品。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_08",
+        "type": "single_choice",
+        "question": "当程序变量查找出现异常时，最合理的做法是？",
+        "options": [
+          {
+            "id": "A",
+            "text": "忽略异常继续操作"
+          },
+          {
+            "id": "B",
+            "text": "停止操作，按排查流程定位问题"
+          },
+          {
+            "id": "C",
+            "text": "直接更换设备"
+          },
+          {
+            "id": "D",
+            "text": "等待他人来修理"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_08",
+        "explanation": "发现异常应先停机，按排查流程系统性地定位问题，而不是盲目处理。",
+        "wrong_feedback": "异常状态必须及时处理，按流程排查，不能忽视或盲目更换。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_09",
+        "type": "single_choice",
+        "question": "关于PLC信号监控，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_09",
+        "explanation": "PLC信号监控需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_10",
+        "type": "multiple_choice",
+        "question": "在自动化设备调试员的启停控制调试中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "ad_10",
+        "explanation": "启停控制调试需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_11",
+        "type": "single_choice",
+        "question": "关于执行器类型识别，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_11",
+        "explanation": "执行器类型识别需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_12",
+        "type": "single_choice",
+        "question": "关于气动回路接线，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_12",
+        "explanation": "气动回路接线需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_13",
+        "type": "multiple_choice",
+        "question": "在自动化设备调试员的伺服参数设置中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "ad_13",
+        "explanation": "伺服参数设置需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_14",
+        "type": "single_choice",
+        "question": "关于执行器联动调试，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_14",
+        "explanation": "执行器联动调试需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_15",
+        "type": "single_choice",
+        "question": "关于动作顺序验证，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_15",
+        "explanation": "动作顺序验证需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_16",
+        "type": "multiple_choice",
+        "question": "在自动化设备调试员的试运行流程中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "ad_16",
+        "explanation": "试运行流程需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_17",
+        "type": "single_choice",
+        "question": "关于运行参数监测，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_17",
+        "explanation": "运行参数监测需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_18",
+        "type": "single_choice",
+        "question": "关于动作逻辑验证，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_18",
+        "explanation": "动作逻辑验证需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_19",
+        "type": "multiple_choice",
+        "question": "在自动化设备调试员的异常状态记录中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "ad_19",
+        "explanation": "异常状态记录需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_auto_20",
+        "type": "single_choice",
+        "question": "关于调试报告编写，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ad_20",
+        "explanation": "调试报告编写需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      }
+    ],
+    "industrial_robot_maintenance": [
+      {
+        "id": "Q_indu_01",
+        "type": "single_choice",
+        "question": "在工业机器人系统运维员的日常工作中，机器人基本操作最需要关注的是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "设备的品牌和外观"
+          },
+          {
+            "id": "B",
+            "text": "操作流程、安全规范和关键参数"
+          },
+          {
+            "id": "C",
+            "text": "仅关注最终产品是否合格"
+          },
+          {
+            "id": "D",
+            "text": "只需要记住操作按钮位置"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_01",
+        "explanation": "机器人基本操作的核心在于掌握规范流程和关键指标，而非表面信息。",
+        "wrong_feedback": "请回顾岗位基础要求，关注操作规范和安全标准。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_02",
+        "type": "single_choice",
+        "question": "进行示教器使用操作前，第一步应该做什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "直接开始操作"
+          },
+          {
+            "id": "B",
+            "text": "检查设备状态并确认安全条件"
+          },
+          {
+            "id": "C",
+            "text": "先查阅操作手册再动手"
+          },
+          {
+            "id": "D",
+            "text": "询问同事后再操作"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_02",
+        "explanation": "示教器使用的首要原则是安全第一，必须先确认设备和环境安全。",
+        "wrong_feedback": "安全永远是第一位，不能跳过安全检查直接操作。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_03",
+        "type": "single_choice",
+        "question": "关于坐标系设定，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_03",
+        "explanation": "坐标系设定要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_04",
+        "type": "single_choice",
+        "question": "关于程序编写基础，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_04",
+        "explanation": "程序编写基础要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_05",
+        "type": "single_choice",
+        "question": "关于轨迹调试，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_05",
+        "explanation": "轨迹调试要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_06",
+        "type": "single_choice",
+        "question": "执行机器人I/O配置任务时，正确的操作顺序是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "先操作后检查"
+          },
+          {
+            "id": "B",
+            "text": "检查→操作→验证→记录"
+          },
+          {
+            "id": "C",
+            "text": "操作→记录→检查"
+          },
+          {
+            "id": "D",
+            "text": "验证→操作→检查"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_06",
+        "explanation": "标准化作业流程：先检查确认条件，再执行操作，然后验证结果，最后记录。",
+        "wrong_feedback": "请按照标准化作业流程思考：检查→操作→验证→记录的顺序。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_07",
+        "type": "multiple_choice",
+        "question": "在PLC通信联调过程中，需要使用哪些工具或仪器？",
+        "options": [
+          {
+            "id": "A",
+            "text": "万用表或检测仪器"
+          },
+          {
+            "id": "B",
+            "text": "专用拆装工具"
+          },
+          {
+            "id": "C",
+            "text": "个人手机"
+          },
+          {
+            "id": "D",
+            "text": "标准作业指导书"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "D"
+        ],
+        "ability_id": "ir_07",
+        "explanation": "PLC通信联调需要专业检测仪器、专用工具和标准指导书，不能用手机替代。",
+        "wrong_feedback": "请区分哪些是专业工具，哪些是不相关物品。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_08",
+        "type": "single_choice",
+        "question": "当信号交互验证出现异常时，最合理的做法是？",
+        "options": [
+          {
+            "id": "A",
+            "text": "忽略异常继续操作"
+          },
+          {
+            "id": "B",
+            "text": "停止操作，按排查流程定位问题"
+          },
+          {
+            "id": "C",
+            "text": "直接更换设备"
+          },
+          {
+            "id": "D",
+            "text": "等待他人来修理"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_08",
+        "explanation": "发现异常应先停机，按排查流程系统性地定位问题，而不是盲目处理。",
+        "wrong_feedback": "异常状态必须及时处理，按流程排查，不能忽视或盲目更换。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_09",
+        "type": "single_choice",
+        "question": "关于网络通信检查，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_09",
+        "explanation": "网络通信检查需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_10",
+        "type": "multiple_choice",
+        "question": "在工业机器人系统运维员的通信异常处理中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "ir_10",
+        "explanation": "通信异常处理需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_11",
+        "type": "single_choice",
+        "question": "关于工作站安全规范，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_11",
+        "explanation": "工作站安全规范需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_12",
+        "type": "single_choice",
+        "question": "关于安全围栏检查，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_12",
+        "explanation": "安全围栏检查需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_13",
+        "type": "multiple_choice",
+        "question": "在工业机器人系统运维员的急停回路验证中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "ir_13",
+        "explanation": "急停回路验证需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_14",
+        "type": "single_choice",
+        "question": "关于安全联锁调试，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_14",
+        "explanation": "安全联锁调试需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_15",
+        "type": "single_choice",
+        "question": "关于安全程序编写，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_15",
+        "explanation": "安全程序编写需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_16",
+        "type": "multiple_choice",
+        "question": "在工业机器人系统运维员的机器人报警识别中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "ir_16",
+        "explanation": "机器人报警识别需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_17",
+        "type": "single_choice",
+        "question": "关于伺服故障排查，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_17",
+        "explanation": "伺服故障排查需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_18",
+        "type": "single_choice",
+        "question": "关于I/O故障诊断，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_18",
+        "explanation": "I/O故障诊断需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_19",
+        "type": "multiple_choice",
+        "question": "在工业机器人系统运维员的通信故障处理中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "ir_19",
+        "explanation": "通信故障处理需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_indu_20",
+        "type": "single_choice",
+        "question": "关于维护记录反馈，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "ir_20",
+        "explanation": "维护记录反馈需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      }
+    ],
+    "plc_electrical_control_technician": [
+      {
+        "id": "Q_plc__01",
+        "type": "single_choice",
+        "question": "在PLC 电气控制技术员的日常工作中，低压电器识别最需要关注的是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "设备的品牌和外观"
+          },
+          {
+            "id": "B",
+            "text": "操作流程、安全规范和关键参数"
+          },
+          {
+            "id": "C",
+            "text": "仅关注最终产品是否合格"
+          },
+          {
+            "id": "D",
+            "text": "只需要记住操作按钮位置"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_01",
+        "explanation": "低压电器识别的核心在于掌握规范流程和关键指标，而非表面信息。",
+        "wrong_feedback": "请回顾岗位基础要求，关注操作规范和安全标准。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__02",
+        "type": "single_choice",
+        "question": "进行断路器选型操作前，第一步应该做什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "直接开始操作"
+          },
+          {
+            "id": "B",
+            "text": "检查设备状态并确认安全条件"
+          },
+          {
+            "id": "C",
+            "text": "先查阅操作手册再动手"
+          },
+          {
+            "id": "D",
+            "text": "询问同事后再操作"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_02",
+        "explanation": "断路器选型的首要原则是安全第一，必须先确认设备和环境安全。",
+        "wrong_feedback": "安全永远是第一位，不能跳过安全检查直接操作。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__03",
+        "type": "single_choice",
+        "question": "关于接触器接线，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_03",
+        "explanation": "接触器接线要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__04",
+        "type": "single_choice",
+        "question": "关于继电器逻辑，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_04",
+        "explanation": "继电器逻辑要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__05",
+        "type": "single_choice",
+        "question": "关于电气安全规范，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_05",
+        "explanation": "电气安全规范要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__06",
+        "type": "single_choice",
+        "question": "执行PLC硬件配置任务时，正确的操作顺序是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "先操作后检查"
+          },
+          {
+            "id": "B",
+            "text": "检查→操作→验证→记录"
+          },
+          {
+            "id": "C",
+            "text": "操作→记录→检查"
+          },
+          {
+            "id": "D",
+            "text": "验证→操作→检查"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_06",
+        "explanation": "标准化作业流程：先检查确认条件，再执行操作，然后验证结果，最后记录。",
+        "wrong_feedback": "请按照标准化作业流程思考：检查→操作→验证→记录的顺序。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__07",
+        "type": "multiple_choice",
+        "question": "在PLC编程基础过程中，需要使用哪些工具或仪器？",
+        "options": [
+          {
+            "id": "A",
+            "text": "万用表或检测仪器"
+          },
+          {
+            "id": "B",
+            "text": "专用拆装工具"
+          },
+          {
+            "id": "C",
+            "text": "个人手机"
+          },
+          {
+            "id": "D",
+            "text": "标准作业指导书"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "D"
+        ],
+        "ability_id": "pc_07",
+        "explanation": "PLC编程基础需要专业检测仪器、专用工具和标准指导书，不能用手机替代。",
+        "wrong_feedback": "请区分哪些是专业工具，哪些是不相关物品。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__08",
+        "type": "single_choice",
+        "question": "当梯形图编写出现异常时，最合理的做法是？",
+        "options": [
+          {
+            "id": "A",
+            "text": "忽略异常继续操作"
+          },
+          {
+            "id": "B",
+            "text": "停止操作，按排查流程定位问题"
+          },
+          {
+            "id": "C",
+            "text": "直接更换设备"
+          },
+          {
+            "id": "D",
+            "text": "等待他人来修理"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_08",
+        "explanation": "发现异常应先停机，按排查流程系统性地定位问题，而不是盲目处理。",
+        "wrong_feedback": "异常状态必须及时处理，按流程排查，不能忽视或盲目更换。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__09",
+        "type": "single_choice",
+        "question": "关于程序调试，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_09",
+        "explanation": "程序调试需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__10",
+        "type": "multiple_choice",
+        "question": "在PLC 电气控制技术员的程序优化中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "pc_10",
+        "explanation": "程序优化需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__11",
+        "type": "single_choice",
+        "question": "关于PLC地址映射，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_11",
+        "explanation": "PLC地址映射需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__12",
+        "type": "single_choice",
+        "question": "关于I/O映射表编制，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_12",
+        "explanation": "I/O映射表编制需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__13",
+        "type": "multiple_choice",
+        "question": "在PLC 电气控制技术员的输入输出接线中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "pc_13",
+        "explanation": "输入输出接线需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__14",
+        "type": "single_choice",
+        "question": "关于信号监控，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_14",
+        "explanation": "信号监控需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__15",
+        "type": "single_choice",
+        "question": "关于变量查找，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_15",
+        "explanation": "变量查找需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__16",
+        "type": "multiple_choice",
+        "question": "在PLC 电气控制技术员的启停控制逻辑中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "pc_16",
+        "explanation": "启停控制逻辑需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__17",
+        "type": "single_choice",
+        "question": "关于互锁逻辑设计，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_17",
+        "explanation": "互锁逻辑设计需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__18",
+        "type": "single_choice",
+        "question": "关于顺序控制，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_18",
+        "explanation": "顺序控制需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__19",
+        "type": "multiple_choice",
+        "question": "在PLC 电气控制技术员的定时计数控制中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "pc_19",
+        "explanation": "定时计数控制需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_plc__20",
+        "type": "single_choice",
+        "question": "关于控制回路调试，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "pc_20",
+        "explanation": "控制回路调试需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      }
+    ],
+    "sensor_industrial_network_debugger": [
+      {
+        "id": "Q_sens_01",
+        "type": "single_choice",
+        "question": "在传感器与工业网络调试员的日常工作中，传感器类型识别最需要关注的是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "设备的品牌和外观"
+          },
+          {
+            "id": "B",
+            "text": "操作流程、安全规范和关键参数"
+          },
+          {
+            "id": "C",
+            "text": "仅关注最终产品是否合格"
+          },
+          {
+            "id": "D",
+            "text": "只需要记住操作按钮位置"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_01",
+        "explanation": "传感器类型识别的核心在于掌握规范流程和关键指标，而非表面信息。",
+        "wrong_feedback": "请回顾岗位基础要求，关注操作规范和安全标准。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_02",
+        "type": "single_choice",
+        "question": "进行传感器规格识读操作前，第一步应该做什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "直接开始操作"
+          },
+          {
+            "id": "B",
+            "text": "检查设备状态并确认安全条件"
+          },
+          {
+            "id": "C",
+            "text": "先查阅操作手册再动手"
+          },
+          {
+            "id": "D",
+            "text": "询问同事后再操作"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_02",
+        "explanation": "传感器规格识读的首要原则是安全第一，必须先确认设备和环境安全。",
+        "wrong_feedback": "安全永远是第一位，不能跳过安全检查直接操作。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_03",
+        "type": "single_choice",
+        "question": "关于传感器接线规范，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_03",
+        "explanation": "传感器接线规范要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_04",
+        "type": "single_choice",
+        "question": "关于传感器接线诊断，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_04",
+        "explanation": "传感器接线诊断要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_05",
+        "type": "single_choice",
+        "question": "关于传感器状态判断，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_05",
+        "explanation": "传感器状态判断要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_06",
+        "type": "single_choice",
+        "question": "执行信号类型识别任务时，正确的操作顺序是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "先操作后检查"
+          },
+          {
+            "id": "B",
+            "text": "检查→操作→验证→记录"
+          },
+          {
+            "id": "C",
+            "text": "操作→记录→检查"
+          },
+          {
+            "id": "D",
+            "text": "验证→操作→检查"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_06",
+        "explanation": "标准化作业流程：先检查确认条件，再执行操作，然后验证结果，最后记录。",
+        "wrong_feedback": "请按照标准化作业流程思考：检查→操作→验证→记录的顺序。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_07",
+        "type": "multiple_choice",
+        "question": "在模拟量采集过程中，需要使用哪些工具或仪器？",
+        "options": [
+          {
+            "id": "A",
+            "text": "万用表或检测仪器"
+          },
+          {
+            "id": "B",
+            "text": "专用拆装工具"
+          },
+          {
+            "id": "C",
+            "text": "个人手机"
+          },
+          {
+            "id": "D",
+            "text": "标准作业指导书"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "D"
+        ],
+        "ability_id": "sn_07",
+        "explanation": "模拟量采集需要专业检测仪器、专用工具和标准指导书，不能用手机替代。",
+        "wrong_feedback": "请区分哪些是专业工具，哪些是不相关物品。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_08",
+        "type": "single_choice",
+        "question": "当数字量采集出现异常时，最合理的做法是？",
+        "options": [
+          {
+            "id": "A",
+            "text": "忽略异常继续操作"
+          },
+          {
+            "id": "B",
+            "text": "停止操作，按排查流程定位问题"
+          },
+          {
+            "id": "C",
+            "text": "直接更换设备"
+          },
+          {
+            "id": "D",
+            "text": "等待他人来修理"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_08",
+        "explanation": "发现异常应先停机，按排查流程系统性地定位问题，而不是盲目处理。",
+        "wrong_feedback": "异常状态必须及时处理，按流程排查，不能忽视或盲目更换。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_09",
+        "type": "single_choice",
+        "question": "关于信号转换，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_09",
+        "explanation": "信号转换需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_10",
+        "type": "multiple_choice",
+        "question": "在传感器与工业网络调试员的信号异常排查中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "sn_10",
+        "explanation": "信号异常排查需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_11",
+        "type": "single_choice",
+        "question": "关于工业以太网基础，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_11",
+        "explanation": "工业以太网基础需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_12",
+        "type": "single_choice",
+        "question": "关于现场总线配置，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_12",
+        "explanation": "现场总线配置需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_13",
+        "type": "multiple_choice",
+        "question": "在传感器与工业网络调试员的通信协议理解中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "sn_13",
+        "explanation": "通信协议理解需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_14",
+        "type": "single_choice",
+        "question": "关于网络拓扑识读，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_14",
+        "explanation": "网络拓扑识读需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_15",
+        "type": "single_choice",
+        "question": "关于通信参数设置，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_15",
+        "explanation": "通信参数设置需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_16",
+        "type": "multiple_choice",
+        "question": "在传感器与工业网络调试员的数据采集配置中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "sn_16",
+        "explanation": "数据采集配置需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_17",
+        "type": "single_choice",
+        "question": "关于数据报文分析，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_17",
+        "explanation": "数据报文分析需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_18",
+        "type": "single_choice",
+        "question": "关于数据异常处理，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_18",
+        "explanation": "数据异常处理需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_19",
+        "type": "multiple_choice",
+        "question": "在传感器与工业网络调试员的采集系统调试中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "sn_19",
+        "explanation": "采集系统调试需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_sens_20",
+        "type": "single_choice",
+        "question": "关于调试报告编写，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sn_20",
+        "explanation": "调试报告编写需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      }
+    ],
+    "servo_step_drive_debugger": [
+      {
+        "id": "Q_serv_01",
+        "type": "single_choice",
+        "question": "在伺服/步进驱动调试员的日常工作中，伺服电机基础最需要关注的是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "设备的品牌和外观"
+          },
+          {
+            "id": "B",
+            "text": "操作流程、安全规范和关键参数"
+          },
+          {
+            "id": "C",
+            "text": "仅关注最终产品是否合格"
+          },
+          {
+            "id": "D",
+            "text": "只需要记住操作按钮位置"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_01",
+        "explanation": "伺服电机基础的核心在于掌握规范流程和关键指标，而非表面信息。",
+        "wrong_feedback": "请回顾岗位基础要求，关注操作规范和安全标准。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_02",
+        "type": "single_choice",
+        "question": "进行步进电机基础操作前，第一步应该做什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "直接开始操作"
+          },
+          {
+            "id": "B",
+            "text": "检查设备状态并确认安全条件"
+          },
+          {
+            "id": "C",
+            "text": "先查阅操作手册再动手"
+          },
+          {
+            "id": "D",
+            "text": "询问同事后再操作"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_02",
+        "explanation": "步进电机基础的首要原则是安全第一，必须先确认设备和环境安全。",
+        "wrong_feedback": "安全永远是第一位，不能跳过安全检查直接操作。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_03",
+        "type": "single_choice",
+        "question": "关于驱动器识别，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_03",
+        "explanation": "驱动器识别要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_04",
+        "type": "single_choice",
+        "question": "关于电机接线规范，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_04",
+        "explanation": "电机接线规范要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_05",
+        "type": "single_choice",
+        "question": "关于电源检查，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_05",
+        "explanation": "电源检查要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_06",
+        "type": "single_choice",
+        "question": "执行驱动器参数设置任务时，正确的操作顺序是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "先操作后检查"
+          },
+          {
+            "id": "B",
+            "text": "检查→操作→验证→记录"
+          },
+          {
+            "id": "C",
+            "text": "操作→记录→检查"
+          },
+          {
+            "id": "D",
+            "text": "验证→操作→检查"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_06",
+        "explanation": "标准化作业流程：先检查确认条件，再执行操作，然后验证结果，最后记录。",
+        "wrong_feedback": "请按照标准化作业流程思考：检查→操作→验证→记录的顺序。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_07",
+        "type": "multiple_choice",
+        "question": "在电子齿轮比过程中，需要使用哪些工具或仪器？",
+        "options": [
+          {
+            "id": "A",
+            "text": "万用表或检测仪器"
+          },
+          {
+            "id": "B",
+            "text": "专用拆装工具"
+          },
+          {
+            "id": "C",
+            "text": "个人手机"
+          },
+          {
+            "id": "D",
+            "text": "标准作业指导书"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "D"
+        ],
+        "ability_id": "sd_07",
+        "explanation": "电子齿轮比需要专业检测仪器、专用工具和标准指导书，不能用手机替代。",
+        "wrong_feedback": "请区分哪些是专业工具，哪些是不相关物品。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_08",
+        "type": "single_choice",
+        "question": "当加减速设置出现异常时，最合理的做法是？",
+        "options": [
+          {
+            "id": "A",
+            "text": "忽略异常继续操作"
+          },
+          {
+            "id": "B",
+            "text": "停止操作，按排查流程定位问题"
+          },
+          {
+            "id": "C",
+            "text": "直接更换设备"
+          },
+          {
+            "id": "D",
+            "text": "等待他人来修理"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_08",
+        "explanation": "发现异常应先停机，按排查流程系统性地定位问题，而不是盲目处理。",
+        "wrong_feedback": "异常状态必须及时处理，按流程排查，不能忽视或盲目更换。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_09",
+        "type": "single_choice",
+        "question": "关于限位保护配置，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_09",
+        "explanation": "限位保护配置需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_10",
+        "type": "multiple_choice",
+        "question": "在伺服/步进驱动调试员的回零参数设置中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "sd_10",
+        "explanation": "回零参数设置需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_11",
+        "type": "single_choice",
+        "question": "关于运动控制指令，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_11",
+        "explanation": "运动控制指令需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_12",
+        "type": "single_choice",
+        "question": "关于定位控制，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_12",
+        "explanation": "定位控制需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_13",
+        "type": "multiple_choice",
+        "question": "在伺服/步进驱动调试员的速度控制中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "sd_13",
+        "explanation": "速度控制需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_14",
+        "type": "single_choice",
+        "question": "关于转矩控制，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_14",
+        "explanation": "转矩控制需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_15",
+        "type": "single_choice",
+        "question": "关于多轴联动，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_15",
+        "explanation": "多轴联动需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_16",
+        "type": "multiple_choice",
+        "question": "在伺服/步进驱动调试员的定位偏差分析中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "sd_16",
+        "explanation": "定位偏差分析需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_17",
+        "type": "single_choice",
+        "question": "关于振动异常排查，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_17",
+        "explanation": "振动异常排查需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_18",
+        "type": "single_choice",
+        "question": "关于过载故障处理，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_18",
+        "explanation": "过载故障处理需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_19",
+        "type": "multiple_choice",
+        "question": "在伺服/步进驱动调试员的回零异常排查中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "sd_19",
+        "explanation": "回零异常排查需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_serv_20",
+        "type": "single_choice",
+        "question": "关于维护记录编写，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "sd_20",
+        "explanation": "维护记录编写需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      }
+    ],
+    "cnc_maintenance_worker": [
+      {
+        "id": "Q_cnc__01",
+        "type": "single_choice",
+        "question": "在数控设备维护员的日常工作中，机械传动基础最需要关注的是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "设备的品牌和外观"
+          },
+          {
+            "id": "B",
+            "text": "操作流程、安全规范和关键参数"
+          },
+          {
+            "id": "C",
+            "text": "仅关注最终产品是否合格"
+          },
+          {
+            "id": "D",
+            "text": "只需要记住操作按钮位置"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_01",
+        "explanation": "机械传动基础的核心在于掌握规范流程和关键指标，而非表面信息。",
+        "wrong_feedback": "请回顾岗位基础要求，关注操作规范和安全标准。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__02",
+        "type": "single_choice",
+        "question": "进行丝杠导轨检查操作前，第一步应该做什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "直接开始操作"
+          },
+          {
+            "id": "B",
+            "text": "检查设备状态并确认安全条件"
+          },
+          {
+            "id": "C",
+            "text": "先查阅操作手册再动手"
+          },
+          {
+            "id": "D",
+            "text": "询问同事后再操作"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_02",
+        "explanation": "丝杠导轨检查的首要原则是安全第一，必须先确认设备和环境安全。",
+        "wrong_feedback": "安全永远是第一位，不能跳过安全检查直接操作。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__03",
+        "type": "single_choice",
+        "question": "关于主轴系统检查，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_03",
+        "explanation": "主轴系统检查要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__04",
+        "type": "single_choice",
+        "question": "关于润滑系统维护，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_04",
+        "explanation": "润滑系统维护要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__05",
+        "type": "single_choice",
+        "question": "关于传动精度调整，以下哪项描述是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需要理论理解，不需要实际操作"
+          },
+          {
+            "id": "B",
+            "text": "理论结合实操，能正确使用工具并判断状态"
+          },
+          {
+            "id": "C",
+            "text": "只需要会操作，不需要了解原理"
+          },
+          {
+            "id": "D",
+            "text": "可以完全依赖自动化设备"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_05",
+        "explanation": "传动精度调整要求既懂原理又能动手，理论与实践缺一不可。",
+        "wrong_feedback": "机电一体化岗位要求理论结合实践，不能偏废。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__06",
+        "type": "single_choice",
+        "question": "执行电气安全规范任务时，正确的操作顺序是什么？",
+        "options": [
+          {
+            "id": "A",
+            "text": "先操作后检查"
+          },
+          {
+            "id": "B",
+            "text": "检查→操作→验证→记录"
+          },
+          {
+            "id": "C",
+            "text": "操作→记录→检查"
+          },
+          {
+            "id": "D",
+            "text": "验证→操作→检查"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_06",
+        "explanation": "标准化作业流程：先检查确认条件，再执行操作，然后验证结果，最后记录。",
+        "wrong_feedback": "请按照标准化作业流程思考：检查→操作→验证→记录的顺序。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__07",
+        "type": "multiple_choice",
+        "question": "在电气元件检查过程中，需要使用哪些工具或仪器？",
+        "options": [
+          {
+            "id": "A",
+            "text": "万用表或检测仪器"
+          },
+          {
+            "id": "B",
+            "text": "专用拆装工具"
+          },
+          {
+            "id": "C",
+            "text": "个人手机"
+          },
+          {
+            "id": "D",
+            "text": "标准作业指导书"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "D"
+        ],
+        "ability_id": "cm_07",
+        "explanation": "电气元件检查需要专业检测仪器、专用工具和标准指导书，不能用手机替代。",
+        "wrong_feedback": "请区分哪些是专业工具，哪些是不相关物品。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__08",
+        "type": "single_choice",
+        "question": "当接线端子检查出现异常时，最合理的做法是？",
+        "options": [
+          {
+            "id": "A",
+            "text": "忽略异常继续操作"
+          },
+          {
+            "id": "B",
+            "text": "停止操作，按排查流程定位问题"
+          },
+          {
+            "id": "C",
+            "text": "直接更换设备"
+          },
+          {
+            "id": "D",
+            "text": "等待他人来修理"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_08",
+        "explanation": "发现异常应先停机，按排查流程系统性地定位问题，而不是盲目处理。",
+        "wrong_feedback": "异常状态必须及时处理，按流程排查，不能忽视或盲目更换。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__09",
+        "type": "single_choice",
+        "question": "关于电源电压检测，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_09",
+        "explanation": "电源电压检测需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__10",
+        "type": "multiple_choice",
+        "question": "在数控设备维护员的电气图纸识读中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "cm_10",
+        "explanation": "电气图纸识读需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__11",
+        "type": "single_choice",
+        "question": "关于报警代码解读，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_11",
+        "explanation": "报警代码解读需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__12",
+        "type": "single_choice",
+        "question": "关于常见报警分类，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_12",
+        "explanation": "常见报警分类需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__13",
+        "type": "multiple_choice",
+        "question": "在数控设备维护员的报警信息分析中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "cm_13",
+        "explanation": "报警信息分析需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__14",
+        "type": "single_choice",
+        "question": "关于系统自诊断，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_14",
+        "explanation": "系统自诊断需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__15",
+        "type": "single_choice",
+        "question": "关于报警排查流程，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_15",
+        "explanation": "报警排查流程需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__16",
+        "type": "multiple_choice",
+        "question": "在数控设备维护员的日常维护流程中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "cm_16",
+        "explanation": "日常维护流程需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__17",
+        "type": "single_choice",
+        "question": "关于定期保养项目，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_17",
+        "explanation": "定期保养项目需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__18",
+        "type": "single_choice",
+        "question": "关于精度检测校准，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_18",
+        "explanation": "精度检测校准需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__19",
+        "type": "multiple_choice",
+        "question": "在数控设备维护员的维护记录编写中，哪些属于必备要素？",
+        "options": [
+          {
+            "id": "A",
+            "text": "理论知识基础"
+          },
+          {
+            "id": "B",
+            "text": "实操动手能力"
+          },
+          {
+            "id": "C",
+            "text": "安全意识"
+          },
+          {
+            "id": "D",
+            "text": "无关的娱乐信息"
+          }
+        ],
+        "correct_answer": [
+          "A",
+          "B",
+          "C"
+        ],
+        "ability_id": "cm_19",
+        "explanation": "维护记录编写需要理论、实操和安全三位一体。",
+        "wrong_feedback": "请思考机电岗位必备的核心要素。",
+        "source": "project_curated"
+      },
+      {
+        "id": "Q_cnc__20",
+        "type": "single_choice",
+        "question": "关于备件管理基础，以下哪项理解是正确的？",
+        "options": [
+          {
+            "id": "A",
+            "text": "只需记忆，不需要理解原理"
+          },
+          {
+            "id": "B",
+            "text": "理解原理并能应用于实际操作"
+          },
+          {
+            "id": "C",
+            "text": "只需要会模仿操作"
+          },
+          {
+            "id": "D",
+            "text": "与岗位其他能力无关"
+          }
+        ],
+        "correct_answer": "B",
+        "ability_id": "cm_20",
+        "explanation": "备件管理基础需要理解基本原理并能灵活应用到实际工作中。",
+        "wrong_feedback": "请思考该项能力的本质：理解原理并应用。",
+        "source": "project_curated"
+      }
+    ]
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "version": "0.1.0",
+  "source": "project_curated",
+  "patterns": [
+    {
+      "id": "sensor_led_on_plc_led_off",
+      "title": "传感器灯亮但 PLC 输入灯不亮",
+      "typical_symptom": "传感器动作灯亮，PLC 输入指示灯不亮，在线监控不变。",
+      "priority": 100,
+      "match_terms": ["传感器", "动作灯", "输入", "没有变化", "无响应"],
+      "required_context": ["sensor_led", "plc_input_led", "online_monitor"],
+      "clarifying_questions": [
+        {
+          "field": "sensor_led",
+          "question": "传感器动作灯现在是什么状态？",
+          "options": ["on", "off", "unstable", "unknown"]
+        },
+        {
+          "field": "plc_input_led",
+          "question": "对应 PLC 输入模块指示灯是否亮？",
+          "options": ["on", "off", "unknown"]
+        },
+        {
+          "field": "online_monitor",
+          "question": "PLC 在线监控里对应输入地址是否变化？",
+          "options": ["on", "off", "unknown"]
+        }
+      ],
+      "direct_answer": "从三联状态看，传感器动作灯已亮，但 PLC 输入灯和在线监控都不变化，优先怀疑输出线到 PLC 输入点的接线、PLC 输入公共端匹配、输入模块端子或输入点本身。先不要改程序，按断电核线、确认公共端、再通电监控的顺序排查。",
+      "first_checks": [
+        "断电后核对传感器棕/蓝/黑线和输出线是否接入目标输入点。",
+        "核对传感器 NPN/PNP 类型与 PLC 输入公共端是否匹配。",
+        "检查输入端子和公共端端子是否松动、悬空或跨组接错。",
+        "教师确认安全后，再观察传感器动作灯、PLC 输入灯和在线监控三者是否同步。"
+      ],
+      "fault_candidates": [
+        "传感器输出线断开、松动或接到错误输入点",
+        "NPN/PNP 输出类型与 PLC 输入公共端不匹配",
+        "PLC 输入公共端悬空、接反或接入错误公共端组",
+        "PLC 输入模块端子松动或目标输入点异常"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "sensor_wiring_judgement",
+          "reason": "传感器动作灯亮但 PLC 输入灯不亮，说明需要核对输出线、端子和目标输入点。"
+        },
+        {
+          "id": "plc_input_common_terminal",
+          "reason": "公共端接错会导致传感器有动作但 PLC 输入回路不成立。"
+        },
+        {
+          "id": "plc_input_monitoring",
+          "reason": "必须用 PLC 输入灯和在线监控验证信号是否真正进入 PLC。"
+        }
+      ],
+      "related_knowledge": ["K006", "K014", "K016", "K031", "K034", "K035"],
+      "related_tasks": ["T001", "T002", "T005"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "plc_led_on_monitor_off",
+      "title": "PLC 输入灯亮但在线监控不对",
+      "typical_symptom": "传感器动作灯亮，PLC 输入指示灯亮，但在线监控地址不变化或程序条件不成立。",
+      "priority": 90,
+      "match_terms": ["输入灯亮", "在线监控", "程序", "地址", "变量"],
+      "required_context": ["sensor_led", "plc_input_led", "online_monitor"],
+      "clarifying_questions": [
+        {
+          "field": "sensor_led",
+          "question": "传感器动作灯是否亮？",
+          "options": ["on", "off", "unstable", "unknown"]
+        },
+        {
+          "field": "plc_input_led",
+          "question": "PLC 输入模块指示灯是否亮？",
+          "options": ["on", "off", "unknown"]
+        },
+        {
+          "field": "online_monitor",
+          "question": "在线监控的对应地址是否变化？",
+          "options": ["on", "off", "unknown"]
+        }
+      ],
+      "direct_answer": "传感器灯和 PLC 输入灯都亮，但在线监控不变化时，现场输入硬件链路大概率已经到达模块，下一步应优先检查 I/O 地址映射、在线工程连接、监控地址和程序变量绑定，而不是继续换传感器。",
+      "first_checks": [
+        "核对端子号、PLC 输入地址、程序变量和监控地址是否是同一个点。",
+        "检查模块槽位、起始地址、符号表或注释是否与实际接线一致。",
+        "确认在线连接的是当前设备和当前工程。",
+        "查看该变量在程序中是否被常开/常闭触点、互锁或模式条件影响。"
+      ],
+      "fault_candidates": [
+        "监控了错误的 PLC 输入地址",
+        "I/O 映射表、程序变量或符号表与现场接线不一致",
+        "模块起始地址或工程配置不一致",
+        "程序中常开/常闭、互锁、模式条件导致后续逻辑不成立"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "plc_io_address_mapping",
+          "reason": "输入灯亮但在线监控不变，首先要核对现场点位和 PLC 地址映射。"
+        },
+        {
+          "id": "program_variable_lookup",
+          "reason": "程序可能读取了错误变量，或触点逻辑与当前状态不一致。"
+        },
+        {
+          "id": "plc_input_monitoring",
+          "reason": "需要确认在线工程、监控对象和输入模块状态一致。"
+        }
+      ],
+      "related_knowledge": ["K021", "K023", "K024", "K026", "K027", "K030", "K032"],
+      "related_tasks": ["T004", "T005"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "sensor_led_off_or_unstable",
+      "title": "传感器灯不亮或不稳定",
+      "typical_symptom": "传感器动作灯不亮、闪烁或检测不稳定。",
+      "priority": 80,
+      "match_terms": ["传感器灯不亮", "动作灯不亮", "不稳定", "闪烁", "检测不到"],
+      "required_context": ["sensor_led"],
+      "clarifying_questions": [
+        {
+          "field": "sensor_led",
+          "question": "传感器动作灯是熄灭、闪烁还是稳定亮？",
+          "options": ["on", "off", "unstable", "unknown"]
+        },
+        {
+          "field": "sensor_type",
+          "question": "是否已确认传感器型号、供电电压和 NPN/PNP 类型？",
+          "options": ["known", "unknown"]
+        },
+        {
+          "field": "power_24v",
+          "question": "是否确认 DC24V 和 0V 供电正常？",
+          "options": ["ok", "abnormal", "unknown"]
+        }
+      ],
+      "direct_answer": "传感器动作灯不亮或不稳定时，先不要从 PLC 程序入手。优先检查 DC24V/0V 供电、传感器型号与供电范围、检测距离、安装角度、目标材质和传感器输出端电压。",
+      "first_checks": [
+        "断电核对棕线、蓝线供电端子，确认没有接反或松动。",
+        "教师确认安全后测量 DC24V 和 0V 是否正常。",
+        "调整检测距离、安装角度，并确认目标材质适合当前传感器。",
+        "确认传感器型号、输出类型和说明书接线要求。"
+      ],
+      "fault_candidates": [
+        "传感器供电异常或正负极接反",
+        "检测距离、安装角度或目标材质不匹配",
+        "传感器型号或输出类型识别错误",
+        "传感器本体损坏或输出端无有效变化"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "dc24v_power_check",
+          "reason": "传感器灯不亮首先要确认 DC24V 和 0V 供电回路。"
+        },
+        {
+          "id": "sensor_type_identification",
+          "reason": "型号、供电范围和 NPN/PNP 类型不清会导致错误判断。"
+        },
+        {
+          "id": "sensor_led_observation",
+          "reason": "动作灯状态是判断检测条件是否成立的第一证据。"
+        },
+        {
+          "id": "no_response_sensor_side_check",
+          "reason": "需要从传感器侧检查检测距离、材质、角度和输出端电压。"
+        }
+      ],
+      "related_knowledge": ["K004", "K009", "K010", "K013", "K036", "K037"],
+      "related_tasks": ["T001"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    },
+    {
+      "id": "cylinder_no_action_layered",
+      "title": "气缸不动作分层排查",
+      "typical_symptom": "气缸不动作、动作慢或不到位，需要区分电气、程序、气路和机械问题。",
+      "priority": 70,
+      "match_terms": ["气缸", "不动作", "电磁阀", "气源", "节流阀", "不到位"],
+      "required_context": ["cylinder_action"],
+      "clarifying_questions": [
+        {
+          "field": "cylinder_action",
+          "question": "气缸当前是完全不动作、动作慢，还是不到位？",
+          "options": ["none", "slow", "not_in_place", "unknown"]
+        },
+        {
+          "field": "program_output",
+          "question": "PLC 输出点或程序输出条件是否已经成立？",
+          "options": ["on", "off", "unknown"]
+        },
+        {
+          "field": "air_pressure",
+          "question": "气源压力和气源阀状态是否正常？",
+          "options": ["ok", "abnormal", "unknown"]
+        }
+      ],
+      "direct_answer": "气缸不动作要分层排查：先看相关输入条件是否满足，再看程序输出和电磁阀线圈，再看气源压力、节流阀和机械卡滞。不要只调气压或只改程序。",
+      "first_checks": [
+        "确认相关传感器输入条件和安全互锁是否成立。",
+        "查看 PLC 输出点、电磁阀线圈电压和接线状态。",
+        "检查气源压力、气源阀、节流阀和管路连接。",
+        "在教师确认安全后，再判断是否存在机构卡滞或到位传感器异常。"
+      ],
+      "fault_candidates": [
+        "前置输入条件或互锁不成立",
+        "程序输出未发出或输出地址错误",
+        "电磁阀线圈、接线或输出点异常",
+        "气源压力、节流阀、管路或机械卡滞问题"
+      ],
+      "highlighted_abilities": [
+        {
+          "id": "input_no_response_fault_scope",
+          "reason": "气缸不动作要按电气、程序、气路和机械分层排查。"
+        },
+        {
+          "id": "program_variable_lookup",
+          "reason": "需要确认相关输入条件、互锁和程序输出是否成立。"
+        },
+        {
+          "id": "no_response_address_mapping_check",
+          "reason": "需要核对输出地址、电磁阀线圈和执行元件是否对应。"
+        }
+      ],
+      "related_knowledge": ["K041", "K042", "K043", "K044", "K045", "K046", "K047"],
+      "related_tasks": ["T003", "T005"],
+      "source": "PLC 实训指导书/教师确认资料/课程标准待补充"
+    }
+  ]
+}

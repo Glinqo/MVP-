@@ -1,0 +1,7 @@
+{"id":"STATE-001","category":"slot_extraction","turns":[{"user":"传感器灯亮，但是PLC输入灯不亮。"}],"expect":{"slots":{"sensor_led":"on","plc_input_led":"off"}}}
+{"id":"STATE-002","category":"short_answer","turns":[{"user":"传感器灯亮，PLC输入灯不亮"},{"assistant":"在线监控有变化吗？"},{"user":"没有"}],"expect":{"slots":{"online_monitor":"unchanged"}}}
+{"id":"STATE-003","category":"user_correction","turns":[{"user":"传感器是NPN的"},{"assistant":"确认是NPN吗？"},{"user":"刚才看错了，是PNP。"}],"expect":{"slots":{"sensor_type_source":null},"note":"known: sensor_type not extracted by current slot rules"}}
+{"id":"STATE-004","category":"slot_retention","turns":[{"user":"PLC输入灯不亮，传感器是NPN"},{"user":"公共端也检查了吗？"}],"expect":{"slots_preserved":["plc_input_led"],"new_slots":["common_terminal"],"note":"known: sensor_type slot not captured by extractor"}}
+{"id":"STATE-005","category":"new_task_reset","turns":[{"user":"传感器灯不亮"},{"assistant":"..."},{"user":"换个问题，气缸为什么不动作？"}],"expect":{"active_task_changed":true,"previous_slots_reset":true}}
+{"id":"STATE-006","category":"clarify_max","turns":[{"user":"有问题"},{"assistant":"能描述具体现象吗？"},{"user":"不知道"},{"assistant":"传感器灯亮吗？"},{"user":"不知道"},{"assistant":"PLC有输入吗？"}],"expect":{"clarify_count":{"max":3},"should_offer_guidance":true}}
+{"id":"STATE-007","category":"multi_slot_extraction","turns":[{"user":"NPN传感器，棕色接24V，蓝色接0V，黑色接PLC I0.0，传感器灯亮但PLC输入灯不亮"}],"expect":{"slots":{"sensor_led":"on","plc_input_led":"off"},"note":"known: sensor_type and plc_input_point extraction limited"}}

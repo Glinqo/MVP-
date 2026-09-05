@@ -1,0 +1,10 @@
+{"id":"MULTI-001","category":"coreference","turns":[{"user":"NPN和PNP有什么区别？"},{"user":"前者怎么接？"}],"expect":{"resolved_entity":"NPN","forbidden":["询问用户前者指什么"]}}
+{"id":"MULTI-002","category":"context_loss","turns":[{"user":"传感器灯亮PLC不亮"},{"assistant":"公共端接了吗？"},{"user":"接了"},{"assistant":"那就检查IO映射"},{"user":"回到刚才，传感器类型是什么？"}],"expect":{"context_retained":[],"no_lost_context":false,"note":"known: slot extractor cannot resolve backward references (e.g., 'go back to sensor type')"}}
+{"id":"MULTI-003","category":"repeat_question_detection","turns":[{"user":"PLC输入灯不亮"},{"assistant":"传感器是什么类型？"},{"user":"NPN"},{"assistant":"传感器是什么类型？"}],"expect":{"repeated_question":true,"repeated_question_count":1}}
+{"id":"MULTI-004","category":"topic_switch","turns":[{"user":"PLC输入灯不亮"},{"assistant":"检查公共端"},{"user":"换个话题，什么是NPN？"}],"expect":{"active_task_changed":true}}
+{"id":"MULTI-005","category":"long_context","turns":[{"user":"传感器灯亮但PLC输入灯不亮，NPN传感器，棕色接24V，蓝色0V，黑色I0.0"},{"user":"然后呢？"},{"user":"然后呢？"},{"user":"然后呢？"},{"user":"然后呢？"},{"user":"然后呢？"},{"user":"然后呢？"},{"user":"然后呢？"}],"expect":{"slots_preserved":["sensor_type","plc_input_led"],"max_turns_ok":true}}
+{"id":"MULTI-006","category":"adversarial_slot_mutation","turns":[{"user":"传感器灯亮PLC输入灯不亮"},{"user":"其实是传感器灯也不亮"}],"expect":{"slots":{"sensor_led":"off","plc_input_led":"off"},"unexpected_mutation":false}}
+{"id":"MULTI-007","category":"adversarial_contradiction","turns":[{"user":"NPN传感器灯亮PLC不亮"},{"user":"不对，是PNP"}],"expect":{"slots":{"sensor_type":"PNP"},"slot_correction_count":1}}
+{"id":"MULTI-008","category":"adversarial_nonsense","turns":[{"user":"传感器灯亮"},{"user":"asdfghjkl"}],"expect":{"slots_preserved":["sensor_led"],"no_slot_corruption":true}}
+{"id":"MULTI-009","category":"adversarial_rapid_switch","turns":[{"user":"NPN传感器灯不亮"},{"user":"不管了，PLC公共端怎么检查？"},{"user":"算了，传感器类型是什么"}],"expect":{"topic_switches":2,"final_query_has_tool":true}}
+{"id":"MULTI-010","category":"adversarial_empty","turns":[{"user":"传感器灯亮"},{"user":""}],"expect":{"slots_preserved":["sensor_led"],"empty_turn_no_crash":true}}

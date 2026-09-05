@@ -1,0 +1,142 @@
+{
+  "version": "0.1.0",
+  "source": "机电一体化岗位能力雷达图维度建议",
+  "dimensions": [
+    {
+      "id": "electrical_safety_diagram",
+      "order": 1,
+      "name": "电气安全",
+      "short_name": "电气安全",
+      "description": "安全用电、断电检查、万用表使用、低压电器、电气图识读",
+      "scoring_rubric": [
+        {
+          "score": 1,
+          "label": "了解",
+          "description": "知道安全用电基本原则和常见电气符号"
+        },
+        {
+          "score": 2,
+          "label": "理解",
+          "description": "能说明断电检查流程，会识读基本电气原理图"
+        },
+        {
+          "score": 3,
+          "label": "应用",
+          "description": "能在指导下完成断电确认、万用表测量和接线检查"
+        },
+        {
+          "score": 4,
+          "label": "熟练",
+          "description": "能独立完成电气安全检查、识读中等复杂电气图并判断异常"
+        },
+        {
+          "score": 5,
+          "label": "精通",
+          "description": "能制定安全规范，排查复杂电气回路故障并指导他人操作"
+        }
+      ]
+    },
+    {
+      "id": "sensor_signal_acquisition",
+      "order": 2,
+      "name": "传感器检测",
+      "short_name": "传感器检测",
+      "description": "NPN/PNP 判断、传感器接线、信号检测、输入异常排查",
+      "scoring_rubric": [
+        {
+          "score": 1,
+          "label": "了解",
+          "description": "知道常见传感器类型和基本工作原理"
+        },
+        {
+          "score": 2,
+          "label": "理解",
+          "description": "能区分 NPN/PNP 输出类型，说明传感器接线基本要求"
+        },
+        {
+          "score": 3,
+          "label": "应用",
+          "description": "能在指导下完成传感器类型识别、接线和信号测试"
+        },
+        {
+          "score": 4,
+          "label": "熟练",
+          "description": "能独立判断 NPN/PNP 类型、接线正确性并排查输入信号异常"
+        },
+        {
+          "score": 5,
+          "label": "精通",
+          "description": "能快速诊断复杂传感器信号链路故障，指导他人完成传感器调试"
+        }
+      ]
+    },
+    {
+      "id": "plc_control_debug",
+      "order": 3,
+      "name": "PLC控制",
+      "short_name": "PLC控制",
+      "description": "I/O 映射、程序监控、启停控制、互锁逻辑、PLC 调试",
+      "scoring_rubric": [
+        {
+          "score": 1,
+          "label": "了解",
+          "description": "知道 PLC 基本组成和 I/O 地址概念"
+        },
+        {
+          "score": 2,
+          "label": "理解",
+          "description": "能说明 I/O 映射关系和公共端作用，能识读简单梯形图"
+        },
+        {
+          "score": 3,
+          "label": "应用",
+          "description": "能在指导下完成 I/O 映射表填写和在线监控操作"
+        },
+        {
+          "score": 4,
+          "label": "熟练",
+          "description": "能独立完成 I/O 映射、程序监控、启停控制逻辑调试和互锁检查"
+        },
+        {
+          "score": 5,
+          "label": "精通",
+          "description": "能独立调试复杂 PLC 程序，快速定位程序逻辑和地址映射问题"
+        }
+      ]
+    },
+    {
+      "id": "equipment_inspection_troubleshooting",
+      "order": 4,
+      "name": "排故诊断",
+      "short_name": "排故诊断",
+      "description": "点检流程、故障分类、排查顺序、维修记录、系统级故障诊断",
+      "scoring_rubric": [
+        {
+          "score": 1,
+          "label": "了解",
+          "description": "知道设备点检基本流程和常见故障分类方法"
+        },
+        {
+          "score": 2,
+          "label": "理解",
+          "description": "能说明故障排查顺序原则和维修记录基本要求"
+        },
+        {
+          "score": 3,
+          "label": "应用",
+          "description": "能在指导下按流程完成设备点检和简单故障诊断"
+        },
+        {
+          "score": 4,
+          "label": "熟练",
+          "description": "能独立按排故顺序定位系统级故障，完成维修记录和反馈闭环"
+        },
+        {
+          "score": 5,
+          "label": "精通",
+          "description": "能建立系统级故障诊断体系，指导复杂产线综合排故"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "all_correct": {
+    "score": 100,
+    "correct_count": 20,
+    "total_count": 20,
+    "weak_abilities": [],
+    "recommended_path": [],
+    "feedback_level": "掌握较好"
+  },
+  "all_wrong": {
+    "score": 0,
+    "correct_count": 0,
+    "total_count": 20,
+    "feedback_level": "需要补基础"
+  },
+  "partial_wrong": {
+    "score": 90,
+    "correct_count": 18,
+    "total_count": 20,
+    "weak_ability_ids": ["A02", "A03"],
+    "feedback_level": "需要补基础"
+  },
+  "missing_answers": {
+    "score": 15,
+    "correct_count": 3,
+    "total_count": 20,
+    "feedback_level": "需要补基础"
+  }
+}

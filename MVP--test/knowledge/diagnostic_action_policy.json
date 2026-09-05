@@ -1,0 +1,109 @@
+{
+  "version": "0.1.0",
+  "source": "project_curated",
+  "description": "诊断动作效用计算权重配置。所有权重归一化后相加。修改无需改代码。",
+  "weights": {
+    "information_gain": 0.40,
+    "risk_penalty": 0.25,
+    "action_cost": 0.15,
+    "repetition_penalty": 0.10,
+    "ability_validation": 0.10
+  },
+  "risk_costs": {
+    "optimal": 0.0,
+    "valid": 0.05,
+    "valid_but_inefficient": 0.10,
+    "closure_missing": 0.15,
+    "repeated_low_value": 0.20,
+    "premature": 0.40,
+    "unsupported_hypothesis": 0.60,
+    "unsafe": 1.0
+  },
+  "action_base_costs": {
+    "CHECK_SAFETY": 0.05,
+    "CHECK_SENSOR_TYPE": 0.08,
+    "CHECK_COMMON_TERMINAL": 0.06,
+    "CHECK_WIRING": 0.06,
+    "REWIRE_WITHOUT_SAFETY": 0.50,
+    "MODIFY_PROGRAM_PREMATURE": 0.30,
+    "REPLACE_MODULE_NO_EVIDENCE": 0.40,
+    "VERIFY_TRIPLE_STATE": 0.05,
+    "SKIP_VERIFICATION": 0.05,
+    "CHECK_ADDRESS_MAPPING": 0.05,
+    "CHECK_VARIABLE_BINDING": 0.05,
+    "REPLACE_SENSOR_PREMATURE": 0.40,
+    "SHORT_OUTPUT_ILLEGAL": 0.50,
+    "CHECK_DC24V": 0.05,
+    "CHECK_DISTANCE_AND_TARGET": 0.05,
+    "MODIFY_PROGRAM_PREMATURE_LED_OFF": 0.30,
+    "LAYERED_CHECK_ELECTRICAL": 0.05,
+    "LAYERED_CHECK_PROGRAM": 0.05,
+    "LAYERED_CHECK_AIR": 0.08,
+    "MANUAL_VALVE_UNSAFE": 0.50
+  },
+  "action_hypothesis_evidence": {
+    "SCN_SENSOR_LED_ON_PLC_LED_OFF": {
+      "CHECK_COMMON_TERMINAL": {
+        "refutes_if_ok": ["HYP_COMMON_TERMINAL_OPEN"],
+        "supports_if_bad": ["HYP_COMMON_TERMINAL_OPEN"]
+      },
+      "CHECK_WIRING": {
+        "refutes_if_ok": ["HYP_SENSOR_WIRING_WRONG"],
+        "supports_if_bad": ["HYP_SENSOR_WIRING_WRONG"]
+      },
+      "CHECK_SENSOR_TYPE": {
+        "refutes_if_ok": ["HYP_SENSOR_TYPE_MISMATCH"],
+        "supports_if_bad": ["HYP_SENSOR_TYPE_MISMATCH"]
+      },
+      "VERIFY_TRIPLE_STATE": {
+        "refutes_if_ok": ["HYP_PROGRAM_ISSUE"],
+        "supports_if_bad": []
+      },
+      "CHECK_SAFETY": {
+        "refutes_if_ok": [],
+        "supports_if_bad": []
+      }
+    },
+    "SCN_PLC_LED_ON_MONITOR_OFF": {
+      "CHECK_ADDRESS_MAPPING": {
+        "refutes_if_ok": ["HYP_ADDRESS_MISMATCH"],
+        "supports_if_bad": ["HYP_ADDRESS_MISMATCH"]
+      },
+      "CHECK_VARIABLE_BINDING": {
+        "refutes_if_ok": ["HYP_VARIABLE_MISMATCH"],
+        "supports_if_bad": ["HYP_VARIABLE_MISMATCH"]
+      }
+    },
+    "SCN_SENSOR_LED_OFF": {
+      "CHECK_DC24V": {
+        "refutes_if_ok": ["HYP_POWER_SUPPLY"],
+        "supports_if_bad": ["HYP_POWER_SUPPLY"]
+      },
+      "CHECK_DISTANCE_AND_TARGET": {
+        "refutes_if_ok": ["HYP_DETECTION_DISTANCE", "HYP_TARGET_MATERIAL"],
+        "supports_if_bad": ["HYP_DETECTION_DISTANCE", "HYP_TARGET_MATERIAL"]
+      }
+    },
+    "SCN_CYLINDER_NO_ACTION": {
+      "LAYERED_CHECK_ELECTRICAL": {
+        "refutes_if_ok": ["HYP_ELECTRICAL_NO_OUTPUT"],
+        "supports_if_bad": ["HYP_ELECTRICAL_NO_OUTPUT"]
+      },
+      "LAYERED_CHECK_PROGRAM": {
+        "refutes_if_ok": ["HYP_PROGRAM_CONDITION"],
+        "supports_if_bad": ["HYP_PROGRAM_CONDITION"]
+      },
+      "LAYERED_CHECK_AIR": {
+        "refutes_if_ok": ["HYP_AIR_SUPPLY"],
+        "supports_if_bad": ["HYP_AIR_SUPPLY", "HYP_MECHANICAL_JAM"]
+      }
+    }
+  },
+  "rules": {
+    "unsafe_action_blocked": true,
+    "maximum_why_not_items": 3,
+    "minimum_information_gain_threshold": 0.01,
+    "ability_validation_max_boost": 0.15,
+    "tie_break_by_action_id": true
+  }
+}

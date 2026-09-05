@@ -1,0 +1,755 @@
+{
+  "version": "1.0.0",
+  "role": "自动化生产线装调与运维技术员",
+  "scenario": "传感器 NPN/PNP 接线与 PLC 输入信号排查",
+  "source": "基于机电一体化专业群核心课程梳理",
+  "nodes": [
+    {
+      "id": "es_safety_rules",
+      "name": "安全用电规范",
+      "level": "basic",
+      "description": "掌握安全用电基本原则，熟悉电气安全标志和操作规范",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K001",
+        "K002",
+        "K003",
+        "K059",
+        "K060"
+      ],
+      "related_questions": [
+        "Q005",
+        "Q006",
+        "Q009"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "未断电就接线",
+        "忽略急停和气源状态",
+        "未确认设备是否处于安全初始位"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "electrical_safety_diagram → 电工电子技术等"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "es_power_isolation",
+      "name": "断电隔离操作",
+      "level": "basic",
+      "description": "掌握断电、急停、气源切断等隔离操作流程",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K001",
+        "K003",
+        "K004"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "只关控制按钮未切断电源",
+        "带电拔插传感器",
+        "未复核 DC24V 是否仍有电压"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "electrical_safety_diagram → 电工电子技术等"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "es_instrument_use",
+      "name": "常用仪表使用",
+      "level": "basic",
+      "description": "掌握万用表等常用仪表的正确使用方法",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K003",
+        "K036"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "档位选择错误",
+        "表笔造成短接",
+        "只测电源不测传感器输出"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "electrical_safety_diagram → 电工电子技术等"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "es_low_voltage",
+      "name": "低压电器识别",
+      "level": "basic",
+      "description": "识别常用低压电器，理解 DC24V 电源回路",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K004",
+        "K005",
+        "K006"
+      ],
+      "related_questions": [
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "正负极接反",
+        "把交流端子当作 DC24V 端子",
+        "只看电源灯不测量关键端子"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "electrical_safety_diagram → 电工电子技术等"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "es_diagram_reading",
+      "name": "电气图纸识读",
+      "level": "basic",
+      "description": "能识读电气原理图、接线图",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "electrical_safety_diagram → 电工电子技术等"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram"
+      ]
+    },
+    {
+      "id": "sn_type_identify",
+      "name": "传感器类型识别",
+      "level": "basic",
+      "description": "区分NPN/PNP等传感器类型，识读规格参数",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K009",
+        "K011",
+        "K012",
+        "K013",
+        "K015",
+        "K053",
+        "K054",
+        "K055"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q010"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "E_SENSOR_NPN_PNP",
+        "只看线色不看输出类型",
+        "把二线制和三线制传感器混为一谈",
+        "忽略型号后缀",
+        "把检测类型当作输出类型",
+        "未记录传感器型号"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "sensor_signal_acquisition → PLC应用技术等"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_wiring_rules",
+      "name": "传感器接线规范",
+      "level": "basic",
+      "description": "掌握三线制传感器接线规则，判断接线正确性",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K005",
+        "K007",
+        "K008",
+        "K006",
+        "K014",
+        "K016",
+        "K035",
+        "K062"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q002",
+        "Q011",
+        "Q017"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "棕蓝线接反",
+        "黑线接错输入点",
+        "未在断电状态下核对端子",
+        "E_SENSOR_NPN_PNP",
+        "E_IO_MAPPING",
+        "按颜色机械接线不核对公共端",
+        "带电改线"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "sensor_signal_acquisition → PLC应用技术等"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_signal_acq",
+      "name": "信号采集与验证",
+      "level": "basic",
+      "description": "完成传感器信号采集、状态判断和输出逻辑验证",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K011",
+        "K012",
+        "K014",
+        "K054",
+        "K055",
+        "K010",
+        "K031",
+        "K037",
+        "K056"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q010",
+        "Q011",
+        "Q005",
+        "Q013"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "E_SENSOR_NPN_PNP",
+        "把传感器指示灯亮等同于 PLC 输入有效",
+        "不理解上拉和下拉输出",
+        "只看传感器灯不看 PLC 输入灯",
+        "检测距离或角度未调整",
+        "忽略目标材质影响"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "sensor_signal_acquisition → PLC应用技术等"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_fault_diag",
+      "name": "传感器故障排查",
+      "level": "medium",
+      "description": "定位传感器信号异常的根本原因",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K010",
+        "K036",
+        "K037",
+        "K047"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "检测距离过远",
+        "目标材质不匹配",
+        "传感器灯亮但输出端未测量"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "sensor_signal_acquisition → PLC应用技术等"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "sn_actuator_link",
+      "name": "执行器联调基础",
+      "level": "medium",
+      "description": "理解气动执行机构与传感器的联动关系",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "sensor_signal_acquisition → PLC应用技术等"
+      ],
+      "radar_dimension_ids": [
+        "sensor_signal_acquisition"
+      ]
+    },
+    {
+      "id": "pl_io_mapping",
+      "name": "I/O地址映射",
+      "level": "basic",
+      "description": "掌握PLC I/O地址分配和映射关系",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K021",
+        "K022",
+        "K025",
+        "K049",
+        "K057"
+      ],
+      "related_questions": [
+        "Q002",
+        "Q012",
+        "Q016"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "E_IO_MAPPING",
+        "地址写错一位",
+        "元件名称和程序变量不一致",
+        "只填 PLC 地址不填现场端子",
+        "变量名无法对应程序",
+        "未记录当前状态"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "plc_control_debug → 工业通信与组态技术等"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pl_program_monitor",
+      "name": "程序编写与监控",
+      "level": "basic",
+      "description": "编写基础梯形图程序，使用在线监控功能",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K023",
+        "K026",
+        "K027",
+        "K028",
+        "K042",
+        "K061",
+        "K029",
+        "K032",
+        "K033",
+        "K056",
+        "K058",
+        "K030"
+      ],
+      "related_questions": [
+        "Q002",
+        "Q007",
+        "Q012",
+        "Q015",
+        "Q005",
+        "Q008",
+        "Q009"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "只看接线不查程序变量",
+        "变量重名或地址引用错误",
+        "把输出地址当输入地址",
+        "只看在线监控不看现场",
+        "只看传感器灯不看 PLC 输入点",
+        "未确认监控地址是否正确",
+        "看到传感器灯亮就认为输入正常",
+        "输入灯亮但仍排查传感器本体",
+        "未做三者状态对比"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "plc_control_debug → 工业通信与组态技术等"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pl_logic_control",
+      "name": "逻辑控制实现",
+      "level": "medium",
+      "description": "实现启停控制、互锁逻辑、顺序控制",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K006",
+        "K011",
+        "K012",
+        "K016",
+        "K018",
+        "K053",
+        "K017"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q003",
+        "Q010",
+        "Q014",
+        "Q002"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "E_SENSOR_NPN_PNP",
+        "只看输入点编号不看公共端",
+        "跨公共端组接错线",
+        "跨组接线",
+        "公共端接线只检查一个输入点",
+        "未记录公共端组别"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "plc_control_debug → 工业通信与组态技术等"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pl_fault_diag",
+      "name": "PLC故障排查",
+      "level": "medium",
+      "description": "排查PLC输入输出无响应等常见故障",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K023",
+        "K024",
+        "K040",
+        "K043"
+      ],
+      "related_questions": [
+        "Q002",
+        "Q005"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "E_IO_MAPPING",
+        "现场输入正常但程序看错地址",
+        "变量未绑定到实际输入点"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "plc_control_debug → 工业通信与组态技术等"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "pl_device_integration",
+      "name": "设备联调基础",
+      "level": "medium",
+      "description": "完成自动化设备整体联调、运行参数监测和动作逻辑验证",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "plc_control_debug → 工业通信与组态技术等"
+      ],
+      "radar_dimension_ids": [
+        "plc_control_debug"
+      ]
+    },
+    {
+      "id": "tr_inspection",
+      "name": "设备点检流程",
+      "level": "basic",
+      "description": "掌握设备点检标准流程和运行参数记录方法",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "equipment_inspection_troubleshooting → 设备点检与维护等"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "tr_fault_classify",
+      "name": "故障分类与定位",
+      "level": "medium",
+      "description": "对常见故障进行分类，按优先级确定排查方向",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K034",
+        "K038",
+        "K039",
+        "K041",
+        "K065"
+      ],
+      "related_questions": [
+        "Q004",
+        "Q005",
+        "Q018"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "E_NO_DIAG_ORDER",
+        "跳过电源和公共端直接改程序",
+        "无记录地反复换线"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "equipment_inspection_troubleshooting → 设备点检与维护等"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "tr_signal_chain",
+      "name": "电源与信号链路排查",
+      "level": "medium",
+      "description": "掌握从电源到信号的完整链路排查方法",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K004",
+        "K036",
+        "K044",
+        "K045",
+        "K016",
+        "K019",
+        "K020"
+      ],
+      "related_questions": [
+        "Q005",
+        "Q001"
+      ],
+      "related_tasks": [
+        "T001"
+      ],
+      "common_errors": [
+        "只检查信号线不检查供电",
+        "0V 断开未发现",
+        "测量点选择错误",
+        "E_SENSOR_NPN_PNP",
+        "公共端接反",
+        "输入公共端组别接错"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "equipment_inspection_troubleshooting → 设备点检与维护等"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "tr_system_diag",
+      "name": "系统综合排故",
+      "level": "medium",
+      "description": "进行系统级故障诊断，涵盖机械、电气、控制多方面",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [],
+      "related_questions": [],
+      "related_tasks": [],
+      "common_errors": [],
+      "source": "project_curated",
+      "sources": [
+        "equipment_inspection_troubleshooting → 设备点检与维护等"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "tr_record_feedback",
+      "name": "诊断记录与反馈",
+      "level": "medium",
+      "description": "规范记录诊断过程和结果，形成反馈闭环",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K048",
+        "K049",
+        "K050",
+        "K063"
+      ],
+      "related_questions": [
+        "Q005",
+        "Q019"
+      ],
+      "related_tasks": [
+        "T005"
+      ],
+      "common_errors": [
+        "只写结论不写证据",
+        "没有记录检查顺序",
+        "反馈建议无法落到下一次实训任务"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "equipment_inspection_troubleshooting → 设备点检与维护等"
+      ],
+      "radar_dimension_ids": [
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "rt_task_understanding",
+      "name": "岗位任务理解",
+      "level": "root",
+      "description": "说明自动化产线装调与运维岗位的任务边界和核心能力要求",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K034",
+        "K048",
+        "K049",
+        "K050",
+        "K051",
+        "K066"
+      ],
+      "related_questions": [
+        "Q020"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "只描述现象，不说明信号链路",
+        "把传感器问题直接归因于 PLC 程序"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "electrical_safety_diagram → 电工电子技术等",
+        "sensor_signal_acquisition → PLC应用技术等",
+        "plc_control_debug → 工业通信与组态技术等",
+        "equipment_inspection_troubleshooting → 设备点检与维护等"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram",
+        "sensor_signal_acquisition",
+        "plc_control_debug",
+        "equipment_inspection_troubleshooting"
+      ]
+    },
+    {
+      "id": "rt_training_recommend",
+      "name": "实训任务推荐",
+      "level": "application",
+      "description": "基于能力缺口推荐个性化实训任务和训练路径",
+      "parent_id": null,
+      "prerequisites": [],
+      "related_knowledge": [
+        "K001",
+        "K014",
+        "K016",
+        "K021",
+        "K034",
+        "K049",
+        "K050",
+        "K052",
+        "K064",
+        "K066"
+      ],
+      "related_questions": [
+        "Q001",
+        "Q002",
+        "Q005",
+        "Q019",
+        "Q020"
+      ],
+      "related_tasks": [
+        "T001",
+        "T005"
+      ],
+      "common_errors": [
+        "推荐任务过大",
+        "推荐内容脱离 NPN/PNP 和 PLC 输入排查场景",
+        "未把薄弱点映射到具体练习"
+      ],
+      "source": "project_curated",
+      "sources": [
+        "electrical_safety_diagram → 电工电子技术等",
+        "sensor_signal_acquisition → PLC应用技术等",
+        "plc_control_debug → 工业通信与组态技术等",
+        "equipment_inspection_troubleshooting → 设备点检与维护等"
+      ],
+      "radar_dimension_ids": [
+        "electrical_safety_diagram",
+        "sensor_signal_acquisition",
+        "plc_control_debug",
+        "equipment_inspection_troubleshooting"
+      ]
+    }
+  ]
+}

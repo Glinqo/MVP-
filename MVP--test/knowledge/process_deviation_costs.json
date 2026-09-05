@@ -1,0 +1,85 @@
+{
+  "version": "0.1.0",
+  "source": "project_curated",
+  "description": "过程偏差成本配置。安全偏差成本显著高于普通效率偏差。修改配置后无需改代码。",
+  "costs": {
+    "safety_gate_skipped": {
+      "cost": 10,
+      "label": "跳过安全确认",
+      "category": "safety",
+      "severity": "critical"
+    },
+    "unsafe_intervention": {
+      "cost": 10,
+      "label": "不安全操作",
+      "category": "safety",
+      "severity": "critical"
+    },
+    "unverified_rewiring": {
+      "cost": 8,
+      "label": "未验证就改线",
+      "category": "safety",
+      "severity": "high"
+    },
+    "unsupported_component_replacement": {
+      "cost": 6,
+      "label": "无证据更换元件",
+      "category": "evidence",
+      "severity": "high"
+    },
+    "unsupported_hypothesis": {
+      "cost": 5,
+      "label": "无证据假设跳跃",
+      "category": "evidence",
+      "severity": "medium"
+    },
+    "premature_program_check": {
+      "cost": 3,
+      "label": "过早检查程序",
+      "category": "efficiency",
+      "severity": "medium"
+    },
+    "signal_chain_layer_jump": {
+      "cost": 3,
+      "label": "跳过信号链层级",
+      "category": "efficiency",
+      "severity": "medium"
+    },
+    "closure_verification_missing": {
+      "cost": 3,
+      "label": "缺少闭环验证",
+      "category": "completeness",
+      "severity": "medium"
+    },
+    "repeated_low_value_action": {
+      "cost": 1,
+      "label": "重复低价值动作",
+      "category": "efficiency",
+      "severity": "low"
+    },
+    "documentation_missing": {
+      "cost": 1,
+      "label": "缺少诊断记录",
+      "category": "completeness",
+      "severity": "low"
+    },
+    "move_on_log": {
+      "cost": 2,
+      "label": "执行了模型不需要的额外动作",
+      "category": "efficiency",
+      "severity": "low"
+    },
+    "move_on_model": {
+      "cost": 4,
+      "label": "遗漏了模型要求的必要动作",
+      "category": "completeness",
+      "severity": "medium"
+    }
+  },
+  "severity_weights": {
+    "critical": 1.0,
+    "high": 0.8,
+    "medium": 0.5,
+    "low": 0.2
+  }
+}
