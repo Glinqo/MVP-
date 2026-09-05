@@ -1384,7 +1384,7 @@ TeacherUI.loadFeedback = function() {
     var filters = [["all", "全部"], ["draft", "草稿"], ["published", "已发布"]];
     filters.forEach(function(f) {
       var active = TeacherUI._commentFilter === f[0] ? "background:#14b8a6;color:#fff" : "background:rgba(255,255,255,0.08)";
-      var count = stats[f[0]] !== undefined ? stats[f[0]] : 0;
+      var count = f[0] === "all" ? (stats.total || 0) : (stats[f[0]] || 0);
       html += '<button style="padding:6px 12px;border-radius:6px;border:none;cursor:pointer;' + active + '" onclick="TeacherUI.setCommentFilter(\'' + f[0] + '\')">' + f[1] + ' (' + count + ')</button>';
     });
     html += '</div>';
